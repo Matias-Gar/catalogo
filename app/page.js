@@ -1,7 +1,5 @@
-"use client";
 import { useEffect, useState } from "react";
-import { supabase } from "../../lib/SupabaseClient";
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { supabase } from "../lib/supabaseClient";
 
 export default function Productos() {
   const [productos, setProductos] = useState([]);
