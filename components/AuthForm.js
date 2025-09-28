@@ -8,10 +8,12 @@ export default function AuthForm({ onLoginSuccess }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [message, setMessage] = useState(''); // Para mostrar mensajes de éxito/error
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setMessage('');
 
     let authFunction = isRegistering 
       ? supabase.auth.signUp 
@@ -20,10 +22,22 @@ export default function AuthForm({ onLoginSuccess }) {
     const { data, error } = await authFunction({ email, password });
 
     if (error) {
-      alert(`Error: ${error.message}`);
-    } else if (data.user) {
-      // 💡 Llamar a la función de éxito y pasar el ID del usuario.
-      onLoginSuccess(data.user.id); 
+      // 💡 CORRECCIÓN 1: Se reemplaza alert() por console.error y un mensaje en la UI
+      console.error(`Error de autenticación: ${error.message}`);
+      setMessage(`Error: ${error.message}`);
+
+    } else if (data.session) {
+      // 💡 CORRECCIÓN 2: Lógica de éxito para el inicio de sesión
+      // Llamar a la función de éxito y pasar el ID del usuario.
+      onLoginSuccess(data.session.user.id); 
+
+    } else if (isRegistering && data.user) {
+      // Mensaje si fue un registro exitoso, pero necesita confirmación
+      setMessage("¡Registro exitoso! Por favor, revisa tu correo para confirmar la cuenta.");
+      
+    } else {
+        // Manejo de otros casos raros
+        setMessage("Operación completada. Revisa tu estado de sesión.");
     }
     
     setLoading(false);
@@ -34,6 +48,13 @@ export default function AuthForm({ onLoginSuccess }) {
       <h2 className="text-3xl font-bold mb-6 text-gray-800">
         {isRegistering ? 'Crear Cuenta' : 'Acceso de Usuario'}
       </h2>
+      
+      {/* Muestra el mensaje de error o éxito */}
+      {message && (
+        <div className={`p-3 mb-4 rounded-lg w-full text-center ${message.startsWith('Error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+          {message}
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="space-y-4 w-full">
         <input
@@ -62,14 +83,15 @@ export default function AuthForm({ onLoginSuccess }) {
       </form>
       
       <button 
-        onClick={() => setIsRegistering(!isRegistering)}
+        onClick={() => {
+            setIsRegistering(!isRegistering);
+            setMessage(''); // Limpiar el mensaje al cambiar el modo
+        }}
         className="mt-6 text-sm text-indigo-600 hover:text-indigo-800 transition duration-200"
       >
         {isRegistering ? 'Ya tengo una cuenta' : '¿Necesitas una cuenta?'}
       </button>
       
-      {/* Aviso importante: Asegúrate de que el primer usuario registrado en Supabase 
-      tenga manualmente asignado el rol 'admin' en la tabla 'perfiles'. */}
       <p className="mt-4 text-xs text-red-500">
         *El administrador debe registrarse primero.
       </p>

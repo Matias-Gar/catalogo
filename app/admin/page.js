@@ -26,14 +26,10 @@ export default function AdminDashboard() {
                 .single();
 
             if (profile?.rol !== 'admin') {
-                // 2. Si NO es admin, redirigir al catálogo o mostrar error
-                alert("Acceso denegado: No tienes permisos de administrador.");
+                console.warn("Acceso denegado: No tienes permisos de administrador.");
                 router.push('/');
-            } else {
-                // 3. ¡Es admin! Mostrar el dashboard
-                setUserRole('admin');
-            }
-        };
+                }
+                        };
 
         checkAuthAndRole();
     }, [router]);
