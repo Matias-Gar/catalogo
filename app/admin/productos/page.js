@@ -5,23 +5,24 @@ import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
 // --------------------------------------------------------------------------
-// COMPONENTE 1: Modal de Vista Previa de Imagen (IMAGEN COMPLETA) - CORREGIDO
+// COMPONENTE 1: Modal de Vista Previa de Imagen (IMAGEN COMPLETA) - VERSIÓN FINAL Y REFORZADA
 // --------------------------------------------------------------------------
 function ImagePreviewModal({ isOpen, onClose, imageUrl, productName }) {
-    // Si no está abierto o no hay URL, no renderiza nada.
-    if (!isOpen || !imageUrl) return null;
+    // Si no está abierto, no renderiza nada. También verifica si la URL es válida.
+    if (!isOpen || !imageUrl || imageUrl.includes('placehold.co')) return null;
 
     return (
-        // Contenedor de fondo oscuro (fixed, z-50 es el más alto para asegurar visibilidad)
+        // Contenedor de fondo oscuro (z-[999] para máxima prioridad)
         <div 
-            className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-4 z-[999]" // <-- Z-INDEX MÁS ALTO
+            className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center p-2 sm:p-4 z-[999]" 
             onClick={onClose} // Cierra al hacer clic en el fondo
         >
             
-            {/* Contenedor principal del modal */}
+            {/* Contenedor principal: Ocupa el MÁXIMO de la ventana */}
             <div 
-                className="relative w-full h-full max-w-7xl max-h-[90vh] flex flex-col items-center justify-center" 
-                onClick={e => e.stopPropagation()} // Evita que se cierre al hacer clic dentro de este div
+                // Añadimos max-w-screen-2xl para darle un tamaño GIGANTE
+                className="relative w-full h-full max-w-screen-2xl max-h-[95vh] flex flex-col items-center justify-center" 
+                onClick={e => e.stopPropagation()} // Evita que el clic dentro cierre el modal
             >
                 <button
                     onClick={onClose}
@@ -31,23 +32,22 @@ function ImagePreviewModal({ isOpen, onClose, imageUrl, productName }) {
                     &times;
                 </button>
                 
-                {/* LA IMAGEN: max-w-full y object-contain para vista completa */}
+                {/* LA IMAGEN: max-w-full y max-h-full para que se ajuste al 100% de su contenedor.
+                  Hemos cambiado object-contain por object-scale-down para una prueba de compatibilidad.
+                */}
                 <img
                     src={imageUrl}
                     alt={`Vista previa de ${productName}`}
-                    // Esta clase es clave para que la imagen se ajuste dentro de su contenedor.
-                    className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" 
+                    className="max-w-full max-h-full object-scale-down rounded-lg shadow-2xl" 
                 />
                 
-                <div className="mt-4 bg-black bg-opacity-50 text-white text-center p-2 rounded-lg text-sm opacity-80">
+                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-center p-2 rounded-b-lg text-sm opacity-80">
                     {productName}
                 </div>
             </div>
         </div>
     );
 }
-// --------------------------------------------------------------------------
-
 // --------------------------------------------------------------------------
 // COMPONENTE 2: Modal de Confirmación de Eliminación
 // --------------------------------------------------------------------------
