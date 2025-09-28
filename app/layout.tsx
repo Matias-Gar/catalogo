@@ -1,6 +1,15 @@
+// app/layout.tsx
+
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+// 💡 NOTA: Asumo que estás usando la versión correcta de "geist/font" o "next/font/google"
+// La importación de las fuentes depende de cómo las hayas instalado.
+// Si usas 'next/font/google' para Geist, tu estructura de importación es correcta.
+import { Geist, Geist_Mono } from "next/font/google"; 
 import "./globals.css";
+
+// 💡 PASO 1: Importar el componente Header
+// Asegúrate de que la ruta sea correcta (asumo que está en la carpeta 'components')
+import Header from "../components/Header"; 
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,11 +32,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    // Cambié 'lang="en"' a 'lang="es"' ya que estás programando en español
+    <html lang="es">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        
+        {/* 💡 PASO 2: Colocar el Header antes del {children} */}
+        {/* El Header aparecerá en la parte superior de todas las páginas */}
+        <Header /> 
+        
         {children}
+        
       </body>
     </html>
   );

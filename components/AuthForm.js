@@ -1,61 +1,78 @@
 // components/AuthForm.js
 "use client";
 import { useState } from 'react';
-import { supabase } from "../lib/SupabaseClient";
+import { supabase } from "../lib/SupabaseClient"; // Ajusta esta ruta si es necesario
 
-export default function AuthForm() {
+export default function AuthForm({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
 
-  // 💡 Para registrarte o iniciar sesión
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password }); // o signUp
 
-    if (error) alert(error.message);
+    let authFunction = isRegistering 
+      ? supabase.auth.signUp 
+      : supabase.auth.signInWithPassword;
+
+    const { data, error } = await authFunction({ email, password });
+
+    if (error) {
+      alert(`Error: ${error.message}`);
+    } else if (data.user) {
+      // 💡 Llamar a la función de éxito y pasar el ID del usuario.
+      onLoginSuccess(data.user.id); 
+    }
+    
     setLoading(false);
   };
 
-  // 💡 Para cerrar sesión
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center p-8 bg-white shadow-lg rounded-xl">
-      <h2 className="text-2xl font-bold mb-4">Acceso de Administrador</h2>
+    <div className="flex flex-col items-center p-8 bg-white shadow-xl rounded-xl w-full max-w-md">
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">
+        {isRegistering ? 'Crear Cuenta' : 'Acceso de Usuario'}
+      </h2>
       
-      {/* Muestra el formulario de login/registro si no hay sesión */}
-      <form onSubmit={handleLogin} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 w-full">
         <input
           type="email"
           placeholder="Correo electrónico"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-2 border rounded-lg"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          required
         />
         <input
           type="password"
           placeholder="Contraseña"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3 py-2 border rounded-lg"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          required
         />
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-500 text-white py-2 rounded-lg disabled:bg-gray-400"
+          className="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition duration-200 disabled:bg-gray-400"
         >
-          {loading ? 'Cargando...' : 'Iniciar Sesión'}
+          {loading ? 'Cargando...' : (isRegistering ? 'Registrarse' : 'Iniciar Sesión')}
         </button>
       </form>
       
-      {/* Botón de Logout (puedes mostrarlo si el usuario ya está logueado) */}
-      <button onClick={handleLogout} className="mt-4 text-sm text-red-500 hover:underline">
-        Cerrar Sesión
+      <button 
+        onClick={() => setIsRegistering(!isRegistering)}
+        className="mt-6 text-sm text-indigo-600 hover:text-indigo-800 transition duration-200"
+      >
+        {isRegistering ? 'Ya tengo una cuenta' : '¿Necesitas una cuenta?'}
       </button>
+      
+      {/* Aviso importante: Asegúrate de que el primer usuario registrado en Supabase 
+      tenga manualmente asignado el rol 'admin' en la tabla 'perfiles'. */}
+      <p className="mt-4 text-xs text-red-500">
+        *El administrador debe registrarse primero.
+      </p>
     </div>
   );
 }
