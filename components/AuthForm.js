@@ -16,12 +16,11 @@ export default function AuthForm({ onLoginSuccess }) {
 
     let data, error;
 
-    // 💡 CORRECCIÓN CRÍTICA: Llamar a la función directamente en el await
     if (isRegistering) {
-      // 1. Lógica de REGISTRO (signUp)
+      // Lógica de REGISTRO (signUp)
       ({ data, error } = await supabase.auth.signUp({ email, password }));
     } else {
-      // 2. Lógica de INICIO DE SESIÓN (signInWithPassword)
+      // Lógica de INICIO DE SESIÓN (signInWithPassword)
       ({ data, error } = await supabase.auth.signInWithPassword({ email, password }));
     }
 
@@ -30,20 +29,23 @@ export default function AuthForm({ onLoginSuccess }) {
       console.error(`Error de autenticación: ${error.message}`);
       setMessage(`Error: ${error.message}`);
       
-    } else if (data.session) {
-      // 3. Inicio de sesión exitoso (tanto si se registra y no necesita confirmación, como si inicia sesión)
-      // Llamar a la función de éxito que está en app/login/page.js
-      onLoginSuccess(data.session.user.id); 
-      
-    } else if (isRegistering && data.user) {
-      // 4. Registro exitoso pero requiere confirmación por correo (Authflow: email)
+    } else if (isRegistering && data.user && !data.session) {
+      // 💡 CORRECCIÓN: CASO 1 - REGISTRO EXITOSO, PERO REQUIERE CONFIRMACIÓN
+      // Muestra el mensaje de éxito, pero NO llama a onLoginSuccess (no hay sesión activa)
       setMessage("¡Registro exitoso! Por favor, revisa tu correo para confirmar la cuenta.");
       
+    } else if (data.session) {
+      // 💡 CASO 2 - INICIO DE SESIÓN EXITOSO o REGISTRO con autoconfirmación (si la tienes activa)
+      // Llama a la función de éxito que redirigirá por rol.
+      onLoginSuccess(data.session.user.id); 
+      
     } else {
-      // Manejo de otros casos (ej. email ya existe, sin sesión pero sin error)
+      // Manejo de otros casos raros (seguridad, etc.)
       setMessage("Operación completada. Revisa tu estado de sesión o intenta de nuevo.");
     }
     
+    // Limpiamos la contraseña y paramos la carga
+    setPassword('');
     setLoading(false);
   };
 
@@ -90,6 +92,8 @@ export default function AuthForm({ onLoginSuccess }) {
         onClick={() => {
             setIsRegistering(!isRegistering);
             setMessage(''); // Limpiar el mensaje al cambiar el modo
+            setEmail(''); // Limpiar campos
+            setPassword(''); 
         }}
         className="mt-6 text-sm text-indigo-600 hover:text-indigo-800 transition duration-200"
       >
