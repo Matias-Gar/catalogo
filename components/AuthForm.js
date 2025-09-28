@@ -1,4 +1,3 @@
-// components/AuthForm.js
 "use client";
 import { useState } from 'react';
 import { supabase } from "../lib/SupabaseClient"; // Ajusta esta ruta si es necesario
@@ -15,29 +14,34 @@ export default function AuthForm({ onLoginSuccess }) {
     setLoading(true);
     setMessage('');
 
-    let authFunction = isRegistering 
-      ? supabase.auth.signUp 
-      : supabase.auth.signInWithPassword;
+    let data, error;
 
-    const { data, error } = await authFunction({ email, password });
+    // 💡 CORRECCIÓN CRÍTICA: Llamar a la función directamente en el await
+    if (isRegistering) {
+      // 1. Lógica de REGISTRO (signUp)
+      ({ data, error } = await supabase.auth.signUp({ email, password }));
+    } else {
+      // 2. Lógica de INICIO DE SESIÓN (signInWithPassword)
+      ({ data, error } = await supabase.auth.signInWithPassword({ email, password }));
+    }
 
     if (error) {
-      // 💡 CORRECCIÓN 1: Se reemplaza alert() por console.error y un mensaje en la UI
+      // Manejo de errores de Supabase
       console.error(`Error de autenticación: ${error.message}`);
       setMessage(`Error: ${error.message}`);
-
+      
     } else if (data.session) {
-      // 💡 CORRECCIÓN 2: Lógica de éxito para el inicio de sesión
-      // Llamar a la función de éxito y pasar el ID del usuario.
+      // 3. Inicio de sesión exitoso (tanto si se registra y no necesita confirmación, como si inicia sesión)
+      // Llamar a la función de éxito que está en app/login/page.js
       onLoginSuccess(data.session.user.id); 
-
+      
     } else if (isRegistering && data.user) {
-      // Mensaje si fue un registro exitoso, pero necesita confirmación
+      // 4. Registro exitoso pero requiere confirmación por correo (Authflow: email)
       setMessage("¡Registro exitoso! Por favor, revisa tu correo para confirmar la cuenta.");
       
     } else {
-        // Manejo de otros casos raros
-        setMessage("Operación completada. Revisa tu estado de sesión.");
+      // Manejo de otros casos (ej. email ya existe, sin sesión pero sin error)
+      setMessage("Operación completada. Revisa tu estado de sesión o intenta de nuevo.");
     }
     
     setLoading(false);
