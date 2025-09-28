@@ -1,11 +1,11 @@
-// app/admin/page.js
 "use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from "../../lib/SupabaseClient";
 
 export default function AdminDashboard() {
-    const [userRole, setUserRole] = useState(null);
+    // Inicializa el rol en null para indicar que la verificación está en curso
+    const [userRole, setUserRole] = useState(null); 
     const router = useRouter();
 
     useEffect(() => {
@@ -15,27 +15,54 @@ export default function AdminDashboard() {
             if (!user) {
                 // Si no hay usuario, redirigir a login
                 router.push('/login');
+                // IMPORTANTE: Establecer el rol a 'not_logged' para evitar que se quede cargando
+                setUserRole('not_logged'); 
                 return;
             }
 
             // 1. Verificar el rol en la base de datos
-            const { data: profile } = await supabase
+            const { data: profile, error } = await supabase
                 .from('perfiles')
                 .select('rol')
                 .eq('id', user.id)
                 .single();
+            
+            if (error) {
+                // 💡 MEJORA: Manejar errores de consulta (ej. RLS no permite leer)
+                console.error("Error al obtener perfil:", error.message);
+                // Si hay un error, lo tratamos como si no fuera admin y lo mandamos al home
+                setUserRole('cliente'); 
+                router.push('/');
+                return;
+            }
 
-            if (profile?.rol !== 'admin') {
+            // 💡 CORRECCIÓN CRÍTICA: Actualizar el estado del rol
+            if (profile) {
+                setUserRole(profile.rol);
+            } else {
+                // Caso donde el perfil no se encontró, redirigir
+                setUserRole('cliente'); 
+                router.push('/');
+                return;
+            }
+            
+            if (profile.rol !== 'admin') {
                 console.warn("Acceso denegado: No tienes permisos de administrador.");
                 router.push('/');
-                }
-                        };
+            }
+        };
 
         checkAuthAndRole();
     }, [router]);
+    
+    // 💡 CORRECCIÓN: Ahora userRole se inicializa en null y cambia a 'admin' o 'cliente'
+    if (userRole === null) {
+        return <div className="min-h-screen flex items-center justify-center text-xl font-medium text-gray-700">Verificando permisos, por favor espera...</div>;
+    }
 
     if (userRole !== 'admin') {
-        return <div className="min-h-screen flex items-center justify-center">Cargando o verificando permisos...</div>;
+        // Redirigido en el useEffect, pero esta condición previene el parpadeo
+        return <div className="min-h-screen flex items-center justify-center text-xl font-medium text-red-500">Acceso denegado. Redirigiendo...</div>;
     }
 
     // 4. Contenido del Dashboard (Solo visible para admins)
