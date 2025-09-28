@@ -1,74 +1,85 @@
 // app/login/page.js
+
 "use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from "../../lib/SupabaseClient";
-import AuthForm from "../../components/AuthForm"; 
-
+// USAR ALIAS DE RAIZ (ahora que tsconfig.json está listo)
+import { supabase } from '@/lib/SupabaseClient'; 
+import AuthForm from '@/components/AuthForm'; 
+// ...
 export default function LoginPage() {
-  const [session, setSession] = useState(null);
-  const [isLoadingRole, setIsLoadingRole] = useState(true);
-  const router = useRouter();
+    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(true);
 
-  // Función clave para verificar el rol y redirigir
-  const checkUserRoleAndRedirect = async (userId) => {
-      // Debes tener la tabla 'perfiles' creada en Supabase
-      const { data: profile, error } = await supabase
-          .from('perfiles')
-          .select('rol')
-          .eq('id', userId)
-          .single();
-      
-      if (error && error.code !== 'PGRST116') { // PGRST116 es "no results found"
-          console.error("Error al cargar perfil:", error.message);
-      }
-      
-      if (profile?.rol === 'admin') {
-          router.push('/admin'); // Redirigir al panel de administración
-      } else {
-          router.push('/'); // Redirigir al catálogo (cliente)
-      }
-  }
+    // Función unificada para verificar rol y redirigir
+    const checkRoleAndRedirect = async (userId) => {
+        setIsLoading(true);
+        try {
+            const { data: profile, error: profileError } = await supabase
+            .from('perfiles')
+            .select('rol')
+            .eq('id', userId)
+            .single();
 
-  useEffect(() => {
-    // 1. Verificar sesión al cargar la página
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-          checkUserRoleAndRedirect(session.user.id);
-      } else {
-          setIsLoadingRole(false);
-      }
-    });
+            if (profileError) {
+                console.error("Error al obtener el perfil:", profileError.message);
+                router.push("/"); 
+                return;
+            }
 
-    // 2. Escuchar cambios de autenticación (login/logout)
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        if (session) {
-            checkUserRoleAndRedirect(session.user.id);
-        } else {
-            setIsLoadingRole(false);
+            if (profile?.rol === 'admin') {
+                router.push('/admin');
+            } else {
+                router.push('/');
+            }
+        } catch (error) {
+            console.error("Error en la redirección por rol:", error.message);
+            router.push('/');
+        } finally {
+            // Aseguramos que la carga termine si no se pudo redirigir por alguna razón.
+            setIsLoading(false); 
         }
-      }
-    );
+    };
 
-    return () => authListener?.subscription.unsubscribe();
-  }, []);
+    useEffect(() => {
+        const checkSession = async () => {
+            // Supabase.auth.getSession() no requiere try/catch
+            const { data: { session } } = await supabase.auth.getSession();
 
-  // Muestra un estado de carga mientras verifica si el usuario ya está logueado
-  if (isLoadingRole || session) {
-      return (
-          <div className="min-h-screen flex items-center justify-center bg-gray-100">
-              <p className="text-xl text-gray-700">Verificando sesión...</p>
-          </div>
-      );
-  }
+            if (session) {
+                // Si ya hay sesión, intentar redirigir
+                checkRoleAndRedirect(session.user.id);
+            } else {
+                // Si no hay sesión, mostrar formulario
+                setIsLoading(false);
+            }
+        };
 
-  // Muestra el formulario si no hay sesión
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <AuthForm onLoginSuccess={checkUserRoleAndRedirect} /> 
-    </div>
-  );
+        checkSession();
+
+        // Escuchar cambios de autenticación (login/logout)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+             if (event === 'SIGNED_IN' && session) {
+                 checkRoleAndRedirect(session.user.id);
+             } else if (event === 'SIGNED_OUT') {
+                 setIsLoading(false);
+                 router.refresh(); 
+             }
+        });
+
+        return () => subscription.unsubscribe();
+    }, [router]);
+
+    if (isLoading) {
+        return <div className="min-h-screen flex items-center justify-center">Verificando sesión...</div>;
+    }
+    
+    return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+            <h1 className="text-4xl font-extrabold text-gray-800 mb-8">
+                Portal de Acceso
+            </h1>
+            <AuthForm onLoginSuccess={checkRoleAndRedirect} />
+        </div>
+    );
 }
