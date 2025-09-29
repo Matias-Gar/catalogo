@@ -1,4 +1,49 @@
-"use client";
+    "use client";
+    // Función para imprimir el código de barras
+        const handlePrintBarcode = (codigo, nombre) => {
+            const printWindow = window.open('', '_blank', 'width=400,height=250');
+            if (!printWindow) return;
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Imprimir Código de Barras</title>
+                        <style>
+                            body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+                            .barcode-label { font-family: Arial, sans-serif; text-align: center; }
+                            .barcode-label span { display: block; margin-top: 8px; font-size: 16px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="barcode-label">
+                            <div id="barcode"></div>
+                            <span>${nombre || ''}</span>
+                            <span>${codigo}</span>
+                        </div>
+                        <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+                        <script>
+                            var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                            svg.setAttribute('id', 'barcode-svg');
+                            document.getElementById('barcode').appendChild(svg);
+                            JsBarcode(svg, '${codigo}', { width: 2, height: 60, displayValue: true, fontSize: 18, margin: 0 });
+                            setTimeout(function() { window.print(); window.close(); }, 500);
+                        </script>
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+        };
+import dynamic from 'next/dynamic';
+// import { useEffect, useState, useRef } from 'react';
+// import { supabase } from "../../../lib/SupabaseClient";
+// import { useRouter } from "next/navigation";
+// import Link from 'next/link';
+// import { v4 as uuidv4 } from 'uuid';
+const Barcode = dynamic(() => import('react-barcode'), { ssr: false });
+// Generador de código de barras EAN13 simple
+function generateBarcode() {
+    // Genera un número de 12 dígitos, el 13 lo calcula el lector
+    return Math.floor(100000000000 + Math.random() * 900000000000).toString();
+}
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from "../../../lib/SupabaseClient";
 import { useRouter } from "next/navigation";
@@ -123,7 +168,8 @@ export default function AdminProductosPage() {
         descripcion: '', 
         precio: '', 
         stock: '', 
-        category_id: '' 
+        category_id: '',
+        codigo_barra: ''
     }); 
 
     const [editingProduct, setEditingProduct] = useState(null); 
@@ -158,7 +204,7 @@ export default function AdminProductosPage() {
     };
 
     const handleNewProductChange = (e) => { 
-        setNewProduct({ ...newProduct, [e.target.name]: e.target.value }); 
+    setNewProduct({ ...newProduct, [e.target.name]: e.target.value }); 
     }; 
     
     const handleEditProductChange = (e) => { 
@@ -181,7 +227,8 @@ export default function AdminProductosPage() {
 
     const closeEditModal = () => { 
         setEditingProduct(null); 
-        setEditImageFile(null); 
+        setEditImageFiles([]); 
+        setEditImageList([]); 
         setMessage(''); 
     }; 
 
@@ -227,6 +274,7 @@ export default function AdminProductosPage() {
                 stock,
                 imagen_url,
                 category_id,
+                codigo_barra,
                 categorias (categori)
             `)
             .order('nombre', { ascending: true });
@@ -271,30 +319,29 @@ export default function AdminProductosPage() {
         setMessage('');
         setLoading(true);
         let imagenUrls = [];
-
         try {
             // Subir imágenes ANTES de insertar en la tabla
             if (imageFiles && imageFiles.length > 0) {
                 imagenUrls = await uploadProductImages(imageFiles);
             }
-
             const categoryIdValue = newProduct.category_id ? parseInt(newProduct.category_id) : null;
-
-            // Insertar el producto y obtener el ID generado
-            const { data: productoInsertado, error: insertError } = await supabase.from('productos').insert([
-                {
-                    nombre: newProduct.nombre,
-                    descripcion: newProduct.descripcion,
-                    precio: parseFloat(newProduct.precio) || 0,
-                    stock: parseInt(newProduct.stock) || 0,
-                    category_id: categoryIdValue,
-                }
-            ]).select();
-
+            // Generar código de barras automáticamente si no se proporciona
+            const codigoBarra = newProduct.codigo_barra || generateBarcode();
+            const { data: productoInsertado, error: insertError } = await supabase
+                .from('productos')
+                .insert([
+                    {
+                        nombre: newProduct.nombre,
+                        descripcion: newProduct.descripcion,
+                        precio: parseFloat(newProduct.precio) || 0,
+                        stock: parseInt(newProduct.stock) || 0,
+                        category_id: categoryIdValue,
+                        codigo_barra: codigoBarra
+                    }
+                ]).select();
             if (insertError) {
                 throw new Error(insertError.message);
             }
-
             // Insertar las imágenes en la tabla producto_imagenes
             if (productoInsertado && productoInsertado.length > 0 && imagenUrls.length > 0) {
                 const productoId = productoInsertado[0].user_id;
@@ -304,9 +351,8 @@ export default function AdminProductosPage() {
                     throw new Error(imgInsertError.message);
                 }
             }
-
             setMessage('✅ Producto creado con éxito!');
-            setNewProduct({ nombre: '', descripcion: '', precio: '', stock: '', category_id: '' });
+            setNewProduct({ nombre: '', descripcion: '', precio: '', stock: '', category_id: '', codigo_barra: '' });
             setImageFiles([]);
             if (newImageInputRef.current) {
                 newImageInputRef.current.value = '';
@@ -467,7 +513,7 @@ export default function AdminProductosPage() {
                             value={newProduct.nombre} 
                             onChange={handleNewProductChange} 
                             required 
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
                         /> 
                         <input 
                             type="number" 
@@ -477,7 +523,7 @@ export default function AdminProductosPage() {
                             onChange={handleNewProductChange} 
                             required 
                             step="0.01" 
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
                         /> 
                         <input 
                             type="number" 
@@ -486,7 +532,7 @@ export default function AdminProductosPage() {
                             value={newProduct.stock} 
                             onChange={handleNewProductChange} 
                             required 
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
                         /> 
                         
                         {/* Selección de Categoría */} 
@@ -507,7 +553,7 @@ export default function AdminProductosPage() {
                         placeholder="Descripción del Producto" 
                         value={newProduct.descripcion} 
                         onChange={handleNewProductChange} 
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 h-24" 
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 h-24 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
                     /> 
                     
                     {/* Campo de Subida de Imagen */} 
@@ -553,74 +599,112 @@ export default function AdminProductosPage() {
             {loading && productos.length === 0 && <p className="text-center text-gray-600">Cargando catálogo...</p>} 
             
             {productos.length > 0 ? ( 
-                <div className="overflow-x-auto bg-white rounded-xl shadow-lg"> 
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-white"> 
-                            <tr> 
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">ID Producto (user_id)</th> 
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Imagen</th> 
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Nombre</th> 
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Categoría</th> 
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Precio (Bs)</th> 
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Stock</th> 
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Acciones</th> 
-                            </tr> 
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200 text-gray-900"> 
-                            {productos.map((producto) => ( 
-                                <tr key={producto.user_id} className="hover:bg-gray-50 transition duration-150"> 
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{producto.user_id}</td> 
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <div className="flex space-x-1">
-                                            {(imagenesProductos[producto.user_id]?.length > 0
-                                                ? imagenesProductos[producto.user_id]
-                                                : ["https://placehold.co/50x50/374151/FFFFFF?text=No"]
-                                            ).map((img, idx, arr) => (
-                                                <img
-                                                    key={img}
-                                                    src={img}
-                                                    alt={producto.nombre}
-                                                    className="h-12 w-12 object-cover rounded-md cursor-pointer hover:shadow-lg transition border"
-                                                    onClick={() => openImageModal(arr, idx, producto.nombre)}
-                                                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/50x50/374151/FFFFFF?text=No"; }}
-                                                />
-                                            ))}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">{producto.nombre}</td> 
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{producto.category_name}</td> 
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-bold">{producto.precio ? producto.precio.toFixed(2) : '0.00'}</td> 
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{producto.stock}</td> 
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2"> 
-                                        <button 
-                                            onClick={() => openEditModal(producto)} 
-                                            className="text-indigo-600 hover:text-indigo-900 transition duration-150" 
-                                        > 
-                                            ✏️ Editar 
-                                        </button> 
-                                        <button 
-                                            onClick={() => handleDelete(producto)} 
-                                            disabled={isDeleting} 
-                                            className="text-red-600 hover:text-red-900 transition duration-150 disabled:opacity-50" 
-                                        > 
-                                            {isDeleting && productToDelete?.user_id === producto.user_id ? 'Eliminando...' : '🗑️ Eliminar'} 
-                                        </button> 
-                                    </td> 
-                                </tr> 
-                            ))} 
-                        </tbody>
-                    </table> 
-                </div> 
+                                <div className="overflow-x-auto bg-white rounded-xl shadow-lg">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-white">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">ID Producto (user_id)</th>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Imagen</th>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Código de Barra</th>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Nombre</th>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Categoría</th>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Precio (Bs)</th>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Stock</th>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200 text-gray-900">
+                                            {productos.map((producto) => {
+                                                const isNumericBarcode = /^[0-9]{12,13}$/.test(producto.codigo_barra || '');
+                                                return (
+                                                    <tr key={producto.user_id} className="hover:bg-gray-50 transition duration-150">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{producto.user_id}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                            <div className="flex space-x-1">
+                                                                {(imagenesProductos[producto.user_id]?.length > 0
+                                                                    ? imagenesProductos[producto.user_id]
+                                                                    : ["https://placehold.co/50x50/374151/FFFFFF?text=No"]
+                                                                ).map((img, idx, arr) => (
+                                                                    <img
+                                                                        key={img}
+                                                                        src={img}
+                                                                        alt={producto.nombre}
+                                                                        className="h-12 w-12 object-cover rounded-md cursor-pointer hover:shadow-lg transition border"
+                                                                        onClick={() => openImageModal(arr, idx, producto.nombre)}
+                                                                        onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/50x50/374151/FFFFFF?text=No"; }}
+                                                                    />
+                                                                ))}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                                                            {producto.codigo_barra ? (
+                                                                                                <div className="flex flex-col items-center">
+                                                                                                    {isNumericBarcode ? (
+                                                                                                        <Barcode value={producto.codigo_barra} width={1.5} height={40} displayValue={true} fontSize={14} margin={0} />
+                                                                                                    ) : null}
+                                                                                                    <span className="text-xs text-gray-700 mt-1 font-mono">{producto.codigo_barra}</span>
+                                                                                                    <button
+                                                                                                        type="button"
+                                                                                                        className="mt-1 px-2 py-1 bg-indigo-500 text-white text-xs rounded hover:bg-indigo-700 transition"
+                                                                                                        onClick={() => handlePrintBarcode(producto.codigo_barra, producto.nombre)}
+                                                                                                    >
+                                                                                                        Imprimir
+                                                                                                    </button>
+                                                                                                </div>
+                                                                                            ) : (
+                                                                                                <span className="text-gray-400">Sin código</span>
+                                                                                            )}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">{producto.nombre}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{producto.category_name}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-bold">{producto.precio ? producto.precio.toFixed(2) : '0.00'}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{producto.stock}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                                            <button
+                                                                onClick={() => openEditModal(producto)}
+                                                                className="text-indigo-600 hover:text-indigo-900 transition duration-150"
+                                                            >
+                                                                ✏️ Editar
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDelete(producto)}
+                                                                disabled={isDeleting}
+                                                                className="text-red-600 hover:text-red-900 transition duration-150 disabled:opacity-50"
+                                                            >
+                                                                {isDeleting && productToDelete?.user_id === producto.user_id ? 'Eliminando...' : '🗑️ Eliminar'}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
             ) : ( 
                 !loading && <p className="text-center text-gray-600">No hay productos en el catálogo.</p> 
             )} 
 
             {/* 3. Modal de Edición */} 
             {editingProduct && ( 
-                <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-40"> 
-                    <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-2xl"> 
-                        <h3 className="text-2xl font-bold mb-6 text-indigo-700">Editar Producto: {editingProduct.nombre}</h3> 
-                        <form onSubmit={handleGuardarEdicion} className="space-y-4"> 
+                                <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-40">
+                                    <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-2xl">
+                                        <h3 className="text-2xl font-bold mb-6 text-indigo-700">Editar Producto: {editingProduct.nombre}</h3>
+                                        {editingProduct.codigo_barra && (
+                                                                    <div className="flex flex-col items-center mb-4">
+                                                                        {/^[0-9]{12,13}$/.test(editingProduct.codigo_barra) ? (
+                                                                            <Barcode value={editingProduct.codigo_barra} width={1.5} height={40} displayValue={true} fontSize={14} margin={0} />
+                                                                        ) : null}
+                                                                        <span className="text-xs text-gray-700 mt-1 font-mono">{editingProduct.codigo_barra}</span>
+                                                                        <button
+                                                                            type="button"
+                                                                            className="mt-1 px-2 py-1 bg-indigo-500 text-white text-xs rounded hover:bg-indigo-700 transition"
+                                                                            onClick={() => handlePrintBarcode(editingProduct.codigo_barra, editingProduct.nombre)}
+                                                                        >
+                                                                            Imprimir
+                                                                        </button>
+                                                                    </div>
+                                        )}
+                                                <form onSubmit={handleGuardarEdicion} className="space-y-4"> 
                             <input 
                                 type="text" 
                                 name="nombre" 

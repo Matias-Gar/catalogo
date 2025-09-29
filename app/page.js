@@ -30,6 +30,11 @@ const getProductImageUrl = (path) => {
 
 
 // Componente principal de la página (Tienda)
+// Utilidad para obtener nombre de categoría por id
+function getCategoriaNombre(id, categorias) {
+  const cat = categorias.find(c => c.id === id);
+  return cat ? cat.categori : 'Sin categoría';
+}
 // Modal de galería de imágenes
 function ImageGalleryModal({ isOpen, onClose, imageList, imageIndex, productName, onPrev, onNext }) {
   if (!isOpen || !imageList || imageList.length === 0) return null;
@@ -88,9 +93,19 @@ export default function Home() {
   };
   const [productos, setProductos] = useState([]);
   const [imagenesProductos, setImagenesProductos] = useState({});
+  const [categorias, setCategorias] = useState([]);
   const [filtroCategoria, setFiltroCategoria] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const fetchCategorias = async () => {
+    if (!supabase) return;
+    const { data, error } = await supabase
+      .from('categorias')
+      .select('id, categori')
+      .order('categori', { ascending: true });
+    if (!error && data) setCategorias(data);
+  };
 
   const fetchProductos = async () => {
     if (!supabase) {
@@ -107,14 +122,9 @@ export default function Home() {
       if (error) {
         throw new Error(`Error al cargar productos: ${error.message}`);
       }
-      // Asignar categorías
-      const dataConCategorias = data.map(p => ({
-        ...p,
-        categoria: p.category_id === 1 ? 'Ropa' : p.category_id === 2 ? 'Tecnología' : 'Otros',
-      }));
-      setProductos(dataConCategorias);
+      setProductos(data);
       // Buscar imágenes
-      const ids = dataConCategorias.map(p => p.user_id);
+      const ids = data.map(p => p.user_id);
       if (ids.length > 0) {
         const { data: imgs, error: imgsError } = await supabase
           .from('producto_imagenes')
@@ -138,6 +148,7 @@ export default function Home() {
   };
 
   useEffect(() => {
+    fetchCategorias();
     fetchProductos();
     if (supabase) {
       const channel = supabase
@@ -159,7 +170,7 @@ export default function Home() {
 
   // 2. Definición de la variable calculada: productosFiltrados
   const productosFiltrados = productos.filter(p => 
-    filtroCategoria === '' || p.categoria === filtroCategoria
+    filtroCategoria === '' || p.category_id === filtroCategoria
   );
 
   return (
@@ -178,25 +189,22 @@ export default function Home() {
 
 
         {/* Sección de Filtros */}
-        <div className="mb-8 p-4 bg-white rounded-xl shadow-md flex flex-wrap justify-center space-x-2 sm:space-x-4">
-          <button 
+        <div className="mb-8 p-4 bg-white rounded-xl shadow-md flex flex-wrap justify-center gap-2">
+          <button
             onClick={() => setFiltroCategoria('')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ${filtroCategoria === '' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-indigo-100'}`}
           >
             Todas las Categorías
           </button>
-          <button 
-            onClick={() => setFiltroCategoria('Ropa')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ${filtroCategoria === 'Ropa' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-indigo-100'}`}
-          >
-            Ropa
-          </button>
-          <button 
-            onClick={() => setFiltroCategoria('Tecnología')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ${filtroCategoria === 'Tecnología' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-indigo-100'}`}
-          >
-            Tecnología
-          </button>
+          {categorias.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setFiltroCategoria(cat.id)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ${filtroCategoria === cat.id ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-indigo-100'}`}
+            >
+              {cat.categori}
+            </button>
+          ))}
         </div>
 
         {/* Mensajes de Estado */}
@@ -247,7 +255,7 @@ export default function Home() {
         onNext={nextImage}
       />
                   <div className="p-4">
-                    <p className="text-xs text-gray-500 mb-1 uppercase">{p.categoria}</p>
+                    <p className="text-xs text-gray-500 mb-1 uppercase">{getCategoriaNombre(p.category_id, categorias)}</p>
                     <h2 className="text-lg font-semibold text-gray-800 truncate mb-2">{p.nombre}</h2>
                     <p className="text-sm text-gray-600 mb-3 line-clamp-2">{p.descripcion}</p>
                     <div className="flex justify-between items-center">
