@@ -78,12 +78,19 @@ export default function Header() {
             Cerrar Sesión
           </button>
         ) : (
-          // Si NO hay sesión, mostrar el botón de Login
-          <Link href="/login">
-            <div className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg transition duration-300 shadow-md">
-              👤 Iniciar Sesión
-            </div>
-          </Link>
+          // Si NO hay sesión, mostrar el botón de Login y el de Pedidos
+          <>
+            <Link href="/productos">
+              <div className="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded-lg transition duration-300 shadow-md">
+                🛒 Pedidos
+              </div>
+            </Link>
+            <Link href="/login">
+              <div className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg transition duration-300 shadow-md">
+                👤 Iniciar Sesión
+              </div>
+            </Link>
+          </>
         )}
       </div>
     </header>

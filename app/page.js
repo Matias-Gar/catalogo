@@ -1,30 +1,14 @@
 "use client";
+
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-// --- INICIALIZACIÓN DE SUPABASE (Movido aquí para evitar error de ruta) ---
-// NOTA: Estas variables se esperan del entorno de Canvas.
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || firebaseConfig.supabaseUrl;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || firebaseConfig.supabaseAnonKey;
-
-let supabase = null;
-if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-    supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} else {
-    console.error("❌ ERROR: Las claves de Supabase no están definidas.");
-}
-// --------------------------------------------------------------------------
+import { supabase } from '../lib/SupabaseClient';
 
 
-// Función para obtener la URL de la imagen
+
 const getProductImageUrl = (path) => {
   if (!path) {
     return "https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen";
   }
-  // Dado que el administrador guarda la URL completa, la usamos directamente
   return path;
 };
 
@@ -35,34 +19,71 @@ function getCategoriaNombre(id, categorias) {
   const cat = categorias.find(c => c.id === id);
   return cat ? cat.categori : 'Sin categoría';
 }
-// Modal de galería de imágenes
+
 function ImageGalleryModal({ isOpen, onClose, imageList, imageIndex, productName, onPrev, onNext }) {
   if (!isOpen || !imageList || imageList.length === 0) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center p-2 sm:p-4 z-[999]" onClick={onClose}>
-      <div className="relative w-full h-full max-w-screen-2xl max-h-[95vh] flex flex-col items-center justify-center" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={onClose}>
+      <div className="relative max-w-2xl w-full mx-4" onClick={e => e.stopPropagation()}>
         <button
+          className="absolute top-2 right-2 bg-white/80 hover:bg-white text-gray-700 rounded-full w-9 h-9 flex items-center justify-center text-2xl font-bold shadow-lg z-10"
           onClick={onClose}
-          className="absolute top-4 right-4 text-white text-4xl font-extrabold z-50 opacity-75 hover:opacity-100 transition"
-          aria-label="Cerrar vista previa"
+          title="Cerrar"
         >
-          &times;
+          ×
         </button>
-        <img
-          src={imageList[imageIndex]}
-          alt={`Vista previa de ${productName}`}
-          className="max-w-full max-h-full object-scale-down rounded-lg shadow-2xl"
-        />
-        <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-center p-2 rounded-b-lg text-sm opacity-80">
-          {productName} ({imageIndex + 1} / {imageList.length})
-        </div>
+        {/* Flechas de navegación */}
         {imageList.length > 1 && (
           <>
-            <button onClick={onPrev} className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-3xl font-bold bg-black bg-opacity-40 rounded-full px-3 py-1 hover:bg-opacity-70">&#8592;</button>
-            <button onClick={onNext} className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-3xl font-bold bg-black bg-opacity-40 rounded-full px-3 py-1 hover:bg-opacity-70">&#8594;</button>
+            <button
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 rounded-full w-10 h-10 flex items-center justify-center text-2xl font-bold shadow-lg z-10"
+              onClick={onPrev}
+              title="Anterior"
+            >
+              &#8592;
+            </button>
+            <button
+              className="absolute right-12 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 rounded-full w-10 h-10 flex items-center justify-center text-2xl font-bold shadow-lg z-10"
+              onClick={onNext}
+              title="Siguiente"
+            >
+              &#8594;
+            </button>
           </>
         )}
+        <img
+          src={imageList[imageIndex]}
+          alt={productName}
+          className="w-full max-h-[80vh] object-contain rounded-xl bg-white"
+        />
+        <div className="text-center text-white font-bold mt-2 text-lg drop-shadow-lg">{productName} ({imageIndex + 1} / {imageList.length})</div>
+        {/* Miniaturas */}
+        {imageList.length > 1 && (
+          <div className="flex justify-center gap-2 mt-2">
+            {imageList.map((img, idx) => (
+              <img
+                key={idx}
+                src={img}
+                alt={productName + ' miniatura ' + (idx + 1)}
+                className={`w-14 h-14 object-cover rounded border-2 cursor-pointer ${idx === imageIndex ? 'border-green-600' : 'border-gray-300'}`}
+                onClick={() => onPrev(idx - imageIndex < 0 ? imageList.length - 1 : idx)}
+              />
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Botón flotante para invitar a hacer pedido */}
+      <a
+        href="/productos"
+        className="fixed bottom-8 right-8 z-50 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full shadow-xl text-lg font-bold flex items-center gap-2 animate-bounce transition-colors duration-200"
+        title="Ir a hacer un pedido"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        ¿Quieres hacer un pedido? Ingresa aquí
+      </a>
     </div>
   );
 }
@@ -108,11 +129,6 @@ export default function Home() {
   };
 
   const fetchProductos = async () => {
-    if (!supabase) {
-      setLoading(false);
-      setError("El cliente de Supabase no está inicializado. Verifica las variables de entorno.");
-      return;
-    }
     setLoading(true);
     setError(null);
     try {
@@ -140,7 +156,6 @@ export default function Home() {
         }
       }
     } catch (e) {
-      console.error("Error al cargar productos:", e.message);
       setError(`Error al cargar productos: ${e.message}. (Verifique RLS y nombre de tabla)`);
     } finally {
       setLoading(false);
@@ -225,23 +240,36 @@ export default function Home() {
               {productosFiltrados.map((p) => (
                 <div 
                   key={p.user_id} 
-                  className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-300 transform hover:-translate-y-1"
+                  className="bg-white border border-gray-200 rounded-xl p-4 shadow-lg flex flex-col transition-shadow duration-300 hover:shadow-xl"
                 >
-                  <div className="w-full h-48 bg-gray-200 rounded-t-xl overflow-hidden">
+                  <div className="relative">
                     {imagenesProductos[p.user_id] && imagenesProductos[p.user_id].length > 0 ? (
-                      <img
-                        src={imagenesProductos[p.user_id][0] || getProductImageUrl()}
-                        alt={p.nombre}
-                        className="w-full h-full object-cover transition duration-500 ease-in-out hover:scale-105 cursor-pointer"
-                        onClick={() => openImageModal(imagenesProductos[p.user_id], 0, p.nombre)}
-                        onError={(e) => { e.target.onerror = null; e.target.src = getProductImageUrl(); }}
-                      />
+                      <div className="w-full h-40 mb-2 overflow-hidden rounded-lg relative group cursor-pointer">
+                        <img
+                          src={imagenesProductos[p.user_id][0]}
+                          alt={p.nombre}
+                          className="object-cover w-full h-full transition-transform duration-200 group-hover:scale-105"
+                          onClick={() => openImageModal(imagenesProductos[p.user_id], 0, p.nombre)}
+                          onError={e => { e.target.onerror = null; e.target.src = getProductImageUrl(); }}
+                        />
+                        {/* Flechas si hay más de una imagen */}
+                        {imagenesProductos[p.user_id].length > 1 && (
+                          <div className="absolute bottom-2 left-2 flex gap-1">
+                            {imagenesProductos[p.user_id].map((img, idx) => (
+                              <button
+                                key={idx}
+                                className={`w-3 h-3 rounded-full border-2 ${idx === 0 ? 'bg-green-600 border-green-700' : 'bg-white border-gray-400'} focus:outline-none`}
+                                title={`Ver imagen ${idx + 1}`}
+                                onClick={e => { e.stopPropagation(); openImageModal(imagenesProductos[p.user_id], idx, p.nombre); }}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     ) : (
-                      <img
-                        src={getProductImageUrl()}
-                        alt="Sin imagen"
-                        className="w-full h-full object-cover"
-                      />
+                      <div className="w-full h-40 mb-2 bg-gray-100 flex flex-col items-center justify-center rounded-lg relative">
+                        <span className="text-gray-400 text-center">Sin imagen</span>
+                      </div>
                     )}
                   </div>
       {/* Modal de galería de imágenes */}
@@ -254,16 +282,11 @@ export default function Home() {
         onPrev={prevImage}
         onNext={nextImage}
       />
-                  <div className="p-4">
-                    <p className="text-xs text-gray-500 mb-1 uppercase">{getCategoriaNombre(p.category_id, categorias)}</p>
-                    <h2 className="text-lg font-semibold text-gray-800 truncate mb-2">{p.nombre}</h2>
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{p.descripcion}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-2xl font-bold text-indigo-600">Bs {p.precio ? p.precio.toFixed(2) : '0.00'}</span>
-                      <span className={`text-sm font-medium px-3 py-1 rounded-full ${p.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {p.stock > 0 ? `Stock: ${p.stock}` : 'Agotado'}
-                      </span>
-                    </div>
+                  <div className="flex-1 flex flex-col">
+                    <div className="text-xs text-gray-500 uppercase font-bold mb-1">{getCategoriaNombre(p.category_id, categorias)}</div>
+                    <div className="text-lg font-bold mb-1 line-clamp-2">{p.nombre}</div>
+                    <div className="text-blue-700 font-bold text-xl mb-1">Bs {p.precio ? p.precio.toFixed(2) : '0.00'}</div>
+                    <div className="text-green-700 text-xs font-semibold">Stock: {p.stock ?? '-'}</div>
                   </div>
                 </div>
               ))}
