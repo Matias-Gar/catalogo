@@ -21,11 +21,11 @@ export default function AdminProductosPage() {
     const [productos, setProductos] = useState([]);
     const [imagenesProductos, setImagenesProductos] = useState({});
     useEffect(() => {
-        const fetchProductos = async () => {
-            const { data, error } = await supabase
-                .from('productos')
-                .select('user_id, nombre, descripcion, precio, stock, category_id')
-                .order('nombre', { ascending: true });
+		const fetchProductos = async () => {
+			const { data, error } = await supabase
+				.from('productos')
+				.select('user_id, nombre, descripcion, precio, stock, category_id, codigo_barra')
+				.order('nombre', { ascending: true });
             if (!error && data) {
                 setProductos(data);
                 // IDs correctos para buscar imágenes
@@ -99,10 +99,10 @@ export default function AdminProductosPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                     {productos.map((producto) => (
-                        <tr key={producto.id} className="hover:bg-indigo-50">
+                        <tr key={producto.user_id} className="hover:bg-indigo-50">
                             {/* 4. CELDA PARA EL CÓDIGO DE BARRAS */}
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {producto.codigo_barra ? (
+                                {typeof producto.codigo_barra === 'string' && producto.codigo_barra ? (
                                     <Barcode 
                                         value={producto.codigo_barra} 
                                         width={1.5} 

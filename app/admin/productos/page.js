@@ -51,6 +51,8 @@ import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
 
 // --------------------------------------------------------------------------
+// ...existing code...
+// ...existing code...
 // COMPONENTE 1: Modal de Vista Previa de Imagen (IMAGEN COMPLETA)
 // --------------------------------------------------------------------------
 function ImagePreviewModal({ isOpen, onClose, imageList, imageIndex, productName, onPrev, onNext }) {
@@ -615,50 +617,58 @@ export default function AdminProductosPage() {
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200 text-gray-900">
                                             {productos.map((producto) => {
-                                                const isNumericBarcode = /^[0-9]{12,13}$/.test(producto.codigo_barra || '');
+                                                const safe = (val) => (typeof val === 'string' || typeof val === 'number') ? val : JSON.stringify(val ?? '');
+                                                const isNumericBarcode = typeof producto.codigo_barra === 'string' && /^[0-9]{12,13}$/.test(producto.codigo_barra);
                                                 return (
-                                                    <tr key={producto.user_id} className="hover:bg-gray-50 transition duration-150">
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{producto.user_id}</td>
+                                                    <tr key={safe(producto.user_id)} className="hover:bg-gray-50 transition duration-150">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{safe(producto.user_id)}</td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                             <div className="flex space-x-1">
                                                                 {(imagenesProductos[producto.user_id]?.length > 0
                                                                     ? imagenesProductos[producto.user_id]
-                                                                    : ["https://placehold.co/50x50/374151/FFFFFF?text=No"]
-                                                                ).map((img, idx, arr) => (
-                                                                    <img
-                                                                        key={img}
-                                                                        src={img}
-                                                                        alt={producto.nombre}
-                                                                        className="h-12 w-12 object-cover rounded-md cursor-pointer hover:shadow-lg transition border"
-                                                                        onClick={() => openImageModal(arr, idx, producto.nombre)}
-                                                                        onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/50x50/374151/FFFFFF?text=No"; }}
-                                                                    />
-                                                                ))}
+                                                                    : ["https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen"]
+                                                                ).map((img, idx, arr) => {
+                                                                    // Defensive: Only render if img is a string (URL)
+                                                                    if (typeof img !== 'string') {
+                                                                        console.error('Imagen inválida detectada:', img);
+                                                                        return null;
+                                                                    }
+                                                                    return (
+                                                                        <img
+                                                                            key={safe(img)}
+                                                                            src={safe(img)}
+                                                                            alt={safe(producto.nombre)}
+                                                                            className="h-12 w-12 object-cover rounded-md cursor-pointer hover:shadow-lg transition border"
+                                                                            onClick={() => openImageModal(arr, idx, producto.nombre)}
+                                                                            onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen"; }}
+                                                                        />
+                                                                    );
+                                                                })}
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                                                            {producto.codigo_barra ? (
-                                                                                                <div className="flex flex-col items-center">
-                                                                                                    {isNumericBarcode ? (
-                                                                                                        <Barcode value={producto.codigo_barra} width={1.5} height={40} displayValue={true} fontSize={14} margin={0} />
-                                                                                                    ) : null}
-                                                                                                    <span className="text-xs text-gray-700 mt-1 font-mono">{producto.codigo_barra}</span>
-                                                                                                    <button
-                                                                                                        type="button"
-                                                                                                        className="mt-1 px-2 py-1 bg-indigo-500 text-white text-xs rounded hover:bg-indigo-700 transition"
-                                                                                                        onClick={() => handlePrintBarcode(producto.codigo_barra, producto.nombre)}
-                                                                                                    >
-                                                                                                        Imprimir
-                                                                                                    </button>
-                                                                                                </div>
-                                                                                            ) : (
-                                                                                                <span className="text-gray-400">Sin código</span>
-                                                                                            )}
+                                                            {typeof producto.codigo_barra === 'string' && producto.codigo_barra ? (
+                                                                <div className="flex flex-col items-center">
+                                                                    {isNumericBarcode ? (
+                                                                        <Barcode value={producto.codigo_barra} width={1.5} height={40} displayValue={true} fontSize={14} margin={0} />
+                                                                    ) : null}
+                                                                    <span className="text-xs text-gray-700 mt-1 font-mono">{safe(producto.codigo_barra)}</span>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="mt-1 px-2 py-1 bg-indigo-500 text-white text-xs rounded hover:bg-indigo-700 transition"
+                                                                        onClick={() => handlePrintBarcode(producto.codigo_barra, producto.nombre)}
+                                                                    >
+                                                                        Imprimir
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-gray-400">Sin código</span>
+                                                            )}
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">{producto.nombre}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{producto.category_name}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-bold">{producto.precio ? producto.precio.toFixed(2) : '0.00'}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{producto.stock}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">{safe(producto.nombre)}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{safe(producto.category_name)}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-bold">{typeof producto.precio === 'number' ? producto.precio.toFixed(2) : safe(producto.precio)}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{safe(producto.stock)}</td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                                                             <button
                                                                 onClick={() => openEditModal(producto)}
@@ -688,21 +698,21 @@ export default function AdminProductosPage() {
             {editingProduct && ( 
                                 <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-40">
                                     <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-2xl">
-                                        <h3 className="text-2xl font-bold mb-6 text-indigo-700">Editar Producto: {editingProduct.nombre}</h3>
-                                        {editingProduct.codigo_barra && (
-                                                                    <div className="flex flex-col items-center mb-4">
-                                                                        {/^[0-9]{12,13}$/.test(editingProduct.codigo_barra) ? (
-                                                                            <Barcode value={editingProduct.codigo_barra} width={1.5} height={40} displayValue={true} fontSize={14} margin={0} />
-                                                                        ) : null}
-                                                                        <span className="text-xs text-gray-700 mt-1 font-mono">{editingProduct.codigo_barra}</span>
-                                                                        <button
-                                                                            type="button"
-                                                                            className="mt-1 px-2 py-1 bg-indigo-500 text-white text-xs rounded hover:bg-indigo-700 transition"
-                                                                            onClick={() => handlePrintBarcode(editingProduct.codigo_barra, editingProduct.nombre)}
-                                                                        >
-                                                                            Imprimir
-                                                                        </button>
-                                                                    </div>
+                                        <h3 className="text-2xl font-bold mb-6 text-indigo-700">Editar Producto: {editingProduct.nombre || ''}</h3>
+                                        {typeof editingProduct.codigo_barra === 'string' && editingProduct.codigo_barra && (
+                                            <div className="flex flex-col items-center mb-4">
+                                                {/^[0-9]{12,13}$/.test(editingProduct.codigo_barra) ? (
+                                                    <Barcode value={editingProduct.codigo_barra} width={1.5} height={40} displayValue={true} fontSize={14} margin={0} />
+                                                ) : null}
+                                                <span className="text-xs text-gray-700 mt-1 font-mono">{typeof editingProduct.codigo_barra === 'string' ? editingProduct.codigo_barra : JSON.stringify(editingProduct.codigo_barra ?? '')}</span>
+                                                <button
+                                                    type="button"
+                                                    className="mt-1 px-2 py-1 bg-indigo-500 text-white text-xs rounded hover:bg-indigo-700 transition"
+                                                    onClick={() => handlePrintBarcode(editingProduct.codigo_barra, editingProduct.nombre)}
+                                                >
+                                                    Imprimir
+                                                </button>
+                                            </div>
                                         )}
                                                 <form onSubmit={handleGuardarEdicion} className="space-y-4"> 
                             <input 

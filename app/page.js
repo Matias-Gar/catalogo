@@ -21,11 +21,11 @@ if (SUPABASE_URL && SUPABASE_ANON_KEY) {
 
 // Función para obtener la URL de la imagen
 const getProductImageUrl = (path) => {
-    if (!path) {
-        return "https://placehold.co/200x200/cccccc/333333?text=Sin+Imagen";
-    }
-    // Dado que el administrador guarda la URL completa, la usamos directamente
-    return path;
+  if (!path) {
+    return "https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen";
+  }
+  // Dado que el administrador guarda la URL completa, la usamos directamente
+  return path;
 };
 
 
@@ -230,15 +230,15 @@ export default function Home() {
                   <div className="w-full h-48 bg-gray-200 rounded-t-xl overflow-hidden">
                     {imagenesProductos[p.user_id] && imagenesProductos[p.user_id].length > 0 ? (
                       <img
-                        src={imagenesProductos[p.user_id][0]}
+                        src={imagenesProductos[p.user_id][0] || getProductImageUrl()}
                         alt={p.nombre}
                         className="w-full h-full object-cover transition duration-500 ease-in-out hover:scale-105 cursor-pointer"
                         onClick={() => openImageModal(imagenesProductos[p.user_id], 0, p.nombre)}
-                        onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/400x400/cccccc/333333?text=ERROR+IMAGEN"; }}
+                        onError={(e) => { e.target.onerror = null; e.target.src = getProductImageUrl(); }}
                       />
                     ) : (
                       <img
-                        src="https://placehold.co/400x400/cccccc/333333?text=Sin+Imagen"
+                        src={getProductImageUrl()}
                         alt="Sin imagen"
                         className="w-full h-full object-cover"
                       />
