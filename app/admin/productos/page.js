@@ -4,26 +4,15 @@ import { supabase } from "../../../lib/SupabaseClient";
 import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
-// --------------------------------------------------------------------------
-// COMPONENTE 1: Modal de Vista Previa de Imagen (IMAGEN COMPLETA) - VERSIÓN FINAL Y REFORZADA
-// --------------------------------------------------------------------------
-function ImagePreviewModal({ isOpen, onClose, imageUrl, productName }) {
-    // Si no está abierto, no renderiza nada. También verifica si la URL es válida.
-    if (!isOpen || !imageUrl || imageUrl.includes('placehold.co')) return null;
 
+// --------------------------------------------------------------------------
+// COMPONENTE 1: Modal de Vista Previa de Imagen (IMAGEN COMPLETA)
+// --------------------------------------------------------------------------
+function ImagePreviewModal({ isOpen, onClose, imageList, imageIndex, productName, onPrev, onNext }) {
+    if (!isOpen || !imageList || imageList.length === 0) return null;
     return (
-        // Contenedor de fondo oscuro (z-[999] para máxima prioridad)
-        <div 
-            className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center p-2 sm:p-4 z-[999]" 
-            onClick={onClose} // Cierra al hacer clic en el fondo
-        >
-            
-            {/* Contenedor principal: Ocupa el MÁXIMO de la ventana */}
-            <div 
-                // Añadimos max-w-screen-2xl para darle un tamaño GIGANTE
-                className="relative w-full h-full max-w-screen-2xl max-h-[95vh] flex flex-col items-center justify-center" 
-                onClick={e => e.stopPropagation()} // Evita que el clic dentro cierre el modal
-            >
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center p-2 sm:p-4 z-[999]" onClick={onClose}>
+            <div className="relative w-full h-full max-w-screen-2xl max-h-[95vh] flex flex-col items-center justify-center" onClick={e => e.stopPropagation()}>
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-white text-4xl font-extrabold z-50 opacity-75 hover:opacity-100 transition"
@@ -31,136 +20,142 @@ function ImagePreviewModal({ isOpen, onClose, imageUrl, productName }) {
                 >
                     &times;
                 </button>
-                
-                {/* LA IMAGEN: max-w-full y max-h-full para que se ajuste al 100% de su contenedor.
-                  Hemos cambiado object-contain por object-scale-down para una prueba de compatibilidad.
-                */}
                 <img
-                    src={imageUrl}
+                    src={imageList[imageIndex]}
                     alt={`Vista previa de ${productName}`}
-                    className="max-w-full max-h-full object-scale-down rounded-lg shadow-2xl" 
+                    className="max-w-full max-h-full object-scale-down rounded-lg shadow-2xl"
                 />
-                
                 <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-center p-2 rounded-b-lg text-sm opacity-80">
-                    {productName}
+                    {productName} ({imageIndex + 1} / {imageList.length})
+                </div>
+                {imageList.length > 1 && (
+                    <>
+                        <button onClick={onPrev} className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-3xl font-bold bg-black bg-opacity-40 rounded-full px-3 py-1 hover:bg-opacity-70">&#8592;</button>
+                        <button onClick={onNext} className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-3xl font-bold bg-black bg-opacity-40 rounded-full px-3 py-1 hover:bg-opacity-70">&#8594;</button>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+}
+
+// --------------------------------------------------------------------------
+// COMPONENTE 2: Modal de Confirmación de Eliminación
+function DeleteConfirmationModal({ isOpen, onClose, onConfirm, productName }) {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50">
+            <div className="bg-white w-full max-w-sm p-6 rounded-xl shadow-2xl">
+                <h3 className="text-xl font-bold mb-4 text-red-700">Confirmar Eliminación</h3>
+                <p className="text-gray-700 mb-6">¿Estás seguro de que quieres eliminar el producto <b>{productName}</b>? Esta acción no se puede deshacer.</p>
+                <div className="flex justify-end space-x-4">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onConfirm}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                    >
+                        Sí, Eliminar
+                    </button>
                 </div>
             </div>
         </div>
     );
 }
-// --------------------------------------------------------------------------
-// COMPONENTE 2: Modal de Confirmación de Eliminación
-// --------------------------------------------------------------------------
-function DeleteConfirmationModal({ isOpen, onClose, onConfirm, productName }) {
-    if (!isOpen) return null;
-    
-    return (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50"> 
-            <div className="bg-white w-full max-w-sm p-6 rounded-xl shadow-2xl"> 
-                <h3 className="text-xl font-bold mb-4 text-red-700">Confirmar Eliminación</h3> 
-                <p className="text-gray-700 mb-6">¿Estás seguro de que quieres eliminar el producto **{productName}**? Esta acción no se puede deshacer.</p> 
-                <div className="flex justify-end space-x-4"> 
-                    <button 
-                        type="button" 
-                        onClick={onClose} 
-                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition" 
-                    > 
-                        Cancelar 
-                    </button> 
-                    <button 
-                        type="button" 
-                        onClick={onConfirm} 
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition" 
-                    > 
-                        Sí, Eliminar
-                    </button> 
-                </div> 
-            </div> 
-        </div> 
-    ); 
-} 
 
 // -------------------------------------------------------------------------- 
-// Lógica para subir la imagen a Supabase Storage 
-const uploadProductImage = async (file) => { 
-    if (!file) return null; 
-
-    const BUCKET_NAME = 'product_images'; 
-    
-    const fileExtension = file.name.split('.').pop(); 
-    const fileName = `${uuidv4()}.${fileExtension}`; 
-    const filePath = fileName; 
-
-    // 1. Subir el archivo 
-    const { error: uploadError } = await supabase.storage 
-        .from(BUCKET_NAME) 
-        .upload(filePath, file, { 
-            cacheControl: '3600', 
-            upsert: false, 
-        }); 
-
-    if (uploadError) { 
-        throw new Error(`Error al subir imagen a storage (Bucket: ${BUCKET_NAME}): ${uploadError.message}`); 
-    } 
-
-    // 2. Obtener la URL pública del archivo
-    const { data: publicUrlData } = supabase.storage
-        .from(BUCKET_NAME) 
-        .getPublicUrl(filePath); 
-        
-    console.log("✅ URL Pública de la Imagen Generada:", publicUrlData.publicUrl); 
-
-    return publicUrlData.publicUrl; 
-}; 
+// Lógica para subir la imagen a Supabase Storage (¡REVISAR RLS DE STORAGE!)
 // -------------------------------------------------------------------------- 
- 
+const uploadProductImages = async (files) => {
+    if (!files || files.length === 0) return [];
+    const BUCKET_NAME = 'product_images';
+    const urls = [];
+    const { data: { user } = {} } = await supabase.auth.getUser();
+    const userId = user?.id || 'anonymous';
+    for (const file of files) {
+        const fileExtension = file.name.split('.').pop();
+        const fileName = `${uuidv4()}.${fileExtension}`;
+        const filePath = `${userId}/${fileName}`;
+        const { error: uploadError } = await supabase.storage
+            .from(BUCKET_NAME)
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false,
+            });
+        if (uploadError) {
+            throw new Error(`Error al subir imagen a storage (Bucket: ${BUCKET_NAME}): ${uploadError.message}`);
+        }
+        const { data: publicUrlData } = supabase.storage
+            .from(BUCKET_NAME)
+            .getPublicUrl(filePath);
+        urls.push(publicUrlData.publicUrl);
+    }
+    return urls;
+};
+
+// -------------------------------------------------------------------------- 
+// COMPONENTE PRINCIPAL
+// -------------------------------------------------------------------------- 
 export default function AdminProductosPage() { 
     const router = useRouter(); 
     const [userRole, setUserRole] = useState('admin'); 
     const [productos, setProductos] = useState([]);
+    // Estado para imágenes de productos: { [producto_id]: [urls] }
+    const [imagenesProductos, setImagenesProductos] = useState({});
     const newImageInputRef = useRef(null); 
     const [showDeleteModal, setShowDeleteModal] = useState(false); 
     const [productToDelete, setProductToDelete] = useState(null); 
     const [categories, setCategories] = useState([]); 
 
-    // **ESTADOS PARA LA VISTA PREVIA DE IMAGEN**
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-    const [selectedImageUrl, setSelectedImageUrl] = useState('');
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [selectedImageList, setSelectedImageList] = useState([]);
     const [selectedImageName, setSelectedImageName] = useState('');
-    // ------------------------------------------------
     
-    // ESTADO PARA NUEVO PRODUCTO 
     const [newProduct, setNewProduct] = useState({ 
         nombre: '', 
         descripcion: '', 
         precio: '', 
         stock: '', 
-        category_id: '', 
+        category_id: '' 
     }); 
 
-    // ESTADO PARA EDICIÓN 
     const [editingProduct, setEditingProduct] = useState(null); 
-    const [editImageFile, setEditImageFile] = useState(null); 
-    const [imageFile, setImageFile] = useState(null); 
+    const [editImageFiles, setEditImageFiles] = useState([]); 
+    const [editImageList, setEditImageList] = useState([]); // URLs actuales
+    const [imageFiles, setImageFiles] = useState([]); // Para alta
     const [loading, setLoading] = useState(false); 
     const [message, setMessage] = useState(''); 
     const [isDeleting, setIsDeleting] = useState(false); 
 
     // Funciones de Manejo de Estado y UI 
-
-    // **FUNCIONES PARA EL MODAL DE IMAGEN**
-    const openImageModal = (url, name) => {
-        setSelectedImageUrl(url);
+    // Modal para galería de imágenes
+    const openImageModal = (imageList, index, name) => {
+        setSelectedImageList(imageList);
+        setSelectedImageIndex(index);
         setSelectedImageName(name);
         setIsImageModalOpen(true);
     };
 
     const closeImageModal = () => {
         setIsImageModalOpen(false);
-        setSelectedImageUrl('');
+        setSelectedImageList([]);
+        setSelectedImageIndex(0);
         setSelectedImageName('');
     };
-    // -------------------------------------------
+
+    const nextImage = () => {
+        setSelectedImageIndex((prev) => (prev + 1) % selectedImageList.length);
+    };
+    const prevImage = () => {
+        setSelectedImageIndex((prev) => (prev - 1 + selectedImageList.length) % selectedImageList.length);
+    };
 
     const handleNewProductChange = (e) => { 
         setNewProduct({ ...newProduct, [e.target.name]: e.target.value }); 
@@ -170,13 +165,19 @@ export default function AdminProductosPage() {
         setEditingProduct({ ...editingProduct, [e.target.name]: e.target.value }); 
     }; 
 
-    const handleImageChange = (e) => { 
-        setImageFile(e.target.files[0]); 
-    }; 
+    const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    setImageFiles(prev => [...prev, ...files]);
+    };
 
-    const handleEditImageChange = (e) => { 
-        setEditImageFile(e.target.files[0]); 
-    }; 
+    const handleEditImageChange = (e) => {
+    setEditImageFiles(prev => [...prev, ...Array.from(e.target.files)]);
+    };
+
+    // Eliminar imagen existente de la lista local (no borra de storage hasta guardar)
+    const handleRemoveEditImage = (url) => {
+        setEditImageList(editImageList.filter(img => img !== url));
+    };
 
     const closeEditModal = () => { 
         setEditingProduct(null); 
@@ -184,105 +185,140 @@ export default function AdminProductosPage() {
         setMessage(''); 
     }; 
 
-    const openEditModal = (producto) => { 
-        setEditingProduct(producto); 
-        setMessage(''); 
-    }; 
+    const openEditModal = (producto) => {
+        setEditingProduct(producto);
+        setEditImageFiles([]);
+        setEditImageList(imagenesProductos[producto.user_id] || []);
+        setMessage('');
+    };
     
-    // --------------------------------------------------------------------------
-    // FUNCIONES DE SUPABASE (CON CORRECCIÓN DE ERROR DEL SELECT)
+    // -------------------------------------------------------------------------- 
+    // FUNCIONES DE SUPABASE 
     // -------------------------------------------------------------------------- 
 
     // Función para cargar categorías 
-    const fetchCategories = async () => { 
-        const { data, error } = await supabase 
+    const fetchCategories = async () => {
+        const { data, error } = await supabase
             .from('categorias')
-            .select('id, nombre')
-            .order('nombre', { ascending: true }); 
-        
-        if (error) { 
-            console.error("Error al cargar categorías:", error); 
-            return; 
-        } 
-        setCategories(data); 
-    } 
+            .select('id, categori')
+            .order('categori', { ascending: true });
+        if (error) {
+            setCategories([]);
+            setMessage('❌ Error al cargar categorías.');
+            return;
+        }
+        setCategories(data || []);
+    }
 
-    // Función para cargar productos (CORREGIDA SIN COMENTARIO DENTRO DE SELECT)
-    const fetchProductos = async () => { 
-        if (userRole !== 'admin') { 
-            return; 
-        } 
-        setLoading(true); 
-        
-        const { data, error } = await supabase 
-            .from('productos') 
-            .select(` 
-                user_id, 
-                nombre, 
-                descripcion, 
-                precio, 
-                stock, 
-                imagen_url, 
-                category_id, 
-                categorias (nombre) 
-            `) 
-            .order('nombre', { ascending: true }); 
+    // Función para cargar productos y sus imágenes
+    const fetchProductos = async () => {
+        if (userRole !== 'admin') {
+            return;
+        }
+        setLoading(true);
+        // 1. Traer productos
+        const { data, error } = await supabase
+            .from('productos')
+            .select(`
+                user_id,
+                nombre,
+                descripcion,
+                precio,
+                stock,
+                imagen_url,
+                category_id,
+                categorias (categori)
+            `)
+            .order('nombre', { ascending: true });
 
-        if (error) { 
-            setMessage(`❌ Error al cargar productos (RLS/Relación faltante?): ${error.message}.`); 
-            console.error("Error en fetchProductos:", error); 
-        } else { 
-            const formattedData = data.map(p => ({ 
-                ...p, 
-                category_name: p.categorias ? p.categorias.nombre : 'Sin Categoría' 
-            })); 
-            setProductos(formattedData); 
-        } 
-        setLoading(false); 
-    }; 
+        if (error) {
+            setMessage(`❌ Error al cargar productos: ${error.message || JSON.stringify(error)}.`);
+            console.error("Error en fetchProductos:", error);
+            setLoading(false);
+            return;
+        }
+        const formattedData = data.map(p => ({
+            ...p,
+            category_name: p.categorias ? p.categorias.categori : 'Sin Categoría'
+        }));
+        setProductos(formattedData);
+
+        // 2. Traer imágenes de todos los productos
+        const ids = formattedData.map(p => p.user_id);
+        if (ids.length > 0) {
+            const { data: imgs, error: imgsError } = await supabase
+                .from('producto_imagenes')
+                .select('producto_id, imagen_url')
+                .in('producto_id', ids);
+            if (!imgsError && imgs) {
+                // Agrupar por producto_id
+                const agrupadas = {};
+                imgs.forEach(img => {
+                    if (!agrupadas[img.producto_id]) agrupadas[img.producto_id] = [];
+                    agrupadas[img.producto_id].push(img.imagen_url);
+                });
+                setImagenesProductos(agrupadas);
+            }
+        } else {
+            setImagenesProductos({});
+        }
+        setLoading(false);
+    };
     
-    const handleAñadirProducto = async (e) => { 
-        e.preventDefault(); 
-        setMessage(''); 
-        setLoading(true); 
-        let imagenUrl = null; 
+    // Función para Añadir Producto (CORREGIDA: Soluciona "invalid input syntax for type bigint")
+    const handleAñadirProducto = async (e) => {
+        e.preventDefault();
+        setMessage('');
+        setLoading(true);
+        let imagenUrls = [];
 
-        try { 
-            if (imageFile) { 
-                imagenUrl = await uploadProductImage(imageFile); 
-            } 
+        try {
+            // Subir imágenes ANTES de insertar en la tabla
+            if (imageFiles && imageFiles.length > 0) {
+                imagenUrls = await uploadProductImages(imageFiles);
+            }
 
-            const categoryIdValue = newProduct.category_id ? parseInt(newProduct.category_id) : null; 
+            const categoryIdValue = newProduct.category_id ? parseInt(newProduct.category_id) : null;
 
-            const { error: insertError } = await supabase.from('productos').insert([ 
-                { 
-                    nombre: newProduct.nombre, 
-                    descripcion: newProduct.descripcion, 
-                    precio: parseFloat(newProduct.precio) || 0, 
-                    stock: parseInt(newProduct.stock) || 0, 
-                    category_id: categoryIdValue, 
-                    imagen_url: imagenUrl
-                } 
-            ]); 
+            // Insertar el producto y obtener el ID generado
+            const { data: productoInsertado, error: insertError } = await supabase.from('productos').insert([
+                {
+                    nombre: newProduct.nombre,
+                    descripcion: newProduct.descripcion,
+                    precio: parseFloat(newProduct.precio) || 0,
+                    stock: parseInt(newProduct.stock) || 0,
+                    category_id: categoryIdValue,
+                }
+            ]).select();
 
-            if (insertError) { 
-                throw new Error(insertError.message); 
-            } 
+            if (insertError) {
+                throw new Error(insertError.message);
+            }
 
-            setMessage('✅ Producto creado con éxito!'); 
-            setNewProduct({ nombre: '', descripcion: '', precio: '', stock: '', category_id: '' }); 
-            setImageFile(null); 
-            if (newImageInputRef.current) { 
-                newImageInputRef.current.value = ''; 
-            } 
-            fetchProductos(); 
-        } catch (e) { 
-            console.error("Error crítico al crear producto:", e); 
-            setMessage(`❌ Error crítico al crear: ${e.message}`); 
-        } finally { 
-            setLoading(false); 
-        } 
-    }; 
+            // Insertar las imágenes en la tabla producto_imagenes
+            if (productoInsertado && productoInsertado.length > 0 && imagenUrls.length > 0) {
+                const productoId = productoInsertado[0].user_id;
+                const imagesToInsert = imagenUrls.map(url => ({ producto_id: productoId, imagen_url: url }));
+                const { error: imgInsertError } = await supabase.from('producto_imagenes').insert(imagesToInsert);
+                if (imgInsertError) {
+                    throw new Error(imgInsertError.message);
+                }
+            }
+
+            setMessage('✅ Producto creado con éxito!');
+            setNewProduct({ nombre: '', descripcion: '', precio: '', stock: '', category_id: '' });
+            setImageFiles([]);
+            if (newImageInputRef.current) {
+                newImageInputRef.current.value = '';
+            }
+            fetchProductos();
+        } catch (e) {
+            console.error("Error crítico al crear producto:", e);
+            setMessage(`❌ Error crítico al crear: ${e.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
     
     const handleDelete = async (producto) => { 
         setProductToDelete(producto); 
@@ -300,6 +336,7 @@ export default function AdminProductosPage() {
             const { error } = await supabase 
                 .from('productos') 
                 .delete() 
+                // Usamos user_id como ID único del producto para filtrar
                 .eq('user_id', productToDelete.user_id); 
 
             if (error) { 
@@ -316,46 +353,59 @@ export default function AdminProductosPage() {
         } 
     }; 
     
-    const handleGuardarEdicion = async (e) => { 
-        e.preventDefault(); 
-        if (!editingProduct) return; 
+    const handleGuardarEdicion = async (e) => {
+        e.preventDefault();
+        if (!editingProduct) return;
 
-        setMessage(''); 
-        setLoading(true); 
-        let imagenUrl = editingProduct.imagen_url; 
-
-        try { 
-            if (editImageFile) { 
-                imagenUrl = await uploadProductImage(editImageFile); 
-            } 
-            
-            const categoryIdValue = editingProduct.category_id ? parseInt(editingProduct.category_id) : null; 
-
-            const { error: updateError } = await supabase 
-                .from('productos') 
-                .update({ 
-                    nombre: editingProduct.nombre, 
-                    descripcion: editingProduct.descripcion, 
-                    precio: parseFloat(editingProduct.precio) || 0, 
-                    stock: parseInt(editingProduct.stock) || 0, 
-                    category_id: categoryIdValue, 
-                    imagen_url: imagenUrl, 
-                }) 
-                .eq('user_id', editingProduct.user_id); 
-
-            if (updateError) { 
-                throw new Error(updateError.message); 
-            } 
-
-            setMessage(`✅ Producto "${editingProduct.nombre}" actualizado con éxito.`); 
-            closeEditModal(); 
-            fetchProductos(); 
-        } catch (e) { 
-            setMessage(`❌ Error al actualizar: ${e.message}`); 
-        } finally { 
-            setLoading(false); 
-        } 
-    }; 
+        setMessage('');
+        setLoading(true);
+        try {
+            // 1. Subir nuevas imágenes si hay
+            let nuevasUrls = [];
+            if (editImageFiles && editImageFiles.length > 0) {
+                nuevasUrls = await uploadProductImages(editImageFiles);
+            }
+            // 2. Actualizar producto (sin tocar imagen_url principal)
+            const categoryIdValue = editingProduct.category_id ? parseInt(editingProduct.category_id) : null;
+            const { error: updateError } = await supabase
+                .from('productos')
+                .update({
+                    nombre: editingProduct.nombre,
+                    descripcion: editingProduct.descripcion,
+                    precio: parseFloat(editingProduct.precio) || 0,
+                    stock: parseInt(editingProduct.stock) || 0,
+                    category_id: categoryIdValue,
+                })
+                .eq('user_id', editingProduct.user_id);
+            if (updateError) {
+                throw new Error(updateError.message);
+            }
+            // 3. Eliminar imágenes quitadas (de la tabla, no del storage)
+            const originales = imagenesProductos[editingProduct.user_id] || [];
+            const aEliminar = originales.filter(url => !editImageList.includes(url));
+            if (aEliminar.length > 0) {
+                await supabase.from('producto_imagenes')
+                    .delete()
+                    .in('imagen_url', aEliminar)
+                    .eq('producto_id', editingProduct.user_id);
+            }
+            // 4. Insertar nuevas imágenes
+            if (nuevasUrls.length > 0) {
+                const imagesToInsert = nuevasUrls.map(url => ({ producto_id: editingProduct.user_id, imagen_url: url }));
+                const { error: imgInsertError } = await supabase.from('producto_imagenes').insert(imagesToInsert);
+                if (imgInsertError) {
+                    throw new Error(imgInsertError.message);
+                }
+            }
+            setMessage(`✅ Producto "${editingProduct.nombre}" actualizado con éxito.`);
+            closeEditModal();
+            fetchProductos();
+        } catch (e) {
+            setMessage(`❌ Error al actualizar: ${e.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // -------------------------------------------------------------------------- 
     // EFECTOS Y RENDERIZADO 
@@ -371,7 +421,6 @@ export default function AdminProductosPage() {
                 'postgres_changes', 
                 { event: '*', schema: 'public', table: 'productos' }, 
                 (payload) => { 
-                    console.log('Cambio detectado:', payload); 
                     fetchProductos(); 
                 } 
             ) 
@@ -441,17 +490,17 @@ export default function AdminProductosPage() {
                         /> 
                         
                         {/* Selección de Categoría */} 
-                        <select 
-                            name="category_id" 
-                            value={newProduct.category_id} 
-                            onChange={handleNewProductChange} 
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
-                        > 
-                            <option value="">-- Seleccionar Categoría --</option> 
-                            {categories.map(cat => ( 
-                                <option key={cat.id} value={cat.id}>{cat.nombre}</option> 
-                            ))} 
-                        </select> 
+                        <select
+                            name="category_id"
+                            value={newProduct.category_id}
+                            onChange={handleNewProductChange}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
+                        >
+                            <option value="">-- Seleccionar Categoría --</option>
+                            {categories && categories.length > 0 && categories.map(cat => (
+                                <option key={cat.id} value={cat.id}>{cat.categori}</option>
+                            ))}
+                        </select>
                     </div> 
                     <textarea 
                         name="descripcion" 
@@ -462,28 +511,29 @@ export default function AdminProductosPage() {
                     /> 
                     
                     {/* Campo de Subida de Imagen */} 
-                    <div className="flex flex-col"> 
-                        <label className="text-gray-700 font-medium mb-2">Imagen del Producto</label> 
-                        <div className="flex items-center space-x-4"> 
-                            <input 
-                                type="file" 
-                                accept="image/*" 
-                                onChange={handleImageChange} 
-                                ref={newImageInputRef} 
-                                className="hidden" 
-                                id="new-product-image" 
+                    <div className="flex flex-col">
+                        <label className="text-gray-700 font-medium mb-2">Imágenes del Producto</label>
+                        <div className="flex items-center space-x-4">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleImageChange}
+                                ref={newImageInputRef}
+                                className="hidden"
+                                id="new-product-image"
                             />
-                            <label 
-                                htmlFor="new-product-image" 
-                                className="px-4 py-2 bg-indigo-500 text-white rounded-lg shadow-md hover:bg-indigo-600 transition cursor-pointer" 
-                            > 
-                                Seleccionar archivo 
-                            </label> 
-                            <span className="text-gray-500"> 
-                                {imageFile ? imageFile.name : 'Ningún archivo seleccionado'} 
-                            </span> 
+                            <label
+                                htmlFor="new-product-image"
+                                className="px-4 py-2 bg-indigo-500 text-white rounded-lg shadow-md hover:bg-indigo-600 transition cursor-pointer"
+                            >
+                                Seleccionar archivos
+                            </label>
+                            <span className="text-gray-500">
+                                {imageFiles && imageFiles.length > 0 ? `${imageFiles.length} archivo(s) seleccionado(s)` : 'Ningún archivo seleccionado'}
+                            </span>
                         </div>
-                    </div> 
+                    </div>
 
                     <button 
                         type="submit" 
@@ -505,31 +555,38 @@ export default function AdminProductosPage() {
             {productos.length > 0 ? ( 
                 <div className="overflow-x-auto bg-white rounded-xl shadow-lg"> 
                     <table className="min-w-full divide-y divide-gray-200">
-                        <thead> 
+                        <thead className="bg-white"> 
                             <tr> 
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID (User ID)</th> 
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Imagen</th> 
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th> 
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th> 
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio (Bs)</th> 
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th> 
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th> 
+                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">ID Producto (user_id)</th> 
+                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Imagen</th> 
+                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Nombre</th> 
+                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Categoría</th> 
+                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Precio (Bs)</th> 
+                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Stock</th> 
+                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Acciones</th> 
                             </tr> 
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200"> 
+                        <tbody className="bg-white divide-y divide-gray-200 text-gray-900"> 
                             {productos.map((producto) => ( 
                                 <tr key={producto.user_id} className="hover:bg-gray-50 transition duration-150"> 
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{producto.user_id}</td> 
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"> 
-                                        {/* IMPLEMENTACIÓN DEL CLICK Y HOVER PARA VISTA COMPLETA */}
-                                        <img 
-                                            src={producto.imagen_url || "https://placehold.co/50x50/374151/FFFFFF?text=No"} 
-                                            alt={producto.nombre} 
-                                            className="h-12 w-12 object-cover rounded-md cursor-pointer hover:shadow-lg transition"
-                                            onClick={() => openImageModal(producto.imagen_url, producto.nombre)} // <--- CLIC AGREGADO
-                                            onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/50x50/374151/FFFFFF?text=No"; }}
-                                        /> 
-                                    </td> 
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <div className="flex space-x-1">
+                                            {(imagenesProductos[producto.user_id]?.length > 0
+                                                ? imagenesProductos[producto.user_id]
+                                                : ["https://placehold.co/50x50/374151/FFFFFF?text=No"]
+                                            ).map((img, idx, arr) => (
+                                                <img
+                                                    key={img}
+                                                    src={img}
+                                                    alt={producto.nombre}
+                                                    className="h-12 w-12 object-cover rounded-md cursor-pointer hover:shadow-lg transition border"
+                                                    onClick={() => openImageModal(arr, idx, producto.nombre)}
+                                                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/50x50/374151/FFFFFF?text=No"; }}
+                                                />
+                                            ))}
+                                        </div>
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">{producto.nombre}</td> 
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{producto.category_name}</td> 
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-bold">{producto.precio ? producto.precio.toFixed(2) : '0.00'}</td> 
@@ -609,27 +666,33 @@ export default function AdminProductosPage() {
                             > 
                                 <option value="">-- Sin Categoría --</option> 
                                 {categories.map(cat => ( 
-                                    <option key={cat.id} value={cat.id}>{cat.nombre}</option> 
+                                    <option key={cat.id} value={cat.id}>{cat.categori}</option> 
                                 ))} 
                             </select> 
                             
-                            {/* Edición de Imagen */} 
-                            <div> 
-                                <label className="block text-gray-700 font-medium mb-2">Cambiar Imagen</label> 
-                                <div className="flex items-center space-x-4"> 
-                                    <img 
-                                        src={editImageFile ? URL.createObjectURL(editImageFile) : editingProduct.imagen_url || "https://placehold.co/60x60/374151/FFFFFF?text=Actual"} 
-                                        alt="Imagen actual" 
-                                        className="h-16 w-16 object-cover rounded-md border" 
-                                    /> 
-                                    <input 
-                                        type="file" 
-                                        accept="image/*" 
-                                        onChange={handleEditImageChange} 
-                                        className="w-full p-1" 
-                                    /> 
-                                </div> 
-                            </div> 
+                            {/* Edición de Imágenes */}
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">Imágenes actuales</label>
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                    {editImageList.length > 0 ? editImageList.map((img, idx) => (
+                                        <div key={img} className="relative group">
+                                            <img src={img} alt="img" className="h-16 w-16 object-cover rounded-md border" />
+                                            <button type="button" onClick={() => handleRemoveEditImage(img)} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-80 group-hover:opacity-100">&times;</button>
+                                        </div>
+                                    )) : <span className="text-gray-400">Sin imágenes</span>}
+                                </div>
+                                <label className="block text-gray-700 font-medium mb-2">Agregar nuevas imágenes</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleEditImageChange}
+                                    className="w-full p-1"
+                                />
+                                {editImageFiles.length > 0 && (
+                                    <div className="text-xs text-gray-500 mt-1">{editImageFiles.length} archivo(s) seleccionado(s)</div>
+                                )}
+                            </div>
 
                             <div className="flex justify-end space-x-4 pt-4"> 
                                 <button 
@@ -662,12 +725,15 @@ export default function AdminProductosPage() {
                 productName={productToDelete?.nombre || 'este producto'} 
             />
 
-            {/* 5. Modal de Vista Previa de Imagen (funcionalidad solicitada) */}
+            {/* 5. Modal de Vista Previa de Imagen */}
             <ImagePreviewModal
                 isOpen={isImageModalOpen}
                 onClose={closeImageModal}
-                imageUrl={selectedImageUrl}
+                imageList={selectedImageList}
+                imageIndex={selectedImageIndex}
                 productName={selectedImageName}
+                onPrev={prevImage}
+                onNext={nextImage}
             />
         </div> 
     ); 
