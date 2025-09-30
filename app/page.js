@@ -194,15 +194,8 @@ export default function Home() {
         <h1 className="text-4xl font-extrabold text-gray-900 mb-8 text-center">
           Catálogo de Productos
         </h1>
-        
-        {/* Enlace a la administración (Usando <a> en lugar de <Link>) */}
-        <div className="text-center mb-6">
-            <a href="/admin/productos" className="text-indigo-600 hover:text-indigo-800 transition font-medium">
-                Ir a Administración de Productos
-            </a>
-        </div>
-
-
+        {/* Enlace a la administración (opcional, solo si lo quieres aquí) */}
+        {/* Si quieres eliminarlo por completo, borra este bloque */}
         {/* Sección de Filtros */}
         <div className="mb-8 p-4 bg-white rounded-xl shadow-md flex flex-wrap justify-center gap-2">
           <button
@@ -221,85 +214,62 @@ export default function Home() {
             </button>
           ))}
         </div>
-
         {/* Mensajes de Estado */}
         {loading && (
-            <p className="text-center text-lg text-indigo-600 mt-10 animate-pulse">Cargando productos...</p>
+          <p className="text-center text-lg text-indigo-600 mt-10 animate-pulse">Cargando productos...</p>
         )}
         {error && (
-             <div className="text-center p-4 bg-red-100 text-red-700 rounded-lg mt-10">
-                <p className="font-bold">Error de Conexión o Datos:</p>
-                <p className="text-sm">{error}</p>
-                <p className="text-xs mt-2">Asegúrate de que las claves de Supabase y las políticas RLS permitan la lectura.</p>
-             </div>
+          <div className="text-center p-4 bg-red-100 text-red-700 rounded-lg mt-10">
+            <p className="font-bold">Error de Conexión o Datos:</p>
+            <p className="text-sm">{error}</p>
+            <p className="text-xs mt-2">Asegúrate de que las claves de Supabase y las políticas RLS permitan la lectura.</p>
+          </div>
         )}
-
-        {/* Contenedor de la lista de productos */}
-        {!loading && !error && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-              {productosFiltrados.map((p) => (
-                <div 
-                  key={p.user_id} 
-                  className="bg-white border border-gray-200 rounded-xl p-4 shadow-lg flex flex-col transition-shadow duration-300 hover:shadow-xl"
-                >
-                  <div className="relative">
-                    {imagenesProductos[p.user_id] && imagenesProductos[p.user_id].length > 0 ? (
-                      <div className="w-full h-40 mb-2 overflow-hidden rounded-lg relative group cursor-pointer">
-                        <img
-                          src={imagenesProductos[p.user_id][0]}
-                          alt={p.nombre}
-                          className="object-cover w-full h-full transition-transform duration-200 group-hover:scale-105"
-                          onClick={() => openImageModal(imagenesProductos[p.user_id], 0, p.nombre)}
-                          onError={e => { e.target.onerror = null; e.target.src = getProductImageUrl(); }}
-                        />
-                        {/* Flechas si hay más de una imagen */}
-                        {imagenesProductos[p.user_id].length > 1 && (
-                          <div className="absolute bottom-2 left-2 flex gap-1">
-                            {imagenesProductos[p.user_id].map((img, idx) => (
-                              <button
-                                key={idx}
-                                className={`w-3 h-3 rounded-full border-2 ${idx === 0 ? 'bg-green-600 border-green-700' : 'bg-white border-gray-400'} focus:outline-none`}
-                                title={`Ver imagen ${idx + 1}`}
-                                onClick={e => { e.stopPropagation(); openImageModal(imagenesProductos[p.user_id], idx, p.nombre); }}
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="w-full h-40 mb-2 bg-gray-100 flex flex-col items-center justify-center rounded-lg relative">
-                        <span className="text-gray-400 text-center">Sin imagen</span>
-                      </div>
-                    )}
-                  </div>
-      {/* Modal de galería de imágenes */}
-      <ImageGalleryModal
-        isOpen={isImageModalOpen}
-        onClose={closeImageModal}
-        imageList={selectedImageList}
-        imageIndex={selectedImageIndex}
-        productName={selectedImageName}
-        onPrev={prevImage}
-        onNext={nextImage}
-      />
-                  <div className="flex-1 flex flex-col">
-                    <div className="text-xs text-gray-500 uppercase font-bold mb-1">{getCategoriaNombre(p.category_id, categorias)}</div>
-                    <div className="text-lg font-bold mb-1 line-clamp-2">{p.nombre}</div>
-                    <div className="text-blue-700 font-bold text-xl mb-1">Bs {p.precio ? p.precio.toFixed(2) : '0.00'}</div>
-                    <div className="text-green-700 text-xs font-semibold">Stock: {p.stock ?? '-'}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-        )}
-
-        {/* Mensaje si no hay productos (después de la carga) */}
+        {/* Contenedor de Productos */}
         {!loading && productosFiltrados.length === 0 && (
           <p className="text-center text-gray-600 mt-10 text-lg">
             No se encontraron productos para la categoría seleccionada.
           </p>
         )}
-
+        {/* Grid de productos */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          {productosFiltrados.map((p) => (
+            <div key={p.user_id} className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center">
+              <div className="w-full h-48 flex items-center justify-center mb-2 cursor-pointer relative group">
+                {imagenesProductos[p.user_id] && imagenesProductos[p.user_id].length > 0 ? (
+                  <img
+                    src={imagenesProductos[p.user_id][0]}
+                    alt={p.nombre}
+                    className="w-full h-48 object-contain rounded-xl bg-gray-50 group-hover:opacity-80 transition"
+                    onClick={() => openImageModal(imagenesProductos[p.user_id], 0, p.nombre)}
+                  />
+                ) : (
+                  <img
+                    src="https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen"
+                    alt="Sin imagen"
+                    className="w-full h-48 object-contain rounded-xl bg-gray-50"
+                  />
+                )}
+              </div>
+              <div className="w-full text-center">
+                <h2 className="text-lg font-bold text-gray-900 mb-1">{p.nombre}</h2>
+                <p className="text-gray-600 text-sm mb-2">{p.descripcion}</p>
+                <div className="text-indigo-700 font-bold text-lg mb-2">${p.precio}</div>
+                <div className="text-xs text-gray-500 mb-2">Categoría: {getCategoriaNombre(p.category_id, categorias)}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Modal de galería de imágenes */}
+        <ImageGalleryModal
+          isOpen={isImageModalOpen}
+          onClose={closeImageModal}
+          imageList={selectedImageList}
+          imageIndex={selectedImageIndex}
+          productName={selectedImageName}
+          onPrev={prevImage}
+          onNext={nextImage}
+        />
       </div>
     </div>
   );
