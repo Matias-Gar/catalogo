@@ -10,19 +10,16 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
-    "@supabase/supabase-js": "^2.58.0",
+    "@supabase/supabase-js": "^2.57.4",
     "@vercel/speed-insights": "^1.2.0",
-    "autoprefixer": "^10.4.21",
-    "class-variance-authority": "^0.7.0",
     "firebase": "^12.3.0",
     "lucide-react": "^0.544.0",
     "next": "15.5.3",
-    "postcss": "^8.5.6",
     "react": "19.1.0",
     "react-barcode": "^1.6.1",
     "react-dom": "19.1.0",
-    "tailwind-merge": "^3.3.1",
-    "uuid": "^13.0.0"
+  "uuid": "^13.0.0",
+  "class-variance-authority": "^0.7.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -32,7 +29,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
-    "tailwindcss": "^4.1.13",
+    "tailwindcss": "^4",
     "typescript": "^5"
   }
 }

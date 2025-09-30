@@ -1,6 +1,8 @@
 "use client"; // <--- ESTA ES LA CLAVE
 
 // CÓDIGO CORREGIDO Y COMPLETO
+// Cambia este número por el tuyo (sin + ni espacios, solo números, ej: 5491122334455)
+const WHATSAPP_NUMBER = "59160353747";
 import { useState, useEffect } from 'react';
 
 
