@@ -54,45 +54,72 @@ const menu = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen, setMobileOpen }) {
   const [open, setOpen] = useState({});
 
   const toggle = (idx) => {
     setOpen((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
 
+  // Sidebar classes
+  const sidebarBase = "fixed top-0 left-0 h-full w-64 bg-gray-900 text-white flex flex-col shadow-lg z-[99] transition-transform duration-300";
+  const sidebarShow = mobileOpen ? "translate-x-0" : "-translate-x-full";
+
   return (
-    <aside className="h-screen w-64 bg-gray-900 text-white flex flex-col shadow-lg">
-      <div className="p-4 text-2xl font-bold border-b border-gray-800">Panel Admin</div>
-      <nav className="flex-1 overflow-y-auto">
-        <ul className="space-y-2 p-4">
-          {menu.map((item, idx) => (
-            <li key={item.label}>
-              <button
-                className="w-full flex items-center justify-between px-2 py-2 rounded hover:bg-gray-800 focus:outline-none"
-                onClick={() => toggle(idx)}
-              >
-                <span>{item.label}</span>
-                <span>{open[idx] ? '▼' : '▶'}</span>
-              </button>
-              {open[idx] && (
-                <ul className="ml-4 mt-1 space-y-1">
-                  {item.children.map((child) => (
-                    <li key={child.label}>
-                      <Link
-                        href={child.path}
-                        className="block px-2 py-1 rounded hover:bg-green-700 transition-colors"
-                      >
-                        {child.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </aside>
+    <>
+      {/* Overlay para cualquier tamaño de pantalla */}
+      <div
+        className={`fixed inset-0 bg-black bg-opacity-40 z-30 transition-opacity duration-300 ${mobileOpen ? 'block' : 'hidden'}`}
+        onClick={() => setMobileOpen(false)}
+        aria-label="Cerrar menú"
+      />
+      {/* Sidebar colapsable en todas las resoluciones */}
+      <aside
+        className={`${sidebarBase} ${sidebarShow}`}
+        style={{ minWidth: '16rem', maxWidth: '100vw' }}
+      >
+        <div className="p-4 text-2xl font-bold border-b border-gray-800 flex items-center justify-between">
+          <span>Panel Admin</span>
+          {/* Botón cerrar siempre visible */}
+          <button
+            className="text-white text-2xl ml-2 focus:outline-none"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Cerrar menú"
+          >
+            &times;
+          </button>
+        </div>
+        <nav className="flex-1 overflow-y-auto">
+          <ul className="space-y-2 p-4">
+            {menu.map((item, idx) => (
+              <li key={item.label}>
+                <button
+                  className="w-full flex items-center justify-between px-2 py-2 rounded hover:bg-gray-800 focus:outline-none"
+                  onClick={() => toggle(idx)}
+                >
+                  <span>{item.label}</span>
+                  <span>{open[idx] ? '▼' : '▶'}</span>
+                </button>
+                {open[idx] && (
+                  <ul className="ml-4 mt-1 space-y-1">
+                    {item.children.map((child) => (
+                      <li key={child.label}>
+                        <Link
+                          href={child.path}
+                          className="block px-2 py-1 rounded hover:bg-green-700 transition-colors"
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          {child.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </aside>
+    </>
   );
 }
