@@ -50,52 +50,49 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-gray-800 p-4 shadow-lg sticky top-0 z-10 flex justify-between items-center">
+    <header className="bg-gray-800 p-2 sm:p-4 shadow-lg sticky top-0 z-10 flex flex-col sm:flex-row sm:justify-between sm:items-center overflow-x-hidden">
       <Link href="/">
-        <div className="text-3xl font-extrabold text-white cursor-pointer hover:text-indigo-400 transition duration-200">
+        <div className="text-2xl sm:text-3xl font-extrabold text-white cursor-pointer hover:text-indigo-400 transition duration-200">
           Mi Tienda Online
         </div>
       </Link>
-      
-      <div className="flex space-x-4 items-center">
-        
+      <div className="flex flex-wrap gap-2 sm:gap-4 items-center mt-2 sm:mt-0">
         {/* Botón de Admin solo si userRole es 'admin' */}
         {userRole === 'admin' && (
-            <>
-                <Link href="/admin">
-                    <div className="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded-lg transition duration-300 shadow-md">
-                        Panel Admin
-                    </div>
-                </Link>
-                <Link href="/productos">
-                    <div className="bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-lg transition duration-300 shadow-md">
-                        🛒 Pedidos
-                    </div>
-                </Link>
-            </>
+          <>
+            <Link href="/admin">
+              <div className="bg-green-600 hover:bg-green-700 text-white font-bold px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-sm sm:text-base transition duration-300 shadow-md">
+                Panel Admin
+              </div>
+            </Link>
+            <Link href="/productos">
+              <div className="bg-green-500 hover:bg-green-600 text-white font-bold px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-sm sm:text-base transition duration-300 shadow-md">
+                🛒 Pedidos
+              </div>
+            </Link>
+          </>
         )}
-
         {/* Lógica Condicional del Botón de Sesión */}
         {session ? (
-            <button 
-                onClick={handleLogout}
-                className="px-4 py-2 bg-red-600 rounded-lg text-white font-bold hover:bg-red-700 transition duration-300 shadow-md"
-            >
-                Cerrar Sesión
-            </button>
+          <button
+            onClick={handleLogout}
+            className="px-3 py-1.5 sm:px-4 sm:py-2 bg-red-600 rounded-lg text-white font-bold text-sm sm:text-base hover:bg-red-700 transition duration-300 shadow-md"
+          >
+            Cerrar Sesión
+          </button>
         ) : (
-            <>
-                <Link href="/productos">
-                    <div className="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded-lg transition duration-300 shadow-md">
-                        🛒 Pedidos
-                    </div>
-                </Link>
-                <Link href="/login">
-                    <div className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg transition duration-300 shadow-md">
-                        👤 Iniciar Sesión
-                    </div>
-                </Link>
-            </>
+          <>
+            <Link href="/productos">
+              <div className="bg-green-600 hover:bg-green-700 text-white font-bold px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-sm sm:text-base transition duration-300 shadow-md">
+                🛒 Pedidos
+              </div>
+            </Link>
+            <Link href="/login">
+              <div className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-sm sm:text-base transition duration-300 shadow-md">
+                👤 Iniciar Sesión
+              </div>
+            </Link>
+          </>
         )}
       </div>
     </header>
