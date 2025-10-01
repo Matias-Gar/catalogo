@@ -4,6 +4,18 @@ import Link from 'next/link';
 
 const menu = [
   {
+    label: 'Perfiles',
+    children: [
+      { label: 'Mi Perfil', path: '/admin/perfil' },
+    ],
+  },
+  {
+    label: 'Pedidos',
+    children: [
+      { label: 'Gestionar Pedidos', path: '/admin/pedidos' },
+    ],
+  },
+  {
     label: 'Gestión de Productos',
     children: [
       { label: 'Añadir Nuevos Artículos', path: '/admin/productos/nuevo' },

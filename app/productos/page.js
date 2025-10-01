@@ -23,10 +23,21 @@ export default function CatalogoPage() {
     // Detectar usuario logeado
     const [usuario, setUsuario] = useState(null);
     useEffect(() => {
-        const supa = supabase;
         const getUser = async () => {
-            const { data: { user } } = await supa.auth.getUser();
-            setUsuario(user);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session && session.user) {
+                // Buscar nombre en perfiles si existe, si no usar email
+                let nombre = session.user.email;
+                const { data: perfil } = await supabase
+                  .from('perfiles')
+                  .select('nombre')
+                  .eq('id', session.user.id)
+                  .single();
+                if (perfil && perfil.nombre) nombre = perfil.nombre;
+                setUsuario({ id: session.user.id, email: session.user.email, nombre });
+            } else {
+                setUsuario(null);
+            }
         };
         getUser();
     }, []);
@@ -123,27 +134,46 @@ export default function CatalogoPage() {
 
     // --- Función de WhatsApp (CORREGIDA) ---
 
-    const sendWhatsapp = () => {
+    const sendWhatsapp = async () => {
         if (cart.length === 0) {
             alert("Tu cesta está vacía. Agrega productos para enviar un pedido.");
             return;
         }
 
+        // 1. Guardar carrito en carritos_pendientes
+        let nombreFinal = usuario && usuario.nombre ? usuario.nombre : null;
+        let emailFinal = usuario && usuario.email ? usuario.email : null;
+        // Insertar y obtener el número de pedido (id)
+        const { data, error } = await supabase.from("carritos_pendientes").insert([
+            {
+                cliente_nombre: nombreFinal || null,
+                usuario_id: usuario ? usuario.id : null,
+                usuario_email: emailFinal || null,
+                productos: cart.map(p => ({ producto_id: p.user_id, cantidad: p.cantidad, precio_unitario: p.precio })),
+            }
+        ]).select('id').single();
+        if (error || !data) {
+            alert("No se pudo guardar el pedido. Intenta de nuevo.");
+            return;
+        }
+        const pedidoId = data.id;
+
+        // 2. Preparar mensaje WhatsApp
         const itemsList = cart.map(item => {
-            // CORRECCIÓN: aplicar toFixed(2) al resultado de la multiplicación.
             const subtotal = (item.precio * item.cantidad).toFixed(2); 
             return `*${item.cantidad}x* ${item.nombre} - (Bs ${subtotal})`;
         }).join('\n');
-
         const total = cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0).toFixed(2);
-
+        const nombreTexto = nombreFinal ? `Nombre: ${nombreFinal}\n` : '';
+        const pedidoTexto = `N° Pedido: ${pedidoId}`;
         const message = encodeURIComponent(
-            `¡Hola! Me gustaría hacer el siguiente pedido:\n\n${itemsList}\n\n*Total:* Bs ${total}\n\nGracias.`
+            `¡Hola! Me gustaría hacer el siguiente pedido:\n${pedidoTexto}\n${nombreTexto}\n${itemsList}\n\n*Total:* Bs ${total}\n\nGracias.`
         );
-
         const whatsappURL = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
         window.open(whatsappURL, '_blank');
-        setShowCart(false); 
+        setShowCart(false);
+        setCart([]);
+        localStorage.removeItem('cart');
     };
 
     // --- Renderizado ---
@@ -156,6 +186,7 @@ export default function CatalogoPage() {
                     Realiza tu pedido
                 </h1>
             </div>
+
 
             {/* FILTRO POR CATEGORÍA */}
             {categorias.length > 0 && (

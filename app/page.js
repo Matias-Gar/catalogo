@@ -1,5 +1,6 @@
 "use client";
 
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/SupabaseClient';
 
@@ -118,6 +119,14 @@ export default function Home() {
   const [filtroCategoria, setFiltroCategoria] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [promociones, setPromociones] = useState([]);
+  // Cargar promociones activas
+  const fetchPromociones = async () => {
+    const { data, error } = await supabase
+      .from('promociones')
+      .select('id, producto_id, tipo, valor, activa, fecha_inicio, fecha_fin');
+    if (!error && data) setPromociones(data.filter(p => p.activa !== false));
+  };
 
   const fetchCategorias = async () => {
     if (!supabase) return;
@@ -165,6 +174,7 @@ export default function Home() {
   useEffect(() => {
     fetchCategorias();
     fetchProductos();
+    fetchPromociones();
     if (supabase) {
       const channel = supabase
         .channel('productos-public-channel')
@@ -173,6 +183,13 @@ export default function Home() {
           { event: '*', schema: 'public', table: 'productos' },
           (payload) => {
             fetchProductos();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'promociones' },
+          (payload) => {
+            fetchPromociones();
           }
         )
         .subscribe();
@@ -233,32 +250,47 @@ export default function Home() {
         )}
         {/* Grid de productos */}
   <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
-          {productosFiltrados.map((p) => (
-            <div key={p.user_id} className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center">
-              <div className="w-full h-32 sm:h-48 flex items-center justify-center mb-2 cursor-pointer relative group">
-                {imagenesProductos[p.user_id] && imagenesProductos[p.user_id].length > 0 ? (
-                  <img
-                    src={imagenesProductos[p.user_id][0]}
-                    alt={p.nombre}
-                    className="w-full h-48 object-contain rounded-xl bg-gray-50 group-hover:opacity-80 transition"
-                    onClick={() => openImageModal(imagenesProductos[p.user_id], 0, p.nombre)}
-                  />
-                ) : (
-                  <img
-                    src="https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen"
-                    alt="Sin imagen"
-                    className="w-full h-48 object-contain rounded-xl bg-gray-50"
-                  />
-                )}
+          {productosFiltrados.map((p) => {
+            // Buscar promoción activa de tipo descuento
+            const promo = promociones.find(pr => pr.producto_id === p.user_id && pr.tipo === 'descuento');
+            let precioFinal = p.precio;
+            if (promo) {
+              precioFinal = (Number(p.precio) * (1 - Number(promo.valor) / 100)).toFixed(2);
+            }
+            return (
+              <div key={p.user_id} className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center">
+                <div className="w-full h-32 sm:h-48 flex items-center justify-center mb-2 cursor-pointer relative group">
+                  {imagenesProductos[p.user_id] && imagenesProductos[p.user_id].length > 0 ? (
+                    <img
+                      src={imagenesProductos[p.user_id][0]}
+                      alt={p.nombre}
+                      className="w-full h-48 object-contain rounded-xl bg-gray-50 group-hover:opacity-80 transition"
+                      onClick={() => openImageModal(imagenesProductos[p.user_id], 0, p.nombre)}
+                    />
+                  ) : (
+                    <img
+                      src="https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen"
+                      alt="Sin imagen"
+                      className="w-full h-48 object-contain rounded-xl bg-gray-50"
+                    />
+                  )}
+                </div>
+                <div className="w-full text-center">
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-1">{p.nombre}</h2>
+                  <p className="text-gray-600 text-xs sm:text-sm mb-2">{p.descripcion}</p>
+                  {promo ? (
+                    <>
+                      <div className="text-gray-400 line-through text-base sm:text-lg">Bs {p.precio}</div>
+                      <div className="text-green-700 font-bold text-lg mb-1">Bs {precioFinal} <span className="bg-green-100 text-green-700 rounded px-2 py-0.5 text-xs ml-2">-{promo.valor}%</span></div>
+                    </>
+                  ) : (
+                    <div className="text-indigo-700 font-bold text-base sm:text-lg mb-2">Bs {p.precio}</div>
+                  )}
+                  <div className="text-xs text-gray-500 mb-2">Categoría: {getCategoriaNombre(p.category_id, categorias)}</div>
+                </div>
               </div>
-              <div className="w-full text-center">
-                <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-1">{p.nombre}</h2>
-                <p className="text-gray-600 text-xs sm:text-sm mb-2">{p.descripcion}</p>
-                <div className="text-indigo-700 font-bold text-base sm:text-lg mb-2">Bs {p.precio}</div>
-                <div className="text-xs text-gray-500 mb-2">Categoría: {getCategoriaNombre(p.category_id, categorias)}</div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         {/* Modal de galería de imágenes */}
         <ImageGalleryModal
