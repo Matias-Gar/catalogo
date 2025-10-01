@@ -155,22 +155,6 @@ export default function CatalogoPage() {
                     <img src="/free-shopping-icons-vector.jpg" alt="icono pedido" className="w-9 h-9 inline-block align-middle mr-2 rounded" />
                     Realiza tu pedido
                 </h1>
-                {usuario && (
-                    <div className="flex gap-2">
-                        <a href="/admin" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full font-bold shadow transition-colors duration-150 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5V6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 6v1.5M3 7.5v10.125c0 1.243 1.007 2.25 2.25 2.25h13.5A2.25 2.25 0 0021 17.625V7.5M3 7.5h18M7.5 10.5h9" />
-                            </svg>
-                            Panel Admin
-                        </a>
-                        <a href="/admin/ventas" className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full font-bold shadow transition-colors duration-150 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293a1 1 0 00-.293.707V17a1 1 0 001 1h12a1 1 0 001-1v-1a1 1 0 00-.293-.707L17 13M9 17v2a2 2 0 104 0v-2" />
-                            </svg>
-                            Pedidos
-                        </a>
-                    </div>
-                )}
             </div>
 
             {/* FILTRO POR CATEGORÍA */}
@@ -211,7 +195,7 @@ export default function CatalogoPage() {
                                 >
                                     <div className="relative">
                                         {Array.isArray(imagenes) && imagenes.length > 0 && typeof imagenes[0] === 'string' ? (
-                                            <div className="w-full h-40 mb-2 overflow-hidden rounded-lg relative group cursor-pointer">
+                                            <div className="w-full h-28 sm:h-40 mb-2 overflow-hidden rounded-lg relative group cursor-pointer">
                                                 <img
                                                     src={imagenes[0]}
                                                     alt={producto.nombre}
@@ -240,9 +224,9 @@ export default function CatalogoPage() {
                                         )}
                                     </div>
                                     <div className="flex-1 flex flex-col">
-                                        <div className="text-lg text-black font-bold mb-0.5 line-clamp-2">{categoria ? (categoria.categori || categoria.nombre) : '-'}</div>
-                                        <div className="text-lg font-bold mb-1 line-clamp-2">{producto.nombre}</div>
-                                        <div className="text-blue-700 font-bold text-xl mb-1">Bs {producto.precio.toFixed(2)}</div>
+                                        <div className="text-base sm:text-lg text-black font-bold mb-0.5 line-clamp-2">{categoria ? (categoria.categori || categoria.nombre) : '-'}</div>
+                                        <div className="text-base sm:text-lg font-bold mb-1 line-clamp-2">{producto.nombre}</div>
+                                        <div className="text-blue-700 font-bold text-base sm:text-xl mb-1">Bs {producto.precio.toFixed(2)}</div>
                                         {/* Stock eliminado por requerimiento */}
                                     </div>
                                     <button

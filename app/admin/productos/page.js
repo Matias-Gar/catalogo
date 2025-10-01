@@ -145,6 +145,7 @@ export default function AdminProductosPage() {
     const [loading, setLoading] = useState(false); 
     const [message, setMessage] = useState(''); 
     const [isDeleting, setIsDeleting] = useState(false); 
+    // Eliminados los botones duplicados debajo del header
 
     // --------------------------------------------------------------------------
     // FUNCIÓN DE IMPRESIÓN DE CÓDIGO DE BARRAS (Movida y Arreglada)
