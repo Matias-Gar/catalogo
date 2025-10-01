@@ -756,7 +756,7 @@ export default function AdminProductosPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">{safe(producto.nombre)}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{safe(producto.category_name)}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Bs. {parseFloat(producto.precio).toFixed(2)}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-700 font-bold">Bs {parseFloat(producto.precio).toFixed(2)}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-700">{safe(producto.stock)}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex space-x-2">

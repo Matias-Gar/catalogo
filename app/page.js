@@ -189,7 +189,7 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+  <div className="min-h-screen bg-gray-100 p-2 sm:p-4">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-extrabold text-gray-900 mb-8 text-center">
           Catálogo de Productos
@@ -232,10 +232,10 @@ export default function Home() {
           </p>
         )}
         {/* Grid de productos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
           {productosFiltrados.map((p) => (
             <div key={p.user_id} className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center">
-              <div className="w-full h-48 flex items-center justify-center mb-2 cursor-pointer relative group">
+              <div className="w-full h-32 sm:h-48 flex items-center justify-center mb-2 cursor-pointer relative group">
                 {imagenesProductos[p.user_id] && imagenesProductos[p.user_id].length > 0 ? (
                   <img
                     src={imagenesProductos[p.user_id][0]}
@@ -252,9 +252,9 @@ export default function Home() {
                 )}
               </div>
               <div className="w-full text-center">
-                <h2 className="text-lg font-bold text-gray-900 mb-1">{p.nombre}</h2>
-                <p className="text-gray-600 text-sm mb-2">{p.descripcion}</p>
-                <div className="text-indigo-700 font-bold text-lg mb-2">${p.precio}</div>
+                <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-1">{p.nombre}</h2>
+                <p className="text-gray-600 text-xs sm:text-sm mb-2">{p.descripcion}</p>
+                <div className="text-indigo-700 font-bold text-base sm:text-lg mb-2">Bs {p.precio}</div>
                 <div className="text-xs text-gray-500 mb-2">Categoría: {getCategoriaNombre(p.category_id, categorias)}</div>
               </div>
             </div>
