@@ -514,7 +514,7 @@ export default function PromocionesPacksPage() {
         <CardHeader>
           <CardTitle className="text-black">
             {busqueda ? (
-              <span>🔍 Resultados: "{busqueda}" ({packsFiltrados.length} de {packs.length})</span>
+              <span>              🔍 Resultados: &quot;{busqueda}&quot; ({packsFiltrados.length} de {packs.length})</span>
             ) : (
               <span>📦 Packs Creados ({packs.length} total)</span>
             )}

@@ -265,7 +265,7 @@ export default function PromocionesDescuentosPage() {
             <CardTitle>
               {busqueda ? (
                 <span>
-                  🔍 Resultados: "{busqueda}" 
+                  🔍 Resultados: &quot;{busqueda}&quot; 
                   <span className="text-blue-600"> ({promocionesFiltradas.length} de {productosConPromociones.length})</span>
                 </span>
               ) : (

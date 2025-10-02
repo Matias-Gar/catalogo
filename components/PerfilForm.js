@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { supabase } from "../lib/SupabaseClient";
 
 export default function PerfilForm({ userId, perfilActual, onSave }) {
@@ -88,7 +89,7 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
       const fileExt = file.name.split('.').pop();
       const fileName = `${userId}/${Date.now()}.${fileExt}`;
 
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('perfiles')
         .upload(fileName, file, { cacheControl: '3600', upsert: true });
 
@@ -189,9 +190,11 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
       <div className="text-center">
         <div className="mb-4">
           {fotoPerfil ? (
-            <img 
+            <Image 
               src={fotoPerfil} 
               alt="Foto de perfil" 
+              width={128}
+              height={128}
               className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-blue-200 shadow-lg"
             />
           ) : (

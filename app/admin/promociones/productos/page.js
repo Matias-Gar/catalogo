@@ -282,7 +282,7 @@ export default function PromocionesProductosPage() {
                   <div className="text-xs text-blue-600 mt-1 font-medium">
                     📋 {productosFiltrados.length} productos encontrados
                     {busqueda.length === 1 && (
-                      <span className="text-gray-600"> - productos que empiezan con "{busqueda.toUpperCase()}"</span>
+                      <span className="text-gray-600"> - productos que empiezan con &quot;{busqueda.toUpperCase()}&quot;</span>
                     )}
                   </div>
                 )}

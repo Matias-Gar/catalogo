@@ -2,6 +2,7 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { createClient } from '@supabase/supabase-js';
+import Image from 'next/image';
 // Función para efectivizar venta y descontar stock
 // Debe ir dentro del componente
 import { supabase } from "../../../../lib/SupabaseClient";
@@ -65,25 +66,20 @@ export default function NuevaVenta() {
     }
   }, [carrito]);
 
-  // Detectar usuario logueado y autocompletar nombre/email
+  // Detectar usuario logueado y autocompletar nombre/email/telefono
   useEffect(() => {
     async function getUser() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session && session.user) {
         console.log('Usuario logueado:', session.user.email, 'ID:', session.user.id);
         
-        // Ver todos los perfiles para debug
-        const { data: todosPerfiles } = await supabase
-          .from('perfiles')
-          .select('*');
-        console.log('Todos los perfiles:', todosPerfiles);
-        
-        // Buscar nombre y nit_ci en perfiles
+        // Buscar nombre, nit_ci y telefono en perfiles
         let nombre = "";
         let nitci = "";
+        let telefono = "";
         const { data: perfil, error } = await supabase
           .from('perfiles')
-          .select('nombre, nit_ci')
+          .select('nombre, nit_ci, telefono')
           .eq('id', session.user.id)
           .single();
         
@@ -92,7 +88,7 @@ export default function NuevaVenta() {
           console.log('No encontrado por ID, buscando por email...');
           const { data: perfilPorEmail, error: errorEmail } = await supabase
             .from('perfiles')
-            .select('nombre, nit_ci')
+            .select('nombre, nit_ci, telefono')
             .ilike('nombre', `%${session.user.email.split('@')[0]}%`)
             .limit(1)
             .single();
@@ -102,24 +98,23 @@ export default function NuevaVenta() {
           if (perfilPorEmail) {
             if (perfilPorEmail.nombre) nombre = perfilPorEmail.nombre;
             if (perfilPorEmail.nit_ci) nitci = perfilPorEmail.nit_ci;
+            if (perfilPorEmail.telefono) telefono = perfilPorEmail.telefono;
           }
         } else {
           if (perfil.nombre) nombre = perfil.nombre;
           if (perfil.nit_ci) nitci = perfil.nit_ci;
+          if (perfil.telefono) telefono = perfil.telefono;
         }
         
         console.log('Consulta perfiles:', { perfil, error });
         
-        if (perfil) {
-          if (perfil.nombre) nombre = perfil.nombre;
-          if (perfil.nit_ci) nitci = perfil.nit_ci;
-        }
-        setUsuario({ id: session.user.id, email: session.user.email, nombre });
+        setUsuario({ id: session.user.id, email: session.user.email, nombre, telefono });
         if (nombre) setClienteNombre(nombre);
         if (nitci) setClienteNIT(nitci);
+        if (telefono) setClienteTelefono(telefono); // Auto-llenar teléfono
         setClienteEmail(session.user.email); // Auto-llenar email del usuario
         
-        console.log('Datos establecidos:', { nombre, nitci, email: session.user.email });
+        console.log('Datos establecidos:', { nombre, nitci, telefono, email: session.user.email });
       }
     }
     getUser();
@@ -691,7 +686,14 @@ export default function NuevaVenta() {
                       <tr key={item.user_id}>
                         <td className="p-2 text-center align-middle">
                           {imagenesProductos[item.user_id]?.[0] ? (
-                            <img src={imagenesProductos[item.user_id][0]} alt="img" className="h-14 w-14 object-cover rounded-lg border mx-auto shadow-sm" style={{maxWidth:'56px',maxHeight:'56px'}} />
+                            <Image 
+                              src={imagenesProductos[item.user_id][0]} 
+                              alt="img" 
+                              width={56}
+                              height={56}
+                              className="object-cover rounded-lg border mx-auto shadow-sm" 
+                              style={{maxWidth:'56px',maxHeight:'56px'}} 
+                            />
                           ) : (
                             <span className="text-gray-400">Sin imagen</span>
                           )}
@@ -918,7 +920,14 @@ export default function NuevaVenta() {
                   <tr key={prod.user_id}>
                     <td className="p-2 text-center align-middle">
                       {imagenesProductos[prod.user_id]?.[0] ? (
-                        <img src={imagenesProductos[prod.user_id][0]} alt="img" className="h-14 w-14 object-cover rounded-lg border mx-auto shadow-sm" style={{maxWidth:'56px',maxHeight:'56px'}} />
+                        <Image 
+                          src={imagenesProductos[prod.user_id][0]} 
+                          alt="img" 
+                          width={56}
+                          height={56}
+                          className="object-cover rounded-lg border mx-auto shadow-sm" 
+                          style={{maxWidth:'56px',maxHeight:'56px'}} 
+                        />
                       ) : (
                         <span className="text-gray-400">Sin imagen</span>
                       )}

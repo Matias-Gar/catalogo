@@ -9,6 +9,14 @@ export default function PerfilesAdminPage() {
   const [loading, setLoading] = useState(true);
   const [procesando, setProcesando] = useState(null);
   const [mensaje, setMensaje] = useState(null);
+  const [editingProfile, setEditingProfile] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [formData, setFormData] = useState({
+    nombre: '',
+    telefono: '',
+    nit_ci: '',
+    rol: 'usuario'
+  });
 
   useEffect(() => {
     const getUser = async () => {
@@ -60,6 +68,57 @@ export default function PerfilesAdminPage() {
     setTimeout(() => setMensaje(null), 3000);
   };
 
+  const handleEdit = (perfil) => {
+    setEditingProfile(perfil.id);
+    setFormData({
+      nombre: perfil.nombre || '',
+      telefono: perfil.telefono || '',
+      nit_ci: perfil.nit_ci || '',
+      rol: perfil.rol || 'usuario'
+    });
+  };
+
+  const handleSave = async () => {
+    if (!editingProfile) return;
+
+    setProcesando(editingProfile);
+    try {
+      const { error } = await supabase
+        .from('perfiles')
+        .update({
+          nombre: formData.nombre,
+          telefono: formData.telefono,
+          nit_ci: formData.nit_ci,
+          rol: formData.rol,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', editingProfile);
+
+      if (error) {
+        setMensaje({ tipo: 'error', texto: 'Error al actualizar perfil: ' + error.message });
+      } else {
+        setMensaje({ tipo: 'success', texto: 'Perfil actualizado exitosamente' });
+        setEditingProfile(null);
+        cargarPerfiles();
+      }
+    } catch (err) {
+      setMensaje({ tipo: 'error', texto: 'Error al actualizar el perfil' });
+    } finally {
+      setProcesando(null);
+      setTimeout(() => setMensaje(null), 3000);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditingProfile(null);
+    setFormData({
+      nombre: '',
+      telefono: '',
+      nit_ci: '',
+      rol: 'usuario'
+    });
+  };
+
   const resetearPassword = async (email) => {
     setProcesando(email);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -74,6 +133,40 @@ export default function PerfilesAdminPage() {
     setProcesando(null);
     setTimeout(() => setMensaje(null), 5000);
   };
+
+  const handleDelete = async (perfilId) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar este perfil?')) {
+      return;
+    }
+
+    setProcesando(perfilId);
+    try {
+      const { error } = await supabase
+        .from('perfiles')
+        .delete()
+        .eq('id', perfilId);
+
+      if (error) {
+        setMensaje({ tipo: 'error', texto: 'Error al eliminar perfil: ' + error.message });
+      } else {
+        setMensaje({ tipo: 'success', texto: 'Perfil eliminado exitosamente' });
+        cargarPerfiles();
+      }
+    } catch (err) {
+      setMensaje({ tipo: 'error', texto: 'Error al eliminar el perfil' });
+    } finally {
+      setProcesando(null);
+      setTimeout(() => setMensaje(null), 3000);
+    }
+  };
+
+  // Filtrar perfiles por búsqueda
+  const perfilesFiltrados = perfiles.filter(perfil =>
+    (perfil.nombre?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (perfil.telefono?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (perfil.nit_ci?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (perfil.rol?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -99,7 +192,7 @@ export default function PerfilesAdminPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg p-6 mb-6">
         <div className="flex items-center gap-4">
@@ -109,8 +202,8 @@ export default function PerfilesAdminPage() {
             </svg>
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Administración de Perfiles</h1>
-            <p className="text-purple-100">Gestiona usuarios, roles y contraseñas</p>
+            <h1 className="text-2xl font-bold">👥 Administración de Perfiles</h1>
+            <p className="text-purple-100">Gestiona usuarios, roles, teléfonos y datos completos</p>
           </div>
         </div>
       </div>
@@ -137,8 +230,29 @@ export default function PerfilesAdminPage() {
         </div>
       )}
 
+      {/* Barra de búsqueda */}
+      <div className="mb-6">
+        <div className="flex items-center space-x-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="🔍 Buscar por nombre, teléfono, NIT/CI o rol..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <button
+            onClick={cargarPerfiles}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold"
+          >
+            🔄 Actualizar
+          </button>
+        </div>
+      </div>
+
       {/* Estadísticas */}
-      <div className="grid md:grid-cols-3 gap-4 mb-6">
+      <div className="grid md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow-sm border p-4">
           <div className="flex items-center gap-3">
             <div className="bg-blue-100 text-blue-600 rounded-full p-2">
@@ -176,9 +290,24 @@ export default function PerfilesAdminPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">
-                {perfiles.filter(p => p.rol !== 'administracion').length}
+                {perfiles.filter(p => p.telefono).length}
               </p>
-              <p className="text-gray-600 text-sm">Usuarios</p>
+              <p className="text-gray-600 text-sm">Con Teléfono</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border p-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-orange-100 text-orange-600 rounded-full p-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">
+                {perfiles.filter(p => p.nit_ci).length}
+              </p>
+              <p className="text-gray-600 text-sm">Con NIT/CI</p>
             </div>
           </div>
         </div>
@@ -187,67 +316,152 @@ export default function PerfilesAdminPage() {
       {/* Lista de perfiles */}
       <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
         <div className="p-4 border-b bg-gray-50">
-          <h2 className="text-lg font-semibold text-gray-800">Lista de Perfiles</h2>
+          <h2 className="text-lg font-semibold text-gray-800">Lista de Perfiles ({perfilesFiltrados.length})</h2>
         </div>
         
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-4 font-medium text-gray-700">Usuario</th>
-                <th className="text-left p-4 font-medium text-gray-700">Información</th>
+                <th className="text-left p-4 font-medium text-gray-700">ID</th>
+                <th className="text-left p-4 font-medium text-gray-700">Nombre</th>
+                <th className="text-left p-4 font-medium text-gray-700">Teléfono</th>
+                <th className="text-left p-4 font-medium text-gray-700">NIT/CI</th>
                 <th className="text-left p-4 font-medium text-gray-700">Rol</th>
                 <th className="text-center p-4 font-medium text-gray-700">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {perfiles.map((perfil) => (
+              {perfilesFiltrados.map((perfil) => (
                 <tr key={perfil.id} className="hover:bg-gray-50">
                   <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-gray-200 rounded-full p-2">
-                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{perfil.nombre || 'Sin nombre'}</p>
-                        <p className="text-sm text-gray-500">{perfil.id}</p>
-                      </div>
+                    <div className="text-xs text-gray-500 font-mono">
+                      {perfil.id.substring(0, 8)}...
                     </div>
                   </td>
                   <td className="p-4">
-                    <div className="text-sm">
-                      <p className="text-gray-600">NIT/CI: {perfil.nit_ci || 'No establecido'}</p>
-                    </div>
+                    {editingProfile === perfil.id ? (
+                      <input
+                        type="text"
+                        value={formData.nombre}
+                        onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                        placeholder="Nombre completo"
+                      />
+                    ) : (
+                      <div className="font-medium text-gray-900">
+                        {perfil.nombre || <span className="text-gray-400 italic">Sin nombre</span>}
+                      </div>
+                    )}
                   </td>
                   <td className="p-4">
-                    <select
-                      value={perfil.rol || 'usuario'}
-                      onChange={(e) => cambiarRol(perfil.id, e.target.value)}
-                      disabled={procesando === perfil.id}
-                      className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="usuario">Usuario</option>
-                      <option value="administracion">Administración</option>
-                    </select>
+                    {editingProfile === perfil.id ? (
+                      <input
+                        type="text"
+                        value={formData.telefono}
+                        onChange={(e) => setFormData({...formData, telefono: e.target.value})}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                        placeholder="Teléfono"
+                      />
+                    ) : (
+                      <div className="text-sm text-gray-600">
+                        {perfil.telefono || <span className="text-gray-400 italic">Sin teléfono</span>}
+                      </div>
+                    )}
                   </td>
                   <td className="p-4">
-                    <div className="flex gap-2 justify-center">
-                      <button
-                        onClick={() => resetearPassword(perfil.id)}
-                        disabled={procesando === perfil.id}
-                        className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+                    {editingProfile === perfil.id ? (
+                      <input
+                        type="text"
+                        value={formData.nit_ci}
+                        onChange={(e) => setFormData({...formData, nit_ci: e.target.value})}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                        placeholder="NIT/CI"
+                      />
+                    ) : (
+                      <div className="text-sm text-gray-600">
+                        {perfil.nit_ci || <span className="text-gray-400 italic">Sin NIT/CI</span>}
+                      </div>
+                    )}
+                  </td>
+                  <td className="p-4">
+                    {editingProfile === perfil.id ? (
+                      <select
+                        value={formData.rol}
+                        onChange={(e) => setFormData({...formData, rol: e.target.value})}
+                        className="w-full px-2 py-1 border rounded text-sm"
                       >
-                        {procesando === perfil.id ? 'Enviando...' : 'Reset Password'}
-                      </button>
-                    </div>
+                        <option value="usuario">Usuario</option>
+                        <option value="administracion">Administración</option>
+                        <option value="vendedor">Vendedor</option>
+                      </select>
+                    ) : (
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        perfil.rol === 'administracion' 
+                          ? 'bg-red-100 text-red-800' 
+                          : perfil.rol === 'vendedor'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-green-100 text-green-800'
+                      }`}>
+                        {perfil.rol || 'usuario'}
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-4">
+                    {editingProfile === perfil.id ? (
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          onClick={handleSave}
+                          disabled={procesando === perfil.id}
+                          className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-3 py-1 rounded text-xs font-semibold"
+                        >
+                          ✓ Guardar
+                        </button>
+                        <button
+                          onClick={handleCancel}
+                          className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs font-semibold"
+                        >
+                          ✗ Cancelar
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          onClick={() => handleEdit(perfil)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-semibold"
+                        >
+                          ✏️ Editar
+                        </button>
+                        <button
+                          onClick={() => resetearPassword(perfil.id)}
+                          disabled={procesando === perfil.id}
+                          className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 text-white px-3 py-1 rounded text-xs font-semibold"
+                        >
+                          🔑 Reset
+                        </button>
+                        <button
+                          onClick={() => handleDelete(perfil.id)}
+                          disabled={procesando === perfil.id}
+                          className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-3 py-1 rounded text-xs font-semibold"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
+        {perfilesFiltrados.length === 0 && (
+          <div className="text-center py-8">
+            <div className="text-gray-500 text-lg">
+              {searchTerm ? 'No se encontraron perfiles con ese criterio de búsqueda' : 'No hay perfiles registrados'}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Footer info */}
@@ -257,11 +471,12 @@ export default function PerfilesAdminPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div className="text-blue-800 text-sm">
-            <p className="font-medium mb-1">Información importante:</p>
+            <p className="font-medium mb-1">💡 Información importante:</p>
             <ul className="space-y-1 text-blue-700">
-              <li>• Al resetear contraseña se enviará un email al usuario para que pueda crear una nueva</li>
-              <li>• Solo administradores pueden cambiar roles y resetear contraseñas</li>
-              <li>• Los cambios de rol son inmediatos</li>
+              <li>• <strong>Editar:</strong> Permite modificar nombre, teléfono, NIT/CI y rol</li>
+              <li>• <strong>Reset:</strong> Envía email de recuperación de contraseña</li>
+              <li>• <strong>Eliminar:</strong> Borra completamente el perfil (acción irreversible)</li>
+              <li>• <strong>🔍 Búsqueda:</strong> Filtra por cualquier campo (nombre, teléfono, NIT/CI, rol)</li>
             </ul>
           </div>
         </div>

@@ -2,11 +2,12 @@
 
 // CÓDIGO CORREGIDO Y COMPLETO
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { supabase } from '../../lib/SupabaseClient';
 import { PrecioConPromocion } from '../../lib/promociones';
 import { usePromociones } from '../../lib/usePromociones';
 import { usePacks, calcularDescuentoPack } from '../../lib/packs';
-import { CONFIG, whatsappUtils } from '../../lib/config';
+import { CONFIG } from '../../lib/config';
 
 export default function CatalogoPage() {
     // --- Estados ---
@@ -22,7 +23,7 @@ export default function CatalogoPage() {
     const [modalImg, setModalImg] = useState(null); // { urls: string[], index: number, nombre: string }
 
     // Usar el hook para promociones
-    const { promociones, loading: loadingPromociones } = usePromociones();
+    const { promociones } = usePromociones();
     
     // Usar el hook para packs
     const { packs, loading: loadingPacks } = usePacks();
@@ -291,7 +292,7 @@ export default function CatalogoPage() {
         <div className="min-h-screen bg-gray-50 p-4 sm:p-8 relative">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-extrabold text-gray-900 text-center flex items-center gap-2">
-                    <img src="/free-shopping-icons-vector.jpg" alt="icono pedido" className="w-9 h-9 inline-block align-middle mr-2 rounded" />
+                    <Image src="/free-shopping-icons-vector.jpg" alt="icono pedido" width={36} height={36} className="inline-block align-middle mr-2 rounded" />
                     Realiza tu pedido
                 </h1>
             </div>
@@ -436,9 +437,11 @@ export default function CatalogoPage() {
                                     <div className="relative">
                                         {Array.isArray(imagenes) && imagenes.length > 0 && typeof imagenes[0] === 'string' ? (
                                             <div className="w-full h-28 sm:h-40 mb-2 overflow-hidden rounded-lg relative group cursor-pointer">
-                                                <img
+                                                <Image
                                                     src={imagenes[0]}
                                                     alt={producto.nombre}
+                                                    width={300}
+                                                    height={200}
                                                     className="object-cover w-full h-full transition-transform duration-200 group-hover:scale-105"
                                                     onClick={() => setModalImg({ urls: imagenes, index: 0, nombre: producto.nombre })}
                                                     onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen'; }}
@@ -523,9 +526,11 @@ export default function CatalogoPage() {
                                 </button>
                             </>
                         )}
-                        <img
+                        <Image
                             src={modalImg.urls[modalImg.index]}
                             alt={modalImg.nombre}
+                            width={800}
+                            height={600}
                             className="w-full max-h-[80vh] object-contain rounded-xl bg-white"
                         />
                         <div className="text-center text-white font-bold mt-2 text-lg drop-shadow-lg">{modalImg.nombre}</div>
@@ -533,10 +538,12 @@ export default function CatalogoPage() {
                         {modalImg.urls.length > 1 && (
                             <div className="flex justify-center gap-2 mt-2">
                                 {modalImg.urls.map((img, idx) => (
-                                    <img
+                                    <Image
                                         key={img + '-' + idx}
                                         src={img}
                                         alt={modalImg.nombre + ' miniatura ' + (idx + 1)}
+                                        width={56}
+                                        height={56}
                                         className={`w-14 h-14 object-cover rounded border-2 cursor-pointer ${idx === modalImg.index ? 'border-green-600' : 'border-gray-300'}`}
                                         onClick={() => setModalImg(m => ({ ...m, index: idx }))}
                                     />
@@ -578,15 +585,85 @@ export default function CatalogoPage() {
                             <ul className="divide-y divide-gray-200 max-h-60 overflow-y-auto mb-4">
                                 {cart.length > 0 ? (
                                     cart.map(item => (
-                                        <li key={item.user_id} className="flex items-center py-2 gap-2 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg mb-2 shadow-sm">
-                                            <span className="flex-1 truncate text-sm font-bold text-green-900">{item.nombre}</span>
+                                        <li key={item.user_id} className={`flex items-center py-2 gap-2 rounded-lg mb-2 shadow-sm ${
+                                            item.tipo === 'pack' 
+                                                ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200' 
+                                                : 'bg-gradient-to-r from-green-50 to-blue-50'
+                                        }`}>
+                                            {/* Imagen o icono */}
+                                            <div className="flex-shrink-0">
+                                                {item.tipo === 'pack' ? (
+                                                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center border border-purple-300">
+                                                        <span className="text-purple-600 font-bold text-xs">📦</span>
+                                                    </div>
+                                                ) : imagenesProductos[item.user_id]?.[0] ? (
+                                                    <Image 
+                                                        src={imagenesProductos[item.user_id][0]} 
+                                                        alt={item.nombre}
+                                                        width={32}
+                                                        height={32}
+                                                        className="w-8 h-8 object-cover rounded-lg border"
+                                                    />
+                                                ) : (
+                                                    <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center border">
+                                                        <span className="text-gray-400 text-xs">📷</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            {/* Información del producto */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className={`truncate text-sm font-bold ${
+                                                    item.tipo === 'pack' ? 'text-purple-900' : 'text-green-900'
+                                                }`}>
+                                                    {item.tipo === 'pack' ? `📦 ${item.nombre}` : item.nombre}
+                                                </div>
+                                                {item.tipo === 'pack' && item.pack_data && (
+                                                    <div className="text-xs text-purple-600 truncate">
+                                                        {item.pack_data.pack_productos?.map(p => 
+                                                            `${p.cantidad}x ${p.productos.nombre}`
+                                                        ).join(', ')}
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Mostrar descuento para packs */}
+                                                {item.tipo === 'pack' && item.pack_data && (
+                                                    <div className="text-xs">
+                                                        {(() => {
+                                                            const { descuentoPorcentaje, descuentoAbsoluto } = calcularDescuentoPack(item.pack_data);
+                                                            return (
+                                                                <span className="text-red-600 font-bold">
+                                                                    -{descuentoPorcentaje.toFixed(0)}% OFF (Bs {descuentoAbsoluto.toFixed(2)})
+                                                                </span>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            {/* Precio */}
+                                            <div className="text-right">
+                                                <div className={`text-sm font-bold ${
+                                                    item.tipo === 'pack' ? 'text-purple-800' : 'text-blue-800'
+                                                }`}>
+                                                    Bs {item.precio.toFixed(2)}
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Cantidad */}
                                             <input
                                                 type="number"
                                                 min={1}
                                                 value={item.cantidad}
                                                 onChange={e => updateCartQty(item.user_id, parseInt(e.target.value) || 1)}
-                                                className="w-12 border-2 border-green-400 rounded px-1 py-0.5 text-center text-sm font-semibold text-green-800 bg-white focus:border-blue-500 focus:ring-blue-500"
+                                                className={`w-12 border-2 rounded px-1 py-0.5 text-center text-sm font-semibold bg-white focus:ring-blue-500 ${
+                                                    item.tipo === 'pack' 
+                                                        ? 'border-purple-400 text-purple-800 focus:border-purple-500' 
+                                                        : 'border-green-400 text-green-800 focus:border-blue-500'
+                                                }`}
                                             />
+                                            
+                                            {/* Botón eliminar */}
                                             <button
                                                 className="ml-2 text-white bg-red-600 hover:bg-red-700 rounded-full w-6 h-6 flex items-center justify-center text-base font-bold shadow transition"
                                                 onClick={() => removeFromCart(item.user_id)}
