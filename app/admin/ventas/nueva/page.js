@@ -634,16 +634,23 @@ export default function NuevaVenta() {
                       const pack = packs.find(p => p.id === item.pack_id);
                       if (!pack) return null;
                       
+                      const { descuentoPorcentaje, descuentoAbsoluto } = calcularDescuentoPack(pack);
+                      
                       return (
-                        <tr key={`pack-${item.pack_id}`} className="bg-purple-50">
+                        <tr key={`pack-${item.pack_id}`} className="bg-purple-50 border-2 border-purple-200">
                           <td className="p-2 text-center align-middle">
-                            <div className="h-14 w-14 bg-purple-100 rounded-lg border mx-auto shadow-sm flex items-center justify-center">
-                              <span className="text-purple-600 font-bold text-xs">PACK</span>
+                            <div className="h-14 w-14 mx-auto bg-purple-100 rounded-lg border-2 border-purple-300 flex items-center justify-center shadow-sm">
+                              <span className="text-2xl">📦</span>
                             </div>
                           </td>
                           <td className="p-2 text-left font-bold text-gray-900">
-                            <div className="text-purple-600">{pack.nombre}</div>
-                            <div className="text-xs text-gray-600">{pack.descripcion}</div>
+                            <div className="font-bold text-purple-800">📦 {pack.nombre}</div>
+                            <div className="text-xs text-purple-600">{pack.descripcion || 'Pack especial'}</div>
+                            <div className="text-xs text-gray-600 mt-1">
+                              Incluye: {pack.pack_productos.map(item => 
+                                `${item.cantidad}x ${item.productos.nombre}`
+                              ).join(', ')}
+                            </div>
                           </td>
                           <td className="p-2">
                             <input
@@ -655,18 +662,18 @@ export default function NuevaVenta() {
                             />
                           </td>
                           <td className="p-2">
-                            <div className="text-gray-900 font-bold">
-                              <span className="line-through text-gray-500">Bs {pack.precio_individual?.toFixed(2)}</span>
-                              <div className="text-purple-600">Bs {pack.precio_pack?.toFixed(2)}</div>
+                            <div className="text-center">
+                              <div className="line-through text-gray-500 text-sm">Bs {pack.precio_individual?.toFixed(2)}</div>
+                              <div className="text-purple-700 font-bold text-lg">Bs {pack.precio_pack?.toFixed(2)}</div>
                             </div>
                           </td>
                           <td className="p-2">
                             <div className="text-center">
-                              <div className="text-purple-600 font-bold">-Bs {(pack.precio_individual - pack.precio_pack).toFixed(2)}</div>
-                              <div className="text-purple-600 text-sm">PACK</div>
+                              <div className="text-red-600 font-bold">-Bs {(descuentoAbsoluto * item.cantidad).toFixed(2)}</div>
+                              <div className="text-red-600 text-sm font-bold">-{descuentoPorcentaje.toFixed(0)}% PACK</div>
                             </div>
                           </td>
-                          <td className="p-2 text-gray-900 font-bold">
+                          <td className="p-2 text-purple-700 font-bold text-lg">
                             Bs {(pack.precio_pack * item.cantidad).toFixed(2)}
                           </td>
                           <td className="p-2">
@@ -678,30 +685,19 @@ export default function NuevaVenta() {
                     
                     // Si es un producto normal
                     const descuento = getDescuento(item);
-                    const precioFinal = Number(item.precio) * (1 - descuento);
+                    const precioInfo = calcularPrecioConPromocion(item, promociones);
+                    
                     return (
-                      <tr key={item.user_id || `pack-${item.pack_id}`}>
+                      <tr key={item.user_id}>
                         <td className="p-2 text-center align-middle">
-                          {item.pack_id ? (
-                            // Imagen para packs
-                            <div className="h-14 w-14 mx-auto bg-purple-100 rounded-lg border-2 border-purple-300 flex items-center justify-center shadow-sm">
-                              <span className="text-2xl">📦</span>
-                            </div>
-                          ) : imagenesProductos[item.user_id]?.[0] ? (
+                          {imagenesProductos[item.user_id]?.[0] ? (
                             <img src={imagenesProductos[item.user_id][0]} alt="img" className="h-14 w-14 object-cover rounded-lg border mx-auto shadow-sm" style={{maxWidth:'56px',maxHeight:'56px'}} />
                           ) : (
                             <span className="text-gray-400">Sin imagen</span>
                           )}
                         </td>
                         <td className="p-2 text-left font-bold text-gray-900">
-                          {item.pack_id ? (
-                            <div>
-                              <div className="font-bold text-purple-800">📦 {item.nombre || 'PACK'}</div>
-                              <div className="text-xs text-purple-600">Pack especial</div>
-                            </div>
-                          ) : (
-                            item.nombre
-                          )}
+                          {item.nombre}
                         </td>
                         <td className="p-2">
                           <input
@@ -721,36 +717,21 @@ export default function NuevaVenta() {
                           />
                         </td>
                         <td className="p-2">
-                          {item.pack_id ? (
-                            // Para packs, mostrar el descuento del pack
-                            (() => {
-                              const pack = packs.find(p => p.id === item.pack_id);
-                              if (pack) {
-                                const { descuentoPorcentaje, descuentoAbsoluto } = calcularDescuentoPack(pack);
-                                return (
-                                  <div className="text-center">
-                                    <div className="text-red-600 font-bold">-Bs {(descuentoAbsoluto * item.cantidad).toFixed(2)}</div>
-                                    <div className="text-red-600 text-sm">-{descuentoPorcentaje.toFixed(0)}%</div>
-                                  </div>
-                                );
-                              }
-                              return <span className="text-gray-500">-</span>;
-                            })()
-                          ) : calcularPrecioConPromocion(item, promociones).tienePromocion ? (
+                          {precioInfo.tienePromocion ? (
                             <div className="text-center">
-                              <div className="text-red-600 font-bold">-Bs {calcularPrecioConPromocion(item, promociones).descuento.toFixed(2)}</div>
-                              <div className="text-red-600 text-sm">-{calcularPrecioConPromocion(item, promociones).porcentajeDescuento}%</div>
+                              <div className="text-red-600 font-bold">-Bs {(precioInfo.descuento * item.cantidad).toFixed(2)}</div>
+                              <div className="text-red-600 text-sm">-{precioInfo.porcentajeDescuento}%</div>
                             </div>
                           ) : (
-                            <span className="text-green-700 font-bold">{descuento > 0 ? `-${(descuento * 100).toFixed(0)}%` : '-'}</span>
+                            <span className="text-gray-500">-</span>
                           )}
                         </td>
                         <td className="p-2 text-gray-900 font-bold">
-                          Bs {(calcularPrecioConPromocion(item, promociones).precioFinal * item.cantidad).toFixed(2)}
+                          Bs {(precioInfo.precioFinal * item.cantidad).toFixed(2)}
                         </td>
                         <td className="p-2">
                           <button 
-                            onClick={() => quitarDelCarrito(item.user_id || `pack-${item.pack_id}`)} 
+                            onClick={() => quitarDelCarrito(item.user_id)} 
                             className="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded font-bold"
                           >
                             Quitar
@@ -793,17 +774,45 @@ export default function NuevaVenta() {
                   }
                   // Insertar detalles y descontar stock
                   for (const p of carrito) {
-                    const descuento = getDescuento(p);
-                    const precioFinal = Number(p.precio) * (1 - descuento);
-                    await supabase.from("ventas_detalle").insert([
-                      {
-                        venta_id: venta.id,
-                        producto_id: p.user_id,
-                        cantidad: p.cantidad,
-                        precio_unitario: precioFinal,
-                      },
-                    ]);
-                    await supabase.rpc('descontar_stock', { pid: p.user_id, cantidad_desc: p.cantidad });
+                    if (p.tipo === 'pack') {
+                      // Para packs, insertar como detalle especial
+                      const pack = packs.find(pack => pack.id === p.pack_id);
+                      if (pack) {
+                        const { descuentoPorcentaje, descuentoAbsoluto } = calcularDescuentoPack(pack);
+                        await supabase.from("ventas_detalle").insert([
+                          {
+                            venta_id: venta.id,
+                            producto_id: null,
+                            cantidad: p.cantidad,
+                            precio_unitario: pack.precio_pack,
+                            descripcion: `📦 Pack: ${pack.nombre}`,
+                            tipo: 'pack',
+                            pack_id: pack.id
+                          },
+                        ]);
+                        
+                        // Para packs, descontar stock de cada producto incluido
+                        for (const item of pack.pack_productos) {
+                          const cantidadTotal = item.cantidad * p.cantidad;
+                          await supabase.rpc('descontar_stock', { 
+                            pid: item.productos.user_id, 
+                            cantidad_desc: cantidadTotal 
+                          });
+                        }
+                      }
+                    } else {
+                      // Producto normal
+                      const precioInfo = calcularPrecioConPromocion(p, promociones);
+                      await supabase.from("ventas_detalle").insert([
+                        {
+                          venta_id: venta.id,
+                          producto_id: p.user_id,
+                          cantidad: p.cantidad,
+                          precio_unitario: precioInfo.precioFinal,
+                        },
+                      ]);
+                      await supabase.rpc('descontar_stock', { pid: p.user_id, cantidad_desc: p.cantidad });
+                    }
                   }
                   setCarrito([]);
                   setPago(0);
