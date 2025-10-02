@@ -288,7 +288,7 @@ export default function PromocionesDescuentosPage() {
                 {busqueda ? (
                   <div>
                     <div className="text-black font-bold text-lg">
-                      🔍 No se encontraron promociones con "{busqueda}"
+                      🔍 No se encontraron promociones con &quot;{busqueda}&quot;
                     </div>
                     <div className="text-gray-600 mt-2">
                       Intenta con otras palabras o verifica la ortografía

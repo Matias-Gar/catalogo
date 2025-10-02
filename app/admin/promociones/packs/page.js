@@ -531,7 +531,7 @@ export default function PromocionesPacksPage() {
               {busqueda ? (
                 <div>
                   <div className="text-black font-bold text-lg">
-                    🔍 No se encontraron packs con "{busqueda}"
+                    🔍 No se encontraron packs con &quot;{busqueda}&quot;
                   </div>
                   <div className="text-gray-600 mt-2">
                     Intenta con otras palabras o verifica la ortografía

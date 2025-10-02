@@ -452,7 +452,7 @@ export default function PromocionesProductosPage() {
             <CardTitle>
               {busqueda ? (
                 <span>
-                  🔍 Resultados de búsqueda: "{busqueda}" 
+                  🔍 Resultados de búsqueda: &quot;{busqueda}&quot; 
                   <span className="text-blue-600"> ({productosFiltrados.length} de {productos.length} productos)</span>
                 </span>
               ) : (
@@ -615,7 +615,7 @@ export default function PromocionesProductosPage() {
                     {busqueda ? (
                       <div>
                         <div className="text-black font-bold text-lg">
-                          🔍 No se encontraron productos con "{busqueda}"
+                          🔍 No se encontraron productos con &quot;{busqueda}&quot;
                         </div>
                         <div className="text-gray-600 mt-2">
                           Intenta con otras palabras o verifica la ortografía
