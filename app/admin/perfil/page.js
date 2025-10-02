@@ -7,6 +7,7 @@ export default function PerfilPage() {
   const [user, setUser] = useState(null);
   const [perfil, setPerfil] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [editando, setEditando] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -27,6 +28,19 @@ export default function PerfilPage() {
     };
     getUser();
   }, []);
+
+  const recargarPerfil = async () => {
+    if (user) {
+      const { data: perfilData } = await supabase
+        .from('perfiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      setPerfil(perfilData);
+      setEditando(false); // Volver al modo visualización
+    }
+  };
 
   if (loading) {
     return (
@@ -63,44 +77,120 @@ export default function PerfilPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">Mi Perfil</h1>
-            <p className="text-blue-100">Gestiona tu información personal</p>
+            <p className="text-blue-100">
+              {editando ? "Editando información personal" : "Información personal"}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Información actual */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Información Actual
-        </h2>
-        <div className="grid md:grid-cols-3 gap-4 text-sm">
-          <div>
-            <span className="font-medium text-gray-600">Email:</span>
-            <p className="text-gray-900">{user.email}</p>
-          </div>
-          <div>
-            <span className="font-medium text-gray-600">Nombre:</span>
-            <p className="text-gray-900">{perfil?.nombre || 'No establecido'}</p>
-          </div>
-          <div>
-            <span className="font-medium text-gray-600">NIT/CI:</span>
-            <p className="text-gray-900">{perfil?.nit_ci || 'No establecido'}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Formulario de edición */}
       <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          Actualizar Información
-        </h2>
-        <PerfilForm userId={user.id} perfilActual={perfil} />
+        {!editando ? (
+          // MODO VISUALIZACIÓN - Mostrar datos actuales
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Mi Información Personal
+              </h2>
+              <button
+                onClick={() => setEditando(true)}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Editar Perfil
+              </button>
+            </div>
+
+            {/* Información actual del perfil */}
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Foto de perfil */}
+              <div className="text-center">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Foto de Perfil</h3>
+                {perfil?.foto_perfil ? (
+                  <img 
+                    src={perfil.foto_perfil} 
+                    alt="Foto de perfil" 
+                    className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-blue-200 shadow-lg"
+                  />
+                ) : (
+                  <div className="w-32 h-32 rounded-full mx-auto bg-gray-200 flex items-center justify-center border-4 border-gray-300">
+                    <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                )}
+                <p className="text-sm text-gray-500 mt-2">
+                  {perfil?.foto_perfil ? "Foto actual" : "Sin foto de perfil"}
+                </p>
+              </div>
+
+              {/* Información personal */}
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nombre Completo
+                  </label>
+                  <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                    {perfil?.nombre || "No especificado"}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    NIT/CI
+                  </label>
+                  <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                    {perfil?.nit_ci || "No especificado"}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                    {user?.email || "No especificado"}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    El email se gestiona desde la configuración de cuenta
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          // MODO EDICIÓN - Formulario editable
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Editando Mi Perfil
+              </h2>
+              <button
+                onClick={() => setEditando(false)}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Cancelar
+              </button>
+            </div>
+            
+            <PerfilForm 
+              userId={user.id} 
+              perfilActual={perfil} 
+              onSave={recargarPerfil}
+            />
+          </div>
+        )}
       </div>
 
       {/* Link a administración de perfiles (solo para admin) */}

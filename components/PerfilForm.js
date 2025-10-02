@@ -9,48 +9,49 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
   const [loading, setLoading] = useState(false);
   const [uploadingFoto, setUploadingFoto] = useState(false);
   const [message, setMessage] = useState("");
-  const [perfilExiste, setPerfilExiste] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
     
-    // Usar perfilActual si está disponible
-    if (perfilActual) {
-      setNombre(perfilActual.nombre || "");
-      setNitCi(perfilActual.nit_ci || "");
-      setFotoPerfil(perfilActual.foto_perfil || "");
-      setPerfilExiste(true);
-    } else {
-      // Cargar datos actuales del perfil
-      supabase
-        .from("perfiles")
-        .select("nombre, nit_ci, foto_perfil")
-        .eq("id", userId)
-        .single()
-        .then(({ data, error }) => {
-          if (data) {
+    // Cargar datos del perfil
+    const cargarPerfil = async () => {
+      try {
+        if (perfilActual) {
+          setNombre(perfilActual.nombre || "");
+          setNitCi(perfilActual.nit_ci || "");
+          setFotoPerfil(perfilActual.foto_perfil || "");
+        } else {
+          const { data, error } = await supabase
+            .from("perfiles")
+            .select("nombre, nit_ci, foto_perfil")
+            .eq("id", userId)
+            .single();
+          
+          if (error) {
+            console.log('No se encontró perfil existente, se creará uno nuevo');
+          } else if (data) {
             setNombre(data.nombre || "");
             setNitCi(data.nit_ci || "");
             setFotoPerfil(data.foto_perfil || "");
-            setPerfilExiste(true);
-          } else {
-            setPerfilExiste(false);
           }
-        });
-    }
+        }
+      } catch (error) {
+        console.error('Error cargando perfil:', error);
+      }
+    };
+    
+    cargarPerfil();
   }, [userId, perfilActual]);
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Validar que sea una imagen
     if (!file.type.startsWith('image/')) {
-      setMessage("❌ Por favor selecciona solo archivos de imagen");
+      setMessage("❌ Solo se permiten archivos de imagen");
       return;
     }
 
-    // Validar tamaño (máximo 2MB)
     if (file.size > 2 * 1024 * 1024) {
       setMessage("❌ La imagen debe ser menor a 2MB");
       return;
@@ -60,21 +61,15 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
     setMessage("");
 
     try {
-      // Crear nombre único para el archivo
       const fileExt = file.name.split('.').pop();
       const fileName = `${userId}/${Date.now()}.${fileExt}`;
 
-      // Subir archivo a Supabase Storage
       const { data, error } = await supabase.storage
         .from('perfiles')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
+        .upload(fileName, file, { cacheControl: '3600', upsert: true });
 
       if (error) throw error;
 
-      // Obtener URL pública
       const { data: { publicUrl } } = supabase.storage
         .from('perfiles')
         .getPublicUrl(fileName);
@@ -83,8 +78,7 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
       setMessage("✅ Foto subida correctamente");
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
-      console.error('Error subiendo foto:', error);
-      setMessage("❌ Error al subir la foto: " + error.message);
+      setMessage("❌ Error al subir foto: " + error.message);
     } finally {
       setUploadingFoto(false);
     }
@@ -96,10 +90,17 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
     setMessage("");
     
     try {
+      // Primero verificar si el perfil existe
+      const { data: perfilExistente } = await supabase
+        .from("perfiles")
+        .select("id")
+        .eq("id", userId)
+        .single();
+      
       let result;
       
-      if (perfilExiste) {
-        // Actualizar perfil existente (sin rol)
+      if (perfilExistente) {
+        // ACTUALIZAR perfil existente
         result = await supabase
           .from("perfiles")
           .update({
@@ -109,7 +110,7 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
           })
           .eq("id", userId);
       } else {
-        // Crear nuevo perfil
+        // CREAR nuevo perfil
         result = await supabase
           .from("perfiles")
           .insert({
@@ -117,24 +118,21 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
             nombre: nombre.trim(),
             nit_ci: nitCi.trim(),
             foto_perfil: fotoPerfil,
-            rol: 'usuario' // Rol por defecto
+            rol: 'usuario'
           });
-        setPerfilExiste(true);
       }
       
       if (result.error) {
         console.error('Error de Supabase:', result.error);
-        setMessage("❌ Error al guardar: " + result.error.message);
+        setMessage("❌ Error: " + (result.error.message || "Error desconocido"));
       } else {
-        setMessage("✅ Perfil actualizado correctamente");
+        setMessage("✅ Perfil guardado correctamente");
         if (onSave) onSave();
-        
-        // Limpiar mensaje después de 3 segundos
         setTimeout(() => setMessage(""), 3000);
       }
     } catch (error) {
-      console.error('Error general:', error);
-      setMessage("❌ Error inesperado: " + error.message);
+      console.error('Error inesperado:', error);
+      setMessage("❌ Error inesperado: " + (error.message || "Error desconocido"));
     }
     
     setLoading(false);
@@ -143,10 +141,10 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
   return (
     <div className="space-y-6">
       {message && (
-        <div className={`p-4 rounded-lg text-center text-sm ${
+        <div className={`p-4 rounded-lg text-center font-medium ${
           message.includes('❌') 
-            ? 'bg-red-50 border border-red-200 text-red-800' 
-            : 'bg-green-50 border border-green-200 text-green-800'
+            ? 'bg-red-50 border border-red-200 text-red-700' 
+            : 'bg-green-50 border border-green-200 text-green-700'
         }`}>
           {message}
         </div>
@@ -170,7 +168,7 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
           )}
         </div>
         
-        <div className="relative">
+        <div className="relative inline-block">
           <input
             type="file"
             accept="image/*"
@@ -181,19 +179,12 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
           <button
             type="button"
             disabled={uploadingFoto}
-            className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg font-medium transition-colors"
           >
-            {uploadingFoto ? (
-              <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                Subiendo...
-              </div>
-            ) : (
-              fotoPerfil ? "Cambiar Foto" : "Subir Foto"
-            )}
+            {uploadingFoto ? "Subiendo..." : fotoPerfil ? "Cambiar Foto" : "Subir Foto"}
           </button>
         </div>
-        <p className="text-xs text-gray-500 mt-2">Máximo 2MB. Formatos: JPG, PNG, GIF</p>
+        <p className="text-xs text-gray-500 mt-2">Máximo 2MB • JPG, PNG, GIF</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -204,10 +195,10 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
             </label>
             <input
               type="text"
-              placeholder="Ej: Juan Pérez García"
+              placeholder="Escribe tu nombre completo"
               value={nombre}
               onChange={e => setNombre(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               required
             />
           </div>
@@ -218,29 +209,22 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
             </label>
             <input
               type="text"
-              placeholder="Ej: 8845863"
+              placeholder="Número de identificación"
               value={nitCi}
               onChange={e => setNitCi(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               required
             />
           </div>
         </div>
         
-        <div className="flex justify-end">
+        <div className="text-center">
           <button
             type="submit"
             disabled={loading || !nombre.trim() || !nitCi.trim()}
-            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-3 px-8 rounded-lg transition-colors"
+            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-8 rounded-lg transition-colors text-lg"
           >
-            {loading ? (
-              <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                Guardando...
-              </div>
-            ) : (
-              perfilExiste ? "Actualizar Perfil" : "Crear Perfil"
-            )}
+            {loading ? "Guardando..." : "💾 Editar Perfil"}
           </button>
         </div>
       </form>
