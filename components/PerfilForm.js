@@ -13,30 +13,48 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
   useEffect(() => {
     if (!userId) return;
     
-    // Cargar datos del perfil
+    // Cargar datos del perfil con reintentos
     const cargarPerfil = async () => {
       try {
         if (perfilActual) {
+          console.log('Usando perfil actual:', perfilActual);
           setNombre(perfilActual.nombre || "");
           setNitCi(perfilActual.nit_ci || "");
           setFotoPerfil(perfilActual.foto_perfil || "");
         } else {
+          console.log('Cargando perfil desde base de datos para userId:', userId);
+          
+          // Intentar cargar perfil con manejo de errores mejorado
           const { data, error } = await supabase
             .from("perfiles")
             .select("nombre, nit_ci, foto_perfil")
             .eq("id", userId)
-            .single();
+            .maybeSingle(); // Usar maybeSingle en lugar de single
           
           if (error) {
-            console.log('No se encontró perfil existente, se creará uno nuevo');
+            console.log('Error cargando perfil (se creará uno nuevo):', error.message);
+            // Si hay error, dejamos campos vacíos para crear nuevo perfil
+            setNombre("");
+            setNitCi("");
+            setFotoPerfil("");
           } else if (data) {
+            console.log('Perfil cargado:', data);
             setNombre(data.nombre || "");
             setNitCi(data.nit_ci || "");
             setFotoPerfil(data.foto_perfil || "");
+          } else {
+            console.log('No se encontró perfil, se creará uno nuevo');
+            setNombre("");
+            setNitCi("");
+            setFotoPerfil("");
           }
         }
       } catch (error) {
-        console.error('Error cargando perfil:', error);
+        console.error('Error inesperado cargando perfil:', error);
+        // En caso de error, inicializar campos vacíos
+        setNombre("");
+        setNitCi("");
+        setFotoPerfil("");
       }
     };
     
@@ -89,43 +107,53 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
     setLoading(true);
     setMessage("");
     
+    console.log('Intentando guardar perfil para userId:', userId);
+    
     try {
-      // Primero verificar si el perfil existe
-      const { data: perfilExistente } = await supabase
+      // Verificar si el perfil existe (con mejor manejo de errores)
+      const { data: perfilExistente, error: errorCheck } = await supabase
         .from("perfiles")
         .select("id")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
+      
+      console.log('Verificación de perfil existente:', { perfilExistente, errorCheck });
       
       let result;
+      const datosActualizar = {
+        nombre: nombre.trim(),
+        nit_ci: nitCi.trim(),
+        foto_perfil: fotoPerfil || null
+      };
       
       if (perfilExistente) {
+        console.log('Actualizando perfil existente...');
         // ACTUALIZAR perfil existente
         result = await supabase
           .from("perfiles")
-          .update({
-            nombre: nombre.trim(),
-            nit_ci: nitCi.trim(),
-            foto_perfil: fotoPerfil
-          })
-          .eq("id", userId);
+          .update(datosActualizar)
+          .eq("id", userId)
+          .select();
       } else {
+        console.log('Creando nuevo perfil...');
         // CREAR nuevo perfil
         result = await supabase
           .from("perfiles")
           .insert({
             id: userId,
-            nombre: nombre.trim(),
-            nit_ci: nitCi.trim(),
-            foto_perfil: fotoPerfil,
+            ...datosActualizar,
             rol: 'usuario'
-          });
+          })
+          .select();
       }
+      
+      console.log('Resultado de la operación:', result);
       
       if (result.error) {
         console.error('Error de Supabase:', result.error);
         setMessage("❌ Error: " + (result.error.message || "Error desconocido"));
       } else {
+        console.log('Perfil guardado exitosamente');
         setMessage("✅ Perfil guardado correctamente");
         if (onSave) onSave();
         setTimeout(() => setMessage(""), 3000);
