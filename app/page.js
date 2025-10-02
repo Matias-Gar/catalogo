@@ -331,20 +331,28 @@ export default function Home() {
         </div>
         {/* Mensajes de Estado */}
         {loading && (
-          <p className="text-center text-lg text-indigo-600 mt-10 animate-pulse">Cargando productos...</p>
+          <div className="text-center mt-10">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p className="text-lg font-medium text-gray-800">Cargando productos...</p>
+          </div>
         )}
         {error && (
-          <div className="text-center p-4 bg-red-100 text-red-700 rounded-lg mt-10">
-            <p className="font-bold">Error de Conexión o Datos:</p>
-            <p className="text-sm">{error}</p>
-            <p className="text-xs mt-2">Asegúrate de que las claves de Supabase y las políticas RLS permitan la lectura.</p>
+          <div className="text-center p-6 bg-red-50 border border-red-200 text-red-800 rounded-lg mt-10 max-w-2xl mx-auto">
+            <p className="font-bold text-lg mb-2">Error de Conexión o Datos:</p>
+            <p className="text-sm mb-2">{error}</p>
+            <p className="text-xs">Asegúrate de que las claves de Supabase y las políticas RLS permitan la lectura.</p>
           </div>
         )}
         {/* Contenedor de Productos */}
         {!loading && productosFiltrados.length === 0 && (
-          <p className="text-center text-gray-600 mt-10 text-lg">
-            No se encontraron productos para la categoría seleccionada.
-          </p>
+          <div className="text-center mt-10 p-8 bg-gray-50 rounded-lg">
+            <p className="text-xl font-medium text-gray-800 mb-2">
+              No se encontraron productos
+            </p>
+            <p className="text-gray-600">
+              para la categoría seleccionada.
+            </p>
+          </div>
         )}
         {/* Grid de productos */}
   <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">

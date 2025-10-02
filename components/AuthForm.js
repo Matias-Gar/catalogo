@@ -68,7 +68,7 @@ export default function AuthForm({ onLoginSuccess }) {
           placeholder="Correo electrónico"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
           required
         />
         <input
@@ -76,7 +76,7 @@ export default function AuthForm({ onLoginSuccess }) {
           placeholder="Contraseña"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
           required
         />
         <button
@@ -95,12 +95,12 @@ export default function AuthForm({ onLoginSuccess }) {
             setEmail(''); // Limpiar campos
             setPassword(''); 
         }}
-        className="mt-6 text-sm text-indigo-600 hover:text-indigo-800 transition duration-200"
+        className="mt-6 text-sm text-indigo-700 hover:text-indigo-900 font-medium transition duration-200"
       >
         {isRegistering ? 'Ya tengo una cuenta' : '¿Necesitas una cuenta?'}
       </button>
       
-      <p className="mt-4 text-xs text-red-500">
+      <p className="mt-4 text-xs text-red-600 font-medium">
         *El administrador debe registrarse primero.
       </p>
     </div>
