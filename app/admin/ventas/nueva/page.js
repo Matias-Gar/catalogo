@@ -626,8 +626,12 @@ export default function NuevaVenta() {
                   {carrito.map(item => {
                     // Si es un pack
                     if (item.tipo === 'pack') {
-                      const pack = packs.find(p => p.id === item.pack_id);
-                      if (!pack) return null;
+                      // Usar pack_data almacenado en el item en lugar de buscar en packs
+                      const pack = item.pack_data || packs.find(p => p.id === item.pack_id);
+                      if (!pack) {
+                        console.log('Pack no encontrado:', { item, pack_id: item.pack_id, packs_disponibles: packs.map(p => p.id) });
+                        return null;
+                      }
                       
                       const { descuentoPorcentaje, descuentoAbsoluto } = calcularDescuentoPack(pack);
                       
@@ -642,9 +646,9 @@ export default function NuevaVenta() {
                             <div className="font-bold text-purple-800">📦 {pack.nombre}</div>
                             <div className="text-xs text-purple-600">{pack.descripcion || 'Pack especial'}</div>
                             <div className="text-xs text-gray-600 mt-1">
-                              Incluye: {pack.pack_productos.map(item => 
-                                `${item.cantidad}x ${item.productos.nombre}`
-                              ).join(', ')}
+                              Incluye: {pack.pack_productos?.map(packItem => 
+                                `${packItem.cantidad}x ${packItem.productos.nombre}`
+                              ).join(', ') || 'Productos del pack'}
                             </div>
                           </td>
                           <td className="p-2">

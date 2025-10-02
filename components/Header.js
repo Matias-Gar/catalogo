@@ -74,12 +74,22 @@ export default function Header() {
         )}
         {/* Lógica Condicional del Botón de Sesión */}
         {session ? (
-          <button
-            onClick={handleLogout}
-            className="px-3 py-1.5 sm:px-4 sm:py-2 bg-red-600 rounded-lg text-white font-bold text-sm sm:text-base hover:bg-red-700 transition duration-300 shadow-md"
-          >
-            Cerrar Sesión
-          </button>
+          <div className="flex gap-2 items-center">
+            {/* Botón de Perfil para usuarios normales (no admin) */}
+            {userRole !== 'admin' && (
+              <Link href="/admin/perfil">
+                <div className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-sm sm:text-base transition duration-300 shadow-md">
+                  👤 Perfil
+                </div>
+              </Link>
+            )}
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1.5 sm:px-4 sm:py-2 bg-red-600 rounded-lg text-white font-bold text-sm sm:text-base hover:bg-red-700 transition duration-300 shadow-md"
+            >
+              Cerrar Sesión
+            </button>
+          </div>
         ) : (
           <>
             <Link href="/productos">
