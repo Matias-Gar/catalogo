@@ -229,7 +229,7 @@ export default function CatalogoPage() {
         const { data, error } = await supabase.from("carritos_pendientes").insert([
             {
                 cliente_nombre: nombreFinal || null,
-                cliente_telefono: telefonoFinal || null,
+                cliente_telefono: nitciLlenado || null, // Usar NIT/CI en lugar de teléfono
                 usuario_id: usuario ? usuario.id : null,
                 usuario_email: emailFinal || null,
                 productos: cart.map(p => ({ producto_id: p.user_id, cantidad: p.cantidad, precio_unitario: p.precio })),
