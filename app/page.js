@@ -144,9 +144,16 @@ export default function Home() {
       const { data, error } = await supabase
         .from('productos')
         .select('user_id, nombre, descripcion, precio, stock, category_id');
+        
       if (error) {
         throw new Error(`Error al cargar productos: ${error.message}`);
       }
+      
+      if (!data) {
+        setProductos([]);
+        return;
+      }
+      
       setProductos(data);
       // Buscar imágenes
       const ids = data.map(p => p.user_id);

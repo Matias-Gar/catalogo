@@ -12,10 +12,12 @@ export default function CatalogoPage() {
     // --- Estados ---
     const [cart, setCart] = useState([]);
     const [showCart, setShowCart] = useState(false);
+    const [showConfirmOrder, setShowConfirmOrder] = useState(false); // Nuevo estado para confirmación
     const [productos, setProductos] = useState([]);
     const [imagenesProductos, setImagenesProductos] = useState({});
     const [categorias, setCategorias] = useState([]);
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
+    const [customerData, setCustomerData] = useState({ nombre: '', telefono: '' }); // Datos del cliente
     // Estado para modal de imagen
     const [modalImg, setModalImg] = useState(null); // { urls: string[], index: number, nombre: string }
 
@@ -41,6 +43,16 @@ export default function CatalogoPage() {
         };
         getUser();
     }, []);
+
+    // Auto-llenar datos del cliente cuando el usuario esté logueado
+    useEffect(() => {
+        if (usuario && usuario.nombre) {
+            setCustomerData(prevData => ({
+                ...prevData,
+                nombre: prevData.nombre || usuario.nombre
+            }));
+        }
+    }, [usuario]);
 
 
     // 1. Cargar productos y sus imágenes desde Supabase
@@ -132,30 +144,53 @@ export default function CatalogoPage() {
         setCart(prev => prev.filter(item => item.user_id !== user_id));
     };
 
-    // --- Función de WhatsApp (CORREGIDA) ---
+    // --- Función para abrir confirmación de pedido ---
+    const openOrderConfirmation = () => {
+        if (cart.length === 0) {
+            alert("Tu cesta está vacía. Agrega productos para enviar un pedido.");
+            return;
+        }
+        
+        // Auto-llenar datos si el usuario está logueado
+        if (usuario && usuario.nombre) {
+            setCustomerData(prevData => ({
+                nombre: prevData.nombre || usuario.nombre,
+                telefono: prevData.telefono || ''
+            }));
+        }
+        
+        setShowCart(false);
+        setShowConfirmOrder(true);
+    };
 
-    const sendWhatsapp = async () => {
+    // --- Función de WhatsApp (MEJORADA) ---
+    const confirmAndSendWhatsapp = async () => {
         if (cart.length === 0) {
             alert("Tu cesta está vacía. Agrega productos para enviar un pedido.");
             return;
         }
 
         // 1. Guardar carrito en carritos_pendientes
-        let nombreFinal = usuario && usuario.nombre ? usuario.nombre : null;
+        let nombreFinal = customerData.nombre || (usuario && usuario.nombre) || null;
+        let telefonoFinal = customerData.telefono || null;
         let emailFinal = usuario && usuario.email ? usuario.email : null;
+        
         // Insertar y obtener el número de pedido (id)
         const { data, error } = await supabase.from("carritos_pendientes").insert([
             {
                 cliente_nombre: nombreFinal || null,
+                cliente_telefono: telefonoFinal || null,
                 usuario_id: usuario ? usuario.id : null,
                 usuario_email: emailFinal || null,
                 productos: cart.map(p => ({ producto_id: p.user_id, cantidad: p.cantidad, precio_unitario: p.precio })),
             }
         ]).select('id').single();
+        
         if (error || !data) {
             alert("No se pudo guardar el pedido. Intenta de nuevo.");
             return;
         }
+        
         const pedidoId = data.id;
 
         // 2. Preparar mensaje WhatsApp
@@ -163,17 +198,27 @@ export default function CatalogoPage() {
             const subtotal = (item.precio * item.cantidad).toFixed(2); 
             return `*${item.cantidad}x* ${item.nombre} - (Bs ${subtotal})`;
         }).join('\n');
+        
         const total = cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0).toFixed(2);
         const nombreTexto = nombreFinal ? `Nombre: ${nombreFinal}\n` : '';
+        const telefonoTexto = telefonoFinal ? `Teléfono: ${telefonoFinal}\n` : '';
         const pedidoTexto = `N° Pedido: ${pedidoId}`;
+        
         const message = encodeURIComponent(
-            `¡Hola! Me gustaría hacer el siguiente pedido:\n${pedidoTexto}\n${nombreTexto}\n${itemsList}\n\n*Total:* Bs ${total}\n\nGracias.`
+            `¡Hola! Me gustaría hacer el siguiente pedido:\n\n${pedidoTexto}\n${nombreTexto}${telefonoTexto}\n${itemsList}\n\n*Total:* Bs ${total}\n\n¡Gracias!`
         );
+        
         const whatsappURL = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
         window.open(whatsappURL, '_blank');
-        setShowCart(false);
+        
+        // Limpiar carrito y cerrar modales
+        setShowConfirmOrder(false);
         setCart([]);
+        setCustomerData({ nombre: '', telefono: '' });
         localStorage.removeItem('cart');
+        
+        // Mensaje de éxito
+        alert("¡Pedido enviado exitosamente! Se ha abierto WhatsApp para completar tu pedido.");
     };
 
     // --- Renderizado ---
@@ -391,14 +436,171 @@ export default function CatalogoPage() {
 
                     <button
                         className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white py-2 rounded-xl font-bold shadow-xl transition-colors duration-150 flex items-center justify-center gap-2 text-base disabled:bg-gray-400"
-                        onClick={sendWhatsapp}
+                        onClick={openOrderConfirmation}
                         disabled={cart.length === 0}
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12c0-.527-.084-1.05-.25-1.558l-1.99-1.99a1.5 1.5 0 00-2.122 0l-3.232 3.232a1.5 1.5 0 000 2.122l1.99 1.99c.508.166 1.03.25 1.558.25h.001c.527 0 1.05-.084 1.558-.25l1.99-1.99a1.5 1.5 0 000-2.122zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Enviar pedido por WhatsApp
+                        Revisar y confirmar pedido
                     </button>
+                </div>
+            )}
+
+            {/* MODAL DE CONFIRMACIÓN DE PEDIDO */}
+            {showConfirmOrder && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                        {/* Header del modal */}
+                        <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-6 rounded-t-2xl">
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-2xl font-bold flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Confirmar Pedido
+                                </h2>
+                                <button 
+                                    onClick={() => setShowConfirmOrder(false)}
+                                    className="text-white hover:text-red-200 text-3xl font-bold transition-colors"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Contenido del modal */}
+                        <div className="p-6">
+                            {/* Datos del cliente */}
+                            <div className="mb-6">
+                                <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                    </svg>
+                                    Datos del cliente
+                                    {usuario && (
+                                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold ml-2">
+                                            Usuario logueado: {usuario.email}
+                                        </span>
+                                    )}
+                                </h3>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Nombre completo *
+                                            {usuario && usuario.nombre && (
+                                                <span className="text-green-600 text-xs ml-2">
+                                                    ✓ Auto-completado desde tu perfil
+                                                </span>
+                                            )}
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={customerData.nombre}
+                                            onChange={(e) => setCustomerData({...customerData, nombre: e.target.value})}
+                                            placeholder="Ingresa tu nombre completo"
+                                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                                usuario && usuario.nombre 
+                                                    ? 'border-green-300 bg-green-50' 
+                                                    : 'border-gray-300'
+                                            }`}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Teléfono (opcional)
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            value={customerData.telefono}
+                                            onChange={(e) => setCustomerData({...customerData, telefono: e.target.value})}
+                                            placeholder="Ej: 70123456"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Resumen del pedido */}
+                            <div className="mb-6">
+                                <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+                                    </svg>
+                                    Resumen del pedido
+                                </h3>
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                    <div className="space-y-3">
+                                        {cart.map(item => (
+                                            <div key={item.user_id} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
+                                                <div className="flex-1">
+                                                    <h4 className="font-semibold text-gray-800">{item.nombre}</h4>
+                                                    <p className="text-sm text-gray-600">Bs {item.precio.toFixed(2)} c/u</p>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-semibold">
+                                                        x{item.cantidad}
+                                                    </span>
+                                                    <span className="font-bold text-green-600">
+                                                        Bs {(item.precio * item.cantidad).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-4 pt-4 border-t-2 border-green-500">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-xl font-bold text-gray-800">Total:</span>
+                                            <span className="text-2xl font-bold text-green-600 bg-green-100 px-4 py-2 rounded-lg">
+                                                Bs {cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0).toFixed(2)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Mensaje informativo */}
+                            <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
+                                <div className="flex">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-blue-400 mr-2 mt-0.5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                                    </svg>
+                                    <div>
+                                        <p className="text-sm text-blue-700">
+                                            <strong>¿Todo correcto?</strong> Revisa tu pedido antes de enviarlo. 
+                                            Se abrirá WhatsApp para completar tu compra con nosotros.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Botones de acción */}
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setShowConfirmOrder(false);
+                                        setShowCart(true);
+                                    }}
+                                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                                    </svg>
+                                    Editar cesta
+                                </button>
+                                <button
+                                    onClick={confirmAndSendWhatsapp}
+                                    disabled={!customerData.nombre && !usuario?.nombre}
+                                    className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                                    </svg>
+                                    Enviar por WhatsApp
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
