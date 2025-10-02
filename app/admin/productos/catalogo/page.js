@@ -3,12 +3,17 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 import { Card, CardHeader, CardTitle, CardContent } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
+import { PrecioConPromocion } from "../../../../lib/promociones";
+import { usePromociones } from "../../../../lib/usePromociones";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
 export default function CatalogoAdmin() {
   const [productos, setProductos] = useState([]);
   const [imagenes, setImagenes] = useState({});
+  
+  // Hook para promociones
+  const { promociones, loading: loadingPromociones } = usePromociones();
   useEffect(() => {
     async function fetchProductos() {
       const { data, error } = await supabase
@@ -80,7 +85,12 @@ export default function CatalogoAdmin() {
                     <span className="text-gray-400">Sin imagen</span>
                   )}
                   <div className="text-gray-900 text-sm mt-2">{prod.descripcion}</div>
-                  <div className="text-gray-900 font-bold">Bs {Number(prod.precio).toFixed(2)}</div>
+                  <PrecioConPromocion 
+                    producto={prod} 
+                    promociones={promociones}
+                    className=""
+                    compact={true}
+                  />
                   <div className="text-gray-900">Stock: <span className={prod.stock < 3 ? 'text-red-600 font-bold' : ''}>{prod.stock}</span></div>
                   <div className="text-gray-900">Categoría: {prod.categoria || '-'}</div>
                 </div>

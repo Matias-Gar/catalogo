@@ -6,6 +6,8 @@ import { supabase } from "../../../lib/SupabaseClient";
 import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
+import { PrecioConPromocion } from '../../../lib/promociones';
+import { usePromociones } from '../../../lib/usePromociones';
 
 // Desactivar SSR para el componente de código de barras si usa librerías de cliente como 'react-barcode'
 // Si la tabla usa react-barcode, este dynamic es necesario. Si solo usa la función handlePrintBarcode, se podría quitar.
@@ -130,6 +132,10 @@ export default function AdminProductosPage() {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [selectedImageList, setSelectedImageList] = useState([]);
     const [selectedImageName, setSelectedImageName] = useState('');
+    
+    // Hook para promociones
+    const { promociones, loading: loadingPromociones } = usePromociones();
+    
     const [newProduct, setNewProduct] = useState({ 
         nombre: '', 
         descripcion: '', 
@@ -757,7 +763,14 @@ export default function AdminProductosPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">{safe(producto.nombre)}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{safe(producto.category_name)}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-700 font-bold">Bs {parseFloat(producto.precio).toFixed(2)}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            <PrecioConPromocion 
+                                                producto={producto} 
+                                                promociones={promociones}
+                                                className=""
+                                                compact={true}
+                                            />
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-700">{safe(producto.stock)}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex space-x-2">

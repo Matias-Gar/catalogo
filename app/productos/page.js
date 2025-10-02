@@ -4,9 +4,9 @@
 // Cambia este número por el tuyo (sin + ni espacios, solo números, ej: 5491122334455)
 const WHATSAPP_NUMBER = "59160353747";
 import { useState, useEffect } from 'react';
-
-
 import { supabase } from '../../lib/SupabaseClient';
+import { PrecioConPromocion } from '../../lib/promociones';
+import { usePromociones } from '../../lib/usePromociones';
 
 export default function CatalogoPage() {
     // --- Estados ---
@@ -20,6 +20,9 @@ export default function CatalogoPage() {
     const [customerData, setCustomerData] = useState({ nombre: '', telefono: '' }); // Datos del cliente
     // Estado para modal de imagen
     const [modalImg, setModalImg] = useState(null); // { urls: string[], index: number, nombre: string }
+
+    // Usar el hook para promociones
+    const { promociones, loading: loadingPromociones } = usePromociones();
 
     // --- Efectos (Hooks) ---
     // Detectar usuario logeado
@@ -109,12 +112,44 @@ export default function CatalogoPage() {
     }, [cart]);
 
     // --- Funciones del Carrito ---
+    
+    // Función helper para obtener el precio final de un producto (con promoción si aplica)
+    const getPrecioFinal = (producto) => {
+        const promocion = promociones.find(
+            promo => 
+                promo.producto_id === producto.user_id && 
+                promo.activa === true &&
+                (!promo.fecha_fin || new Date(promo.fecha_fin) >= new Date())
+        );
+
+        if (!promocion) {
+            return producto.precio;
+        }
+
+        let precioFinal = producto.precio;
+        switch (promocion.tipo) {
+            case 'descuento':
+                precioFinal = producto.precio * (1 - promocion.valor / 100);
+                break;
+            case 'precio_fijo':
+                precioFinal = promocion.valor;
+                break;
+            case 'descuento_absoluto':
+                precioFinal = Math.max(0, producto.precio - promocion.valor);
+                break;
+            default:
+                precioFinal = producto.precio;
+        }
+        return Math.max(0, precioFinal);
+    };
 
     // Buscar producto en el carrito por id
     const getProductInCart = (user_id) => cart.find(p => p.user_id === user_id);
 
     // Añadir producto al carrito (por id)
     const addToCart = (producto) => {
+        const precioFinal = getPrecioFinal(producto);
+        
         setCart(prev => {
             const idx = prev.findIndex(p => p.user_id === producto.user_id);
             if (idx !== -1) {
@@ -123,8 +158,8 @@ export default function CatalogoPage() {
                 updated[idx] = { ...updated[idx], cantidad: updated[idx].cantidad + 1 };
                 return updated;
             } else {
-                // Producto nuevo: Añadir al carrito con cantidad 1
-                return [...prev, { ...producto, cantidad: 1 }];
+                // Producto nuevo: Añadir al carrito con cantidad 1 y precio promocional
+                return [...prev, { ...producto, cantidad: 1, precio: precioFinal }];
             }
         });
     };
@@ -302,7 +337,14 @@ export default function CatalogoPage() {
                                     <div className="flex-1 flex flex-col">
                                         <div className="text-base sm:text-lg text-black font-bold mb-0.5 line-clamp-2">{categoria ? (categoria.categori || categoria.nombre) : '-'}</div>
                                         <div className="text-base sm:text-lg font-bold mb-1 line-clamp-2">{producto.nombre}</div>
-                                        <div className="text-blue-700 font-bold text-base sm:text-xl mb-1">Bs {producto.precio.toFixed(2)}</div>
+                                        
+                                        {/* Usar el componente de precio con promoción */}
+                                        <PrecioConPromocion 
+                                            producto={producto} 
+                                            promociones={promociones}
+                                            className="mb-1"
+                                        />
+                                        
                                         {/* Stock eliminado por requerimiento */}
                                     </div>
                                     <button

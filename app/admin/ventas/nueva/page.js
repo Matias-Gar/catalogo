@@ -5,6 +5,8 @@ import { createClient } from '@supabase/supabase-js';
 // Función para efectivizar venta y descontar stock
 // Debe ir dentro del componente
 import { supabase } from "../../../../lib/SupabaseClient";
+import { PrecioConPromocion, calcularPrecioConPromocion } from "../../../../lib/promociones";
+import { usePromociones } from "../../../../lib/usePromociones";
 
 // Utilidad para agrupar imágenes por producto
 function agruparImagenes(imgs) {
@@ -33,6 +35,9 @@ export default function NuevaVenta() {
   const [carritosPendientes, setCarritosPendientes] = useState([]);
   const [efectivizando, setEfectivizando] = useState(false);
   const [usuario, setUsuario] = useState(null);
+  
+  // Hook para promociones
+  const { promociones, loading: loadingPromociones } = usePromociones();
   // Detectar usuario logueado y autocompletar nombre/email
   useEffect(() => {
     async function getUser() {
@@ -171,6 +176,10 @@ export default function NuevaVenta() {
 
   // Agregar producto al carrito manualmente
   function agregarAlCarrito(prod) {
+    // Calcular precio con promoción
+    const precioConPromocion = calcularPrecioConPromocion(prod, promociones);
+    const precioFinal = precioConPromocion.precioFinal;
+    
     setCarrito(prev => {
       const existe = prev.find(p => p.user_id === prod.user_id);
       if (existe) {
@@ -178,7 +187,7 @@ export default function NuevaVenta() {
           p.user_id === prod.user_id ? { ...p, cantidad: p.cantidad + 1 } : p
         );
       } else {
-        return [...prev, { ...prod, cantidad: 1 }];
+        return [...prev, { ...prod, cantidad: 1, precio: precioFinal }];
       }
     });
   }
@@ -245,7 +254,12 @@ export default function NuevaVenta() {
     if (prod.nombre && prod.nombre.toLowerCase().includes('promo')) return 0.1;
     return 0;
   }
-  const subtotal = carrito.reduce((acc, p) => acc + Number(p.precio) * p.cantidad, 0);
+  
+  // Calcular totales con precios promocionales
+  const subtotal = carrito.reduce((acc, p) => {
+    const precioInfo = calcularPrecioConPromocion(p, promociones);
+    return acc + precioInfo.precioFinal * p.cantidad;
+  }, 0);
   const totalDescuento = carrito.reduce((acc, p) => acc + (Number(p.precio) * getDescuento(p) * p.cantidad), 0);
   const total = subtotal - totalDescuento;
   const [pago, setPago] = useState(0);
@@ -321,15 +335,34 @@ export default function NuevaVenta() {
             </thead>
             <tbody>
               {carrito.map(prod => {
+                const precioInfo = calcularPrecioConPromocion(prod, promociones);
                 const descuento = getDescuento(prod);
                 const precioFinal = Number(prod.precio) * (1 - descuento);
                 return (
                   <tr key={prod.user_id}>
                     <td className="p-1 text-left">{prod.nombre}</td>
                     <td className="p-1 text-center">{prod.cantidad}</td>
-                    <td className="p-1 text-right">Bs {Number(prod.precio).toFixed(2)}</td>
-                    <td className="p-1 text-right">{descuento > 0 ? `-${(descuento * 100).toFixed(0)}%` : '-'}</td>
-                    <td className="p-1 text-right">Bs {(precioFinal * prod.cantidad).toFixed(2)}</td>
+                    <td className="p-1 text-right">
+                      <PrecioConPromocion 
+                        producto={prod} 
+                        promociones={promociones}
+                        compact={true}
+                        className="text-right"
+                      />
+                    </td>
+                    <td className="p-1 text-right">
+                      {precioInfo.tienePromocion ? (
+                        <div className="text-right">
+                          <div className="text-red-600 font-bold">-Bs {precioInfo.descuento.toFixed(2)}</div>
+                          <div className="text-red-600 text-xs">-{precioInfo.porcentajeDescuento}%</div>
+                        </div>
+                      ) : (
+                        descuento > 0 ? `-${(descuento * 100).toFixed(0)}%` : '-'
+                      )}
+                    </td>
+                    <td className="p-1 text-right">
+                      Bs {(calcularPrecioConPromocion(prod, promociones).precioFinal * prod.cantidad).toFixed(2)}
+                    </td>
                   </tr>
                 );
               })}
@@ -435,9 +468,27 @@ export default function NuevaVenta() {
                             className="w-16 border border-gray-900 rounded px-2 py-1 text-gray-900"
                           />
                         </td>
-                        <td className="p-2 text-gray-900 font-bold">Bs {Number(prod.precio).toFixed(2)}</td>
-                        <td className="p-2 text-green-700 font-bold">{descuento > 0 ? `-${(descuento * 100).toFixed(0)}%` : '-'}</td>
-                        <td className="p-2 text-gray-900 font-bold">Bs {(precioFinal * prod.cantidad).toFixed(2)}</td>
+                        <td className="p-2">
+                          <PrecioConPromocion 
+                            producto={prod} 
+                            promociones={promociones}
+                            compact={true}
+                            className="text-gray-900 font-bold"
+                          />
+                        </td>
+                        <td className="p-2">
+                          {calcularPrecioConPromocion(prod, promociones).tienePromocion ? (
+                            <div className="text-center">
+                              <div className="text-red-600 font-bold">-Bs {calcularPrecioConPromocion(prod, promociones).descuento.toFixed(2)}</div>
+                              <div className="text-red-600 text-sm">-{calcularPrecioConPromocion(prod, promociones).porcentajeDescuento}%</div>
+                            </div>
+                          ) : (
+                            <span className="text-green-700 font-bold">{descuento > 0 ? `-${(descuento * 100).toFixed(0)}%` : '-'}</span>
+                          )}
+                        </td>
+                        <td className="p-2 text-gray-900 font-bold">
+                          Bs {(calcularPrecioConPromocion(prod, promociones).precioFinal * prod.cantidad).toFixed(2)}
+                        </td>
                         <td className="p-2">
                           <button onClick={() => quitarDelCarrito(prod.user_id)} className="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded font-bold">Quitar</button>
                         </td>
@@ -546,7 +597,14 @@ export default function NuevaVenta() {
                     </td>
                     <td className="p-2 text-left font-bold text-gray-900">{prod.nombre}</td>
                     <td className="p-2 text-gray-900">{prod.categorias?.categori || 'Sin Categoría'}</td>
-                    <td className="p-2 text-gray-900 font-bold">Bs {Number(prod.precio).toFixed(2)}</td>
+                    <td className="p-2">
+                      <PrecioConPromocion 
+                        producto={prod} 
+                        promociones={promociones}
+                        compact={true}
+                        className="text-gray-900 font-bold"
+                      />
+                    </td>
                     <td className="p-2 text-gray-900">{prod.stock}</td>
                     <td className="p-2">
                       <button onClick={() => agregarAlCarrito(prod)} className="bg-green-700 hover:bg-green-800 text-white px-3 py-1 rounded font-bold">Agregar</button>
