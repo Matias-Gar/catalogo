@@ -5,6 +5,7 @@ import { supabase } from "../lib/SupabaseClient";
 export default function PerfilForm({ userId, perfilActual, onSave }) {
   const [nombre, setNombre] = useState("");
   const [nitCi, setNitCi] = useState("");
+  const [telefono, setTelefono] = useState("");
   const [fotoPerfil, setFotoPerfil] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploadingFoto, setUploadingFoto] = useState(false);
@@ -20,6 +21,7 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
           console.log('Usando perfil actual:', perfilActual);
           setNombre(perfilActual.nombre || "");
           setNitCi(perfilActual.nit_ci || "");
+          setTelefono(perfilActual.telefono || "");
           setFotoPerfil(perfilActual.foto_perfil || "");
         } else {
           console.log('Cargando perfil desde base de datos para userId:', userId);
@@ -27,7 +29,7 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
           // Intentar cargar perfil con manejo de errores mejorado
           const { data, error } = await supabase
             .from("perfiles")
-            .select("nombre, nit_ci, foto_perfil")
+            .select("nombre, nit_ci, telefono, foto_perfil")
             .eq("id", userId)
             .maybeSingle(); // Usar maybeSingle en lugar de single
           
@@ -36,16 +38,19 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
             // Si hay error, dejamos campos vacíos para crear nuevo perfil
             setNombre("");
             setNitCi("");
+            setTelefono("");
             setFotoPerfil("");
           } else if (data) {
             console.log('Perfil cargado:', data);
             setNombre(data.nombre || "");
             setNitCi(data.nit_ci || "");
+            setTelefono(data.telefono || "");
             setFotoPerfil(data.foto_perfil || "");
           } else {
             console.log('No se encontró perfil, se creará uno nuevo');
             setNombre("");
             setNitCi("");
+            setTelefono("");
             setFotoPerfil("");
           }
         }
@@ -54,6 +59,7 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
         // En caso de error, inicializar campos vacíos
         setNombre("");
         setNitCi("");
+        setTelefono("");
         setFotoPerfil("");
       }
     };
@@ -123,6 +129,7 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
       const datosActualizar = {
         nombre: nombre.trim(),
         nit_ci: nitCi.trim(),
+        telefono: telefono.trim(),
         foto_perfil: fotoPerfil || null
       };
       
@@ -233,6 +240,20 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
+              Teléfono *
+            </label>
+            <input
+              type="tel"
+              placeholder="Ej: 70123456"
+              value={telefono}
+              onChange={e => setTelefono(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
+              required
+            />
+          </div>
+          
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               NIT/CI *
             </label>
             <input
@@ -249,7 +270,7 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
         <div className="text-center">
           <button
             type="submit"
-            disabled={loading || !nombre.trim() || !nitCi.trim()}
+            disabled={loading || !nombre.trim() || !nitCi.trim() || !telefono.trim()}
             className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-8 rounded-lg transition-colors text-lg"
           >
             {loading ? "Guardando..." : "💾 Editar Perfil"}
