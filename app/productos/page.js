@@ -215,10 +215,11 @@ export default function CatalogoPage() {
         }
         
         // Auto-llenar datos si el usuario está logueado
-        if (usuario && usuario.nombre) {
+        if (usuario) {
+            console.log('🔄 Auto-llenando en modal:', usuario);
             setCustomerData(prevData => ({
-                nombre: prevData.nombre || usuario.nombre,
-                telefono: prevData.telefono || ''
+                nombre: usuario.nombre || prevData.nombre || '',
+                nit_ci: usuario.nit_ci || prevData.nit_ci || ''
             }));
         }
         

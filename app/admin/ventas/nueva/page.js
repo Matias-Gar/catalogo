@@ -680,15 +680,29 @@ export default function NuevaVenta() {
                     const descuento = getDescuento(item);
                     const precioFinal = Number(item.precio) * (1 - descuento);
                     return (
-                      <tr key={item.user_id}>
+                      <tr key={item.user_id || `pack-${item.pack_id}`}>
                         <td className="p-2 text-center align-middle">
-                          {imagenesProductos[item.user_id]?.[0] ? (
+                          {item.pack_id ? (
+                            // Imagen para packs
+                            <div className="h-14 w-14 mx-auto bg-purple-100 rounded-lg border-2 border-purple-300 flex items-center justify-center shadow-sm">
+                              <span className="text-2xl">📦</span>
+                            </div>
+                          ) : imagenesProductos[item.user_id]?.[0] ? (
                             <img src={imagenesProductos[item.user_id][0]} alt="img" className="h-14 w-14 object-cover rounded-lg border mx-auto shadow-sm" style={{maxWidth:'56px',maxHeight:'56px'}} />
                           ) : (
                             <span className="text-gray-400">Sin imagen</span>
                           )}
                         </td>
-                        <td className="p-2 text-left font-bold text-gray-900">{item.nombre}</td>
+                        <td className="p-2 text-left font-bold text-gray-900">
+                          {item.pack_id ? (
+                            <div>
+                              <div className="font-bold text-purple-800">📦 {item.nombre || 'PACK'}</div>
+                              <div className="text-xs text-purple-600">Pack especial</div>
+                            </div>
+                          ) : (
+                            item.nombre
+                          )}
+                        </td>
                         <td className="p-2">
                           <input
                             type="number"
@@ -707,7 +721,22 @@ export default function NuevaVenta() {
                           />
                         </td>
                         <td className="p-2">
-                          {calcularPrecioConPromocion(item, promociones).tienePromocion ? (
+                          {item.pack_id ? (
+                            // Para packs, mostrar el descuento del pack
+                            (() => {
+                              const pack = packs.find(p => p.id === item.pack_id);
+                              if (pack) {
+                                const { descuentoPorcentaje, descuentoAbsoluto } = calcularDescuentoPack(pack);
+                                return (
+                                  <div className="text-center">
+                                    <div className="text-red-600 font-bold">-Bs {(descuentoAbsoluto * item.cantidad).toFixed(2)}</div>
+                                    <div className="text-red-600 text-sm">-{descuentoPorcentaje.toFixed(0)}%</div>
+                                  </div>
+                                );
+                              }
+                              return <span className="text-gray-500">-</span>;
+                            })()
+                          ) : calcularPrecioConPromocion(item, promociones).tienePromocion ? (
                             <div className="text-center">
                               <div className="text-red-600 font-bold">-Bs {calcularPrecioConPromocion(item, promociones).descuento.toFixed(2)}</div>
                               <div className="text-red-600 text-sm">-{calcularPrecioConPromocion(item, promociones).porcentajeDescuento}%</div>
@@ -720,7 +749,12 @@ export default function NuevaVenta() {
                           Bs {(calcularPrecioConPromocion(item, promociones).precioFinal * item.cantidad).toFixed(2)}
                         </td>
                         <td className="p-2">
-                          <button onClick={() => quitarDelCarrito(item.user_id)} className="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded font-bold">Quitar</button>
+                          <button 
+                            onClick={() => quitarDelCarrito(item.user_id || `pack-${item.pack_id}`)} 
+                            className="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded font-bold"
+                          >
+                            Quitar
+                          </button>
                         </td>
                       </tr>
                     );
