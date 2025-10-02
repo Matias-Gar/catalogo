@@ -64,6 +64,12 @@ const menu = [
       { label: 'Packs', path: '/admin/promociones/packs' },
     ],
   },
+  {
+    label: 'WhatsApp Business',
+    children: [
+      { label: 'Panel de Control', path: '/admin/whatsapp' },
+    ],
+  },
 ];
 
 export default function Sidebar({ mobileOpen, setMobileOpen }) {

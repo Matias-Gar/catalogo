@@ -2,6 +2,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
+import { CONFIG, whatsappUtils } from "../../../../lib/config";
 
 export default function StockPage() {
   const [productos, setProductos] = useState([]);
@@ -42,16 +43,12 @@ export default function StockPage() {
   }
 
   function sendWhatsappAlerta(prod) {
-    const numero = "59169477200";
-    const mensaje = encodeURIComponent(
-      `ALERTA DE STOCK BAJO\nProducto: ${prod.nombre}\nStock actual: ${prod.stock}`
-    );
-    const url = `https://wa.me/${numero}?text=${mensaje}`;
+    const mensaje = `ALERTA DE STOCK BAJO\nProducto: ${prod.nombre}\nStock actual: ${prod.stock}`;
     if (!window.__whatsapp_alertas) window.__whatsapp_alertas = {};
     if (!window.__whatsapp_alertas[prod.id]) {
       if (confirm(`¿Enviar alerta de stock bajo por WhatsApp para \"${prod.nombre}\" (stock: ${prod.stock})?`)) {
         window.__whatsapp_alertas[prod.id] = true;
-        window.open(url, "_blank");
+        whatsappUtils.sendToBusinessWhatsApp(mensaje);
       }
     }
   }

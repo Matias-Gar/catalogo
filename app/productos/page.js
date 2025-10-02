@@ -1,12 +1,12 @@
 "use client"; // <--- ESTA ES LA CLAVE
 
 // CÓDIGO CORREGIDO Y COMPLETO
-// Cambia este número por el tuyo (sin + ni espacios, solo números, ej: 5491122334455)
-const WHATSAPP_NUMBER = "59160353747";
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/SupabaseClient';
 import { PrecioConPromocion } from '../../lib/promociones';
 import { usePromociones } from '../../lib/usePromociones';
+import { usePacks, calcularDescuentoPack } from '../../lib/packs';
+import { CONFIG, whatsappUtils } from '../../lib/config';
 
 export default function CatalogoPage() {
     // --- Estados ---
@@ -23,6 +23,9 @@ export default function CatalogoPage() {
 
     // Usar el hook para promociones
     const { promociones, loading: loadingPromociones } = usePromociones();
+    
+    // Usar el hook para packs
+    const { packs, loading: loadingPacks } = usePacks();
 
     // --- Efectos (Hooks) ---
     // Detectar usuario logeado
@@ -102,13 +105,13 @@ export default function CatalogoPage() {
 
     // 2. Cargar carrito desde localStorage al inicio
     useEffect(() => {
-        const stored = localStorage.getItem('cart');
+        const stored = localStorage.getItem('carrito_temporal');
         if (stored) setCart(JSON.parse(stored));
     }, []);
 
     // 3. Guardar carrito en localStorage cada vez que cambia
     useEffect(() => {
-        localStorage.setItem('cart', JSON.stringify(cart));
+        localStorage.setItem('carrito_temporal', JSON.stringify(cart));
     }, [cart]);
 
     // --- Funciones del Carrito ---
@@ -243,14 +246,14 @@ export default function CatalogoPage() {
             `¡Hola! Me gustaría hacer el siguiente pedido:\n\n${pedidoTexto}\n${nombreTexto}${telefonoTexto}\n${itemsList}\n\n*Total:* Bs ${total}\n\n¡Gracias!`
         );
         
-        const whatsappURL = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
+        const whatsappURL = `https://wa.me/${CONFIG.WHATSAPP_BUSINESS}?text=${message}`;
         window.open(whatsappURL, '_blank');
         
         // Limpiar carrito y cerrar modales
         setShowConfirmOrder(false);
         setCart([]);
         setCustomerData({ nombre: '', telefono: '' });
-        localStorage.removeItem('cart');
+        localStorage.removeItem('carrito_temporal');
         
         // Mensaje de éxito
         alert("¡Pedido enviado exitosamente! Se ha abierto WhatsApp para completar tu pedido.");
@@ -286,6 +289,106 @@ export default function CatalogoPage() {
                             {cat.categori || cat.nombre || '-'}
                         </button>
                     ))}
+                </div>
+            )}
+
+            {/* SECCIÓN DE PACKS ESPECIALES */}
+            {!loadingPacks && packs.length > 0 && (
+                <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-purple-800 mb-4 text-center">
+                        📦 Packs Especiales - ¡Combos con Descuento!
+                    </h2>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                        {packs.map((pack) => {
+                            const { precioIndividual, descuentoAbsoluto, descuentoPorcentaje } = calcularDescuentoPack(pack);
+                            
+                            return (
+                                <div key={pack.id} className="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-300 rounded-lg p-4 shadow-md hover:shadow-lg transition-all duration-200">
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h3 className="text-lg font-bold text-purple-800">
+                                            📦 {pack.nombre}
+                                        </h3>
+                                        <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                            -{descuentoPorcentaje.toFixed(0)}% OFF
+                                        </span>
+                                    </div>
+
+                                    {/* Productos incluidos (compacto) */}
+                                    <div className="mb-3">
+                                        <div className="text-xs text-purple-700 font-medium mb-1">
+                                            Incluye: {pack.pack_productos.map(item => 
+                                                `${item.cantidad}x ${item.productos.nombre}`
+                                            ).join(', ')}
+                                        </div>
+                                    </div>
+
+                                    {/* Precios */}
+                                    <div className="bg-white/70 rounded-md p-3 mb-3">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-xs text-gray-600">Individual:</span>
+                                            <span className="text-xs text-gray-500 line-through">
+                                                Bs {precioIndividual.toFixed(2)}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-bold text-purple-800">Pack:</span>
+                                            <span className="text-lg font-bold text-green-600">
+                                                Bs {pack.precio_pack}
+                                            </span>
+                                        </div>
+                                        <div className="text-center text-xs font-bold text-green-700 mt-1">
+                                            💰 Ahorras: Bs {descuentoAbsoluto.toFixed(2)}
+                                        </div>
+                                    </div>
+
+                                    {/* Botón para agregar pack al carrito */}
+                                    <button
+                                        onClick={() => {
+                                            // Agregar el pack como una unidad especial
+                                            const itemPack = {
+                                                user_id: `pack-${pack.id}`,
+                                                nombre: `📦 ${pack.nombre}`,
+                                                precio: pack.precio_pack,
+                                                stock: 999,
+                                                categoria: 'Pack Especial',
+                                                cantidad: 1,
+                                                tipo: 'pack',
+                                                pack_id: pack.id,
+                                                pack_data: pack,
+                                                descuento_pack: descuentoAbsoluto
+                                            };
+
+                                            setCart(prev => {
+                                                const existe = prev.find(p => p.user_id === itemPack.user_id);
+                                                if (existe) {
+                                                    return prev.map(p =>
+                                                        p.user_id === itemPack.user_id
+                                                            ? { ...p, cantidad: p.cantidad + 1 }
+                                                            : p
+                                                    );
+                                                } else {
+                                                    return [...prev, itemPack];
+                                                }
+                                            });
+                                            alert(`¡Pack "${pack.nombre}" agregado al carrito!`);
+                                        }}
+                                        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-3 rounded-md font-bold text-sm transition-colors duration-200"
+                                    >
+                                        🛒 Agregar Pack al Carrito
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Separador */}
+                    <div className="flex items-center justify-center mb-4">
+                        <div className="flex-grow border-t border-gray-300"></div>
+                        <span className="px-3 text-gray-500 text-sm">O elige productos individuales</span>
+                        <div className="flex-grow border-t border-gray-300"></div>
+                    </div>
                 </div>
             )}
 

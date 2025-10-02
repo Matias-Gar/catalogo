@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 import { Card, CardHeader, CardTitle, CardContent } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
+import { CONFIG, whatsappUtils } from "../../../../lib/config";
 
 export default function ProximoACompraPage() {
   const [productos, setProductos] = useState([]);
@@ -38,8 +39,8 @@ export default function ProximoACompraPage() {
   }, []);
 
   const enviarWhatsapp = (prod) => {
-    const mensaje = encodeURIComponent(`Hola, necesito reponer el producto: ${prod.nombre} (Stock actual: ${prod.stock})`);
-    window.open(`https://wa.me/59169477200?text=${mensaje}`);
+    const mensaje = `Hola, necesito reponer el producto: ${prod.nombre} (Stock actual: ${prod.stock})`;
+    whatsappUtils.sendToBusinessWhatsApp(mensaje);
   };
 
   return (

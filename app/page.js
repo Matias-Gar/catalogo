@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/SupabaseClient';
 import { PrecioConPromocion } from '../lib/promociones';
 import { usePromociones } from '../lib/usePromociones';
+import { usePacks, calcularDescuentoPack } from '../lib/packs';
 
 
 
@@ -123,6 +124,9 @@ export default function Home() {
   
   // Usar el hook para promociones
   const { promociones, loading: loadingPromociones } = usePromociones();
+  
+  // Usar el hook para packs
+  const { packs, loading: loadingPacks } = usePacks();
 
   const fetchCategorias = async () => {
     if (!supabase) return;
@@ -207,6 +211,104 @@ export default function Home() {
         <h1 className="text-4xl font-extrabold text-gray-900 mb-8 text-center">
           Catálogo de Productos
         </h1>
+
+        {/* Sección de Packs Especiales */}
+        {!loadingPacks && packs.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-3xl font-bold text-purple-800 mb-6 text-center">
+              📦 Packs Especiales - ¡Ofertas Exclusivas!
+            </h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {packs.map((pack) => {
+                const { precioIndividual, descuentoAbsoluto, descuentoPorcentaje } = calcularDescuentoPack(pack);
+                
+                return (
+                  <div key={pack.id} className="bg-gradient-to-br from-purple-100 to-purple-200 border-2 border-purple-300 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                    {/* Header del pack */}
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-bold text-purple-800">
+                        📦 {pack.nombre}
+                      </h3>
+                      <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                        -{descuentoPorcentaje.toFixed(0)}% OFF
+                      </span>
+                    </div>
+
+                    {/* Descripción */}
+                    {pack.descripcion && (
+                      <p className="text-purple-700 text-sm mb-4">
+                        {pack.descripcion}
+                      </p>
+                    )}
+
+                    {/* Productos incluidos */}
+                    <div className="mb-4">
+                      <h4 className="font-bold text-purple-800 text-sm mb-2">
+                        📋 Incluye:
+                      </h4>
+                      <div className="space-y-1">
+                        {pack.pack_productos.map((item, index) => (
+                          <div key={index} className="flex justify-between items-center bg-white/60 rounded p-2 text-sm">
+                            <span className="text-purple-800 font-medium">
+                              {item.cantidad}x {item.productos.nombre}
+                            </span>
+                            <span className="text-gray-600">
+                              Bs {(item.productos.precio * item.cantidad).toFixed(2)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Precios */}
+                    <div className="bg-white/80 rounded-lg p-4 mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-600 text-sm">Precio individual:</span>
+                        <span className="text-gray-500 line-through">
+                          Bs {precioIndividual.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-purple-800">Precio del pack:</span>
+                        <span className="text-2xl font-bold text-green-600">
+                          Bs {pack.precio_pack}
+                        </span>
+                      </div>
+                      <div className="text-center mt-2 text-sm font-bold text-green-700">
+                        💰 Ahorras: Bs {descuentoAbsoluto.toFixed(2)}
+                      </div>
+                    </div>
+
+                    {/* Vigencia */}
+                    <div className="text-xs text-purple-600 mb-4">
+                      {pack.fecha_fin ? (
+                        <div>⏰ Oferta válida hasta: {new Date(pack.fecha_fin).toLocaleDateString()}</div>
+                      ) : (
+                        <div>♾️ Oferta por tiempo limitado</div>
+                      )}
+                    </div>
+
+                    {/* Botón de acción */}
+                    <a
+                      href="/productos"
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-bold text-center block transition-colors duration-200"
+                    >
+                      🛒 Ver en Catálogo
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Separador visual */}
+            <div className="flex items-center justify-center mb-8">
+              <div className="flex-grow border-t border-purple-300"></div>
+              <span className="px-4 text-purple-600 font-medium">Productos Individuales</span>
+              <div className="flex-grow border-t border-purple-300"></div>
+            </div>
+          </div>
+        )}
         {/* Enlace a la administración (opcional, solo si lo quieres aquí) */}
         {/* Si quieres eliminarlo por completo, borra este bloque */}
         {/* Sección de Filtros */}

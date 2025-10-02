@@ -7,6 +7,7 @@ import { createClient } from '@supabase/supabase-js';
 import { supabase } from "../../../../lib/SupabaseClient";
 import { PrecioConPromocion, calcularPrecioConPromocion } from "../../../../lib/promociones";
 import { usePromociones } from "../../../../lib/usePromociones";
+import { usePacks, calcularDescuentoPack } from "../../../../lib/packs";
 
 // Utilidad para agrupar imágenes por producto
 function agruparImagenes(imgs) {
@@ -38,6 +39,32 @@ export default function NuevaVenta() {
   
   // Hook para promociones
   const { promociones, loading: loadingPromociones } = usePromociones();
+  
+  // Hook para packs
+  const { packs, loading: loadingPacks } = usePacks();
+
+  // Cargar carrito desde localStorage al iniciar
+  useEffect(() => {
+    const carritoGuardado = localStorage.getItem('carrito_temporal');
+    if (carritoGuardado) {
+      try {
+        const carritoParseado = JSON.parse(carritoGuardado);
+        setCarrito(carritoParseado);
+      } catch (error) {
+        console.error('Error al cargar carrito:', error);
+      }
+    }
+  }, []);
+
+  // Guardar carrito en localStorage cuando cambie
+  useEffect(() => {
+    if (carrito.length > 0) {
+      localStorage.setItem('carrito_temporal', JSON.stringify(carrito));
+    } else {
+      localStorage.removeItem('carrito_temporal');
+    }
+  }, [carrito]);
+
   // Detectar usuario logueado y autocompletar nombre/email
   useEffect(() => {
     async function getUser() {
@@ -65,10 +92,19 @@ export default function NuevaVenta() {
 
   async function efectivizarVenta(carritoPendiente) {
     setEfectivizando(true);
-    // 1. Crear venta
+    
+    // 1. Calcular total considerando packs
     const total = Array.isArray(carritoPendiente.productos)
-      ? carritoPendiente.productos.reduce((acc, p) => acc + Number(p.precio_unitario) * p.cantidad, 0)
+      ? carritoPendiente.productos.reduce((acc, p) => {
+          // Si es un pack, usar el precio del pack
+          if (p.tipo === 'pack') {
+            return acc + Number(p.precio_unitario) * p.cantidad;
+          }
+          // Si es producto normal, usar precio unitario
+          return acc + Number(p.precio_unitario) * p.cantidad;
+        }, 0)
       : 0;
+      
     const { data: venta, error: ventaError } = await supabase.from("ventas").insert([
       {
         cliente_nombre: carritoPendiente.cliente_nombre,
@@ -78,24 +114,55 @@ export default function NuevaVenta() {
         usuario_email: usuario ? usuario.email : null,
       },
     ]).select().single();
+    
     if (ventaError || !venta) {
       alert("Error al crear venta: " + (ventaError?.message || ""));
       setEfectivizando(false);
       return;
     }
-    // 2. Insertar detalles y descontar stock
+    
+    // 2. Insertar detalles y manejar stock
     for (const p of carritoPendiente.productos) {
-      await supabase.from("ventas_detalle").insert([
-        {
-          venta_id: venta.id,
-          producto_id: p.producto_id,
-          cantidad: p.cantidad,
-          precio_unitario: p.precio_unitario,
-        },
-      ]);
-      // Descontar stock
-      await supabase.rpc('descontar_stock', { pid: p.producto_id, cantidad_desc: p.cantidad });
+      if (p.tipo === 'pack') {
+        // Para packs, insertar como detalle especial
+        await supabase.from("ventas_detalle").insert([
+          {
+            venta_id: venta.id,
+            producto_id: null, // Los packs no tienen producto_id específico
+            cantidad: p.cantidad,
+            precio_unitario: p.precio_unitario,
+            descripcion: `📦 Pack: ${p.nombre}`, // Descripción especial para packs
+            tipo: 'pack',
+            pack_id: p.pack_id
+          },
+        ]);
+        
+        // Para packs, descontar stock de cada producto incluido
+        if (p.pack_data && p.pack_data.pack_productos) {
+          for (const item of p.pack_data.pack_productos) {
+            const cantidadTotal = item.cantidad * p.cantidad;
+            await supabase.rpc('descontar_stock', { 
+              pid: item.productos.user_id, 
+              cantidad_desc: cantidadTotal 
+            });
+          }
+        }
+      } else {
+        // Producto normal
+        await supabase.from("ventas_detalle").insert([
+          {
+            venta_id: venta.id,
+            producto_id: p.producto_id,
+            cantidad: p.cantidad,
+            precio_unitario: p.precio_unitario,
+          },
+        ]);
+        
+        // Descontar stock normal
+        await supabase.rpc('descontar_stock', { pid: p.producto_id, cantidad_desc: p.cantidad });
+      }
     }
+    
     // 3. Eliminar carrito pendiente
     await eliminarCarritoPendiente(carritoPendiente.id);
     setEfectivizando(false);
@@ -192,14 +259,44 @@ export default function NuevaVenta() {
     });
   }
 
+  // Agregar pack completo al carrito
+  function agregarPackAlCarrito(pack) {
+    const { precioIndividual, descuentoAbsoluto } = calcularDescuentoPack(pack);
+    
+    // Crear un item especial para el pack
+    const itemPack = {
+      user_id: `pack-${pack.id}`, // Usar formato consistente con las funciones
+      nombre: `📦 ${pack.nombre}`,
+      precio: pack.precio_pack,
+      stock: 999, // Los packs no tienen stock limitado
+      categoria: 'Pack Especial',
+      cantidad: 1,
+      tipo: 'pack',
+      pack_id: pack.id,
+      pack_data: pack,
+      descuento_pack: descuentoAbsoluto
+    };
+
+    setCarrito(prev => {
+      const existe = prev.find(p => p.user_id === itemPack.user_id);
+      if (existe) {
+        return prev.map(p =>
+          p.user_id === itemPack.user_id ? { ...p, cantidad: p.cantidad + 1 } : p
+        );
+      } else {
+        return [...prev, itemPack];
+      }
+    });
+  }
+
   function quitarDelCarrito(user_id) {
-    setCarrito(prev => prev.filter(p => p.user_id !== user_id));
+    setCarrito(prev => prev.filter(item => item.user_id !== user_id));
   }
 
   function cambiarCantidad(user_id, cant) {
     setCarrito(prev =>
-      prev.map(p =>
-        p.user_id === user_id ? { ...p, cantidad: Math.max(1, cant) } : p
+      prev.map(item =>
+        item.user_id === user_id ? { ...item, cantidad: Math.max(1, cant) } : item
       )
     );
   }
@@ -213,11 +310,35 @@ export default function NuevaVenta() {
     if (!nombreFinal || !nombreFinal.trim()) nombreFinal = "Cliente";
     setEnviando(true);
     // Guardar carrito en carritos_pendientes
+    const productosParaGuardar = carrito.map(p => {
+      if (p.tipo === 'pack') {
+        // Para packs, guardar información completa
+        return {
+          producto_id: p.user_id, // Usará el ID especial pack_xxx
+          cantidad: p.cantidad,
+          precio_unitario: p.precio,
+          tipo: 'pack',
+          pack_id: p.pack_id,
+          pack_data: p.pack_data,
+          nombre: p.nombre
+        };
+      } else {
+        // Para productos normales
+        return {
+          producto_id: p.user_id,
+          cantidad: p.cantidad,
+          precio_unitario: p.precio,
+          tipo: 'producto',
+          nombre: p.nombre
+        };
+      }
+    });
+
     const { error } = await supabase.from("carritos_pendientes").insert([
       {
         cliente_nombre: nombreFinal,
         cliente_telefono: clienteTelefono,
-        productos: carrito.map(p => ({ producto_id: p.user_id, cantidad: p.cantidad, precio_unitario: p.precio })),
+        productos: productosParaGuardar,
         usuario_id: usuario ? usuario.id : null,
         usuario_email: usuario ? usuario.email : null,
       },
@@ -231,10 +352,22 @@ export default function NuevaVenta() {
     setCarrito([]);
     setClienteNombre("");
     setClienteTelefono("");
+    
     // Redirigir a WhatsApp (opcional)
+    const itemsTexto = carrito.map(p => {
+      if (p.tipo === 'pack') {
+        const productosIncluidos = p.pack_data.pack_productos.map(item => 
+          `${item.cantidad}x ${item.productos.nombre}`
+        ).join(', ');
+        return `- 📦 ${p.nombre} x${p.cantidad} (Bs ${Number(p.precio).toFixed(2)})\n  Incluye: ${productosIncluidos}`;
+      } else {
+        return `- ${p.nombre} x${p.cantidad} (Bs ${Number(p.precio).toFixed(2)})`;
+      }
+    }).join("\n");
+    
     const mensaje = encodeURIComponent(
       `Hola, soy ${nombreFinal} y quiero hacer un pedido.\n\n` +
-      carrito.map(p => `- ${p.nombre} x${p.cantidad} (Bs ${Number(p.precio).toFixed(2)})`).join("\n") +
+      itemsTexto +
       `\n\nTotal: Bs ${total.toFixed(2)}`
     );
     window.open(`https://wa.me/${clienteTelefono}?text=${mensaje}`, "_blank");
@@ -255,13 +388,27 @@ export default function NuevaVenta() {
     return 0;
   }
   
-  // Calcular totales con precios promocionales
-  const subtotal = carrito.reduce((acc, p) => {
-    const precioInfo = calcularPrecioConPromocion(p, promociones);
-    return acc + precioInfo.precioFinal * p.cantidad;
+  // Calcular totales con precios promocionales y packs
+  const subtotal = carrito.reduce((acc, item) => {
+    if (item.tipo === 'pack') {
+      const pack = packs.find(p => p.id === item.pack_id);
+      return acc + (pack ? pack.precio_pack * item.cantidad : 0);
+    } else {
+      const precioInfo = calcularPrecioConPromocion(item, promociones);
+      return acc + precioInfo.precioFinal * item.cantidad;
+    }
   }, 0);
-  const totalDescuento = carrito.reduce((acc, p) => acc + (Number(p.precio) * getDescuento(p) * p.cantidad), 0);
-  const total = subtotal - totalDescuento;
+  
+  const totalDescuento = carrito.reduce((acc, item) => {
+    if (item.tipo === 'pack') {
+      const pack = packs.find(p => p.id === item.pack_id);
+      return acc + (pack ? (pack.precio_individual - pack.precio_pack) * item.cantidad : 0);
+    } else {
+      return acc + (Number(item.precio) * getDescuento(item) * item.cantidad);
+    }
+  }, 0);
+  
+  const total = subtotal;
   const [pago, setPago] = useState(0);
   const cambio = pago > 0 ? pago - total : 0;
 
@@ -446,51 +593,99 @@ export default function NuevaVenta() {
                   </tr>
                 </thead>
                 <tbody>
-                  {carrito.map(prod => {
-                    const descuento = getDescuento(prod);
-                    const precioFinal = Number(prod.precio) * (1 - descuento);
+                  {carrito.map(item => {
+                    // Si es un pack
+                    if (item.tipo === 'pack') {
+                      const pack = packs.find(p => p.id === item.pack_id);
+                      if (!pack) return null;
+                      
+                      return (
+                        <tr key={`pack-${item.pack_id}`} className="bg-purple-50">
+                          <td className="p-2 text-center align-middle">
+                            <div className="h-14 w-14 bg-purple-100 rounded-lg border mx-auto shadow-sm flex items-center justify-center">
+                              <span className="text-purple-600 font-bold text-xs">PACK</span>
+                            </div>
+                          </td>
+                          <td className="p-2 text-left font-bold text-gray-900">
+                            <div className="text-purple-600">{pack.nombre}</div>
+                            <div className="text-xs text-gray-600">{pack.descripcion}</div>
+                          </td>
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              min={1}
+                              value={item.cantidad}
+                              onChange={e => cambiarCantidad(item.user_id, Number(e.target.value))}
+                              className="w-16 border border-gray-900 rounded px-2 py-1 text-gray-900"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <div className="text-gray-900 font-bold">
+                              <span className="line-through text-gray-500">Bs {pack.precio_individual?.toFixed(2)}</span>
+                              <div className="text-purple-600">Bs {pack.precio_pack?.toFixed(2)}</div>
+                            </div>
+                          </td>
+                          <td className="p-2">
+                            <div className="text-center">
+                              <div className="text-purple-600 font-bold">-Bs {(pack.precio_individual - pack.precio_pack).toFixed(2)}</div>
+                              <div className="text-purple-600 text-sm">PACK</div>
+                            </div>
+                          </td>
+                          <td className="p-2 text-gray-900 font-bold">
+                            Bs {(pack.precio_pack * item.cantidad).toFixed(2)}
+                          </td>
+                          <td className="p-2">
+                            <button onClick={() => quitarDelCarrito(item.user_id)} className="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded font-bold">Quitar</button>
+                          </td>
+                        </tr>
+                      );
+                    }
+                    
+                    // Si es un producto normal
+                    const descuento = getDescuento(item);
+                    const precioFinal = Number(item.precio) * (1 - descuento);
                     return (
-                      <tr key={prod.user_id}>
+                      <tr key={item.user_id}>
                         <td className="p-2 text-center align-middle">
-                          {imagenesProductos[prod.user_id]?.[0] ? (
-                            <img src={imagenesProductos[prod.user_id][0]} alt="img" className="h-14 w-14 object-cover rounded-lg border mx-auto shadow-sm" style={{maxWidth:'56px',maxHeight:'56px'}} />
+                          {imagenesProductos[item.user_id]?.[0] ? (
+                            <img src={imagenesProductos[item.user_id][0]} alt="img" className="h-14 w-14 object-cover rounded-lg border mx-auto shadow-sm" style={{maxWidth:'56px',maxHeight:'56px'}} />
                           ) : (
                             <span className="text-gray-400">Sin imagen</span>
                           )}
                         </td>
-                        <td className="p-2 text-left font-bold text-gray-900">{prod.nombre}</td>
+                        <td className="p-2 text-left font-bold text-gray-900">{item.nombre}</td>
                         <td className="p-2">
                           <input
                             type="number"
                             min={1}
-                            value={prod.cantidad}
-                            onChange={e => cambiarCantidad(prod.user_id, Number(e.target.value))}
+                            value={item.cantidad}
+                            onChange={e => cambiarCantidad(item.user_id, Number(e.target.value))}
                             className="w-16 border border-gray-900 rounded px-2 py-1 text-gray-900"
                           />
                         </td>
                         <td className="p-2">
                           <PrecioConPromocion 
-                            producto={prod} 
+                            producto={item} 
                             promociones={promociones}
                             compact={true}
                             className="text-gray-900 font-bold"
                           />
                         </td>
                         <td className="p-2">
-                          {calcularPrecioConPromocion(prod, promociones).tienePromocion ? (
+                          {calcularPrecioConPromocion(item, promociones).tienePromocion ? (
                             <div className="text-center">
-                              <div className="text-red-600 font-bold">-Bs {calcularPrecioConPromocion(prod, promociones).descuento.toFixed(2)}</div>
-                              <div className="text-red-600 text-sm">-{calcularPrecioConPromocion(prod, promociones).porcentajeDescuento}%</div>
+                              <div className="text-red-600 font-bold">-Bs {calcularPrecioConPromocion(item, promociones).descuento.toFixed(2)}</div>
+                              <div className="text-red-600 text-sm">-{calcularPrecioConPromocion(item, promociones).porcentajeDescuento}%</div>
                             </div>
                           ) : (
                             <span className="text-green-700 font-bold">{descuento > 0 ? `-${(descuento * 100).toFixed(0)}%` : '-'}</span>
                           )}
                         </td>
                         <td className="p-2 text-gray-900 font-bold">
-                          Bs {(calcularPrecioConPromocion(prod, promociones).precioFinal * prod.cantidad).toFixed(2)}
+                          Bs {(calcularPrecioConPromocion(item, promociones).precioFinal * item.cantidad).toFixed(2)}
                         </td>
                         <td className="p-2">
-                          <button onClick={() => quitarDelCarrito(prod.user_id)} className="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded font-bold">Quitar</button>
+                          <button onClick={() => quitarDelCarrito(item.user_id)} className="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded font-bold">Quitar</button>
                         </td>
                       </tr>
                     );
@@ -573,6 +768,61 @@ export default function NuevaVenta() {
               onChange={e => setBusqueda(e.target.value)}
             />
           </div>
+
+          {/* Sección de Packs Especiales */}
+          {!loadingPacks && packs.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-bold text-purple-800 mb-3">
+                📦 Packs Especiales Disponibles
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                {packs.map((pack) => {
+                  const { precioIndividual, descuentoAbsoluto, descuentoPorcentaje } = calcularDescuentoPack(pack);
+                  
+                  return (
+                    <div key={pack.id} className="bg-purple-50 border-2 border-purple-200 rounded-lg p-3 hover:bg-purple-100 transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-bold text-purple-800 text-sm">{pack.nombre}</h4>
+                        <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+                          -{descuentoPorcentaje.toFixed(0)}% OFF
+                        </span>
+                      </div>
+                      
+                      <div className="text-xs text-purple-700 mb-2">
+                        Incluye: {pack.pack_productos.map(item => 
+                          `${item.cantidad}x ${item.productos.nombre}`
+                        ).join(', ')}
+                      </div>
+                      
+                      <div className="flex justify-between items-center mb-2 text-xs">
+                        <span className="text-gray-600">Individual:</span>
+                        <span className="line-through text-gray-500">Bs {precioIndividual.toFixed(2)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="font-bold text-purple-800">Pack:</span>
+                        <span className="text-lg font-bold text-green-600">Bs {pack.precio_pack}</span>
+                      </div>
+                      
+                      <button
+                        onClick={() => agregarPackAlCarrito(pack)}
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-3 rounded font-bold text-sm"
+                      >
+                        🛒 Agregar Pack
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <div className="flex items-center justify-center mb-4">
+                <div className="flex-grow border-t border-gray-300"></div>
+                <span className="px-3 text-gray-500 text-sm">O productos individuales</span>
+                <div className="flex-grow border-t border-gray-300"></div>
+              </div>
+            </div>
+          )}
+
           <div className="overflow-x-auto mb-6">
             <table className="w-full text-sm md:text-base bg-white rounded-xl shadow-xl border border-gray-900 text-center">
               <thead>
