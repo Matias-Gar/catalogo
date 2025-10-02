@@ -36,25 +36,31 @@ export default function CatalogoPage() {
             if (session && session.user) {
                 console.log('🔍 Usuario logueado:', session.user.email, 'ID:', session.user.id);
                 
-                // Buscar datos completos del perfil
+                // Buscar datos completos del perfil con mejor manejo de errores
                 let nombre = session.user.email;
                 let nit_ci = '';
-                const { data: perfil, error } = await supabase
-                  .from('perfiles')
-                  .select('nombre, nit_ci')
-                  .eq('id', session.user.id)
-                  .single();
                 
-                console.log('📋 Consulta perfil:', { perfil, error });
-                
-                if (perfil) {
-                    if (perfil.nombre) nombre = perfil.nombre;
-                    if (perfil.nit_ci) nit_ci = perfil.nit_ci;
+                try {
+                    const { data: perfil, error } = await supabase
+                      .from('perfiles')
+                      .select('nombre, nit_ci')
+                      .eq('id', session.user.id)
+                      .maybeSingle(); // Usar maybeSingle en lugar de single
+                    
+                    console.log('📋 Consulta perfil:', { perfil, error });
+                    
+                    if (perfil) {
+                        if (perfil.nombre) nombre = perfil.nombre;
+                        if (perfil.nit_ci) nit_ci = perfil.nit_ci;
+                    }
+                } catch (error) {
+                    console.error('❌ Error consultando perfil:', error);
                 }
                 
                 console.log('✅ Datos establecidos:', { nombre, nit_ci });
                 setUsuario({ id: session.user.id, email: session.user.email, nombre, nit_ci });
             } else {
+                console.log('👤 No hay usuario logueado');
                 setUsuario(null);
             }
         };
@@ -64,11 +70,18 @@ export default function CatalogoPage() {
     // Auto-llenar datos del cliente cuando el usuario esté logueado
     useEffect(() => {
         if (usuario) {
-            setCustomerData(prevData => ({
-                ...prevData,
-                nombre: prevData.nombre || usuario.nombre || '',
-                nit_ci: prevData.nit_ci || usuario.nit_ci || ''
-            }));
+            console.log('🔄 Auto-llenando datos del usuario:', usuario);
+            setCustomerData(prevData => {
+                const newData = {
+                    nombre: usuario.nombre || prevData.nombre || '',
+                    nit_ci: usuario.nit_ci || prevData.nit_ci || ''
+                };
+                console.log('📝 Datos del cliente actualizados:', newData);
+                return newData;
+            });
+        } else {
+            console.log('👤 No hay usuario logueado, limpiando datos');
+            setCustomerData({ nombre: '', nit_ci: '' });
         }
     }, [usuario]);
 
@@ -674,7 +687,7 @@ export default function CatalogoPage() {
                                             type="text"
                                             value={customerData.nit_ci}
                                             onChange={(e) => setCustomerData({...customerData, nit_ci: e.target.value})}
-                                            placeholder="Ej: 8845863"
+                                            placeholder="Ej: 4157852"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         />
                                     </div>

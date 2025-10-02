@@ -99,10 +99,6 @@ export default function AuthForm({ onLoginSuccess }) {
       >
         {isRegistering ? 'Ya tengo una cuenta' : '¿Necesitas una cuenta?'}
       </button>
-      
-      <p className="mt-4 text-xs text-red-600 font-medium">
-        *El administrador debe registrarse primero.
-      </p>
     </div>
   );
 }
