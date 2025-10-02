@@ -17,7 +17,7 @@ export default function CatalogoPage() {
     const [imagenesProductos, setImagenesProductos] = useState({});
     const [categorias, setCategorias] = useState([]);
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
-    const [customerData, setCustomerData] = useState({ nombre: '', telefono: '' }); // Datos del cliente
+    const [customerData, setCustomerData] = useState({ nombre: '', nit_ci: '' }); // Datos del cliente
     // Estado para modal de imagen
     const [modalImg, setModalImg] = useState(null); // { urls: string[], index: number, nombre: string }
 
@@ -34,15 +34,26 @@ export default function CatalogoPage() {
         const getUser = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (session && session.user) {
-                // Buscar nombre en perfiles si existe, si no usar email
+                console.log('🔍 Usuario logueado:', session.user.email, 'ID:', session.user.id);
+                
+                // Buscar datos completos del perfil
                 let nombre = session.user.email;
-                const { data: perfil } = await supabase
+                let nit_ci = '';
+                const { data: perfil, error } = await supabase
                   .from('perfiles')
-                  .select('nombre')
+                  .select('nombre, nit_ci')
                   .eq('id', session.user.id)
                   .single();
-                if (perfil && perfil.nombre) nombre = perfil.nombre;
-                setUsuario({ id: session.user.id, email: session.user.email, nombre });
+                
+                console.log('📋 Consulta perfil:', { perfil, error });
+                
+                if (perfil) {
+                    if (perfil.nombre) nombre = perfil.nombre;
+                    if (perfil.nit_ci) nit_ci = perfil.nit_ci;
+                }
+                
+                console.log('✅ Datos establecidos:', { nombre, nit_ci });
+                setUsuario({ id: session.user.id, email: session.user.email, nombre, nit_ci });
             } else {
                 setUsuario(null);
             }
@@ -52,10 +63,11 @@ export default function CatalogoPage() {
 
     // Auto-llenar datos del cliente cuando el usuario esté logueado
     useEffect(() => {
-        if (usuario && usuario.nombre) {
+        if (usuario) {
             setCustomerData(prevData => ({
                 ...prevData,
-                nombre: prevData.nombre || usuario.nombre
+                nombre: prevData.nombre || usuario.nombre || '',
+                nit_ci: prevData.nit_ci || usuario.nit_ci || ''
             }));
         }
     }, [usuario]);
@@ -210,7 +222,7 @@ export default function CatalogoPage() {
 
         // 1. Guardar carrito en carritos_pendientes
         let nombreFinal = customerData.nombre || (usuario && usuario.nombre) || null;
-        let telefonoFinal = customerData.telefono || null;
+        let nitciLlenado = customerData.nit_ci || (usuario && usuario.nit_ci) || null;
         let emailFinal = usuario && usuario.email ? usuario.email : null;
         
         // Insertar y obtener el número de pedido (id)
@@ -239,11 +251,11 @@ export default function CatalogoPage() {
         
         const total = cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0).toFixed(2);
         const nombreTexto = nombreFinal ? `Nombre: ${nombreFinal}\n` : '';
-        const telefonoTexto = telefonoFinal ? `Teléfono: ${telefonoFinal}\n` : '';
+        const nitciTexto = nitciLlenado ? `NIT/CI: ${nitciLlenado}\n` : '';
         const pedidoTexto = `N° Pedido: ${pedidoId}`;
         
         const message = encodeURIComponent(
-            `¡Hola! Me gustaría hacer el siguiente pedido:\n\n${pedidoTexto}\n${nombreTexto}${telefonoTexto}\n${itemsList}\n\n*Total:* Bs ${total}\n\n¡Gracias!`
+            `¡Hola! Me gustaría hacer el siguiente pedido:\n\n${pedidoTexto}\n${nombreTexto}${nitciTexto}\n${itemsList}\n\n*Total:* Bs ${total}\n\n¡Gracias!`
         );
         
         const whatsappURL = `https://wa.me/${CONFIG.WHATSAPP_BUSINESS}?text=${message}`;
@@ -252,7 +264,7 @@ export default function CatalogoPage() {
         // Limpiar carrito y cerrar modales
         setShowConfirmOrder(false);
         setCart([]);
-        setCustomerData({ nombre: '', telefono: '' });
+        setCustomerData({ nombre: '', nit_ci: '' });
         localStorage.removeItem('carrito_temporal');
         
         // Mensaje de éxito
@@ -632,7 +644,7 @@ export default function CatalogoPage() {
                                 <div className="space-y-3">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Nombre completo *
+                                            Nombre completo {!usuario ? '*' : '(opcional)'}
                                             {usuario && usuario.nombre && (
                                                 <span className="text-green-600 text-xs ml-2">
                                                     ✓ Auto-completado desde tu perfil
@@ -653,13 +665,16 @@ export default function CatalogoPage() {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Teléfono (opcional)
+                                            NIT/CI {!usuario && '(opcional)'}
+                                            {usuario && usuario.nit_ci && (
+                                                <span className="text-green-600 text-xs ml-1">✓ Auto-completado</span>
+                                            )}
                                         </label>
                                         <input
-                                            type="tel"
-                                            value={customerData.telefono}
-                                            onChange={(e) => setCustomerData({...customerData, telefono: e.target.value})}
-                                            placeholder="Ej: 70123456"
+                                            type="text"
+                                            value={customerData.nit_ci}
+                                            onChange={(e) => setCustomerData({...customerData, nit_ci: e.target.value})}
+                                            placeholder="Ej: 8845863"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         />
                                     </div>
@@ -735,7 +750,7 @@ export default function CatalogoPage() {
                                 </button>
                                 <button
                                     onClick={confirmAndSendWhatsapp}
-                                    disabled={!customerData.nombre && !usuario?.nombre}
+                                    disabled={!usuario && !customerData.nombre.trim()}
                                     className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">

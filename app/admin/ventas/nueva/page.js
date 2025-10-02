@@ -70,14 +70,46 @@ export default function NuevaVenta() {
     async function getUser() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session && session.user) {
+        console.log('Usuario logueado:', session.user.email, 'ID:', session.user.id);
+        
+        // Ver todos los perfiles para debug
+        const { data: todosPerfiles } = await supabase
+          .from('perfiles')
+          .select('*');
+        console.log('Todos los perfiles:', todosPerfiles);
+        
         // Buscar nombre y nit_ci en perfiles
         let nombre = "";
         let nitci = "";
-        const { data: perfil } = await supabase
+        const { data: perfil, error } = await supabase
           .from('perfiles')
           .select('nombre, nit_ci')
           .eq('id', session.user.id)
           .single();
+        
+        // Si no encuentra por ID, intentar buscar por email
+        if (!perfil || error) {
+          console.log('No encontrado por ID, buscando por email...');
+          const { data: perfilPorEmail, error: errorEmail } = await supabase
+            .from('perfiles')
+            .select('nombre, nit_ci')
+            .ilike('nombre', `%${session.user.email.split('@')[0]}%`)
+            .limit(1)
+            .single();
+          
+          console.log('Búsqueda por email:', { perfilPorEmail, errorEmail });
+          
+          if (perfilPorEmail) {
+            if (perfilPorEmail.nombre) nombre = perfilPorEmail.nombre;
+            if (perfilPorEmail.nit_ci) nitci = perfilPorEmail.nit_ci;
+          }
+        } else {
+          if (perfil.nombre) nombre = perfil.nombre;
+          if (perfil.nit_ci) nitci = perfil.nit_ci;
+        }
+        
+        console.log('Consulta perfiles:', { perfil, error });
+        
         if (perfil) {
           if (perfil.nombre) nombre = perfil.nombre;
           if (perfil.nit_ci) nitci = perfil.nit_ci;
@@ -85,6 +117,9 @@ export default function NuevaVenta() {
         setUsuario({ id: session.user.id, email: session.user.email, nombre });
         if (nombre) setClienteNombre(nombre);
         if (nitci) setClienteNIT(nitci);
+        setClienteEmail(session.user.email); // Auto-llenar email del usuario
+        
+        console.log('Datos establecidos:', { nombre, nitci, email: session.user.email });
       }
     }
     getUser();
