@@ -76,7 +76,7 @@ export default function PerfilPage() {
           </svg>
           Información Actual
         </h2>
-        <div className="grid md:grid-cols-2 gap-4 text-sm">
+        <div className="grid md:grid-cols-3 gap-4 text-sm">
           <div>
             <span className="font-medium text-gray-600">Email:</span>
             <p className="text-gray-900">{user.email}</p>
@@ -88,10 +88,6 @@ export default function PerfilPage() {
           <div>
             <span className="font-medium text-gray-600">NIT/CI:</span>
             <p className="text-gray-900">{perfil?.nit_ci || 'No establecido'}</p>
-          </div>
-          <div>
-            <span className="font-medium text-gray-600">Rol:</span>
-            <p className="text-gray-900 capitalize">{perfil?.rol || 'usuario'}</p>
           </div>
         </div>
       </div>
