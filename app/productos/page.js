@@ -309,7 +309,10 @@ export default function CatalogoPage() {
                             </label>
                             <select
                                 value={categoriaSeleccionada}
-                                onChange={(e) => setCategoriaSeleccionada(e.target.value)}
+                                onChange={(e) => {
+                                    console.log('🏷️ Categoría seleccionada:', e.target.value);
+                                    setCategoriaSeleccionada(e.target.value);
+                                }}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-gray-700 font-medium"
                             >
                                 <option value="">🌟 Todas las Categorías</option>
@@ -446,9 +449,22 @@ export default function CatalogoPage() {
             {/* LISTA DE PRODUCTOS - OPTIMIZADA PARA MÓVIL */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
                 {productos.length > 0 ? (
-                    productos
-                        .filter(producto => !categoriaSeleccionada || producto.category_id === categoriaSeleccionada)
-                        .map((producto, idx) => {
+                    (() => {
+                        const productosFiltrados = productos.filter(producto => {
+                            if (!categoriaSeleccionada) return true;
+                            const match = Number(producto.category_id) === Number(categoriaSeleccionada);
+                            console.log('🔍 Filtro categoria:', {
+                                producto: producto.nombre,
+                                categoria_producto: producto.category_id,
+                                categoria_seleccionada: categoriaSeleccionada,
+                                match: match
+                            });
+                            return match;
+                        });
+                        
+                        console.log('📦 Productos filtrados:', productosFiltrados.length, 'de', productos.length);
+                        
+                        return productosFiltrados.map((producto, idx) => {
                             const isInCart = getProductInCart(producto.user_id);
                             const imagenes = imagenesProductos[producto.user_id] || [];
                             // Definir la variable categoria justo antes del return
@@ -515,7 +531,8 @@ export default function CatalogoPage() {
                                     </button>
                                 </div>
                             );
-                        })
+                        });
+                    })()
                 ) : (
                     <div className="col-span-full text-center text-gray-400 py-8">
                         {productos.length === 0 ? 'No hay productos disponibles.' : null}
