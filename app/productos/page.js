@@ -8,6 +8,7 @@ import { PrecioConPromocion } from '../../lib/promociones';
 import { usePromociones } from '../../lib/usePromociones';
 import { usePacks, calcularDescuentoPack } from '../../lib/packs';
 import { CONFIG } from '../../lib/config';
+import { useFacebookPixel } from '../../components/FacebookPixel';
 
 export default function CatalogoPage() {
     // --- Estados ---
@@ -27,6 +28,9 @@ export default function CatalogoPage() {
     
     // Usar el hook para packs
     const { packs, loading: loadingPacks } = usePacks();
+    
+    // 📊 Hook para Facebook Pixel tracking
+    const { trackAddToCart, trackViewContent, trackPurchase } = useFacebookPixel();
 
     // --- Efectos (Hooks) ---
     // Detectar usuario logeado
@@ -179,6 +183,9 @@ export default function CatalogoPage() {
     const addToCart = (producto) => {
         const precioFinal = getPrecioFinal(producto);
         
+        // 📊 Track Facebook Pixel - Add to Cart
+        trackAddToCart(producto.user_id.toString(), precioFinal);
+        
         setCart(prev => {
             const idx = prev.findIndex(p => p.user_id === producto.user_id);
             if (idx !== -1) {
@@ -267,6 +274,10 @@ export default function CatalogoPage() {
         }
         
         const pedidoId = data.id;
+
+        // 📊 Track Facebook Pixel - Purchase
+        const totalValue = cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+        trackPurchase(totalValue, 'BOB');
 
         // 2. Preparar mensaje WhatsApp
         const itemsList = cart.map(item => {

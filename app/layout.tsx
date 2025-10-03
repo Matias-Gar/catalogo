@@ -10,6 +10,7 @@ import "./globals.css";
 // 💡 PASO 1: Importar el componente Header
 // Asegúrate de que la ruta sea correcta (asumo que está en la carpeta 'components')
 import Header from "../components/Header"; 
+import FacebookPixel from "../components/FacebookPixel"; 
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,6 +44,9 @@ export default function RootLayout({
         <Header /> 
         
         {children}
+        
+        {/* 📊 Facebook Pixel para tracking */}
+        <FacebookPixel />
         
       </body>
     </html>
