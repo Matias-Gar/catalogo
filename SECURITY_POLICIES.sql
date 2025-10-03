@@ -97,28 +97,27 @@ CREATE POLICY "Users can only create their own profile" ON perfiles
 FOR INSERT WITH CHECK (id = auth.uid());
 
 -- 4. POLÍTICA SEGURA: Solo actualizar SU PROPIO perfil (usuarios normales)
+-- SIMPLIFICADA: Sin validaciones complejas para evitar recursión
 CREATE POLICY "Users can only update their own profile" ON perfiles
 FOR UPDATE USING (id = auth.uid()) 
-WITH CHECK (id = auth.uid() AND rol = (
-  SELECT p.rol FROM perfiles p WHERE p.id = auth.uid() LIMIT 1
-)); -- NO puede cambiar su rol
+WITH CHECK (id = auth.uid()); -- Simplificado: no verificar rol actual
 
 -- 5. POLÍTICA ADMIN: Solo admins pueden ver TODOS los perfiles (sin recursión)
 CREATE POLICY "Admins can view all profiles" ON perfiles
 FOR SELECT USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 -- 6. POLÍTICA ADMIN: Solo admins pueden actualizar cualquier perfil (sin recursión)
 CREATE POLICY "Admins can update any profile" ON perfiles
 FOR UPDATE USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 -- 7. POLÍTICA ADMIN: Solo admins pueden eliminar perfiles (sin recursión)
 CREATE POLICY "Admins can delete profiles" ON perfiles
 FOR DELETE USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 -- 8. SEGURIDAD EN CARRITOS: Solo ver SUS propios carritos + permitir carritos anónimos
@@ -128,29 +127,37 @@ DROP POLICY IF EXISTS "Users can only access their own carts" ON carritos_pendie
 DROP POLICY IF EXISTS "Users can access their own carts or create anonymous carts" ON carritos_pendientes;
 DROP POLICY IF EXISTS "Los usuarios pueden acceder a sus propios carritos o crear carritos anónimos" ON carritos_pendientes;
 
-CREATE POLICY "Users can access their own carts or create anonymous carts" ON carritos_pendientes
+-- POLÍTICA SIN RECURSIÓN: Permitir carritos anónimos y autenticados SIN consultar perfiles
+CREATE POLICY "Allow anonymous and user carts" ON carritos_pendientes
 FOR ALL USING (
   -- Usuarios autenticados solo pueden ver/modificar sus propios carritos
   (auth.uid() IS NOT NULL AND usuario_id = auth.uid()::text)
   OR
   -- Usuarios no autenticados pueden crear carritos anónimos (usuario_id = NULL)
   (auth.uid() IS NULL AND usuario_id IS NULL)
-  OR
-  -- Admins pueden ver todos los carritos
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+);
+
+-- POLÍTICA SEPARADA PARA ADMINS: Solo para SELECT (no para INSERT/UPDATE)
+CREATE POLICY "Admins can view all carts" ON carritos_pendientes
+FOR SELECT USING (
+  -- Verificar directamente en auth.jwt() si es admin para evitar recursión
+  auth.jwt() ->> 'role' = 'admin'
+  OR 
+  -- O permitir acceso directo a superusers
+  auth.role() = 'service_role'
 );
 
 -- 9. SEGURIDAD EN VENTAS: Solo admins pueden ver todas las ventas
 -- NOTA: ventas no tiene usuario_id, solo admins pueden ver ventas
 CREATE POLICY "Admins can view all sales" ON ventas
 FOR SELECT USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 -- 10. VENTAS_DETALLE: Solo admins pueden ver detalles de ventas
 CREATE POLICY "Admins can view sales details" ON ventas_detalle
 FOR SELECT USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 -- 11. PRODUCTOS: Todos pueden VER, solo admins pueden MODIFICAR
@@ -159,17 +166,17 @@ FOR SELECT USING (true);
 
 CREATE POLICY "Admins can insert products" ON productos
 FOR INSERT WITH CHECK (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 CREATE POLICY "Admins can update products" ON productos
 FOR UPDATE USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 CREATE POLICY "Admins can delete products" ON productos
 FOR DELETE USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 -- 12. CATEGORÍAS: Todos pueden VER, solo admins pueden MODIFICAR
@@ -178,17 +185,17 @@ FOR SELECT USING (true);
 
 CREATE POLICY "Admins can insert categories" ON categorias
 FOR INSERT WITH CHECK (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 CREATE POLICY "Admins can update categories" ON categorias
 FOR UPDATE USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 CREATE POLICY "Admins can delete categories" ON categorias
 FOR DELETE USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 -- 13. PROMOCIONES: Todos pueden VER, solo admins pueden MODIFICAR
@@ -197,17 +204,17 @@ FOR SELECT USING (true);
 
 CREATE POLICY "Admins can insert promotions" ON promociones
 FOR INSERT WITH CHECK (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 CREATE POLICY "Admins can update promotions" ON promociones
 FOR UPDATE USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 CREATE POLICY "Admins can delete promotions" ON promociones
 FOR DELETE USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 -- 14. PACKS: Todos pueden VER, solo admins pueden MODIFICAR
@@ -216,17 +223,17 @@ FOR SELECT USING (true);
 
 CREATE POLICY "Admins can insert packs" ON packs
 FOR INSERT WITH CHECK (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 CREATE POLICY "Admins can update packs" ON packs
 FOR UPDATE USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 CREATE POLICY "Admins can delete packs" ON packs
 FOR DELETE USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 -- 15. PACK_PRODUCTOS: Todos pueden VER, solo admins pueden MODIFICAR
@@ -235,17 +242,17 @@ FOR SELECT USING (true);
 
 CREATE POLICY "Admins can insert pack products" ON pack_productos
 FOR INSERT WITH CHECK (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 CREATE POLICY "Admins can update pack products" ON pack_productos
 FOR UPDATE USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 CREATE POLICY "Admins can delete pack products" ON pack_productos
 FOR DELETE USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 -- 16. PRODUCTO_IMAGENES: Todos pueden VER, solo admins pueden MODIFICAR
@@ -254,17 +261,17 @@ FOR SELECT USING (true);
 
 CREATE POLICY "Admins can insert product images" ON producto_imagenes
 FOR INSERT WITH CHECK (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 CREATE POLICY "Admins can update product images" ON producto_imagenes
 FOR UPDATE USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 CREATE POLICY "Admins can delete product images" ON producto_imagenes
 FOR DELETE USING (
-  (SELECT rol FROM perfiles WHERE id = auth.uid() LIMIT 1) = 'admin'
+  auth.jwt() ->> 'role' = 'admin' OR auth.role() = 'service_role'
 );
 
 -- 17. HABILITAR RLS en todas las tablas críticas
