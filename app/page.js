@@ -335,9 +335,9 @@ export default function Home() {
               key={cat.id}
               onClick={() => {
                 console.log('🏷️ Categoría seleccionada PRINCIPAL:', cat.id, cat.categori);
-                setFiltroCategoria(cat.id);
+                setFiltroCategoria(cat.id.toString());
               }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ${filtroCategoria === cat.id ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-indigo-100'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ${Number(filtroCategoria) === cat.id ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-indigo-100'}`}
             >
               {cat.categori}
             </button>
