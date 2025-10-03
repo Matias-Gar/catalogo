@@ -14,6 +14,9 @@ DROP POLICY IF EXISTS "Admins can view all profiles" ON perfiles;
 DROP POLICY IF EXISTS "Admins can update any profile" ON perfiles;
 DROP POLICY IF EXISTS "Admins can delete profiles" ON perfiles;
 DROP POLICY IF EXISTS "Users can only access their own carts" ON carritos_pendientes;
+DROP POLICY IF EXISTS "Users can access their own carts or create anonymous carts" ON carritos_pendientes;
+DROP POLICY IF EXISTS "Los usuarios pueden acceder a sus propios carritos o crear carritos anónimos" ON carritos_pendientes;
+DROP POLICY IF EXISTS "Enable all actions for authenticated users" ON carritos_pendientes;
 DROP POLICY IF EXISTS "Admins can view all sales" ON ventas;
 DROP POLICY IF EXISTS "Users can view their own sales" ON ventas;
 
@@ -69,6 +72,9 @@ FOR DELETE USING (
 -- 8. SEGURIDAD EN CARRITOS: Solo ver SUS propios carritos + permitir carritos anónimos
 -- NOTA: usuario_id es TEXT, auth.uid() es UUID, necesitamos conversión
 DROP POLICY IF EXISTS "Enable all actions for authenticated users" ON carritos_pendientes;
+DROP POLICY IF EXISTS "Users can only access their own carts" ON carritos_pendientes;
+DROP POLICY IF EXISTS "Users can access their own carts or create anonymous carts" ON carritos_pendientes;
+DROP POLICY IF EXISTS "Los usuarios pueden acceder a sus propios carritos o crear carritos anónimos" ON carritos_pendientes;
 
 CREATE POLICY "Users can access their own carts or create anonymous carts" ON carritos_pendientes
 FOR ALL USING (
