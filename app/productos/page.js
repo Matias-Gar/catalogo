@@ -298,28 +298,27 @@ export default function CatalogoPage() {
             </div>
 
 
-            {/* FILTRO POR CATEGORÍA - MEJORADO PARA MÓVIL */}
+            {/* FILTRO POR CATEGORÍA - DESPLEGABLE COMPACTO PARA MÓVIL */}
             {categorias.length > 0 && (
-                <div className="mb-8">
-                    {/* Versión móvil - Lista vertical */}
+                <div className="mb-6">
+                    {/* Versión móvil - Selector desplegable compacto */}
                     <div className="block sm:hidden">
-                        <h3 className="text-lg font-bold text-gray-800 mb-3 text-center">📂 Categorías</h3>
-                        <div className="bg-white rounded-xl shadow-lg p-4 mx-2">
-                            <button
-                                className={`w-full mb-2 px-4 py-3 rounded-lg font-bold text-left transition-all duration-200 ${!categoriaSeleccionada ? 'bg-violet-600 text-white shadow-md' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
-                                onClick={() => setCategoriaSeleccionada('')}
+                        <div className="bg-white rounded-xl shadow-lg p-3 mx-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                📂 Filtrar por categoría:
+                            </label>
+                            <select
+                                value={categoriaSeleccionada}
+                                onChange={(e) => setCategoriaSeleccionada(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-gray-700 font-medium"
                             >
-                                🌟 Todas las Categorías
-                            </button>
-                            {categorias.map(cat => (
-                                <button
-                                    key={cat.id}
-                                    className={`w-full mb-2 px-4 py-3 rounded-lg font-bold text-left transition-all duration-200 ${categoriaSeleccionada === cat.id ? 'bg-violet-600 text-white shadow-md' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
-                                    onClick={() => setCategoriaSeleccionada(cat.id)}
-                                >
-                                    🏷️ {cat.categori || cat.nombre || '-'}
-                                </button>
-                            ))}
+                                <option value="">🌟 Todas las Categorías</option>
+                                {categorias.map(cat => (
+                                    <option key={cat.id} value={cat.id}>
+                                        🏷️ {cat.categori || cat.nombre || '-'}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     </div>
                     
