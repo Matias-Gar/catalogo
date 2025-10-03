@@ -66,12 +66,24 @@ FOR DELETE USING (
   )
 );
 
--- 8. SEGURIDAD EN CARRITOS: Solo ver SUS propios carritos
+-- 8. SEGURIDAD EN CARRITOS: Solo ver SUS propios carritos + permitir carritos anónimos
 -- NOTA: usuario_id es TEXT, auth.uid() es UUID, necesitamos conversión
 DROP POLICY IF EXISTS "Enable all actions for authenticated users" ON carritos_pendientes;
 
-CREATE POLICY "Users can only access their own carts" ON carritos_pendientes
-FOR ALL USING (usuario_id = auth.uid()::text);
+CREATE POLICY "Users can access their own carts or create anonymous carts" ON carritos_pendientes
+FOR ALL USING (
+  -- Usuarios autenticados solo pueden ver/modificar sus propios carritos
+  (auth.uid() IS NOT NULL AND usuario_id = auth.uid()::text)
+  OR
+  -- Usuarios no autenticados pueden crear carritos anónimos (usuario_id = NULL)
+  (auth.uid() IS NULL AND usuario_id IS NULL)
+  OR
+  -- Admins pueden ver todos los carritos
+  EXISTS (
+    SELECT 1 FROM perfiles p 
+    WHERE p.id = auth.uid() AND p.rol = 'admin'
+  )
+);
 
 -- 9. SEGURIDAD EN VENTAS: Solo admins pueden ver todas las ventas
 -- NOTA: ventas no tiene usuario_id, solo admins pueden ver ventas

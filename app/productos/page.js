@@ -252,7 +252,17 @@ export default function CatalogoPage() {
         ]).select('id').single();
         
         if (error || !data) {
-            alert("No se pudo guardar el pedido. Intenta de nuevo.");
+            console.error('❌ Error al guardar carrito:', {
+                error: error,
+                usuario_autenticado: !!usuario,
+                usuario_id: usuario ? usuario.id : null,
+                datos_carrito: {
+                    cliente_nombre: nombreFinal,
+                    usuario_id: usuario ? usuario.id : null,
+                    productos_count: cart.length
+                }
+            });
+            alert(`No se pudo guardar el pedido. Error: ${error?.message || 'Error desconocido'}. Por favor intenta de nuevo.`);
             return;
         }
         
