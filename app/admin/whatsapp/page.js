@@ -9,6 +9,8 @@ export default function WhatsAppAdminPage() {
   const [estadisticas, setEstadisticas] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('catalogo');
+  const [facebookSync, setFacebookSync] = useState(null);
+  const [syncLoading, setSyncLoading] = useState(false);
 
   useEffect(() => {
     cargarDatos();
@@ -57,6 +59,32 @@ export default function WhatsAppAdminPage() {
       setEstadisticas(data.estadisticas);
     } catch (error) {
       console.error('Error cargando estadísticas:', error);
+    }
+  };
+
+  // 🔗 Funciones para Facebook Catalog
+  const syncToFacebook = async (action, params = {}) => {
+    setSyncLoading(true);
+    try {
+      const response = await fetch('/api/facebook/catalog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...params })
+      });
+      
+      const result = await response.json();
+      setFacebookSync(result);
+      
+      if (result.success) {
+        alert(`✅ ${result.message}`);
+      } else {
+        alert(`❌ Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error syncing to Facebook:', error);
+      alert('❌ Error de conexión');
+    } finally {
+      setSyncLoading(false);
     }
   };
 
@@ -118,6 +146,7 @@ export default function WhatsAppAdminPage() {
                 { id: 'catalogo', label: '🛍️ Catálogo', icon: '🛍️' },
                 { id: 'comandos', label: '⚡ Comandos', icon: '⚡' },
                 { id: 'mensajes', label: '💬 Mensajes', icon: '💬' },
+                { id: 'facebook', label: '📘 Facebook', icon: '📘' },
                 { id: 'config', label: '⚙️ Configuración', icon: '⚙️' }
               ].map(tab => (
                 <button
@@ -292,6 +321,137 @@ export default function WhatsAppAdminPage() {
                       </div>
                     ))
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Pestaña Facebook Catalog */}
+            {activeTab === 'facebook' && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">🔗 Facebook Business Catalog</h2>
+                
+                {/* Estado de conexión */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="bg-blue-500 text-white rounded-full p-3">
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-blue-800">Integración con Facebook Business</h3>
+                      <p className="text-blue-600">Sincroniza tu catálogo con Facebook para WhatsApp Business</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white border border-blue-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-800 mb-2">📊 Estado del Catálogo</h4>
+                      <div className="space-y-2 text-sm">
+                        <div>Catalog ID: <code className="bg-gray-100 px-2 py-1 rounded">113970374931116</code></div>
+                        <div>Productos sincronizados: <span className="font-bold text-green-600">{facebookSync?.data?.total_productos || 0}</span></div>
+                        <div>Última sincronización: <span className="text-gray-600">Pendiente</span></div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-blue-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-800 mb-2">⚙️ Configuración Requerida</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                          Access Token de Facebook
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                          Catalog ID configurado
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                          Business Manager activo
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Acciones de sincronización */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                  <button
+                    onClick={() => syncToFacebook('sync_all')}
+                    disabled={syncLoading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-lg disabled:opacity-50 transition"
+                  >
+                    <div className="text-2xl mb-2">🔄</div>
+                    <div className="font-semibold">Sincronizar Todo</div>
+                    <div className="text-sm opacity-90">Subir todos los productos</div>
+                  </button>
+
+                  <button
+                    onClick={() => syncToFacebook('stats')}
+                    disabled={syncLoading}
+                    className="bg-green-600 hover:bg-green-700 text-white p-4 rounded-lg disabled:opacity-50 transition"
+                  >
+                    <div className="text-2xl mb-2">📊</div>
+                    <div className="font-semibold">Ver Estadísticas</div>
+                    <div className="text-sm opacity-90">Estado del catálogo</div>
+                  </button>
+
+                  <button
+                    onClick={() => window.open('https://business.facebook.com/', '_blank')}
+                    className="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-lg transition"
+                  >
+                    <div className="text-2xl mb-2">🔗</div>
+                    <div className="font-semibold">Business Manager</div>
+                    <div className="text-sm opacity-90">Abrir Facebook</div>
+                  </button>
+
+                  <button
+                    onClick={() => window.open('https://developers.facebook.com/docs/marketing-api/catalog/', '_blank')}
+                    className="bg-gray-600 hover:bg-gray-700 text-white p-4 rounded-lg transition"
+                  >
+                    <div className="text-2xl mb-2">📖</div>
+                    <div className="font-semibold">Documentación</div>
+                    <div className="text-sm opacity-90">Guía de Facebook API</div>
+                  </button>
+                </div>
+
+                {/* Resultado de sincronización */}
+                {facebookSync && (
+                  <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">📋 Resultado de Sincronización</h3>
+                    <div className="bg-gray-50 border rounded p-4">
+                      <pre className="text-sm text-gray-700 whitespace-pre-wrap">
+                        {JSON.stringify(facebookSync, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+
+                {/* Instrucciones de configuración */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-4">⚠️ Instrucciones de Configuración</h3>
+                  <div className="space-y-4 text-yellow-700">
+                    <div>
+                      <strong>1. En Facebook Business Manager:</strong>
+                      <ul className="list-disc ml-6 mt-2 space-y-1">
+                        <li>Ve a "Catálogos" → Tu catálogo creado</li>
+                        <li>Clic en "Agregar un píxel o SDK"</li>
+                        <li>Selecciona "Conversions API"</li>
+                        <li>Copia el Access Token generado</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <strong>2. En tu archivo .env.local:</strong>
+                      <code className="block bg-yellow-100 p-2 rounded mt-2 text-sm">
+                        FACEBOOK_ACCESS_TOKEN=tu_token_aqui<br/>
+                        FACEBOOK_CATALOG_ID=113970374931116<br/>
+                        FACEBOOK_BUSINESS_ID=tu_business_id
+                      </code>
+                    </div>
+                    <div>
+                      <strong>3. Reinicia tu aplicación</strong> para aplicar los cambios.
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
