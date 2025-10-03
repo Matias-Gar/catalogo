@@ -42,7 +42,7 @@ export default function PerfilPage() {
         }
 
         // 3. Establecer datos seguros
-        setPerfil(perfilData || {
+        const finalPerfil = perfilData || {
           id: currentUser.id,
           email: currentUser.email,
           nombre: '',
@@ -50,8 +50,9 @@ export default function PerfilPage() {
           nit_ci: '',
           rol: 'cliente', // Por defecto cliente
           foto_url: null
-        });
-
+        };
+        
+        setPerfil(finalPerfil);
         setAuthorized(true);
         
       } catch (error) {

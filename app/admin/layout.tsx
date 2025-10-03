@@ -1,14 +1,84 @@
 "use client";
 
 import Sidebar from './Sidebar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/SupabaseClient';
+import { useRouter } from 'next/navigation';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkUserRole = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          // No hay sesión, redirigir al login
+          router.push('/login');
+          return;
+        }
+
+        // Obtener el rol del usuario
+        const { data: profile } = await supabase
+          .from('perfiles')
+          .select('rol')
+          .eq('id', session.user.id)
+          .single();
+        
+        const role = profile?.rol || 'cliente';
+        setUserRole(role);
+        
+        // Si no es admin, redirigir al perfil o página principal
+        if (role !== 'admin') {
+          router.push('/admin/perfil');
+          return;
+        }
+        
+      } catch (error) {
+        console.error('Error checking user role:', error);
+        router.push('/login');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkUserRole();
+
+    // Suscribirse a cambios de auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!session) {
+          router.push('/login');
+        } else {
+          checkUserRole();
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [router]);
+
+  // Mostrar loading mientras verificamos
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-xl">Verificando permisos...</div>
+      </div>
+    );
+  }
+
+  // Solo mostrar el layout completo si es admin
+  if (userRole !== 'admin') {
+    return null; // El redirect ya se maneja en useEffect
+  }
+
   return (
     <div className="flex min-h-screen">
-      {/* Botón hamburguesa solo en móvil */}
-      {/* Botón hamburguesa siempre visible, pero oculto si el sidebar está abierto en desktop */}
+      {/* Botón hamburguesa solo en móvil - SOLO PARA ADMINS */}
       <button
         className={`fixed top-4 left-4 z-[100] bg-gray-900 text-white p-2 rounded-full shadow-lg focus:outline-none transition-opacity duration-200 ${mobileOpen && 'opacity-0 pointer-events-none'} md:hidden`}
         onClick={() => setMobileOpen(true)}
@@ -19,7 +89,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
-      {/* Botón hamburguesa para desktop, solo si sidebar está oculto (por ejemplo, para pantallas pequeñas o si se quiere forzar cerrar) */}
+      {/* Botón hamburguesa para desktop - SOLO PARA ADMINS */}
       <button
         className={`hidden md:block fixed top-4 left-4 z-[100] bg-gray-900 text-white p-2 rounded-full shadow-lg focus:outline-none transition-opacity duration-200 ${mobileOpen ? 'opacity-0 pointer-events-none' : ''}`}
         onClick={() => setMobileOpen(true)}
