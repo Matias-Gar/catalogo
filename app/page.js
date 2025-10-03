@@ -319,30 +319,59 @@ export default function Home() {
         )}
         {/* Enlace a la administración (opcional, solo si lo quieres aquí) */}
         {/* Si quieres eliminarlo por completo, borra este bloque */}
-        {/* Sección de Filtros */}
-        <div className="mb-8 p-4 bg-white rounded-xl shadow-md flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => {
-              console.log('🏷️ Categoría seleccionada PRINCIPAL: todas');
-              setFiltroCategoria('');
-            }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ${filtroCategoria === '' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-indigo-100'}`}
-          >
-            Todas las Categorías
-          </button>
-          {categorias.map(cat => (
-            <button
-              key={cat.id}
-              onClick={() => {
-                console.log('🏷️ Categoría seleccionada PRINCIPAL:', cat.id, cat.categori);
-                setFiltroCategoria(cat.id.toString());
-              }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ${Number(filtroCategoria) === cat.id ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-indigo-100'}`}
-            >
-              {cat.categori}
-            </button>
-          ))}
-        </div>
+        {/* Sección de Filtros - VERSIÓN RESPONSIVA IDÉNTICA A PRODUCTOS */}
+        {categorias.length > 0 && (
+            <div className="mb-6">
+                {/* Versión móvil - Selector desplegable compacto */}
+                <div className="block sm:hidden">
+                    <div className="bg-white rounded-xl shadow-lg p-3 mx-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            📂 Filtrar por categoría:
+                        </label>
+                        <select
+                            value={filtroCategoria}
+                            onChange={(e) => {
+                                console.log('🏷️ Categoría seleccionada PRINCIPAL:', e.target.value);
+                                setFiltroCategoria(e.target.value);
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-gray-700 font-medium"
+                        >
+                            <option value="">🌟 Todas las Categorías</option>
+                            {categorias.map(cat => (
+                                <option key={cat.id} value={cat.id}>
+                                    🏷️ {cat.categori || cat.nombre || '-'}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+                
+                {/* Versión desktop - Horizontal */}
+                <div className="hidden sm:flex flex-wrap gap-2 justify-center">
+                    <button
+                        className={`px-4 py-2 rounded-full font-bold border transition-all duration-200 ${!filtroCategoria ? 'bg-violet-600 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                        onClick={() => {
+                            console.log('🏷️ Categoría seleccionada PRINCIPAL: todas');
+                            setFiltroCategoria('');
+                        }}
+                    >
+                        Todas las Categorías
+                    </button>
+                    {categorias.map(cat => (
+                        <button
+                            key={cat.id}
+                            className={`px-4 py-2 rounded-full font-bold border transition-all duration-200 ${Number(filtroCategoria) === cat.id ? 'bg-violet-600 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                            onClick={() => {
+                                console.log('🏷️ Categoría seleccionada PRINCIPAL:', cat.id, cat.categori);
+                                setFiltroCategoria(cat.id.toString());
+                            }}
+                        >
+                            {cat.categori || cat.nombre || '-'}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        )}
         {/* Mensajes de Estado */}
         {loading && (
           <div className="text-center mt-10">
