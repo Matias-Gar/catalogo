@@ -298,24 +298,49 @@ export default function CatalogoPage() {
             </div>
 
 
-            {/* FILTRO POR CATEGORÍA */}
+            {/* FILTRO POR CATEGORÍA - MEJORADO PARA MÓVIL */}
             {categorias.length > 0 && (
-                <div className="flex flex-wrap gap-2 justify-center mb-8">
-                    <button
-                        className={`px-4 py-2 rounded-full font-bold border ${!categoriaSeleccionada ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                        onClick={() => setCategoriaSeleccionada('')}
-                    >
-                        Todas las Categorías
-                    </button>
-                    {categorias.map(cat => (
+                <div className="mb-8">
+                    {/* Versión móvil - Lista vertical */}
+                    <div className="block sm:hidden">
+                        <h3 className="text-lg font-bold text-gray-800 mb-3 text-center">📂 Categorías</h3>
+                        <div className="bg-white rounded-xl shadow-lg p-4 mx-2">
+                            <button
+                                className={`w-full mb-2 px-4 py-3 rounded-lg font-bold text-left transition-all duration-200 ${!categoriaSeleccionada ? 'bg-violet-600 text-white shadow-md' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
+                                onClick={() => setCategoriaSeleccionada('')}
+                            >
+                                🌟 Todas las Categorías
+                            </button>
+                            {categorias.map(cat => (
+                                <button
+                                    key={cat.id}
+                                    className={`w-full mb-2 px-4 py-3 rounded-lg font-bold text-left transition-all duration-200 ${categoriaSeleccionada === cat.id ? 'bg-violet-600 text-white shadow-md' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
+                                    onClick={() => setCategoriaSeleccionada(cat.id)}
+                                >
+                                    🏷️ {cat.categori || cat.nombre || '-'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    {/* Versión desktop - Horizontal */}
+                    <div className="hidden sm:flex flex-wrap gap-2 justify-center">
                         <button
-                            key={cat.id}
-                            className={`px-4 py-2 rounded-full font-bold border ${categoriaSeleccionada === cat.id ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                            onClick={() => setCategoriaSeleccionada(cat.id)}
+                            className={`px-4 py-2 rounded-full font-bold border transition-all duration-200 ${!categoriaSeleccionada ? 'bg-violet-600 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                            onClick={() => setCategoriaSeleccionada('')}
                         >
-                            {cat.categori || cat.nombre || '-'}
+                            Todas las Categorías
                         </button>
-                    ))}
+                        {categorias.map(cat => (
+                            <button
+                                key={cat.id}
+                                className={`px-4 py-2 rounded-full font-bold border transition-all duration-200 ${categoriaSeleccionada === cat.id ? 'bg-violet-600 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                                onClick={() => setCategoriaSeleccionada(cat.id)}
+                            >
+                                {cat.categori || cat.nombre || '-'}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
 
@@ -419,8 +444,8 @@ export default function CatalogoPage() {
                 </div>
             )}
 
-            {/* LISTA DE PRODUCTOS */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {/* LISTA DE PRODUCTOS - OPTIMIZADA PARA MÓVIL */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
                 {productos.length > 0 ? (
                     productos
                         .filter(producto => !categoriaSeleccionada || producto.category_id === categoriaSeleccionada)
@@ -432,11 +457,11 @@ export default function CatalogoPage() {
                             return (
                                 <div
                                     key={producto.user_id ? producto.user_id : 'producto-' + idx}
-                                    className="bg-white border border-gray-200 rounded-xl p-4 shadow-lg flex flex-col transition-shadow duration-300 hover:shadow-xl"
+                                    className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-lg flex flex-col transition-shadow duration-300 hover:shadow-xl"
                                 >
                                     <div className="relative">
                                         {Array.isArray(imagenes) && imagenes.length > 0 && typeof imagenes[0] === 'string' ? (
-                                            <div className="w-full h-28 sm:h-40 mb-2 overflow-hidden rounded-lg relative group cursor-pointer">
+                                            <div className="w-full h-32 sm:h-40 mb-2 overflow-hidden rounded-lg relative group cursor-pointer">
                                                 <Image
                                                     src={imagenes[0]}
                                                     alt={producto.nombre}
@@ -467,8 +492,8 @@ export default function CatalogoPage() {
                                         )}
                                     </div>
                                     <div className="flex-1 flex flex-col">
-                                        <div className="text-base sm:text-lg text-black font-bold mb-0.5 line-clamp-2">{categoria ? (categoria.categori || categoria.nombre) : '-'}</div>
-                                        <div className="text-base sm:text-lg font-bold mb-1 line-clamp-2">{producto.nombre}</div>
+                                        <div className="text-xs sm:text-sm text-gray-600 font-medium mb-1">{categoria ? (categoria.categori || categoria.nombre) : '-'}</div>
+                                        <div className="text-sm sm:text-lg font-bold mb-2 line-clamp-2 text-gray-900">{producto.nombre}</div>
                                         
                                         {/* Usar el componente de precio con promoción */}
                                         <PrecioConPromocion 
@@ -480,11 +505,14 @@ export default function CatalogoPage() {
                                         {/* Stock eliminado por requerimiento */}
                                     </div>
                                     <button
-                                        className={`mt-4 self-end ${isInCart ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-600 hover:bg-green-700'} text-white rounded-full w-9 h-9 flex items-center justify-center text-2xl font-bold shadow-xl focus:outline-none transition-colors duration-150`}
+                                        className={`mt-3 sm:mt-4 w-full sm:w-auto sm:self-end ${isInCart ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-600 hover:bg-green-700'} text-white rounded-lg sm:rounded-full px-4 py-2 sm:w-9 sm:h-9 flex items-center justify-center text-sm sm:text-2xl font-bold shadow-xl focus:outline-none transition-colors duration-150`}
                                         onClick={() => addToCart(producto)}
                                         title={isInCart ? `Añadir otra unidad (actual: ${isInCart.cantidad})` : "Agregar a la cesta"}
                                     >
-                                        +
+                                        <span className="sm:hidden">
+                                            {isInCart ? `+ Agregar otra (${isInCart.cantidad} en cesta)` : '🛒 Agregar al carrito'}
+                                        </span>
+                                        <span className="hidden sm:inline">+</span>
                                     </button>
                                 </div>
                             );
@@ -735,7 +763,7 @@ export default function CatalogoPage() {
                                 <div className="space-y-3">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Nombre completo {!usuario ? '*' : '(opcional)'}
+                                            Nombre completo (opcional)
                                             {usuario && usuario.nombre && (
                                                 <span className="text-green-600 text-xs ml-2">
                                                     ✓ Auto-completado desde tu perfil
@@ -841,7 +869,7 @@ export default function CatalogoPage() {
                                 </button>
                                 <button
                                     onClick={confirmAndSendWhatsapp}
-                                    disabled={!usuario && !customerData.nombre.trim()}
+                                    disabled={false}
                                     className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
