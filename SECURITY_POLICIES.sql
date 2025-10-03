@@ -2,7 +2,7 @@
 -- Ejecutar en Supabase SQL Editor
 -- Compatible con esquema real de base de datos
 
--- 1. ELIMINAR políticas existentes que puedan ser inseguras
+-- 1. ELIMINAR políticas existentes que puedan ser inseguras (ESPAÑOL E INGLÉS)
 DROP POLICY IF EXISTS "Enable insert for authenticated users only" ON perfiles;
 DROP POLICY IF EXISTS "Enable update for users based on id" ON perfiles;
 DROP POLICY IF EXISTS "Enable read access for all users" ON perfiles;
@@ -13,12 +13,80 @@ DROP POLICY IF EXISTS "Users can only update their own profile" ON perfiles;
 DROP POLICY IF EXISTS "Admins can view all profiles" ON perfiles;
 DROP POLICY IF EXISTS "Admins can update any profile" ON perfiles;
 DROP POLICY IF EXISTS "Admins can delete profiles" ON perfiles;
+
+-- CARRITOS
 DROP POLICY IF EXISTS "Users can only access their own carts" ON carritos_pendientes;
 DROP POLICY IF EXISTS "Users can access their own carts or create anonymous carts" ON carritos_pendientes;
 DROP POLICY IF EXISTS "Los usuarios pueden acceder a sus propios carritos o crear carritos anónimos" ON carritos_pendientes;
 DROP POLICY IF EXISTS "Enable all actions for authenticated users" ON carritos_pendientes;
+
+-- VENTAS
 DROP POLICY IF EXISTS "Admins can view all sales" ON ventas;
 DROP POLICY IF EXISTS "Users can view their own sales" ON ventas;
+
+-- PRODUCTOS (ESPAÑOL E INGLÉS)
+DROP POLICY IF EXISTS "Everyone can view products" ON productos;
+DROP POLICY IF EXISTS "Todos pueden ver productos" ON productos;
+DROP POLICY IF EXISTS "Admins can insert products" ON productos;
+DROP POLICY IF EXISTS "Los administradores pueden insertar productos" ON productos;
+DROP POLICY IF EXISTS "Admins can update products" ON productos;
+DROP POLICY IF EXISTS "Los administradores pueden actualizar productos" ON productos;
+DROP POLICY IF EXISTS "Admins can delete products" ON productos;
+DROP POLICY IF EXISTS "Los administradores pueden eliminar productos" ON productos;
+
+-- CATEGORÍAS (ESPAÑOL E INGLÉS)
+DROP POLICY IF EXISTS "Everyone can view categories" ON categorias;
+DROP POLICY IF EXISTS "Todos pueden ver categorías" ON categorias;
+DROP POLICY IF EXISTS "Admins can insert categories" ON categorias;
+DROP POLICY IF EXISTS "Los administradores pueden insertar categorías" ON categorias;
+DROP POLICY IF EXISTS "Admins can update categories" ON categorias;
+DROP POLICY IF EXISTS "Los administradores pueden actualizar categorías" ON categorias;
+DROP POLICY IF EXISTS "Admins can delete categories" ON categorias;
+DROP POLICY IF EXISTS "Los administradores pueden eliminar categorías" ON categorias;
+
+-- PROMOCIONES (ESPAÑOL E INGLÉS)
+DROP POLICY IF EXISTS "Everyone can view promotions" ON promociones;
+DROP POLICY IF EXISTS "Todos pueden ver promociones" ON promociones;
+DROP POLICY IF EXISTS "Admins can insert promotions" ON promociones;
+DROP POLICY IF EXISTS "Los administradores pueden insertar promociones" ON promociones;
+DROP POLICY IF EXISTS "Admins can update promotions" ON promociones;
+DROP POLICY IF EXISTS "Los administradores pueden actualizar promociones" ON promociones;
+DROP POLICY IF EXISTS "Admins can delete promotions" ON promociones;
+DROP POLICY IF EXISTS "Los administradores pueden eliminar promociones" ON promociones;
+
+-- PACKS (ESPAÑOL E INGLÉS)
+DROP POLICY IF EXISTS "Everyone can view packs" ON packs;
+DROP POLICY IF EXISTS "Todos pueden ver packs" ON packs;
+DROP POLICY IF EXISTS "Admins can insert packs" ON packs;
+DROP POLICY IF EXISTS "Los administradores pueden insertar packs" ON packs;
+DROP POLICY IF EXISTS "Admins can update packs" ON packs;
+DROP POLICY IF EXISTS "Los administradores pueden actualizar packs" ON packs;
+DROP POLICY IF EXISTS "Admins can delete packs" ON packs;
+DROP POLICY IF EXISTS "Los administradores pueden eliminar packs" ON packs;
+
+-- PACK_PRODUCTOS (ESPAÑOL E INGLÉS)
+DROP POLICY IF EXISTS "Everyone can view pack products" ON pack_productos;
+DROP POLICY IF EXISTS "Todos pueden ver productos del pack" ON pack_productos;
+DROP POLICY IF EXISTS "Admins can insert pack products" ON pack_productos;
+DROP POLICY IF EXISTS "Los administradores pueden insertar productos del pack" ON pack_productos;
+DROP POLICY IF EXISTS "Admins can update pack products" ON pack_productos;
+DROP POLICY IF EXISTS "Los administradores pueden actualizar productos del pack" ON pack_productos;
+DROP POLICY IF EXISTS "Admins can delete pack products" ON pack_productos;
+DROP POLICY IF EXISTS "Los administradores pueden eliminar productos del pack" ON pack_productos;
+
+-- PRODUCTO_IMAGENES (ESPAÑOL E INGLÉS)
+DROP POLICY IF EXISTS "Everyone can view product images" ON producto_imagenes;
+DROP POLICY IF EXISTS "Todos pueden ver imágenes de productos" ON producto_imagenes;
+DROP POLICY IF EXISTS "Admins can insert product images" ON producto_imagenes;
+DROP POLICY IF EXISTS "Los administradores pueden insertar imágenes de productos" ON producto_imagenes;
+DROP POLICY IF EXISTS "Admins can update product images" ON producto_imagenes;
+DROP POLICY IF EXISTS "Los administradores pueden actualizar imágenes de productos" ON producto_imagenes;
+DROP POLICY IF EXISTS "Admins can delete product images" ON producto_imagenes;
+DROP POLICY IF EXISTS "Los administradores pueden eliminar imágenes de productos" ON producto_imagenes;
+
+-- VENTAS_DETALLE (ESPAÑOL E INGLÉS)
+DROP POLICY IF EXISTS "Admins can view sales details" ON ventas_detalle;
+DROP POLICY IF EXISTS "Los administradores pueden ver detalles de ventas" ON ventas_detalle;
 
 -- 2. POLÍTICA SEGURA: Solo ver SU PROPIO perfil
 CREATE POLICY "Users can only view their own profile" ON perfiles
