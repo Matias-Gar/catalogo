@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { supabase } from "../lib/SupabaseClient";
 
-export default function PerfilForm({ userId, perfilActual, onSave }) {
+export default function PerfilForm({ userId, perfilActual, onSave, isAdminEdit = false }) {
   const [nombre, setNombre] = useState("");
   const [nitCi, setNitCi] = useState("");
   const [telefono, setTelefono] = useState("");
@@ -11,6 +11,18 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
   const [loading, setLoading] = useState(false);
   const [uploadingFoto, setUploadingFoto] = useState(false);
   const [message, setMessage] = useState("");
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  // 🔒 SEGURIDAD: Verificar identidad del usuario actual
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setCurrentUserId(session.user.id);
+      }
+    };
+    getCurrentUser();
+  }, []);
 
   useEffect(() => {
     if (!userId) return;
@@ -114,9 +126,31 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
     setLoading(true);
     setMessage("");
     
+    // 🔒 SEGURIDAD CRÍTICA: Verificar que solo pueda editar SU PROPIO perfil
+    if (!isAdminEdit && currentUserId !== userId) {
+      setMessage("❌ Error de seguridad: No puedes editar este perfil");
+      setLoading(false);
+      return;
+    }
+    
     console.log('Intentando guardar perfil para userId:', userId);
     
     try {
+      // Verificar sesión activa
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setMessage("❌ Sesión expirada. Por favor, inicia sesión nuevamente");
+        setLoading(false);
+        return;
+      }
+      
+      // 🔒 DOBLE VERIFICACIÓN: Solo el usuario actual puede editar su perfil
+      if (!isAdminEdit && session.user.id !== userId) {
+        setMessage("❌ Error de autorización: Operación no permitida");
+        setLoading(false);
+        return;
+      }
+      
       // Verificar si el perfil existe (con mejor manejo de errores)
       const { data: perfilExistente, error: errorCheck } = await supabase
         .from("perfiles")
@@ -127,11 +161,13 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
       console.log('Verificación de perfil existente:', { perfilExistente, errorCheck });
       
       let result;
+      // 🔒 DATOS SEGUROS: Solo campos permitidos para usuarios normales
       const datosActualizar = {
         nombre: nombre.trim(),
         nit_ci: nitCi.trim(),
         telefono: telefono.trim(),
         foto_perfil: fotoPerfil || null
+        // 🚫 NO incluir 'rol' - solo admins pueden cambiar roles
       };
       
       if (perfilExistente) {
@@ -144,13 +180,13 @@ export default function PerfilForm({ userId, perfilActual, onSave }) {
           .select();
       } else {
         console.log('Creando nuevo perfil...');
-        // CREAR nuevo perfil
+        // CREAR nuevo perfil (rol por defecto: cliente)
         result = await supabase
           .from("perfiles")
           .insert({
             id: userId,
             ...datosActualizar,
-            rol: 'usuario'
+            rol: 'cliente' // 🔒 ROL POR DEFECTO: cliente
           })
           .select();
       }

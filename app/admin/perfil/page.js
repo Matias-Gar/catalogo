@@ -2,64 +2,109 @@
 import PerfilForm from "../../../components/PerfilForm";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/SupabaseClient";
+import { useRouter } from "next/navigation";
 
 export default function PerfilPage() {
   const [user, setUser] = useState(null);
   const [perfil, setPerfil] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editando, setEditando] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const getUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (data?.user) {
-        setUser(data.user);
+      try {
+        // 1. Verificar que el usuario esté autenticado
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        // Cargar perfil actual
-        const { data: perfilData } = await supabase
+        if (sessionError || !session?.user) {
+          console.log('❌ No hay sesión válida, redirigiendo...');
+          router.push('/login');
+          return;
+        }
+
+        const currentUser = session.user;
+        setUser(currentUser);
+
+        // 2. SEGURIDAD: Solo permitir acceso a SU PROPIO perfil
+        // Verificar que no pueda editar otros perfiles
+        const { data: perfilData, error: perfilError } = await supabase
           .from('perfiles')
           .select('*')
-          .eq('id', data.user.id)
+          .eq('id', currentUser.id) // CRÍTICO: Solo SU perfil
           .single();
         
-        setPerfil(perfilData);
+        if (perfilError && perfilError.code !== 'PGRST116') { // PGRST116 = no rows
+          console.error('❌ Error cargando perfil:', perfilError);
+          router.push('/');
+          return;
+        }
+
+        // 3. Establecer datos seguros
+        setPerfil(perfilData || {
+          id: currentUser.id,
+          email: currentUser.email,
+          nombre: '',
+          telefono: '',
+          nit_ci: '',
+          rol: 'cliente', // Por defecto cliente
+          foto_url: null
+        });
+
+        setAuthorized(true);
+        
+      } catch (error) {
+        console.error('❌ Error de autorización:', error);
+        router.push('/login');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
+    
     getUser();
-  }, []);
+  }, [router]);
 
   const recargarPerfil = async () => {
-    if (user) {
+    if (user && authorized) {
+      // SEGURIDAD: Solo permitir recargar SU PROPIO perfil
       const { data: perfilData } = await supabase
         .from('perfiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', user.id) // CRÍTICO: Solo SU perfil
         .single();
       
       setPerfil(perfilData);
-      setEditando(false); // Volver al modo visualización
+      setEditando(false);
     }
   };
 
+  // SEGURIDAD: Loading state
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando perfil...</p>
+          <p className="text-gray-600">Verificando permisos...</p>
         </div>
       </div>
     );
   }
 
-  if (!user) {
+  // SEGURIDAD: Bloquear acceso no autorizado
+  if (!user || !authorized) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
         <div className="text-center p-8">
-          <div className="text-red-600 text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Sin acceso</h2>
-          <p className="text-gray-600">Necesitas estar logueado para ver tu perfil.</p>
+          <div className="text-red-600 text-6xl mb-4">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Acceso Denegado</h2>
+          <p className="text-gray-600 mb-4">No tienes permisos para acceder a esta página.</p>
+          <button 
+            onClick={() => router.push('/login')}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+          >
+            Iniciar Sesión
+          </button>
         </div>
       </div>
     );
