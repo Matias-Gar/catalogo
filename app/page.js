@@ -201,9 +201,17 @@ export default function Home() {
 
 
   // 2. Definición de la variable calculada: productosFiltrados
-  const productosFiltrados = productos.filter(p => 
-    filtroCategoria === '' || p.category_id === filtroCategoria
-  );
+  const productosFiltrados = productos.filter(p => {
+    if (filtroCategoria === '') return true;
+    const match = Number(p.category_id) === Number(filtroCategoria);
+    console.log('🔍 Filtro categoria PRINCIPAL:', {
+      producto: p.nombre,
+      categoria_producto: p.category_id,
+      categoria_seleccionada: filtroCategoria,
+      match: match
+    });
+    return match;
+  });
 
   return (
   <div className="min-h-screen bg-gray-100 p-2 sm:p-4">
@@ -314,7 +322,10 @@ export default function Home() {
         {/* Sección de Filtros */}
         <div className="mb-8 p-4 bg-white rounded-xl shadow-md flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => setFiltroCategoria('')}
+            onClick={() => {
+              console.log('🏷️ Categoría seleccionada PRINCIPAL: todas');
+              setFiltroCategoria('');
+            }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ${filtroCategoria === '' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-indigo-100'}`}
           >
             Todas las Categorías
@@ -322,7 +333,10 @@ export default function Home() {
           {categorias.map(cat => (
             <button
               key={cat.id}
-              onClick={() => setFiltroCategoria(cat.id)}
+              onClick={() => {
+                console.log('🏷️ Categoría seleccionada PRINCIPAL:', cat.id, cat.categori);
+                setFiltroCategoria(cat.id);
+              }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ${filtroCategoria === cat.id ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-indigo-100'}`}
             >
               {cat.categori}
