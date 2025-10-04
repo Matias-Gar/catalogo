@@ -445,7 +445,7 @@ export default function WhatsAppAdminPage() {
                       <code className="block bg-yellow-100 p-2 rounded mt-2 text-sm">
                         FACEBOOK_ACCESS_TOKEN=tu_token_aqui<br/>
                         FACEBOOK_CATALOG_ID=113970374931116<br/>
-                        FACEBOOK_BUSINESS_ID=tu_business_id
+                        FACEBOOK_BUSINESS_ID=1091120766441912
                       </code>
                     </div>
                     <div>
