@@ -434,9 +434,9 @@ export default function WhatsAppAdminPage() {
                     <div>
                       <strong>1. En Facebook Business Manager:</strong>
                       <ul className="list-disc ml-6 mt-2 space-y-1">
-                        <li>Ve a "Catálogos" → Tu catálogo creado</li>
-                        <li>Clic en "Agregar un píxel o SDK"</li>
-                        <li>Selecciona "Conversions API"</li>
+                        <li>Ve a &quot;Catálogos&quot; → Tu catálogo creado</li>
+                        <li>Clic en &quot;Agregar un píxel o SDK&quot;</li>
+                        <li>Selecciona &quot;Conversions API&quot;</li>
                         <li>Copia el Access Token generado</li>
                       </ul>
                     </div>

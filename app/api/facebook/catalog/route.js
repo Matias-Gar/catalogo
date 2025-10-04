@@ -1,6 +1,6 @@
 // 🔗 API para sincronizar productos con Facebook Catalog
-import { supabase } from '../../../lib/SupabaseClient';
-import { FacebookCatalogAPI } from '../../../lib/FacebookCatalogAPI';
+import { supabase } from '@/lib/SupabaseClient';
+import { FacebookCatalogAPI } from '@/lib/FacebookCatalogAPI';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
@@ -17,6 +17,15 @@ export async function POST(request) {
           success: true,
           message: 'Sincronización completada',
           data: syncResult
+        });
+
+      case 'sync_packs':
+        // 📦 Sincronizar packs activos
+        const packsResult = await fbCatalog.syncActivePacks();
+        return NextResponse.json({
+          success: true,
+          message: 'Packs sincronizados',
+          data: packsResult
         });
 
       case 'sync_single':
@@ -75,6 +84,6 @@ export async function POST(request) {
 export async function GET() {
   return NextResponse.json({ 
     message: 'Facebook Catalog API activa',
-    endpoints: ['sync_all', 'sync_single', 'delete', 'stats']
+    endpoints: ['sync_all', 'sync_packs', 'sync_single', 'delete', 'stats']
   });
 }
