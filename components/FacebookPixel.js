@@ -1,14 +1,8 @@
-// 📊 Componente para Facebook Pixel
+// 📊 Componente para Facebook Pixel - JavaScript version
 "use client";
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-
-declare global {
-  interface Window {
-    fbq: any;
-  }
-}
 
 export default function FacebookPixel() {
   const pathname = usePathname();
@@ -18,32 +12,25 @@ export default function FacebookPixel() {
     const pixelId = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
     if (!pixelId) return;
 
-    // Cargar Facebook Pixel
-    import('react-facebook-pixel')
-      .then((x) => x.default)
-      .then((ReactPixel) => {
-        ReactPixel.init(pixelId);
-        ReactPixel.pageView();
-      });
-
     // Función fbq global
-    window.fbq = window.fbq || function() {
-      (window.fbq.q = window.fbq.q || []).push(arguments);
-    };
+    if (typeof window !== 'undefined') {
+      window.fbq = window.fbq || function() {
+        (window.fbq.q = window.fbq.q || []).push(arguments);
+      };
 
-    // Script del píxel
-    if (!document.getElementById('facebook-pixel')) {
-      const script = document.createElement('script');
-      script.id = 'facebook-pixel';
-      script.async = true;
-      script.src = 'https://connect.facebook.net/en_US/fbevents.js';
-      document.head.appendChild(script);
+      // Script del píxel
+      if (!document.getElementById('facebook-pixel')) {
+        const script = document.createElement('script');
+        script.id = 'facebook-pixel';
+        script.async = true;
+        script.src = 'https://connect.facebook.net/en_US/fbevents.js';
+        document.head.appendChild(script);
 
-      // Inicializar píxel
-      window.fbq('init', pixelId);
-      window.fbq('track', 'PageView');
+        // Inicializar píxel
+        window.fbq('init', pixelId);
+        window.fbq('track', 'PageView');
+      }
     }
-
   }, []);
 
   // Track de cambios de página
@@ -52,34 +39,6 @@ export default function FacebookPixel() {
       window.fbq('track', 'PageView');
     }
   }, [pathname]);
-
-  // Funciones de tracking para eventos específicos
-  const trackEvent = (eventName: string, data?: any) => {
-    if (typeof window !== 'undefined' && window.fbq) {
-      window.fbq('track', eventName, data);
-    }
-  };
-
-  // Event tracking para e-commerce
-  const trackPurchase = (value: number, currency: string = 'BOB') => {
-    trackEvent('Purchase', { value, currency });
-  };
-
-  const trackAddToCart = (productId: string, value: number) => {
-    trackEvent('AddToCart', { 
-      content_ids: [productId], 
-      value, 
-      currency: 'BOB' 
-    });
-  };
-
-  const trackViewContent = (productId: string, productName: string) => {
-    trackEvent('ViewContent', {
-      content_ids: [productId],
-      content_name: productName,
-      content_type: 'product'
-    });
-  };
 
   // No renderizar nada visible
   return (
@@ -99,13 +58,13 @@ export default function FacebookPixel() {
 
 // Hook para usar tracking en componentes
 export const useFacebookPixel = () => {
-  const trackPurchase = (value: number, currency: string = 'BOB') => {
+  const trackPurchase = (value, currency = 'BOB') => {
     if (typeof window !== 'undefined' && window.fbq) {
       window.fbq('track', 'Purchase', { value, currency });
     }
   };
 
-  const trackAddToCart = (productId: string, value: number) => {
+  const trackAddToCart = (productId, value) => {
     if (typeof window !== 'undefined' && window.fbq) {
       window.fbq('track', 'AddToCart', { 
         content_ids: [productId], 
@@ -115,7 +74,7 @@ export const useFacebookPixel = () => {
     }
   };
 
-  const trackViewContent = (productId: string, productName: string) => {
+  const trackViewContent = (productId, productName) => {
     if (typeof window !== 'undefined' && window.fbq) {
       window.fbq('track', 'ViewContent', {
         content_ids: [productId],
