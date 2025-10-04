@@ -1,22 +1,19 @@
 // 🔗 API para sincronizar productos con Facebook Catalog
 import { supabase } from '../../../lib/SupabaseClient';
 import { FacebookCatalogAPI } from '../../../lib/FacebookCatalogAPI';
+import { NextResponse } from 'next/server';
 
-export default async function handler(req, res) {
-  // Solo permitir POST
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Método no permitido' });
-  }
-
+export async function POST(request) {
   try {
-    const { action } = req.body;
+    const body = await request.json();
+    const { action } = body;
     const fbCatalog = new FacebookCatalogAPI();
 
     switch (action) {
       case 'sync_all':
         // 🔄 Sincronizar todos los productos
         const syncResult = await fbCatalog.syncAllProducts();
-        return res.status(200).json({
+        return NextResponse.json({
           success: true,
           message: 'Sincronización completada',
           data: syncResult
@@ -24,7 +21,7 @@ export default async function handler(req, res) {
 
       case 'sync_single':
         // 📤 Sincronizar un producto específico
-        const { producto_id } = req.body;
+        const { producto_id } = body;
         
         const { data: producto } = await supabase
           .from('productos')
@@ -33,11 +30,11 @@ export default async function handler(req, res) {
           .single();
 
         if (!producto) {
-          return res.status(404).json({ error: 'Producto no encontrado' });
+          return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
         }
 
         const uploadResult = await fbCatalog.uploadProduct(producto);
-        return res.status(200).json({
+        return NextResponse.json({
           success: true,
           message: 'Producto sincronizado',
           data: uploadResult
@@ -45,9 +42,9 @@ export default async function handler(req, res) {
 
       case 'delete':
         // 🗑️ Eliminar producto del catálogo
-        const { retailer_id } = req.body;
+        const { retailer_id } = body;
         const deleteResult = await fbCatalog.deleteProduct(retailer_id);
-        return res.status(200).json({
+        return NextResponse.json({
           success: true,
           message: 'Producto eliminado del catálogo',
           data: deleteResult
@@ -56,21 +53,28 @@ export default async function handler(req, res) {
       case 'stats':
         // 📊 Obtener estadísticas
         const statsResult = await fbCatalog.getCatalogStats();
-        return res.status(200).json({
+        return NextResponse.json({
           success: true,
           data: statsResult
         });
 
       default:
-        return res.status(400).json({ error: 'Acción no válida' });
+        return NextResponse.json({ error: 'Acción no válida' }, { status: 400 });
     }
 
   } catch (error) {
     console.error('Error en Facebook Catalog API:', error);
-    return res.status(500).json({
+    return NextResponse.json({
       success: false,
       error: 'Error interno del servidor',
       details: error.message
-    });
+    }, { status: 500 });
   }
+}
+
+export async function GET() {
+  return NextResponse.json({ 
+    message: 'Facebook Catalog API activa',
+    endpoints: ['sync_all', 'sync_single', 'delete', 'stats']
+  });
 }
