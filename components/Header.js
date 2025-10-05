@@ -97,7 +97,7 @@ export default function Header() {
             )}
             
             {session && userRole !== 'admin' && (
-              <Link href="/admin/perfil">
+              <Link href="/perfil">
                 <div className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-2 rounded-lg text-sm transition duration-300 shadow-md">
                   👤 Perfil
                 </div>
@@ -145,7 +145,7 @@ export default function Header() {
             <div className="flex gap-2 items-center">
               {/* Botón de Perfil para usuarios normales (no admin) */}
               {userRole !== 'admin' && (
-                <Link href="/admin/perfil">
+                <Link href="/perfil">
                   <div className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-base transition duration-300 shadow-md">
                     👤 Perfil
                   </div>

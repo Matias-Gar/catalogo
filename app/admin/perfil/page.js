@@ -240,7 +240,7 @@ export default function PerfilPage() {
       </div>
 
       {/* Link a administración de perfiles (solo para admin) */}
-      {perfil?.rol === 'administracion' && (
+      {(perfil?.rol === 'administracion' || perfil?.rol === 'admin') && (
         <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

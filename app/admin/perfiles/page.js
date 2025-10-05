@@ -21,11 +21,12 @@ export default function PerfilesAdminPage() {
   useEffect(() => {
     const getUser = async () => {
       const { data, error } = await supabase.auth.getUser();
+      
       if (data?.user) {
         setUser(data.user);
         
         // Verificar si es admin
-        const { data: perfilData } = await supabase
+        const { data: perfilData, error: perfilError } = await supabase
           .from('perfiles')
           .select('*')
           .eq('id', data.user.id)
@@ -33,7 +34,7 @@ export default function PerfilesAdminPage() {
         
         setUserProfile(perfilData);
         
-        if (perfilData?.rol === 'administracion') {
+        if (perfilData?.rol === 'administracion' || perfilData?.rol === 'admin') {
           cargarPerfiles();
         }
       }
@@ -89,8 +90,7 @@ export default function PerfilesAdminPage() {
           nombre: formData.nombre,
           telefono: formData.telefono,
           nit_ci: formData.nit_ci,
-          rol: formData.rol,
-          updated_at: new Date().toISOString()
+          rol: formData.rol
         })
         .eq('id', editingProfile);
 
@@ -179,7 +179,7 @@ export default function PerfilesAdminPage() {
     );
   }
 
-  if (!user || userProfile?.rol !== 'administracion') {
+  if (!user || (userProfile?.rol !== 'administracion' && userProfile?.rol !== 'admin')) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
         <div className="text-center p-8">
@@ -275,7 +275,7 @@ export default function PerfilesAdminPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">
-                {perfiles.filter(p => p.rol === 'administracion').length}
+                {perfiles.filter(p => p.rol === 'administracion' || p.rol === 'admin').length}
               </p>
               <p className="text-gray-600 text-sm">Administradores</p>
             </div>
@@ -392,12 +392,13 @@ export default function PerfilesAdminPage() {
                         className="w-full px-2 py-1 border rounded text-sm"
                       >
                         <option value="usuario">Usuario</option>
+                        <option value="admin">Admin</option>
                         <option value="administracion">Administración</option>
                         <option value="vendedor">Vendedor</option>
                       </select>
                     ) : (
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        perfil.rol === 'administracion' 
+                        (perfil.rol === 'administracion' || perfil.rol === 'admin')
                           ? 'bg-red-100 text-red-800' 
                           : perfil.rol === 'vendedor'
                           ? 'bg-blue-100 text-blue-800'

@@ -7,6 +7,7 @@ const menu = [
     label: 'Perfiles',
     children: [
       { label: 'Mi Perfil', path: '/admin/perfil' },
+      { label: 'Perfiles', path: '/admin/perfiles' },
     ],
   },
   {
