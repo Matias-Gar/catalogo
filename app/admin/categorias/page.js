@@ -2,9 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/SupabaseClient";
-import { ToastProvider } from "../../../../components/toast/ToastProvider"; // new import (relative path)
-import useToast from "../../../../components/toast/useToast"; // optional in-file usage
-
+import { showToast } from "../../../components/ui/Toast";
 
 export default function AdminCategorias() {
   const router = useRouter();
@@ -25,13 +23,21 @@ export default function AdminCategorias() {
 
   async function fetchCategorias() {
     const { data, error } = await supabase.from("categorias").select("*");
-    if (!error) setCategorias(data);
+    if (error) {
+      showToast("Error al cargar categorías", "error");
+    } else if (data) {
+      setCategorias(data);
+    }
   }
 
   // Nueva: cargar productos desde Supabase (ajusta nombres de tabla/columnas si hace falta)
   async function fetchProductos() {
     const { data, error } = await supabase.from("productos").select("*");
-    if (!error) setProductos(data || []);
+    if (error) {
+      showToast("Error al cargar productos", "error");
+    } else if (data) {
+      setProductos(data);
+    }
   }
 
   // Insertar nueva categoría
@@ -39,9 +45,12 @@ export default function AdminCategorias() {
     e.preventDefault();
     if (!nuevaCategoria.trim()) return;
     const { error } = await supabase.from("categorias").insert({ categori: nuevaCategoria });
-    if (!error) {
+    if (error) {
+      showToast("Error al agregar la categoría", "error");
+    } else {
       setNuevaCategoria("");
       fetchCategorias();
+      showToast("Categoría agregada con éxito");
     }
   }
 
@@ -49,49 +58,42 @@ export default function AdminCategorias() {
   async function handleEliminar(id) {
     if (!confirm("¿Eliminar esta categoría?")) return;
     const { error } = await supabase.from("categorias").delete().eq("id", id);
-    if (!error) fetchCategorias();
+    if (error) {
+      showToast("Error al eliminar la categoría", "error");
+    } else {
+      fetchCategorias();
+      showToast("Categoría eliminada");
+    }
   }
 
   // Guardar edición
   async function handleGuardarEdit(id) {
     if (!nombreEdit.trim()) return;
     const { error } = await supabase.from("categorias").update({ categori: nombreEdit }).eq("id", id);
-    if (!error) {
+    if (error) {
+      showToast("Error al guardar la categoría", "error");
+    } else {
       setEditando(null);
       setNombreEdit("");
       fetchCategorias();
+      showToast("Categoría actualizada");
     }
   }
 
   // Nuevo: abrir la página dedicada al catálogo (versión robusta)
   function openCatalogPage() {
-    // Construir URL absoluta para evitar comportamientos inconsistentes con rutas relativas
     const url = (typeof window !== "undefined") ? `${window.location.origin}/admin/productos/catalogo` : "/admin/productos/catalogo";
     try {
-      // Intentar abrir en nueva pestaña (si el navegador lo permite)
       const newWin = (typeof window !== "undefined") && window.open(url, "_blank", "noopener,noreferrer");
-      // Si la ventana fue bloqueada, usar el router como fallback (misma pestaña)
       if (!newWin) {
         try { router.push("/admin/productos/catalogo"); } catch (e) { window.location.href = url; }
       }
     } catch (e) {
-      // Fallback definitivo
       try { router.push("/admin/productos/catalogo"); } catch (err) { if (typeof window !== "undefined") window.location.href = url; }
     }
   }
 
-  // pequeños utilitarios
-  function formatPrice(v) {
-    if (v == null) return "S/. 0.00";
-    const num = Number(v) || 0;
-    return num.toLocaleString('es-PE', { style: 'currency', currency: 'PEN' });
-  }
-  function escapeHtml(text) {
-    return String(text || "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-  }
-
   return (
-    <ToastProvider>
       <div className="w-full min-h-screen flex">
         {/* Sidebar / Hamburguesa */}
         <aside className={`transition-all duration-200 ${sidebarOpen ? 'w-64' : 'w-14'} bg-gray-900 text-gray-100 min-h-screen p-3`}>
@@ -128,7 +130,6 @@ export default function AdminCategorias() {
 
         {/* Contenido principal */}
         <main className="flex-1 py-8 px-4">
-          {/* ...existing code... */}
           <div className="w-full min-h-screen flex flex-col items-center justify-start py-8 px-2">
             {/* Sección de agregar */}
             <section className="w-full max-w-4xl bg-gray-800 rounded-xl shadow-xl p-6 mb-8 border border-gray-700">
@@ -195,6 +196,5 @@ export default function AdminCategorias() {
           </div>
         </main>
       </div>
-    </ToastProvider>
   );
 }
