@@ -1,7 +1,6 @@
 // components/ui/toast.js
 import React from "react";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 // Función para mostrar las notificaciones
 export const showToast = (message, type = "success") => {
