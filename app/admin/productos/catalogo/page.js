@@ -1,164 +1,308 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
-import { Card, CardHeader, CardTitle, CardContent } from "../../../../components/ui/card";
-import { Button } from "../../../../components/ui/button";
-import { PrecioConPromocion } from "../../../../lib/promociones";
-import { usePromociones } from "../../../../lib/usePromociones";
-import { usePacks, calcularDescuentoPack } from "../../../../lib/packs";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
 
-export default function CatalogoAdmin() {
+export default function CatalogoPage() {
   const [productos, setProductos] = useState([]);
-  const [imagenes, setImagenes] = useState({});
-  
-  // Hook para promociones
-  const { promociones, loading: loadingPromociones } = usePromociones();
-  
-  // Hook para packs
-  const { packs, loading: loadingPacks } = usePacks();
+  const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todas");
+  const [categoriasDisponibles, setCategoriasDisponibles] = useState([]);
+
+  const candidateBuckets = ["imagenes_del_producto", "productos", "images", "imagenes", "public", "uploads"];
+
   useEffect(() => {
-    async function fetchProductos() {
-      const { data, error } = await supabase
-        .from("productos")
-        .select("user_id, nombre, descripcion, precio, stock, categoria");
-      if (!error && data) {
-        setProductos(data);
-        // Obtener imágenes
-        const ids = data.map(p => p.user_id);
-        if (ids.length > 0) {
-          const { data: imgs } = await supabase
+    const link = document.createElement("link");
+    link.href = "https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap";
+    link.rel = "stylesheet";
+    document.head.appendChild(link);
+
+    async function tryGetPublicUrlFromBuckets(path) {
+      if (!path) return null;
+      if (typeof path !== "string") path = String(path);
+      if (path.startsWith("http://") || path.startsWith("https://")) return path;
+
+      const trimmed = path.replace(/^\/+/, "");
+      const parts = trimmed.split("/");
+
+      if (parts.length > 1) {
+        const maybeBucket = parts[0];
+        const maybePath = parts.slice(1).join("/");
+        try {
+          const res = supabase.storage.from(maybeBucket).getPublicUrl(maybePath);
+          const pub = res?.data?.publicUrl || res?.publicURL || res?.publicUrl;
+          if (pub) return pub;
+        } catch (e) {}
+      }
+
+      for (const bucket of candidateBuckets) {
+        try {
+          const res = supabase.storage.from(bucket).getPublicUrl(trimmed);
+          const pub = res?.data?.publicUrl || res?.publicURL || res?.publicUrl;
+          if (pub) return pub;
+        } catch (e) {}
+      }
+      return null;
+    }
+
+    async function load() {
+      try {
+        const { data: catsData } = await supabase.from("categorias").select("*");
+        const categorias = Array.isArray(catsData) ? catsData : [];
+        setCategoriasDisponibles(categorias.map(c => c.nombre || c.categori || `Cat-${c.id}`));
+
+        const { data: prodsData } = await supabase.from("productos").select("*").limit(1000);
+        const prods = Array.isArray(prodsData) ? prodsData : [];
+
+        const productIds = prods.map(p => p.user_id).filter(Boolean);
+        let imagenesMap = {};
+        if (productIds.length) {
+          const { data: imgsData } = await supabase
             .from("producto_imagenes")
             .select("producto_id, imagen_url")
-            .in("producto_id", ids);
-          if (imgs) {
-            const agrupadas = {};
-            imgs.forEach(img => {
-              if (!agrupadas[img.producto_id]) agrupadas[img.producto_id] = [];
-              agrupadas[img.producto_id].push(img.imagen_url);
-            });
-            setImagenes(agrupadas);
-          }
+            .in("producto_id", productIds);
+          const imgs = Array.isArray(imgsData) ? imgsData : [];
+          imagenesMap = imgs.reduce((acc, it) => {
+            const id = String(it.producto_id);
+            acc[id] = acc[id] || [];
+            if (it.imagen_url) acc[id].push(it.imagen_url);
+            return acc;
+          }, {});
         }
+
+        const processed = await Promise.all(prods.map(async item => {
+          const id = item.user_id;
+          const nombre = item.nombre || item.name || "Producto";
+          const precio = item.precio ?? item.price ?? 0;
+          const descripcion = item.descripcion || item.description || "";
+          const stock = item.stock ?? 0;
+
+          const catId = item.category_id ?? item.category_id;
+          let categoriaNombre = "";
+          if (catId) {
+            const found = categorias.find(c => Number(c.id) === Number(catId));
+            categoriaNombre = found ? (found.categori || found.nombre || "") : String(item.categoria || "");
+          } else {
+            categoriaNombre = String(item.categoria || "");
+          }
+
+          const imgsFor = imagenesMap[String(id)] || [];
+          const candidatePaths = [...imgsFor];
+          if (item.imagen_url) candidatePaths.push(item.imagen_url);
+
+          let imagenPublicUrls = [];
+          for (const p of candidatePaths) {
+            if (!p) continue;
+            if (typeof p === "string" && (p.startsWith("http://") || p.startsWith("https://"))) {
+              imagenPublicUrls.push(p);
+              continue;
+            }
+            const pub = await tryGetPublicUrlFromBuckets(p);
+            if (pub) imagenPublicUrls.push(pub);
+          }
+
+          return {
+            id,
+            nombre,
+            precio,
+            descripcion,
+            stock,
+            categoriaNombre: categoriaNombre || "Sin categoría",
+            imagenPublicUrls
+          };
+        }));
+
+        setProductos(processed);
+      } catch (err) {
+        console.error("Error cargando catálogo:", err);
+        setProductos([]);
+      } finally {
+        setLoading(false);
       }
     }
-    fetchProductos();
+
+    load();
+    return () => { try { document.head.removeChild(link); } catch (e) {} };
   }, []);
 
-  // Generar PDF de productos
-  const exportarPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Catálogo de Productos", 14, 16);
-    const rows = productos.map(prod => [
-      prod.nombre,
-      prod.categoria || '-',
-      prod.descripcion || '-',
-      `Bs ${Number(prod.precio).toFixed(2)}`,
-      prod.stock
-    ]);
-    doc.autoTable({
-      head: [["Nombre", "Categoría", "Descripción", "Precio", "Stock"]],
-      body: rows,
-      startY: 22,
-      styles: { fontSize: 10 }
-    });
-    doc.save("catalogo_productos.pdf");
-  };
+  function formatPrice(v) {
+    if (v == null) return "Bs 0.00";
+    const num = Number(v) || 0;
+    return `Bs ${num.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  const productosFiltrados = categoriaSeleccionada === "Todas"
+    ? productos
+    : productos.filter(p => p.categoriaNombre === categoriaSeleccionada);
+
+  async function exportPdf() {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      if (typeof window.html2pdf === "undefined") {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js";
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+
+      const element = document.getElementById("catalogo-root");
+      if (!element) throw new Error("Elemento del catálogo no encontrado");
+
+      const controles = element.querySelectorAll(".no-export");
+      controles.forEach(c => c.style.display = "none");
+
+      const imgs = element.querySelectorAll("img");
+      imgs.forEach(img => img.setAttribute("crossOrigin", "anonymous"));
+
+      const opt = {
+        margin: 0,
+        filename: `catalogo_street_wear_${new Date().toISOString().slice(0,10)}.pdf`,
+        image: { type: "jpeg", quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: false },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+      };
+
+      await window.html2pdf().set(opt).from(element).save();
+
+      controles.forEach(c => c.style.display = "inline-block");
+    } catch (err) {
+      console.error("Error exportando PDF:", err);
+      alert("Error al generar PDF; revisa la consola. Las imágenes deben ser públicas y con CORS habilitado.");
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  if (loading) return <div style={{ padding: 24 }}>Cargando catálogo...</div>;
+
+  const productosPorCategoria = productosFiltrados.reduce((acc, p) => {
+    const cat = p.categoriaNombre.trim() || "Sin categoría";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(p);
+    return acc;
+  }, {});
 
   return (
-    <div className="p-4 bg-gray-100 min-h-screen">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-extrabold text-gray-900">Catálogo de Productos</h1>
-        <Button onClick={exportarPDF} className="bg-green-700 hover:bg-green-800 text-white font-bold">Exportar PDF</Button>
-      </div>
+    <div id="catalogo-root" style={{ 
+      fontFamily: "'Roboto', sans-serif", 
+      padding: 24, 
+      background: '#fdf5f5', 
+      color: '#333', 
+      minHeight: '100vh', 
+      display: "flex", 
+      flexDirection: "column", 
+      alignItems: "center" 
+    }}>
+      {/* PORTADA */}
+      <header style={{ textAlign: 'center', marginBottom: 40 }}>
+        <h1 style={{ fontSize: 52, margin: 6, color: "#4a0f0f" }}>Street Wear</h1>
+        <p style={{ fontSize: 18, color: "#004080" }}>Catálogo Profesional</p>
 
-      {/* Sección de Packs */}
-      {!loadingPacks && packs.length > 0 && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-purple-800">📦 Packs Especiales Activos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {packs.map((pack) => {
-                const { precioIndividual, descuentoAbsoluto, descuentoPorcentaje } = calcularDescuentoPack(pack);
-                
-                return (
-                  <div key={pack.id} className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-bold text-purple-800">{pack.nombre}</h3>
-                      <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
-                        -{descuentoPorcentaje.toFixed(0)}% OFF
-                      </span>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm">
-                      <div className="text-purple-700">
-                        <strong>Productos:</strong> {pack.pack_productos.map(item => 
-                          `${item.cantidad}x ${item.productos.nombre}`
-                        ).join(', ')}
-                      </div>
-                      
-                      <div className="flex justify-between">
-                        <span>Precio individual:</span>
-                        <span className="line-through text-gray-500">Bs {precioIndividual.toFixed(2)}</span>
-                      </div>
-                      
-                      <div className="flex justify-between font-bold">
-                        <span>Precio pack:</span>
-                        <span className="text-green-600">Bs {pack.precio_pack}</span>
-                      </div>
-                      
-                      <div className="text-center bg-green-100 rounded p-2 font-bold text-green-700">
-                        💰 Descuento: Bs {descuentoAbsoluto.toFixed(2)}
-                      </div>
-                      
-                      {pack.fecha_fin && (
-                        <div className="text-xs text-red-600">
-                          ⏰ Válido hasta: {new Date(pack.fecha_fin).toLocaleDateString()}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+        <div className="no-export" style={{ marginTop: 12, display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+          <button
+            onClick={exportPdf}
+            disabled={exporting}
+            style={{ background: "#004080", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 8, cursor: "pointer", fontWeight: "bold", fontSize: 16 }}
+          >
+            {exporting ? "Generando PDF..." : "Exportar PDF"}
+          </button>
+
+          <select
+            value={categoriaSeleccionada}
+            onChange={e => setCategoriaSeleccionada(e.target.value)}
+            style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc", minWidth: 180, cursor: "pointer" }}
+          >
+            <option value="Todas">Todas las categorías</option>
+            {categoriasDisponibles.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ marginTop: 8, fontSize: 14 }}>
+          <a href="https://catalogo-sigma-one.vercel.app/" target="_blank" style={{ color: "#4a0f0f", textDecoration: "underline", marginRight: 12 }}>Visitar web</a>
+          <a href="https://wa.me/59177434023" target="_blank" style={{ color: "#4a0f0f", textDecoration: "underline" }}>WhatsApp Business</a>
+        </div>
+      </header>
+
+      <main style={{ marginTop: 20, width: "100%", maxWidth: 1000 }}>
+        {Object.keys(productosPorCategoria).map((categoria, idxCat) => (
+          <div key={categoria}>
+            <div style={{
+              background: `linear-gradient(135deg, #4a0f0f, #004080)`,
+              borderRadius: 12,
+              padding: 16,
+              textAlign: "center",
+              marginBottom: 16
+            }}>
+              <h2 style={{ color: "#fff", letterSpacing: 2, textTransform: "uppercase", margin: 0 }}>{categoria}</h2>
             </div>
-          </CardContent>
-        </Card>
-      )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {productos.length === 0 ? (
-            <div className="col-span-full text-gray-900">No hay productos registrados.</div>
-        ) : (
-          productos.map(prod => (
-            <Card key={prod.user_id}>
-              <CardHeader>
-                <CardTitle className="text-gray-900">{prod.nombre}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col items-center gap-2 text-gray-900">
-                  {imagenes[prod.user_id]?.[0] ? (
-                    <img src={imagenes[prod.user_id][0]} alt="img" className="h-32 w-32 object-cover rounded-lg border shadow" />
-                  ) : (
-                    <span className="text-gray-400">Sin imagen</span>
-                  )}
-                  <div className="text-gray-900 text-sm mt-2">{prod.descripcion}</div>
-                  <PrecioConPromocion 
-                    producto={prod} 
-                    promociones={promociones}
-                    className=""
-                    compact={true}
-                  />
-                  <div className="text-gray-900">Stock: <span className={prod.stock < 3 ? 'text-red-600 font-bold' : ''}>{prod.stock}</span></div>
-                  <div className="text-gray-900">Categoría: {prod.categoria || '-'}</div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+            {productosPorCategoria[categoria].map((p) => (
+              <div
+                key={p.id ?? `${p.nombre}-${Math.random()}`}
+                className="producto-card"
+                style={{
+                  position: "relative",
+                  borderRadius: 12,
+                  background: "rgba(255,255,255,0.9)",
+                  padding: 16,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 12,
+                  boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+                  pageBreakInside: "avoid",
+                  marginBottom: 24,
+                  transition: "transform 0.2s",
+                  overflow: "hidden"
+                }}
+              >
+                {p.stock === 0 && (
+                  <div style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    background: "rgba(255,0,0,0.2)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 32,
+                    fontWeight: "bold",
+                    color: "red",
+                    textAlign: "center",
+                    borderRadius: 12
+                  }}>
+                    AGOTADO
+                  </div>
+                )}
+
+                {p.imagenPublicUrls.length > 0 && (
+                  <div style={{ display: "flex", gap: 8, overflowX: "auto", justifyContent: "center" }}>
+                    {p.imagenPublicUrls.map((imgUrl, idxImg) => (
+                      <img key={idxImg} src={imgUrl} alt={p.nombre} style={{ width: 140, height: 140, objectFit: "cover", borderRadius: 8 }} crossOrigin="anonymous" />
+                    ))}
+                  </div>
+                )}
+
+                <h3 style={{ margin: 0, fontSize: 18, color: "#4a0f0f", textAlign: "center" }}>{p.nombre}</h3>
+                <strong style={{ fontSize: 16, color: "#004080", textAlign: "center" }}>{formatPrice(p.precio)}</strong>
+                <p style={{ margin: 0, fontSize: 14, textAlign: "center", lineHeight: 1.4 }}>{p.descripcion}</p>
+              </div>
+            ))}
+          </div>
+        ))}
+      </main>
+
+      <footer style={{ marginTop: 30, textAlign: 'center', color: '#4a0f0f', fontSize: 12 }}>
+        Catálogo Street Wear — Generado automáticamente
+      </footer>
     </div>
   );
 }

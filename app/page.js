@@ -8,6 +8,8 @@ import { usePacks, calcularDescuentoPack } from '../lib/packs';
 
 
 
+
+
 const getProductImageUrl = (path) => {
   if (!path) {
     return "https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen";

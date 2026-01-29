@@ -14,11 +14,34 @@ export default function PedidosPage() {
   async function fetchCarritos() {
     const { data, error } = await supabase
       .from("carritos_pendientes")
-      .select("id, cliente_nombre, usuario_email, productos, fecha")
+      .select("id, cliente_nombre, usuario_email, productos, fecha, confirmado_pago")
       .order("fecha", { ascending: false });
-    if (!error && data) setCarritos(data);
-  }
+    
+    if (!error && data) {
+      const currentDate = new Date();
 
+      // Elimina los carritos que han pasado más de 5 días sin confirmación de pago
+      const carritosActualizados = data.filter(carrito => {
+        const carritoDate = new Date(carrito.fecha);
+        const diferenciaEnDias = (currentDate - carritoDate) / (1000 * 3600 * 24); // Diferencia en días
+        return diferenciaEnDias <= 5 && !carrito.confirmado_pago;  // El carrito es válido solo si no ha pasado más de 5 días y no está confirmado
+      });
+
+      setCarritos(carritosActualizados);
+
+      // Eliminar carritos vencidos
+      const carritosVencidos = data.filter(carrito => {
+        const carritoDate = new Date(carrito.fecha);
+        const diferenciaEnDias = (currentDate - carritoDate) / (1000 * 3600 * 24); // Diferencia en días
+        return diferenciaEnDias > 5 && !carrito.confirmado_pago;  // Si el carrito está vencido y no tiene pago confirmado
+      });
+
+      // Eliminar los carritos vencidos de la base de datos
+      for (const carrito of carritosVencidos) {
+        await supabase.from("carritos_pendientes").delete().eq("id", carrito.id);
+      }
+    }
+  }
 
   async function eliminarCarrito(id) {
     if (!window.confirm("¿Estás seguro de que deseas eliminar este pedido? Esta acción no se puede deshacer.")) return;
