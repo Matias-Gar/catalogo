@@ -1,26 +1,32 @@
 // components/ui/toast.js
-import React from "react";
+"use client";
+
+import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 
 // Función para mostrar las notificaciones
-export const showToast = (message, type = "success") => {
-  if (type === "success") {
-    toast.success(message);
-  } else if (type === "error") {
-    toast.error(message);
-  } else {
-    toast.info(message);
+export function showToast(message, type = "success") {
+  if (typeof window === "undefined") return;
+  switch (type) {
+    case "error":
+      toast.error(message);
+      break;
+    case "info":
+      toast.info(message);
+      break;
+    default:
+      toast.success(message);
   }
-};
+}
 
 // Componente que contiene el ToastContainer
 export function Toast() {
   return (
     <ToastContainer
       position="top-right"
-      autoClose={5000}
-      hideProgressBar
-      newestOnTop
+      autoClose={3000}
+      hideProgressBar={false}
+      newestOnTop={false}
       closeOnClick
       rtl={false}
       pauseOnFocusLoss
@@ -29,3 +35,5 @@ export function Toast() {
     />
   );
 }
+
+export default Toast;
