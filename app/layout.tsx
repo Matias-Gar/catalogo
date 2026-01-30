@@ -6,13 +6,9 @@ import type { Metadata } from "next";
 // Si usas 'next/font/google' para Geist, tu estructura de importación es correcta.
 import { Geist, Geist_Mono } from "next/font/google"; 
 import "./globals.css";
-import "react-toastify/dist/ReactToastify.css";
-import { Toast } from "../components/ui/Toast";
-
-// 💡 PASO 1: Importar el componente Header
-// Asegúrate de que la ruta sea correcta (asumo que está en la carpeta 'components')
 import Header from "../components/Header"; 
 import FacebookPixel from "../components/FacebookPixel"; 
+import ToastProvider from "@/components/ui/ToastProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,7 +45,7 @@ export default function RootLayout({
         
         {/* 📊 Facebook Pixel para tracking */}
         <FacebookPixel />
-        <Toast />
+        <ToastProvider />
       </body>
     </html>
   );
