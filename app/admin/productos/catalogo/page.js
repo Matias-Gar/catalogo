@@ -243,9 +243,9 @@ export default function CatalogoPage() {
               <h2 style={{ color: "#fff", letterSpacing: 2, textTransform: "uppercase", margin: 0 }}>{categoria}</h2>
             </div>
 
-            {productosPorCategoria[categoria].map((p) => (
+            {productosPorCategoria[categoria].map((p, idx) => (
               <div
-                key={p.id ?? `${p.nombre}-${Math.random()}`}
+                key={p.id ?? `${p.nombre ?? 'producto'}-${idx}`}
                 className="producto-card"
                 style={{
                   position: "relative",
@@ -306,5 +306,4 @@ export default function CatalogoPage() {
       </footer>
     </div>
   );
-}
 }
