@@ -54,7 +54,8 @@ export default function CatalogoPage() {
         const { data: prodsData } = await supabase.from("productos").select("*").limit(1000);
         const prods = Array.isArray(prodsData) ? prodsData : [];
 
-        const productIds = prods.map(p => p.user_id).filter(Boolean);
+        // <-- FIX: use product ids (item.id) instead of user_id
+        const productIds = prods.map(p => p.id).filter(Boolean);
         let imagenesMap = {};
         if (productIds.length) {
           const { data: imgsData } = await supabase
@@ -71,46 +72,47 @@ export default function CatalogoPage() {
         }
 
         const processed = await Promise.all(prods.map(async item => {
-          const id = item.user_id;
-          const nombre = item.nombre || item.name || "Producto";
-          const precio = item.precio ?? item.price ?? 0;
-          const descripcion = item.descripcion || item.description || "";
-          const stock = item.stock ?? 0;
+-          const id = item.user_id;
++          const id = item.id; // <-- FIX: use actual product id
+           const nombre = item.nombre || item.name || "Producto";
+           const precio = item.precio ?? item.price ?? 0;
+           const descripcion = item.descripcion || item.description || "";
+           const stock = item.stock ?? 0;
 
-          const catId = item.category_id ?? item.category_id;
-          let categoriaNombre = "";
-          if (catId) {
-            const found = categorias.find(c => Number(c.id) === Number(catId));
-            categoriaNombre = found ? (found.categori || found.nombre || "") : String(item.categoria || "");
-          } else {
-            categoriaNombre = String(item.categoria || "");
-          }
+           const catId = item.category_id ?? item.category_id;
+           let categoriaNombre = "";
+           if (catId) {
+             const found = categorias.find(c => Number(c.id) === Number(catId));
+             categoriaNombre = found ? (found.categori || found.nombre || "") : String(item.categoria || "");
+           } else {
+             categoriaNombre = String(item.categoria || "");
+           }
 
-          const imgsFor = imagenesMap[String(id)] || [];
-          const candidatePaths = [...imgsFor];
-          if (item.imagen_url) candidatePaths.push(item.imagen_url);
+           const imgsFor = imagenesMap[String(id)] || [];
+           const candidatePaths = [...imgsFor];
+           if (item.imagen_url) candidatePaths.push(item.imagen_url);
 
-          let imagenPublicUrls = [];
-          for (const p of candidatePaths) {
-            if (!p) continue;
-            if (typeof p === "string" && (p.startsWith("http://") || p.startsWith("https://"))) {
-              imagenPublicUrls.push(p);
-              continue;
-            }
-            const pub = await tryGetPublicUrlFromBuckets(p);
-            if (pub) imagenPublicUrls.push(pub);
-          }
+           let imagenPublicUrls = [];
+           for (const p of candidatePaths) {
+             if (!p) continue;
+             if (typeof p === "string" && (p.startsWith("http://") || p.startsWith("https://"))) {
+               imagenPublicUrls.push(p);
+               continue;
+             }
+             const pub = await tryGetPublicUrlFromBuckets(p);
+             if (pub) imagenPublicUrls.push(pub);
+           }
 
-          return {
-            id,
-            nombre,
-            precio,
-            descripcion,
-            stock,
-            categoriaNombre: categoriaNombre || "Sin categoría",
-            imagenPublicUrls
-          };
-        }));
+           return {
+             id,
+             nombre,
+             precio,
+             descripcion,
+             stock,
+             categoriaNombre: categoriaNombre || "Sin categoría",
+             imagenPublicUrls
+           };
+         }));
 
         setProductos(processed);
       } catch (err) {
@@ -126,7 +128,7 @@ export default function CatalogoPage() {
   }, []);
 
   function formatPrice(v) {
-    if (v == null) return "Bs 0.00";
+    if v == null) return "Bs 0.00";
     const num = Number(v) || 0;
     return `Bs ${num.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
