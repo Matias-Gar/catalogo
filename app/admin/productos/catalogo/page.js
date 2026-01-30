@@ -2,14 +2,15 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 
+// Mover candidateBuckets al nivel de módulo (fuera del componente) para que su referencia sea estable
+const candidateBuckets = ["imagenes_del_producto", "productos", "images", "imagenes", "public", "uploads"];
+
 export default function CatalogoPage() {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todas");
   const [categoriasDisponibles, setCategoriasDisponibles] = useState([]);
-
-  const candidateBuckets = ["imagenes_del_producto", "productos", "images", "imagenes", "public", "uploads"];
 
   useEffect(() => {
     const link = document.createElement("link");
@@ -32,7 +33,7 @@ export default function CatalogoPage() {
           const res = supabase.storage.from(maybeBucket).getPublicUrl(maybePath);
           const pub = res?.data?.publicUrl || res?.publicURL || res?.publicUrl;
           if (pub) return pub;
-        } catch (e) {}
+        } catch { }
       }
 
       for (const bucket of candidateBuckets) {
@@ -40,7 +41,7 @@ export default function CatalogoPage() {
           const res = supabase.storage.from(bucket).getPublicUrl(trimmed);
           const pub = res?.data?.publicUrl || res?.publicURL || res?.publicUrl;
           if (pub) return pub;
-        } catch (e) {}
+        } catch { }
       }
       return null;
     }
@@ -123,8 +124,8 @@ export default function CatalogoPage() {
     }
 
     load();
-    return () => { try { document.head.removeChild(link); } catch (e) {} };
-  }, []);
+    return () => { try { document.head.removeChild(link); } catch { } };
+  }, []); // ya no requiere candidateBuckets en deps porque es estable a nivel de módulo
 
   function formatPrice(v) {
     if (v == null) return "Bs 0.00";
@@ -225,13 +226,13 @@ export default function CatalogoPage() {
         </div>
 
         <div style={{ marginTop: 8, fontSize: 14 }}>
-          <a href="https://catalogo-sigma-one.vercel.app/" target="_blank" style={{ color: "#4a0f0f", textDecoration: "underline", marginRight: 12 }}>Visitar web</a>
-          <a href="https://wa.me/59177434023" target="_blank" style={{ color: "#4a0f0f", textDecoration: "underline" }}>WhatsApp Business</a>
+          <a href="https://catalogo-sigma-one.vercel.app/" target="_blank" rel="noopener noreferrer" style={{ color: "#4a0f0f", textDecoration: "underline", marginRight: 12 }}>Visitar web</a>
+          <a href="https://wa.me/59177434023" target="_blank" rel="noopener noreferrer" style={{ color: "#4a0f0f", textDecoration: "underline" }}>WhatsApp Business</a>
         </div>
       </header>
 
       <main style={{ marginTop: 20, width: "100%", maxWidth: 1000 }}>
-        {Object.keys(productosPorCategoria).map((categoria, idxCat) => (
+        {Object.keys(productosPorCategoria).map((categoria) => (
           <div key={categoria}>
             <div style={{
               background: `linear-gradient(135deg, #4a0f0f, #004080)`,
@@ -287,7 +288,7 @@ export default function CatalogoPage() {
                 {p.imagenPublicUrls.length > 0 && (
                   <div style={{ display: "flex", gap: 8, overflowX: "auto", justifyContent: "center" }}>
                     {p.imagenPublicUrls.map((imgUrl, idxImg) => (
-                      <img key={idxImg} src={imgUrl} alt={p.nombre} style={{ width: 140, height: 140, objectFit: "cover", borderRadius: 8 }} crossOrigin="anonymous" />
+                      <img key={idxImg} src={imgUrl} alt={p.nombre} loading="lazy" style={{ width: 140, height: 140, objectFit: "cover", borderRadius: 8 }} crossOrigin="anonymous" />
                     ))}
                   </div>
                 )}
