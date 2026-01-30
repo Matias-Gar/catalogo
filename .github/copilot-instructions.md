@@ -16,7 +16,7 @@ This is a Next.js-based e-commerce catalog and inventory management application 
 
 ### Core Framework & Language
 - **Next.js 16** (App Router with React Server Components)
-- **React 19** (with React DOM 19)
+- **React 19.1** (with React DOM 19.1)
 - **TypeScript 5** (with JavaScript files for legacy components)
 - **Node.js 20+**
 
@@ -31,10 +31,10 @@ This is a Next.js-based e-commerce catalog and inventory management application 
 - **Framer Motion** (animations)
 
 ### Additional Libraries
-- **Chart.js / React-Chartjs-2** (data visualization)
-- **jsPDF / jsPDF-AutoTable** (PDF generation for reports)
-- **React-Barcode** (barcode generation)
-- **React-Hot-Toast / React-Toastify** (notifications)
+- **Chart.js / react-chartjs-2** (data visualization)
+- **jspdf / jspdf-autotable** (PDF generation for reports)
+- **react-barcode** (barcode generation)
+- **react-hot-toast / react-toastify** (notifications)
 - **DOMPurify** (XSS protection)
 
 ### Development Tools
@@ -164,11 +164,11 @@ const { data: productos, error } = await supabase
 
 ### Using Promotions
 ```javascript
-import { PrecioConPromocion } from '@/lib/promociones';
+import { calcularPrecioConPromocion } from '@/lib/promociones';
 import { usePromociones } from '@/lib/usePromociones';
 
-const promociones = usePromociones();
-const precioFinal = PrecioConPromocion(producto, promociones);
+const { promociones, loading, error } = usePromociones();
+const { precioFinal, tienePromocion, descuento } = calcularPrecioConPromocion(producto, promociones);
 ```
 
 ### Client Component with State
@@ -192,7 +192,8 @@ export default function MiComponente() {
 ```javascript
 export async function GET(request) {
   try {
-    // Handle request
+    // Fetch or process data
+    const data = { example: 'value' };
     return Response.json({ success: true, data });
   } catch (error) {
     console.error('Error:', error);
