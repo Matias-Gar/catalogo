@@ -72,8 +72,7 @@ export default function CatalogoPage() {
         }
 
         const processed = await Promise.all(prods.map(async item => {
--          const id = item.user_id;
-+          const id = item.id; // <-- FIX: use actual product id
+          const id = item.id; // <-- FIX: use actual product id
            const nombre = item.nombre || item.name || "Producto";
            const precio = item.precio ?? item.price ?? 0;
            const descripcion = item.descripcion || item.description || "";
@@ -128,7 +127,7 @@ export default function CatalogoPage() {
   }, []);
 
   function formatPrice(v) {
-    if v == null) return "Bs 0.00";
+    if (v == null) return "Bs 0.00";
     const num = Number(v) || 0;
     return `Bs ${num.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
