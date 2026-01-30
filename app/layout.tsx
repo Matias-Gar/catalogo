@@ -1,10 +1,6 @@
 // app/layout.tsx
 
 import type { Metadata } from "next";
-// 💡 NOTA: Asumo que estás usando la versión correcta de "geist/font" o "next/font/google"
-// La importación de las fuentes depende de cómo las hayas instalado.
-// Si usas 'next/font/google' para Geist, tu estructura de importación es correcta.
-import { Geist, Geist_Mono } from "next/font/google"; 
 import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
 import { Toast } from "../components/ui/Toast";
@@ -13,16 +9,6 @@ import { Toast } from "../components/ui/Toast";
 // Asegúrate de que la ruta sea correcta (asumo que está en la carpeta 'components')
 import Header from "../components/Header"; 
 import FacebookPixel from "../components/FacebookPixel"; 
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -37,8 +23,14 @@ export default function RootLayout({
   return (
     // Cambié 'lang="en"' a 'lang="es"' ya que estás programando en español
     <html lang="es">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet" />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className="font-sans antialiased"
+        style={{ fontFamily: 'Geist, system-ui, -apple-system, sans-serif' }}
       >
         
         {/* 💡 PASO 2: Colocar el Header antes del {children} */}
