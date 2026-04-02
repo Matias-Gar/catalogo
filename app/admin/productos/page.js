@@ -154,9 +154,9 @@ export default function AdminProductosPage() {
     // Eliminados los botones duplicados debajo del header
 
     // --------------------------------------------------------------------------
-    // FUNCIÓN DE IMPRESIÓN DE CÓDIGO DE BARRAS (Movida y Arreglada)
+    // FUNCIÓN DE IMPRESIÓN DE CÓDIGO DE BARRAS (PDF directo, sin forzar con CSS de página)
     // --------------------------------------------------------------------------
-    const handlePrintBarcode = (codigo) => {
+    const handlePrintBarcode = async (codigo, productoNombre = '') => {
         if (!window._barcodeRefs) window._barcodeRefs = {};
         const ref = window._barcodeRefs[codigo];
         let svgString = '';
@@ -167,33 +167,122 @@ export default function AdminProductosPage() {
                 svgString = serializer.serializeToString(svgNode);
             }
         }
-        const printWindow = window.open('', '_blank', 'width=600,height=300');
-        if (!printWindow) return;
-        printWindow.document.write(`
-            <html>
+
+        if (!svgString) {
+            try {
+                const JsBarcode = (await import('jsbarcode')).default;
+                const tmp = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                JsBarcode(tmp, codigo || '', { format: 'EAN13', displayValue: false, width: 1.0, height: 36 });
+                svgString = new window.XMLSerializer().serializeToString(tmp);
+            } catch (err) {
+                console.warn('barcode fallback failed', err);
+                svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="210" height="55"><text x="0" y="11">${codigo}</text></svg>`;
+            }
+        }
+
+        const getPrintIframe = () => {
+            let iframe = document.getElementById('barcode-print-iframe');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'barcode-print-iframe';
+                iframe.style.position = 'fixed';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                iframe.style.visibility = 'hidden';
+                document.body.appendChild(iframe);
+            }
+            return iframe;
+        };
+
+        const printHtmlInIframe = (htmlContent) => {
+            const iframe = getPrintIframe();
+            const doc = iframe.contentDocument || iframe.contentWindow?.document;
+            if (!doc) return;
+            doc.open();
+            doc.write(htmlContent);
+            doc.close();
+
+            setTimeout(() => {
+                try {
+                    iframe.contentWindow?.focus();
+                    iframe.contentWindow?.print();
+                } catch (e) {
+                    console.warn('Impresión desde iframe falló', e);
+                }
+            }, 500);
+        };
+
+        const printBlobUrlInIframe = (blobUrl) => {
+            const iframe = getPrintIframe();
+            iframe.onload = () => {
+                try {
+                    iframe.contentWindow?.focus();
+                    iframe.contentWindow?.print();
+                } catch (e) {
+                    console.warn('Impresión PDF desde iframe falló', e);
+                }
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+            };
+            iframe.src = blobUrl;
+        };
+
+        try {
+            const { jsPDF } = await import('jspdf');
+            const svg64 = window.btoa(unescape(encodeURIComponent(svgString)));
+            const imageSrc = `data:image/svg+xml;base64,${svg64}`;
+
+            const image = new Image();
+            image.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = image.width;
+                canvas.height = image.height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) throw new Error('No canvas context');
+
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(image, 0, 0);
+
+                const pngData = canvas.toDataURL('image/png');
+                const widthMm = 68;
+                const heightMm = Math.max(22, (canvas.height / canvas.width) * widthMm);
+
+                const pdf = new jsPDF({ unit: 'mm', format: [widthMm, Math.min(75, heightMm + 12)] });
+                pdf.addImage(pngData, 'PNG', 0, 0, widthMm, heightMm);
+
+                if (productoNombre) {
+                    pdf.setFontSize(11);
+                    pdf.text(productoNombre, widthMm / 2, heightMm + 8, { align: 'center' });
+                }
+                pdf.setFontSize(10);
+                pdf.text(codigo || '', widthMm / 2, heightMm + 14, { align: 'center' });
+
+                const blobUrl = pdf.output('bloburl');
+                printBlobUrlInIframe(blobUrl);
+            };
+            image.onerror = (err) => { throw err; };
+            image.src = imageSrc;
+        } catch (error) {
+            console.warn('PDF print fallback failed', error);
+            const html = `
+                <html>
                 <head>
                     <title>Imprimir Código de Barras</title>
                     <style>
-                        @media print {
-                            body * { visibility: hidden !important; }
-                            #barcode-print, #barcode-print * { visibility: visible !important; }
-                            #barcode-print { position: absolute; left: 0; top: 0; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
-                        }
-                        body { display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 0; background: white; }
-                        #barcode-print svg { width: 400px; height: 120px; display: block; margin: 0 auto; }
+                        @page { size: 72mm auto; margin: 0; }
+                        html, body { margin:0; padding:0; width:72mm; }
+                        body { background: white; }
+                        #barcode-print { margin:0; padding:0; width:72mm; }
                     </style>
                 </head>
                 <body>
-                    <div id="barcode-print">
-                        ${svgString}
-                    </div>
-                    <script>
-                        setTimeout(function() { window.print(); window.close(); }, 200);
-                    </script>
+                    <div id="barcode-print">${svgString}${productoNombre ? `<div>${productoNombre}</div>` : ''}<div>${codigo}</div></div>
                 </body>
-            </html>
-        `);
-        printWindow.document.close();
+                </html>
+            `;
+            printHtmlInIframe(html);
+        }
     };
 
     // useEffect de autenticación y rol
@@ -311,6 +400,7 @@ export default function AdminProductosPage() {
                 nombre,
                 descripcion,
                 precio,
+                precio_compra,
                 stock,
                 imagen_url,
                 category_id,
@@ -492,6 +582,7 @@ export default function AdminProductosPage() {
                     nombre: editingProduct.nombre,
                     descripcion: editingProduct.descripcion,
                     precio: parseFloat(editingProduct.precio) || 0,
+                    precio_compra: parseFloat(editingProduct.precio_compra) || 0,
                     stock: parseInt(editingProduct.stock) || 0,
                     category_id: categoryIdValue,
                     // Dejamos el codigo_barra para que no se re-genere si se guarda sin querer
@@ -721,39 +812,7 @@ export default function AdminProductosPage() {
                                                     displayValue={false}
                                                 />
                                                 <button
-                                                    onClick={() => {
-                                                        // Selecciona el SVG del código de barras más cercano y lo imprime
-                                                        const svg = event.target.closest('td').querySelector('svg');
-                                                        if (!svg) return;
-                                                        const svgString = new XMLSerializer().serializeToString(svg);
-                                                        const printWindow = window.open('', '_blank', 'width=400,height=250');
-                                                        if (!printWindow) return;
-                                                        printWindow.document.write(`
-                                                            <html>
-                                                                <head>
-                                                                    <title>Imprimir Código de Barras</title>
-                                                                    <style>
-                                                                        @media print {
-                                                                            body * { visibility: hidden !important; }
-                                                                            #barcode-print, #barcode-print * { visibility: visible !important; }
-                                                                            #barcode-print { position: absolute; left: 0; top: 0; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
-                                                                        }
-                                                                        body { display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 0; background: white; }
-                                                                        #barcode-print svg { width: 400px; height: 120px; display: block; margin: 0 auto; }
-                                                                    </style>
-                                                                </head>
-                                                                <body>
-                                                                    <div id="barcode-print">
-                                                                        ${svgString}
-                                                                    </div>
-                                                                    <script>
-                                                                        setTimeout(function() { window.print(); window.close(); }, 200);
-                                                                    </script>
-                                                                </body>
-                                                            </html>
-                                                        `);
-                                                        printWindow.document.close();
-                                                    }}
+                                                    onClick={() => handlePrintBarcode(producto.codigo_barra, producto.nombre)}
                                                     className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition text-base font-semibold"
                                                     title="Imprimir Código de Barra"
                                                 >
@@ -809,7 +868,8 @@ export default function AdminProductosPage() {
                             <input type="text" name="nombre" placeholder="Nombre" value={editingProduct.nombre} onChange={handleEditProductChange} required className="w-full p-3 border rounded-lg"/>
                             <textarea name="descripcion" placeholder="Descripción" value={editingProduct.descripcion} onChange={handleEditProductChange} className="w-full p-3 border rounded-lg h-20"/>
                             <div className="grid grid-cols-2 gap-4">
-                                <input type="number" name="precio" placeholder="Precio (Bs)" value={editingProduct.precio} onChange={handleEditProductChange} required step="0.01" className="w-full p-3 border rounded-lg"/>
+                                <input type="number" name="precio_compra" placeholder="Precio de Compra (Bs)" value={editingProduct.precio_compra} onChange={handleEditProductChange} required step="0.01" className="w-full p-3 border rounded-lg"/>
+                                <input type="number" name="precio" placeholder="Precio de Venta (Bs)" value={editingProduct.precio} onChange={handleEditProductChange} required step="0.01" className="w-full p-3 border rounded-lg"/>
                                 <input type="number" name="stock" placeholder="Stock" value={editingProduct.stock} onChange={handleEditProductChange} required className="w-full p-3 border rounded-lg"/>
                                 <select
                                     name="category_id"

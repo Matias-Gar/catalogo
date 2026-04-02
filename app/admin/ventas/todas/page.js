@@ -9,7 +9,7 @@ export default function TodasVentasPage() {
     async function fetchVentas() {
       const { data, error } = await supabase
         .from("ventas")
-        .select("id, cliente_nombre, cliente_telefono, total, fecha");
+        .select("id, cliente_nombre, cliente_telefono, total, fecha, costos_extra, descuentos");
       if (!error && data) {
         setVentas(data);
         // Obtener detalles
@@ -45,6 +45,10 @@ export default function TodasVentasPage() {
               <div className="text-gray-900">Cliente: {v.cliente_nombre || '-'}</div>
               <div className="text-gray-900">Teléfono: {v.cliente_telefono || '-'}</div>
               <div className="text-gray-900">Total: <span className="font-bold">Bs {Number(v.total).toFixed(2)}</span></div>
+              {v.descuentos && <div className="text-gray-900">Descuentos: Bs {Number(v.descuentos).toFixed(2)}</div>}
+              {v.costos_extra && (
+                <div className="text-gray-900">Costos extras: Bs {Object.values(v.costos_extra).reduce((a,b)=>a+(Number(b)||0),0).toFixed(2)}</div>
+              )}
               <div className="text-gray-900">Fecha: {new Date(v.fecha).toLocaleString()}</div>
               <div className="text-gray-900 font-semibold mt-2">Productos:</div>
               <ul className="list-disc pl-6">

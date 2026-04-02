@@ -200,10 +200,11 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
       lines.push('\x1b@'); // init escpos
       lines.push('\x1b!\x00');
       const append = (text: string) => { lines.push(text + '\n'); };
-      append(String(CONFIG.BUSINESS_NAME || 'Tienda'));
-      if (CONFIG.BUSINESS_ADDRESS) append(CONFIG.BUSINESS_ADDRESS);
-      if (CONFIG.BUSINESS_PHONE) append(`Tel: ${CONFIG.BUSINESS_PHONE}`);
-      if (CONFIG.BUSINESS_NIT) append(`NIT: ${CONFIG.BUSINESS_NIT}`);
+      const cfg: any = CONFIG;
+      append(String(cfg.BUSINESS_NAME || cfg.NOMBRE_NEGOCIO || 'Tienda'));
+      if (cfg.BUSINESS_ADDRESS || cfg.DIRECCION_COMERCIAL) append(cfg.BUSINESS_ADDRESS || cfg.DIRECCION_COMERCIAL);
+      if (cfg.BUSINESS_PHONE) append(`Tel: ${cfg.BUSINESS_PHONE}`);
+      if (cfg.BUSINESS_NIT) append(`NIT: ${cfg.BUSINESS_NIT}`);
       append('');
       append(`Fecha: ${ticketSnapshot?.fecha || new Date().toLocaleString()}`);
       append(`Cliente: ${ticketSnapshot?.cliente_nombre || '-'}`);

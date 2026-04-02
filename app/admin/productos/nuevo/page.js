@@ -130,11 +130,15 @@ export default function AdminProductosPage() {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [selectedImageList, setSelectedImageList] = useState([]);
     const [selectedImageName, setSelectedImageName] = useState('');
+    const [filterText, setFilterText] = useState('');
+    const [filterLatest, setFilterLatest] = useState(true);
+    const [categoryFilter, setCategoryFilter] = useState('all');
     
     const [newProduct, setNewProduct] = useState({ 
         nombre: '', 
         descripcion: '', 
         precio: '', 
+        precio_compra: '',
         stock: '', 
         category_id: '',
         codigo_barra: ''
@@ -163,47 +167,127 @@ export default function AdminProductosPage() {
         loadPromociones();
     }, []);
 
-    // --------------------------------------------------------------------------
-    // FUNCIÓN DE IMPRESIÓN DE CÓDIGO DE BARRAS (Movida y Arreglada)
-    // --------------------------------------------------------------------------
-    const handlePrintBarcode = (codigo) => {
-        if (!window._barcodeRefs) window._barcodeRefs = {};
-        const ref = window._barcodeRefs[codigo];
-        let svgString = '';
-        if (ref && ref.current) {
-            const svgNode = ref.current.querySelector ? ref.current.querySelector('svg') : null;
-            if (svgNode) {
-                const serializer = new window.XMLSerializer();
-                svgString = serializer.serializeToString(svgNode);
-            }
+    const handlePrintBarcode = async (codigo, productoNombre = '') => {
+      const rawCode = String(codigo || '').trim();
+      const productName = String(productoNombre || '').trim() || 'SIN NOMBRE';
+      const barcodeValue = rawCode || '0000000000000';
+
+      let svgString = '';
+      try {
+        const JsBarcode = (await import('jsbarcode')).default;
+        const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        JsBarcode(svgEl, barcodeValue, {
+          format: 'EAN13',
+          displayValue: false,
+          width: 1.2,
+          height: 35,
+          margin: 0,
+        });
+        svgString = new XMLSerializer().serializeToString(svgEl);
+      } catch (err) {
+        svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="40">
+          <text x="0" y="20">${barcodeValue}</text>
+        </svg>`;
+      }
+
+      const barcodeDataUri = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgString)))}`;
+
+      const html = `
+      <html>
+      <head>
+        <style>
+          @page {
+            size: 78mm auto; /* 🔥 CLAVE: sirve para TODO */
+            margin: 0;
+          }
+
+          html, body {
+            width: 78mm;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+          }
+
+          .label {
+            width: 78mm;
+            height: 22mm; /* 🔥 solo etiquetas usan altura fija */
+            box-sizing: border-box;
+            padding: 1mm;
+            display: flex;
+            border: 1px solid black;
+          }
+
+          .left {
+            width: 48mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+          }
+
+          .left img {
+            width: 100%;
+          }
+
+          .code {
+            font-size: 9pt;
+          }
+
+          .right {
+            width: calc(78mm - 48mm - 2mm);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 8pt;
+            word-break: break-word;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="label">
+          <div class="left">
+            <img src="${barcodeDataUri}" />
+            <div class="code">${barcodeValue}</div>
+          </div>
+          <div class="right">${productName}</div>
+        </div>
+
+      </body>
+      </html>
+      `;
+
+      const printInIframe = (htmlContent) => {
+        let iframe = document.getElementById('barcode-print-iframe');
+        if (!iframe) {
+          iframe = document.createElement('iframe');
+          iframe.id = 'barcode-print-iframe';
+          iframe.style.position = 'fixed';
+          iframe.style.width = '0';
+          iframe.style.height = '0';
+          iframe.style.border = '0';
+          iframe.style.visibility = 'hidden';
+          document.body.appendChild(iframe);
         }
-        const printWindow = window.open('', '_blank', 'width=600,height=300');
-        if (!printWindow) return;
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Imprimir Código de Barras</title>
-                    <style>
-                        @media print {
-                            body * { visibility: hidden !important; }
-                            #barcode-print, #barcode-print * { visibility: visible !important; }
-                            #barcode-print { position: absolute; left: 0; top: 0; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
-                        }
-                        body { display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 0; background: white; }
-                        #barcode-print svg { width: 400px; height: 120px; display: block; margin: 0 auto; }
-                    </style>
-                </head>
-                <body>
-                    <div id="barcode-print">
-                        ${svgString}
-                    </div>
-                    <script>
-                        setTimeout(function() { window.print(); window.close(); }, 200);
-                    </script>
-                </body>
-            </html>
-        `);
-        printWindow.document.close();
+
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!doc) return;
+
+        doc.open();
+        doc.write(htmlContent);
+        doc.close();
+
+        setTimeout(() => {
+          try {
+            iframe.contentWindow?.focus();
+            iframe.contentWindow?.print();
+          } catch (err) {
+            console.warn('Impresión desde iframe falló', err);
+          }
+        }, 500);
+      };
+
+      printInIframe(html);
     };
 
     // useEffect de autenticación y rol
@@ -254,7 +338,13 @@ export default function AdminProductosPage() {
     };
 
     const handleNewProductChange = (e) => { 
-        setNewProduct({ ...newProduct, [e.target.name]: e.target.value }); 
+        const { name, value } = e.target;
+        if (name === 'category_id' && value === 'create') {
+            try { sessionStorage.setItem('pendingProduct', JSON.stringify(newProduct)); } catch {};
+            router.push('/admin/categorias?return=productos_nuevo');
+            return;
+        }
+        setNewProduct({ ...newProduct, [name]: value }); 
     }; 
     
     const handleEditProductChange = (e) => { 
@@ -325,9 +415,10 @@ export default function AdminProductosPage() {
                 imagen_url,
                 category_id,
                 codigo_barra,
+                created_at,
                 categorias (categori)
             `)
-            .order('nombre', { ascending: true });
+            .order('created_at', { ascending: false });
 
         if (error) {
             setMessage(`❌ Error al cargar productos: ${error.message || JSON.stringify(error)}.`);
@@ -387,6 +478,28 @@ export default function AdminProductosPage() {
         };
     }, [userRole]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // load saved form if returning from otra página
+    const restoredRef = useRef(false);
+    useEffect(() => {
+        try {
+            const saved = sessionStorage.getItem('pendingProduct');
+            if (saved) {
+                setNewProduct(JSON.parse(saved));
+            }
+        } catch (e) {
+            console.warn('no se pudo restaurar producto pendiente', e);
+        }
+        restoredRef.current = true;
+    }, []);
+
+    // store form in sessionStorage whenever cambia, but skip initial render
+    useEffect(() => {
+        if (!restoredRef.current) return;
+        try {
+            sessionStorage.setItem('pendingProduct', JSON.stringify(newProduct));
+        } catch {}
+    }, [newProduct]);
+
     
     // Función para Añadir Producto
     const handleAñadirProducto = async (e) => {
@@ -411,6 +524,7 @@ export default function AdminProductosPage() {
                         nombre: newProduct.nombre,
                         descripcion: newProduct.descripcion,
                         precio: parseFloat(newProduct.precio) || 0,
+                        precio_compra: parseFloat(newProduct.precio_compra) || 0,
                         stock: parseInt(newProduct.stock) || 0,
                         category_id: categoryIdValue,
                         codigo_barra: codigoBarra,
@@ -435,7 +549,9 @@ export default function AdminProductosPage() {
             }
 
             setMessage('✅ Producto creado con éxito!');
-            setNewProduct({ nombre: '', descripcion: '', precio: '', stock: '', category_id: '', codigo_barra: '' });
+            // ya no imprimimos automáticamente al añadir, el usuario puede usar el botón manual
+            setNewProduct({ nombre: '', descripcion: '', precio: '', precio_compra: '', stock: '', category_id: '', codigo_barra: '' });
+            sessionStorage.removeItem('pendingProduct');
             setImageFiles([]);
             if (newImageInputRef.current) {
                 newImageInputRef.current.value = '';
@@ -504,6 +620,7 @@ export default function AdminProductosPage() {
                     nombre: editingProduct.nombre,
                     descripcion: editingProduct.descripcion,
                     precio: parseFloat(editingProduct.precio) || 0,
+                    precio_compra: parseFloat(editingProduct.precio_compra) || 0,
                     stock: parseInt(editingProduct.stock) || 0,
                     category_id: categoryIdValue,
                     // Dejamos el codigo_barra para que no se re-genere si se guarda sin querer
@@ -570,6 +687,31 @@ export default function AdminProductosPage() {
         return `S/. ${num.toFixed(2)}`;
       }
     }
+
+    // Filtrar el catálogo por texto (nombre, código y categoría) y aplicar orden por último ingreso
+    const filteredProductos = productos
+      .filter((producto) => {
+        if (!filterText || filterText.trim() === '') return true;
+        const text = filterText.trim().toLowerCase();
+        const nombre = String(producto.nombre || '').toLowerCase();
+        const codigo = String(producto.codigo_barra || '').toLowerCase();
+        const category = String(producto.category_name || '').toLowerCase();
+        return nombre.includes(text) || codigo.includes(text) || category.includes(text);
+      })
+      .filter((producto) => {
+        if (!categoryFilter || categoryFilter === 'all') return true;
+        const catId = String(producto.category_id || '').toLowerCase();
+        const catName = String(producto.category_name || '').toLowerCase();
+        return catId === categoryFilter || catName === categoryFilter;
+      })
+      .sort((a, b) => {
+        if (filterLatest) {
+          const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return db - da;
+        }
+        return 0;
+      });
 
     // Componente que muestra el precio aplicando una promoción si existe.
     // Usa formatPrice definido en este archivo (asegúrate que exista).
@@ -648,8 +790,18 @@ export default function AdminProductosPage() {
                         /> 
                         <input 
                             type="number" 
+                            name="precio_compra" 
+                            placeholder="Precio de Compra (Bs)" 
+                            value={newProduct.precio_compra} 
+                            onChange={handleNewProductChange} 
+                            required 
+                            step="0.01" 
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
+                        />
+                        <input 
+                            type="number" 
                             name="precio" 
-                            placeholder="Precio (Bs)" 
+                            placeholder="Precio de Venta (Bs)" 
                             value={newProduct.precio} 
                             onChange={handleNewProductChange} 
                             required 
@@ -677,8 +829,9 @@ export default function AdminProductosPage() {
                             {categories && categories.length > 0 && categories.map(cat => (
                                 <option key={cat.id} value={cat.id}>{cat.categori}</option>
                             ))}
+                            <option value="create" className="font-semibold text-blue-700">+ Agregar categoría</option>
                         </select>
-                    </div> 
+                    </div> {/* cierre del grid principal */}
                     <textarea 
                         name="descripcion" 
                         placeholder="Descripción del Producto" 
@@ -688,15 +841,32 @@ export default function AdminProductosPage() {
                     /> 
                     
                     {/* Campo de Código de Barras (Opcional) */}
-                    <input 
-                        type="text" 
-                        name="codigo_barra" 
-                        placeholder="Código de Barra (Opcional - Se genera si está vacío)" 
-                        value={newProduct.codigo_barra} 
-                        onChange={handleNewProductChange} 
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
-                        maxLength={13}
-                    /> 
+                    <div className="flex items-center space-x-2">
+                        <input 
+                            type="text" 
+                            name="codigo_barra" 
+                            placeholder="Código de Barra (Opcional - Se genera si está vacío)" 
+                            value={newProduct.codigo_barra} 
+                            onChange={handleNewProductChange} 
+                            className="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
+                            maxLength={13}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => {
+                                let code = newProduct.codigo_barra;
+                                if (!code) {
+                                    code = generateBarcode();
+                                    setNewProduct(prev => ({ ...prev, codigo_barra: code }));
+                                }
+                                handlePrintBarcode(code, newProduct.nombre);
+                            }}
+                            className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                            title="Imprimir código de barra (se generará si no existe)"
+                        >
+                            🖨️
+                        </button>
+                    </div>
 
                     {/* Campo de Subida de Imagen */} 
                     <div className="flex flex-col">
@@ -736,11 +906,60 @@ export default function AdminProductosPage() {
             </div> 
             
             {/* 2. Catálogo Actual (Tabla) */} 
-            <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">Catálogo Actual</h2> 
-            
+            <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">Catálogo Actual</h2>
+
+            <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <input 
+                  type="text" 
+                  placeholder="Buscar por nombre, código o categoría" 
+                  value={filterText} 
+                  onChange={(e) => setFilterText(e.target.value)} 
+                  className="p-2 border rounded-lg w-full md:w-80 focus:ring-indigo-500 focus:border-indigo-500" 
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setFilterText('')} 
+                  className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                >
+                  Limpiar
+                </button>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-gray-700">Categoría:</label>
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="p-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="all">Todas</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={String(cat.id)}>{cat.categori}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <span>Orden:</span>
+                <button 
+                  className={`px-3 py-1 rounded-lg border ${filterLatest ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-gray-700'}`}
+                  type="button"
+                  onClick={() => setFilterLatest(true)}
+                >
+                  Últimos ingresos
+                </button>
+                <button 
+                  className={`px-3 py-1 rounded-lg border ${!filterLatest ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-gray-700'}`}
+                  type="button"
+                  onClick={() => setFilterLatest(false)}
+                >
+                  Sin orden
+                </button>
+              </div>
+            </div>
+
             {loading && productos.length === 0 && <p className="text-center text-gray-600">Cargando catálogo...</p>} 
             
-            {productos.length > 0 ? ( 
+            {filteredProductos.length > 0 ? ( 
                 <div className="overflow-x-auto bg-white rounded-xl shadow-lg">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-white">
@@ -750,23 +969,24 @@ export default function AdminProductosPage() {
                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Código de Barra</th>
                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Nombre</th>
                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Categoría</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Precio (Bs)</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Precio Compra (Bs)</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Precio Venta (Bs)</th>
                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Stock</th>
                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200 text-gray-900">
-                            {productos.map((producto) => {
+                            {filteredProductos.map((producto) => {
                                 const safe = (val) => (typeof val === 'string' || typeof val === 'number') ? val : JSON.stringify(val ?? '');
                                 // Unificar lógica: usar imagenesProductos, luego imagen_url, luego placeholder
                                 const imagenes = (imagenesProductos[producto.user_id]?.length > 0)
                                     ? imagenesProductos[producto.user_id]
                                     : (producto.imagen_url ? [producto.imagen_url] : ["https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen"]);
                                 return (
-                                    <tr key={safe(producto.user_id)} className="hover:bg-gray-50 transition duration-150">
+                                    <tr key={safe(producto.user_id)} className="product-row hover:bg-gray-50 transition duration-150">
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{String(safe(producto.user_id)).substring(0, 8) + '...'}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <div className="flex space-x-1">
+                                            <div className="imagenes-grid">
                                                 {imagenes.map((img, idx, arr) => {
                                                     if (typeof img !== 'string') return null;
                                                     return (
@@ -774,7 +994,7 @@ export default function AdminProductosPage() {
                                                             key={safe(img)}
                                                             src={safe(img)}
                                                             alt={safe(producto.nombre)}
-                                                            className="h-12 w-12 object-cover rounded-md cursor-pointer hover:shadow-lg transition border"
+                                                            className="thumbnail cursor-pointer hover:shadow-lg transition"
                                                             onClick={() => openImageModal(arr, idx, producto.nombre)}
                                                             onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen"; }}
                                                         />
@@ -782,49 +1002,24 @@ export default function AdminProductosPage() {
                                                 })}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono">
-                                            <div className="flex flex-col items-center justify-center">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            <div className="flex flex-col items-center justify-center" style={{ width: '7cm', maxWidth: '140px' }}>
+                                                {/* renderizamos una versión compacta para evitar overlap en la tabla */}
                                                 <Barcode
-                                                    value={safe(producto.codigo_barra)}
-                                                    width={2}
-                                                    height={60}
-                                                    fontSize={18}
-                                                    displayValue={false}
-                                                />
-                                                <button
-                                                    onClick={() => {
-                                                        // Selecciona el SVG del código de barras más cercano y lo imprime
-                                                        const svg = event.target.closest('td').querySelector('svg');
-                                                        if (!svg) return;
-                                                        const svgString = new XMLSerializer().serializeToString(svg);
-                                                        const printWindow = window.open('', '_blank', 'width=400,height=250');
-                                                        if (!printWindow) return;
-                                                        printWindow.document.write(`
-                                                            <html>
-                                                                <head>
-                                                                    <title>Imprimir Código de Barras</title>
-                                                                    <style>
-                                                                        @media print {
-                                                                            body * { visibility: hidden !important; }
-                                                                            #barcode-print, #barcode-print * { visibility: visible !important; }
-                                                                            #barcode-print { position: absolute; left: 0; top: 0; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
-                                                                        }
-                                                                        body { display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 0; background: white; }
-                                                                        #barcode-print svg { width: 400px; height: 120px; display: block; margin: 0 auto; }
-                                                                    </style>
-                                                                </head>
-                                                                <body>
-                                                                    <div id="barcode-print">
-                                                                        ${svgString}
-                                                                    </div>
-                                                                    <script>
-                                                                        setTimeout(function() { window.print(); window.close(); }, 200);
-                                                                    </script>
-                                                                </body>
-                                                            </html>
-                                                        `);
-                                                        printWindow.document.close();
+                                                    ref={(el) => {
+                                                        if (!window._barcodeRefs) window._barcodeRefs = {};
+                                                        if (el && producto.codigo_barra) window._barcodeRefs[producto.codigo_barra] = el;
                                                     }}
+                                                    value={safe(producto.codigo_barra)}
+                                                    width={1.1}
+                                                    height={35}
+                                                    fontSize={10}
+                                                    displayValue={false}
+                                                    style={{ maxWidth: '100%', width: '100%', height: 'auto', overflow: 'hidden' }}
+                                                />
+                                                <div className="text-center text-xs font-semibold mt-1 text-gray-600 truncate" title={safe(producto.codigo_barra)}>{safe(producto.codigo_barra)}</div>
+                                                <button
+                                                    onClick={() => handlePrintBarcode(safe(producto.codigo_barra), producto.nombre)}
                                                     className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition text-base font-semibold"
                                                     title="Imprimir Código de Barra"
                                                 >
@@ -834,6 +1029,7 @@ export default function AdminProductosPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">{safe(producto.nombre)}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{safe(producto.category_name)}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">Bs {Number(producto.precio_compra || 0).toFixed(2)}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                                             <PrecioConPromocion 
                                                 producto={producto} 
@@ -880,7 +1076,8 @@ export default function AdminProductosPage() {
                             <input type="text" name="nombre" placeholder="Nombre" value={editingProduct.nombre} onChange={handleEditProductChange} required className="w-full p-3 border rounded-lg"/>
                             <textarea name="descripcion" placeholder="Descripción" value={editingProduct.descripcion} onChange={handleEditProductChange} className="w-full p-3 border rounded-lg h-20"/>
                             <div className="grid grid-cols-2 gap-4">
-                                <input type="number" name="precio" placeholder="Precio (Bs)" value={editingProduct.precio} onChange={handleEditProductChange} required step="0.01" className="w-full p-3 border rounded-lg"/>
+                                <input type="number" name="precio_compra" placeholder="Precio de Compra (Bs)" value={editingProduct.precio_compra} onChange={handleEditProductChange} required step="0.01" className="w-full p-3 border rounded-lg"/>
+                                <input type="number" name="precio" placeholder="Precio de Venta (Bs)" value={editingProduct.precio} onChange={handleEditProductChange} required step="0.01" className="w-full p-3 border rounded-lg"/>
                                 <input type="number" name="stock" placeholder="Stock" value={editingProduct.stock} onChange={handleEditProductChange} required className="w-full p-3 border rounded-lg"/>
                                 <select
                                     name="category_id"

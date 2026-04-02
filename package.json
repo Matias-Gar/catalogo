@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate:clientes": "psql \"$DATABASE_URL\" -f database/create_clientes_table.sql || echo 'ERROR: set $DATABASE_URL (pSQL) or run SQL in Supabase dashboard'",
+    "migrate:ventas": "psql \"$DATABASE_URL\" -f database/add_cliente_nit_to_ventas.sql || echo 'ERROR: set $DATABASE_URL (pSQL) or run SQL in Supabase dashboard'"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
@@ -22,6 +24,7 @@
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.544.0",
     "next": "^16.1.6",
+    "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-barcode": "^1.6.1",
     "react-chartjs-2": "^5.3.0",
