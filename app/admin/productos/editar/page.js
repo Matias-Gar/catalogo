@@ -258,7 +258,7 @@ export default function EditarCatalogo() {
   return (
     <div className="p-6 max-w-screen-xl mx-auto">
       <h1 className="text-4xl text-center font-bold text-indigo-700 mb-8">
-        Editar Catálogo de Productos
+        Editar Artículos
       </h1>
 
       {/* Filtros */}

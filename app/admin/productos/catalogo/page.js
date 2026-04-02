@@ -55,8 +55,7 @@ export default function CatalogoPage() {
         const { data: prodsData } = await supabase.from("productos").select("*").limit(1000);
         const prods = Array.isArray(prodsData) ? prodsData : [];
 
-        // <-- FIX: use product ids (item.id) instead of user_id
-        const productIds = prods.map(p => p.id).filter(Boolean);
+        const productIds = prods.map(p => p.id ?? p.user_id).filter(Boolean);
         let imagenesMap = {};
         if (productIds.length) {
           const { data: imgsData } = await supabase
@@ -73,7 +72,7 @@ export default function CatalogoPage() {
         }
 
         const processed = await Promise.all(prods.map(async item => {
-          const id = item.id; // use the real product id (was incorrectly using user_id)
+          const id = item.id ?? item.user_id;
           const nombre = item.nombre || item.name || "Producto";
           const precio = item.precio ?? item.price ?? 0;
           const descripcion = item.descripcion || item.description || "";

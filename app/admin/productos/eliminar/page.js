@@ -47,7 +47,7 @@ export default function EliminarCatalogo() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">Eliminar Catálogo</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-4">Eliminar Artículos</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {productos.length === 0 ? (
           <div className="col-span-full text-gray-700">No hay productos para eliminar.</div>

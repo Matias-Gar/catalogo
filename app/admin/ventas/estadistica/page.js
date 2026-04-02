@@ -4,29 +4,84 @@ import { supabase } from "../../../../lib/SupabaseClient";
 import dynamic from "next/dynamic";
 
 const Pie = dynamic(() => import("react-chartjs-2").then(mod => mod.Pie), { ssr: false });
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-ChartJS.register(ArcElement, Tooltip, Legend);
+const Line = dynamic(() => import("react-chartjs-2").then(mod => mod.Line), { ssr: false });
+const Bar = dynamic(() => import("react-chartjs-2").then(mod => mod.Bar), { ssr: false });
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement } from "chart.js";
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement);
 
 export default function VentasEstadisticaPage() {
   const [ventas, setVentas] = useState([]);
   const [detalles, setDetalles] = useState([]);
+  const [productCosts, setProductCosts] = useState({});
+
+  // tabla de resultados por venta
+  const [reportLines, setReportLines] = useState([]);
+
   useEffect(() => {
     async function fetchVentas() {
+      // traer ventas con posibles campos extra
       const { data, error } = await supabase
         .from("ventas")
-        .select("id, total, fecha");
+        .select("id, total, fecha, costos_extra, descuentos");
       if (!error && data) setVentas(data);
+
       const { data: dets } = await supabase
         .from("ventas_detalle")
-        .select("venta_id, producto_id, cantidad");
-      if (dets) setDetalles(dets);
+        .select("venta_id, producto_id, cantidad, precio_unitario");
+      if (dets) {
+        setDetalles(dets);
+        // obtener precios de compra de los productos involucrados
+        const prodIds = Array.from(new Set(dets.map(d => d.producto_id).filter(Boolean)));
+        if (prodIds.length) {
+          const { data: prods } = await supabase
+            .from('productos')
+            .select('user_id, precio_compra')
+            .in('user_id', prodIds);
+          const map = {};
+          (prods || []).forEach(p => { map[p.user_id] = Number(p.precio_compra) || 0; });
+          setProductCosts(map);
+        }
+      }
     }
     fetchVentas();
   }, []);
 
+  // once data is loaded compute metrics
+  useEffect(() => {
+    if (ventas.length === 0) return;
+    const lines = ventas.map(v => {
+      const detsThis = detalles.filter(d => d.venta_id === v.id);
+      const inversion = detsThis.reduce((acc, d) => acc + (productCosts[d.producto_id] || 0) * d.cantidad, 0);
+      const ventaPrice = Number(v.total) || 0;
+      const costosExtras = v.costos_extra || {};
+      const descuentos = Number(v.descuentos || costosExtras.descuento || 0);
+      const costos = Object.values(costosExtras).reduce((a,b) => a + (Number(b) || 0), 0);
+      const gananciaBruta = ventaPrice - inversion;
+      const gananciaNeta = gananciaBruta - costos;
+      const porcentajeUtilidad = inversion > 0 ? (gananciaNeta / inversion * 100) : 0;
+      return { venta: v, inversion, ventaPrice, costos, gananciaBruta, gananciaNeta, porcentajeUtilidad };
+    });
+    setReportLines(lines);
+  }, [ventas, detalles, productCosts]);
+
   const totalVentas = ventas.length;
   const montoTotal = ventas.reduce((acc, v) => acc + Number(v.total), 0);
   const ticketPromedio = totalVentas > 0 ? montoTotal / totalVentas : 0;
+
+  // build chart data from reportLines
+  const sortedLines = [...reportLines].sort((a,b)=> new Date(a.venta.fecha) - new Date(b.venta.fecha));
+  const fechasLines = sortedLines.map(r=> new Date(r.venta.fecha).toLocaleDateString());
+  const gananciaNetaData = sortedLines.map(r=> r.gananciaNeta.toFixed(2));
+  const utilidadPctData = sortedLines.map(r=> r.porcentajeUtilidad.toFixed(2));
+  const gananciaLineChart = {
+    labels: fechasLines,
+    datasets: [{ label: 'Ganancia neta', data: gananciaNetaData, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)' }]
+  };
+  const utilidadBarChart = {
+    labels: fechasLines,
+    datasets: [{ label: '% Utilidad', data: utilidadPctData, backgroundColor: '#3B82F6' }]
+  };
+
   // Ventas por día
   const ventasPorDia = {};
   ventas.forEach(v => {
@@ -80,6 +135,82 @@ export default function VentasEstadisticaPage() {
           {Object.keys(productosVendidos).length > 0 && <Pie data={pieDataProducto} />}
         </div>
       </div>
+
+      {/* gráficos automáticos de métricas contables */}
+      {reportLines.length > 0 && (
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-xl shadow p-6">
+            <span className="text-gray-900 font-bold mb-2 block">Ganancia Neta por Fecha</span>
+            <Line data={gananciaLineChart} />
+          </div>
+          <div className="bg-white rounded-xl shadow p-6">
+            <span className="text-gray-900 font-bold mb-2 block">% de Utilidad por Fecha</span>
+            <Bar data={utilidadBarChart} />
+          </div>
+        </div>
+      )}
+
+      {/* Tabla detallada por venta */}
+      {reportLines.length > 0 && (
+        <div className="mt-10 bg-white rounded-xl shadow p-6">
+          <h2 className="text-xl font-bold mb-4">Detalle contable por venta</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-4 py-2">#Venta</th>
+                  <th className="px-4 py-2">Fecha</th>
+                  <th className="px-4 py-2">Inversión</th>
+                  <th className="px-4 py-2">Precio venta</th>
+                  <th className="px-4 py-2">Costos</th>
+                  <th className="px-4 py-2">Ganancia bruta</th>
+                  <th className="px-4 py-2">Ganancia neta</th>
+                  <th className="px-4 py-2">% utilidad</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reportLines.map((r, idx) => (
+                  <tr key={idx} className="border-t">
+                    <td className="px-4 py-2">{r.venta.id}</td>
+                    <td className="px-4 py-2">{new Date(r.venta.fecha).toLocaleDateString()}</td>
+                    <td className="px-4 py-2">Bs {r.inversion.toFixed(2)}</td>
+                    <td className="px-4 py-2">Bs {r.ventaPrice.toFixed(2)}</td>
+                    <td className="px-4 py-2">Bs {r.costos.toFixed(2)}</td>
+                    <td className="px-4 py-2">Bs {r.gananciaBruta.toFixed(2)}</td>
+                    <td className="px-4 py-2">Bs {r.gananciaNeta.toFixed(2)}</td>
+                    <td className="px-4 py-2">{r.porcentajeUtilidad.toFixed(2)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Resumen general */}
+      {reportLines.length > 0 && (() => {
+        const inversionTotal = reportLines.reduce((a,b)=>a+b.inversion,0);
+        const ventasTot = reportLines.length;
+        const gananciaTotal = reportLines.reduce((a,b)=>a+b.gananciaNeta,0);
+        const margen = inversionTotal > 0 ? (gananciaTotal / inversionTotal * 100) : 0;
+        return (
+          <div className="mt-8 bg-white rounded-xl shadow p-6">
+            <h2 className="text-xl font-bold mb-4">Resumen financiero</h2>
+            <p>Inversión total: Bs {inversionTotal.toFixed(2)}</p>
+            <p>Ventas totales: {ventasTot}</p>
+            <p>Ganancia total neta: Bs {gananciaTotal.toFixed(2)}</p>
+            <p>Margen de utilidad general: {margen.toFixed(2)}%</p>
+            <div className="mt-4">
+              <h3 className="font-semibold">Recomendaciones</h3>
+              <ul className="list-disc list-inside">
+                <li>Revisar costos de envío y comisiones para reducir gastos.</li>
+                <li>Optimizar el precio de compra y stock para mejorar margen.</li>
+                <li>Considerar promociones controladas para no disminuir demasiado la utilidad.</li>
+              </ul>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
