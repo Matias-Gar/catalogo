@@ -240,7 +240,15 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
       lines.push('\x1b@'); // init escpos
       lines.push('\x1b!\x00');
       const append = (text: string) => { lines.push(text + '\n'); };
-      const cfg = CONFIG as unknown as Record<string, string | undefined>;
+      const cfg = CONFIG as unknown as {
+        WHATSAPP_BUSINESS: string;
+        NOMBRE_NEGOCIO: string;
+        BUSINESS_NAME?: string;
+        BUSINESS_ADDRESS?: string;
+        BUSINESS_PHONE?: string;
+        BUSINESS_NIT?: string;
+        DIRECCION_COMERCIAL?: string;
+      };
       append(String(cfg.BUSINESS_NAME || cfg.NOMBRE_NEGOCIO || 'Tienda'));
       if (cfg.BUSINESS_ADDRESS || cfg.DIRECCION_COMERCIAL) append(cfg.BUSINESS_ADDRESS || cfg.DIRECCION_COMERCIAL || '');
       if (cfg.BUSINESS_PHONE) append(`Tel: ${cfg.BUSINESS_PHONE}`);
