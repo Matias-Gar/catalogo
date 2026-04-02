@@ -2,10 +2,50 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { calcularPrecioConPromocion } from '../lib/promociones';
 import { usePacks, calcularDescuentoPack } from '../lib/packs';
 
+export interface Producto {
+  user_id: string;
+  codigo_barra?: string;
+  codigo?: string;
+  nombre: string;
+  precio: number;
+  cantidad?: number;
+  tipo?: 'pack' | 'producto';
+  pack_id?: string | number;
+  pack_data?: Pack;
+  categorias?: { categori?: string };
+}
+
+export interface PackProduct {
+  cantidad: number;
+  productos: {
+    user_id: string;
+    nombre: string;
+  };
+}
+
+export interface Pack {
+  id: string | number;
+  nombre: string;
+  descripcion?: string;
+  precio_pack: number;
+  precio_individual?: number;
+  pack_productos?: PackProduct[];
+}
+
+export interface CartItem extends Producto {
+  cantidad: number;
+  precio: number;
+  pack_id?: string | number;
+  pack_data?: Pack;
+  descuento_pack?: number;
+  stock?: number;
+  categoria?: string;
+}
+
 // Este hook centraliza todo lo relacionado al carrito: estado, operaciones y totales.
-export function useCarrito(promociones: any) {
-  const { packs, loading: loadingPacks } = usePacks() as any;
-  const [carrito, setCarrito] = useState<any[]>([]);
+export function useCarrito(promociones: unknown[]) {
+  const { packs, loading: loadingPacks } = usePacks() as { packs: Pack[]; loading: boolean; };
+  const [carrito, setCarrito] = useState<CartItem[]>([]);
 
   // cargar/guardar localstorage
   useEffect(() => {
@@ -22,7 +62,7 @@ export function useCarrito(promociones: any) {
     }
   }, [carrito]);
 
-  const agregar = useCallback((prod: any) => {
+  const agregar = useCallback((prod: Producto) => {
     const precioInfo = calcularPrecioConPromocion(prod, promociones);
     const precioFinal = precioInfo.precioFinal;
     setCarrito(prev => {
@@ -34,9 +74,9 @@ export function useCarrito(promociones: any) {
     });
   }, [promociones]);
 
-  const agregarPack = useCallback((pack: any) => {
+  const agregarPack = useCallback((pack: Pack) => {
     const { precioIndividual, descuentoAbsoluto } = calcularDescuentoPack(pack);
-    const itemPack: any = {
+    const itemPack: CartItem = {
       user_id: `pack-${pack.id}`,
       nombre: `📦 ${pack.nombre}`,
       precio: pack.precio_pack,
@@ -57,18 +97,18 @@ export function useCarrito(promociones: any) {
     });
   }, []);
 
-  const quitar = useCallback((user_id: any) => {
+  const quitar = useCallback((user_id: string | number) => {
     setCarrito(prev => prev.filter(i => i.user_id !== user_id));
   }, []);
 
-  const cambiarCantidad = useCallback((user_id: any, cantidad: number) => {
+  const cambiarCantidad = useCallback((user_id: string | number, cantidad: number) => {
     setCarrito(prev => prev.map(i => i.user_id === user_id ? { ...i, cantidad: Math.max(1, cantidad) } : i));
   }, []);
 
   const subtotal = useMemo(() => {
     return carrito.reduce((acc, item) => {
       if (item.tipo === 'pack') {
-        const pack = (packs as any[]).find((p: any) => p.id === item.pack_id);
+        const pack = packs.find(p => p.id === item.pack_id);
         return acc + (pack ? pack.precio_pack * item.cantidad : 0);
       }
       const precioInfo = calcularPrecioConPromocion(item, promociones);
@@ -79,8 +119,8 @@ export function useCarrito(promociones: any) {
   const totalDescuento = useMemo(() => {
     return carrito.reduce((acc, item) => {
       if (item.tipo === 'pack') {
-        const pack = (packs as any[]).find((p: any) => p.id === item.pack_id);
-        return acc + (pack ? (pack.precio_individual - pack.precio_pack) * item.cantidad : 0);
+        const pack = packs.find(p => p.id === item.pack_id);
+        return acc + (pack ? (Number(pack.precio_individual || 0) - pack.precio_pack) * item.cantidad : 0);
       }
       // simple descuento simulado
       const descuento = item.precio ? Number(item.precio) * (item.nombre?.toLowerCase().includes('promo') ? 0.1 : 0) * item.cantidad : 0;

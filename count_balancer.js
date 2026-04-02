@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 const fs = require('fs');
 const path = 'c:/Users/saita/catalogo/app/admin/ventas/nueva/page.js';
 const code = fs.readFileSync(path, 'utf8');

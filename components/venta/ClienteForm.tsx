@@ -1,9 +1,19 @@
 "use client";
 import React from 'react';
 
+interface Cliente {
+  carnet?: string;
+  nombre?: string;
+  telefono?: string;
+  nit?: string;
+  email?: string;
+  requiereFactura?: boolean;
+  guardado?: boolean;
+}
+
 interface ClienteFormProps {
-  cliente: any;
-  onChange: (campo: string, valor: any) => void;
+  cliente: Cliente;
+  onChange: (campo: keyof Cliente, valor: string | boolean) => void;
   onBuscar: () => void;
   onGuardar: () => void;
   onBuscarEmailHistorico: () => void;

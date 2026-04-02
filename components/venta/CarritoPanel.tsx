@@ -3,21 +3,23 @@ import React from 'react';
 import Image from 'next/image';
 import { PrecioConPromocion, calcularPrecioConPromocion } from '../../lib/promociones';
 import { calcularDescuentoPack } from '../../lib/packs';
+import { CartItem, Pack, PackProduct } from '../../hooks/useCarrito';
 
 interface Props {
-  carrito: any[];
-  imagenes: Record<string,string[]>;
-  quitar: (user_id: any) => void;
-  cambiarCantidad: (user_id: any, cant: number) => void;
+  carrito: CartItem[];
+  imagenes: Record<string, string[]>;
+  quitar: (user_id: string | number) => void;
+  cambiarCantidad: (user_id: string | number, cant: number) => void;
   subtotal: number;
   totalDescuento: number;
   total: number;
   modoPago: string;
   pago: number;
   cambio: number;
-  packs: any[];
-  promociones: any[];
+  packs: Pack[];
+  promociones: unknown[];
 }
+
 
 export default function CarritoPanel({
   carrito,
@@ -54,7 +56,7 @@ export default function CarritoPanel({
             <tbody>
               {carrito.map(item => {
                 if (item.tipo === 'pack') {
-                  const pack = item.pack_data || packs.find((p:any) => p.id === item.pack_id);
+                  const pack = item.pack_data || packs.find((p) => p.id === item.pack_id);
                   if (!pack) return null;
                   const { descuentoPorcentaje, descuentoAbsoluto } = calcularDescuentoPack(pack);
                   return (
@@ -68,7 +70,7 @@ export default function CarritoPanel({
                         <div className="font-bold text-purple-800">📦 {pack.nombre}</div>
                         <div className="text-xs text-purple-600">{pack.descripcion || 'Pack especial'}</div>
                         <div className="text-xs text-gray-600 mt-1">
-                          Incluye: {pack.pack_productos?.map((packItem:any) => 
+                          Incluye: {pack.pack_productos?.map((packItem: PackProduct) => 
                             `${packItem.cantidad}x ${packItem.productos.nombre}`
                           ).join(', ') || 'Productos del pack'}
                         </div>

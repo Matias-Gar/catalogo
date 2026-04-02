@@ -11,6 +11,7 @@ import ClienteForm from '../../../../components/venta/ClienteForm';
 import BuscadorProductos from '../../../../components/venta/BuscadorProductos';
 import CarritoPanel from '../../../../components/venta/CarritoPanel';
 import TicketPrinter, { TicketPrinterHandle } from '../../../../components/venta/TicketPrinter';
+import { CartItem, Pack, PackProduct, Producto } from '../../../../hooks/useCarrito';
 
 export default function NuevaVenta() {
   // hooks
@@ -211,35 +212,36 @@ export default function NuevaVenta() {
       });
       if (ventaError || !venta) throw ventaError || new Error('no venta');
 
-      await Promise.all(carrito.map(async (p) => {
+      await Promise.all(carrito.map(async (p: Producto) => {
+        const cantidad = p.cantidad ?? 1;
         if (p.tipo === 'pack') {
-          const pack = p.pack_data || packs.find((pk:any)=>pk.id===p.pack_id);
+          const pack = p.pack_data || packs.find((pk: Pack) => pk.id === p.pack_id);
           if (pack) {
             await ventasService.insertarVentaDetalle({
               venta_id: venta.id,
               producto_id: null,
-              cantidad: p.cantidad,
+              cantidad,
               precio_unitario: pack.precio_pack,
               descripcion: `📦 Pack: ${pack.nombre}`,
               tipo: 'pack',
               pack_id: pack.id
             });
-            await Promise.all(pack.pack_productos.map(async (item:any) => {
-              const cantidadTotal = item.cantidad * p.cantidad;
+            await Promise.all((pack.pack_productos ?? []).map(async (item: PackProduct) => {
+              const cantidadTotal = item.cantidad * cantidad;
               await ventasService.descontarStock(item.productos.user_id, cantidadTotal);
             }));
           }
         } else {
           const precioInfo = calcularPrecioConPromocion(p, []);
-          await ventasService.insertarVentaDetalle({ venta_id: venta.id, producto_id: p.user_id, cantidad: p.cantidad, precio_unitario: precioInfo.precioFinal });
-          await ventasService.descontarStock(p.user_id, p.cantidad);
+          await ventasService.insertarVentaDetalle({ venta_id: venta.id, producto_id: p.user_id, cantidad, precio_unitario: precioInfo.precioFinal });
+          await ventasService.descontarStock(p.user_id, cantidad);
         }
       }));
 
       // snapshot ticket y imprimir
       const ticket = {
         venta,
-        items: carrito.map((it: any) => ({ ...it })),
+        items: carrito.map((it: Producto) => ({ ...it })),
         fecha: new Date().toLocaleString(),
         cliente_nombre: cliente.nombre,
         cliente_nit: cliente.nit,
@@ -261,7 +263,8 @@ export default function NuevaVenta() {
       setEfectivizando(false);
       alert('Venta efectivizada y stock actualizado');
     } catch (err) {
-      alert('Error al crear venta: ' + (err as any)?.message);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      alert('Error al crear venta: ' + errorMessage);
       setEfectivizando(false);
     }
   }, [carrito, cliente, modoPago, pago, cambio, total, subtotal, totalDescuento, packs, setCarrito, cambiarCampo]);
@@ -427,7 +430,7 @@ export default function NuevaVenta() {
         total={total}
         pago={pago}
         cambio={cambio}
-        ultimoTicket={null}
+        ultimoTicket={undefined}
         setUltimoTicket={() => {}}
       />
     </div>

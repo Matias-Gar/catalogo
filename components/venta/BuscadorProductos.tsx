@@ -2,14 +2,21 @@
 import React from 'react';
 import Image from 'next/image';
 
+interface Producto {
+  user_id: string;
+  nombre: string;
+  precio: number;
+  categorias?: { categori?: string };
+}
+
 interface Props {
   busqueda: string;
   onChange: (v: string) => void;
   onSubmit: () => void;
-  searchResults: any[];
+  searchResults: Producto[];
   searchLoading: boolean;
   imagenes: Record<string, string[]>;
-  onAdd: (prod: any) => void;
+  onAdd: (prod: Producto) => void;
   showSuggestions: boolean;
   setShowSuggestions: (b: boolean) => void;
 }

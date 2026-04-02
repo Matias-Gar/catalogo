@@ -1,8 +1,19 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../lib/SupabaseClient';
 
+interface Cliente {
+  nombre: string;
+  carnet: string;
+  telefono: string;
+  email: string;
+  nit: string;
+  guardado: boolean;
+  source: string;
+  requiereFactura: boolean;
+}
+
 export function useCliente() {
-  const [cliente, setCliente] = useState<any>({
+  const [cliente, setCliente] = useState<Cliente>({
     nombre: '',
     carnet: '',
     telefono: '',
@@ -13,8 +24,8 @@ export function useCliente() {
     requiereFactura: false
   });
 
-  const cambiarCampo = useCallback((campo: string, valor: any) => {
-    setCliente((c: any) => ({ ...c, [campo]: valor }));
+  const cambiarCampo = useCallback((campo: keyof Cliente, valor: string | boolean) => {
+    setCliente((c: Cliente) => ({ ...c, [campo]: valor } as Cliente));
   }, []);
 
   const buscarPorCarnet = useCallback(async () => {
@@ -55,8 +66,9 @@ export function useCliente() {
         cambiarCampo('guardado', false);
         return;
       }
-    } catch (e: any) {
-      console.warn('Error perfiles', e.message || e);
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      console.warn('Error perfiles', errorMessage);
     }
 
     // 2) clientes legacy
@@ -74,12 +86,14 @@ export function useCliente() {
           email: cli.email || '',
           nit: cli.carnet || '',
           guardado: true,
-          source: 'clientes'
+          source: 'clientes',
+          requiereFactura: false
         });
         return;
       }
-    } catch (e: any) {
-      console.warn('Error clientes', e.message || e);
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      console.warn('Error clientes', errorMessage);
     }
 
     // 3) ventas
@@ -92,7 +106,7 @@ export function useCliente() {
         .limit(1);
       if (ventasByNit && ventasByNit.length) {
         const v = ventasByNit[0];
-        setCliente((c: any) => ({
+        setCliente((c: Cliente) => ({
           ...c,
           nombre: v.cliente_nombre || c.nombre,
           telefono: v.cliente_telefono || c.telefono,
@@ -102,11 +116,12 @@ export function useCliente() {
         }));
         return;
       }
-    } catch (e: any) {
-      console.warn('Error ventas', e.message || e);
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      console.warn('Error ventas', errorMessage);
     }
 
-    setCliente((c: any) => ({ ...c, guardado: false, source: '' }));
+    setCliente((c: Cliente) => ({ ...c, guardado: false, source: '' }));
     alert('Cliente no encontrado. Puedes añadirlo para búsquedas futuras.');
   }, [cliente.carnet, cambiarCampo]);
 
@@ -132,7 +147,7 @@ export function useCliente() {
           })
           .eq('id', perfilExistente.id);
         if (upErr) return alert('Error al actualizar perfil: ' + upErr.message);
-        setCliente((c: any) => ({ ...c, guardado: true, source: 'perfiles' }));
+        setCliente((c: Cliente) => ({ ...c, guardado: true, source: 'perfiles' }));
         return alert('Perfil actualizado con datos del cliente');
       }
     } catch (e) {
@@ -154,12 +169,12 @@ export function useCliente() {
             email: cliente.email || null
           }).eq('carnet', cliente.carnet);
           if (upErr) return alert('Error al actualizar cliente: ' + upErr.message);
-          setCliente((c: any) => ({ ...c, guardado: true, source: 'clientes' }));
+          setCliente((c: Cliente) => ({ ...c, guardado: true, source: 'clientes' }));
           return alert('Cliente actualizado y guardado');
         }
         return alert('Error al guardar cliente: ' + (error.message || ''));
       }
-      setCliente((c: any) => ({ ...c, guardado: true, source: 'clientes' }));
+      setCliente((c: Cliente) => ({ ...c, guardado: true, source: 'clientes' }));
       alert('Cliente guardado para futuras compras');
     } catch (e) {
       console.error(e);
@@ -173,7 +188,7 @@ export function useCliente() {
       if (!q) return alert('Introduce carnet o NIT para buscar email histórico');
       const { data } = await supabase.from('ventas').select('cliente_email').or(`cliente_nit.ilike.%${q}%,cliente_telefono.ilike.%${q}%`).order('fecha', { ascending: false }).limit(1);
       if (data && data[0]?.cliente_email) {
-        setCliente((c: any) => ({ ...c, email: data[0].cliente_email, source: 'ventas (histórico)' }));
+        setCliente((c: Cliente) => ({ ...c, email: data[0].cliente_email, source: 'ventas (histórico)' }));
         alert('Email recuperado desde ventas históricas');
       } else {
         alert('No se encontró email histórico');

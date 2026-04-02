@@ -3,14 +3,54 @@ import React, { useImperativeHandle, forwardRef, useRef } from 'react';
 import jsPDF from 'jspdf';
 import { CONFIG } from '../../lib/config';
 
+interface TicketItem {
+  nombre?: string;
+  producto_nombre?: string;
+  cantidad?: number;
+  cant?: number;
+  precio_unitario?: number;
+  precio?: number;
+  precio_pack?: number;
+}
+
+interface TicketSnapshot {
+  fecha?: string;
+  venta?: { id?: string | number };
+  cliente_nombre?: string;
+  cliente_nit?: string;
+  modo_pago?: string;
+  requiere_factura?: boolean;
+  items?: TicketItem[];
+  subtotal?: number;
+  descuento?: number;
+  total?: number;
+  pago?: number;
+  cambio?: number;
+}
+
+interface Cliente {
+  nombre?: string;
+  nit?: string;
+}
+
 declare global {
   interface Window {
-    qz?: any;
+    qz?: {
+      api?: {
+        configs: {
+          create: (printerName: string) => unknown;
+        };
+      };
+      configs?: {
+        create: (printerName: string) => unknown;
+      };
+      print?: (config: unknown, data: string[] | unknown[]) => Promise<void>;
+    };
   }
 }
 
 interface TicketPrinterProps {
-  carrito: any[];
+  carrito: TicketItem[];
   clienteNombre: string;
   clienteNIT: string;
   modoPago: string;
@@ -20,8 +60,8 @@ interface TicketPrinterProps {
   total: number;
   pago: number;
   cambio: number;
-  ultimoTicket: any;
-  setUltimoTicket: (t: any) => void;
+  ultimoTicket?: TicketSnapshot;
+  setUltimoTicket: (t: TicketSnapshot) => void;
 }
 
 export interface TicketPrinterHandle {
@@ -32,7 +72,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
   const ticketRef = useRef<HTMLDivElement>(null);
 
   // replicamos funciones desde Página original
-  async function printTicketAsPDF(ticketSnapshot: any) {
+  async function printTicketAsPDF(ticketSnapshot: TicketSnapshot) {
     console.log('printTicketAsPDF init', { ticketSnapshot });
 
     if (!ticketSnapshot || typeof ticketSnapshot !== 'object') {
@@ -117,8 +157,8 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
 
       try {
         // QR de contacto Whatsapp y comprobante digital
-        // @ts-ignore
-        const qr = await import('qrcode');
+        const qrModule = await import('qrcode');
+        const qr = qrModule as { toCanvas: (canvas: HTMLCanvasElement, text: string, opts?: { width: number }) => Promise<void> };
         const qrCanvasWA = document.createElement('canvas');
         const qrCanvasDigital = document.createElement('canvas');
         const whatsappUrl = 'https://wa.me/59177434023?text=Hola%20StreetWear%2C%20quiero%20informaci%C3%B3n';
@@ -190,7 +230,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
     }
   }
 
-  async function printComprobanteThermal(ticketSnapshot: any) {
+  async function printComprobanteThermal(ticketSnapshot: TicketSnapshot) {
     if (!window.qz || !window.qz.api) {
       console.warn('qz-tray no está disponible; se usará impresión estándar');
       return false;
@@ -200,9 +240,9 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
       lines.push('\x1b@'); // init escpos
       lines.push('\x1b!\x00');
       const append = (text: string) => { lines.push(text + '\n'); };
-      const cfg: any = CONFIG;
+      const cfg = CONFIG as unknown as Record<string, string | undefined>;
       append(String(cfg.BUSINESS_NAME || cfg.NOMBRE_NEGOCIO || 'Tienda'));
-      if (cfg.BUSINESS_ADDRESS || cfg.DIRECCION_COMERCIAL) append(cfg.BUSINESS_ADDRESS || cfg.DIRECCION_COMERCIAL);
+      if (cfg.BUSINESS_ADDRESS || cfg.DIRECCION_COMERCIAL) append(cfg.BUSINESS_ADDRESS || cfg.DIRECCION_COMERCIAL || '');
       if (cfg.BUSINESS_PHONE) append(`Tel: ${cfg.BUSINESS_PHONE}`);
       if (cfg.BUSINESS_NIT) append(`NIT: ${cfg.BUSINESS_NIT}`);
       append('');
@@ -223,8 +263,13 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
       append('');
       append('¡Gracias por su compra!');
       lines.push('\x1dV\x00'); // corte
-      const config = window.qz.configs.create('POS-80C');
-      await window.qz.print(config, lines);
+      const qzApi = window.qz;
+      const config = qzApi?.configs?.create('POS-80C');
+      if (!config || !qzApi?.print) {
+        console.warn('qz-tray config o función print no disponible');
+        return false;
+      }
+      await qzApi.print(config, lines);
       return true;
     } catch (err) {
       console.warn('printComprobanteThermal error', err);
@@ -287,5 +332,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
 
   return <div id="ticket-print" ref={ticketRef} className="hidden print:block" />;
 });
+
+TicketPrinter.displayName = 'TicketPrinter';
 
 export default TicketPrinter;

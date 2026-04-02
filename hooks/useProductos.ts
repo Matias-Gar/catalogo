@@ -1,8 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/SupabaseClient';
 
+interface Producto {
+  user_id: string;
+  nombre: string;
+  precio: number;
+  precio_compra?: number;
+  stock?: number;
+  codigo_barra?: string;
+  codigo?: string;
+  categorias?: { categori?: string };
+}
+
 // simple util to group images by producto_id
-function agruparImagenes(imgs: any[]) {
+function agruparImagenes(imgs: Array<{ producto_id: string | number; imagen_url?: string }>) {
   const out: Record<string, string[]> = {};
   imgs.forEach(i => {
     const id = String(i.producto_id);
@@ -13,9 +24,9 @@ function agruparImagenes(imgs: any[]) {
 }
 
 export function useProductos(includeCost = false) {
-  const [productos, setProductos] = useState<any[]>([]);
+  const [productos, setProductos] = useState<Producto[]>([]);
   const [imagenes, setImagenes] = useState<Record<string, string[]>>({});
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
 
@@ -28,8 +39,9 @@ export function useProductos(includeCost = false) {
       .select(selectFields)
       .limit(1000);
     if (!error && data) {
-      setProductos(data);
-      const ids = data.map((p: any) => p.user_id).filter(Boolean);
+      const productosData = Array.isArray(data) ? (data as unknown as Producto[]) : [];
+      setProductos(productosData);
+      const ids = productosData.map(p => p.user_id).filter(Boolean);
       if (ids.length) {
         const { data: imgs } = await supabase
           .from('producto_imagenes')
@@ -69,7 +81,7 @@ export function useProductos(includeCost = false) {
       }
       const { data, error } = await query;
       if (error) throw error;
-      const resultados = Array.isArray(data) ? data : [];
+      const resultados = Array.isArray(data) ? (data as unknown as Producto[]) : [];
       setSearchResults(resultados);
       // cargar imágenes para resultados
       const ids = resultados.map(r => r.user_id).filter(Boolean);
