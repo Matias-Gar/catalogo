@@ -52,10 +52,10 @@ export default function CatalogoPage() {
         const categorias = Array.isArray(catsData) ? catsData : [];
         setCategoriasDisponibles(categorias.map(c => c.nombre || c.categori || `Cat-${c.id}`));
 
-        const { data: prodsData } = await supabase.from("productos").select("*").limit(1000);
+        const { data: prodsData } = await supabase.from("v_productos_catalogo").select("producto_id, nombre, descripcion, precio_base, imagen_base, category_id, categoria, stock_total, codigo_barra, variantes").limit(1000);
         const prods = Array.isArray(prodsData) ? prodsData : [];
 
-        const productIds = prods.map(p => p.id ?? p.user_id).filter(Boolean);
+        const productIds = prods.map(p => p.producto_id).filter(Boolean);
         let imagenesMap = {};
         if (productIds.length) {
           const { data: imgsData } = await supabase
@@ -72,13 +72,14 @@ export default function CatalogoPage() {
         }
 
         const processed = await Promise.all(prods.map(async item => {
-          const id = item.id ?? item.user_id;
-          const nombre = item.nombre || item.name || "Producto";
-          const precio = item.precio ?? item.price ?? 0;
-          const descripcion = item.descripcion || item.description || "";
-          const stock = item.stock ?? 0;
+          const id = item.producto_id;
+          const nombre = item.nombre || "Producto";
+          const precio = item.precio_base ?? 0;
+          const descripcion = item.descripcion || "";
+          const stock = item.stock_total ?? 0;
+          const variantes = Array.isArray(item.variantes) ? item.variantes : [];
 
-          const catId = item.category_id ?? item.category_id;
+          const catId = item.category_id;
           let categoriaNombre = "";
           if (catId) {
             const found = categorias.find(c => Number(c.id) === Number(catId));
@@ -89,7 +90,7 @@ export default function CatalogoPage() {
 
           const imgsFor = imagenesMap[String(id)] || [];
           const candidatePaths = [...imgsFor];
-          if (item.imagen_url) candidatePaths.push(item.imagen_url);
+          if (item.imagen_base) candidatePaths.push(item.imagen_base);
 
           let imagenPublicUrls = [];
           for (const p of candidatePaths) {
@@ -108,6 +109,7 @@ export default function CatalogoPage() {
             precio,
             descripcion,
             stock,
+            variantes,
             categoriaNombre: categoriaNombre || "Sin categoría",
             imagenPublicUrls
           };
@@ -131,6 +133,41 @@ export default function CatalogoPage() {
     const num = Number(v) || 0;
     return `Bs ${num.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
+
+  // Función para mapear nombres de colores a códigos hexadecimales
+  const getColorHex = (colorName) => {
+    const colorMap = {
+      'rojo': '#EF4444',
+      'red': '#EF4444',
+      'azul': '#3B82F6',
+      'blue': '#3B82F6',
+      'negro': '#1F2937',
+      'black': '#1F2937',
+      'blanco': '#FFFFFF',
+      'white': '#FFFFFF',
+      'verde': '#10B981',
+      'green': '#10B981',
+      'amarillo': '#FBBF24',
+      'yellow': '#FBBF24',
+      'naranja': '#F97316',
+      'orange': '#F97316',
+      'gris': '#6B7280',
+      'gray': '#6B7280',
+      'rosa': '#EC4899',
+      'pink': '#EC4899',
+      'púrpura': '#A855F7',
+      'purple': '#A855F7',
+      'marrón': '#8B5A3C',
+      'brown': '#8B5A3C',
+      'plateado': '#C0C0C0',
+      'silver': '#C0C0C0',
+      'dorado': '#FFD700',
+      'gold': '#FFD700',
+      'único': '#6B7280',
+    };
+    const normalized = String(colorName || '').trim().toLowerCase();
+    return colorMap[normalized] || '#9CA3AF'; // Gris por defecto si no coincide
+  };
 
   const productosFiltrados = categoriaSeleccionada === "Todas"
     ? productos
@@ -295,6 +332,40 @@ export default function CatalogoPage() {
                 <h3 style={{ margin: 0, fontSize: 18, color: "#4a0f0f", textAlign: "center" }}>{p.nombre}</h3>
                 <strong style={{ fontSize: 16, color: "#004080", textAlign: "center" }}>{formatPrice(p.precio)}</strong>
                 <p style={{ margin: 0, fontSize: 14, textAlign: "center", lineHeight: 1.4 }}>{p.descripcion}</p>
+                
+                {/* Mostrar colores disponibles como paleta de círculos */}
+                {/* Mostrar colores disponibles como paleta de círculos */}
+                {(() => {
+                  const coloresEnStock = Array.isArray(p.variantes)
+                    ? p.variantes.filter(v => Number(v?.stock || 0) > 0 && v?.color && v.color.toLowerCase().trim() !== 'único' && v.color.toLowerCase().trim() !== 'unico')
+                    : [];
+                  if (coloresEnStock.length <= 1) return null;
+                  return (
+                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #ddd", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                      <p style={{ margin: 0, fontSize: 12, color: "#666", fontWeight: "bold" }}>Disponible en color:</p>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+                        {coloresEnStock.map((v, vIdx) => {
+                            const hexColor = getColorHex(v.color);
+                            return (
+                              <div key={`${p.id}-${vIdx}`} style={{ position: "relative", cursor: "pointer" }} title={`${v.color} (${Number(v.stock || 0)} disponibles)`}>
+                                <div
+                                  style={{
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: "50%",
+                                    border: "2px solid #ccc",
+                                    backgroundColor: hexColor,
+                                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                                    transition: "all 0.2s"
+                                  }}
+                                />
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             ))}
           </div>

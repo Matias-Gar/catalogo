@@ -6,6 +6,16 @@ interface Producto {
   user_id: string;
   nombre: string;
   precio: number;
+  stock?: number;
+  color?: string;
+  variante_id?: string | number;
+  variantes?: Array<{
+    variante_id?: string | number;
+    id?: string | number;
+    color?: string;
+    stock?: number;
+    precio?: number;
+  }>;
   categorias?: { categori?: string };
 }
 
@@ -62,12 +72,70 @@ export default function BuscadorProductos({
                   <div className="truncate">
                     <div className="font-medium text-sm truncate">{p.nombre}</div>
                     <div className="text-xs text-gray-400">{p.categorias?.categori || 'Sin categoría'}</div>
+                    <div className="text-xs text-gray-500">Stock: {Number(p.stock || 0)}</div>
+                    {p.color && (
+                      <div className="text-xs text-green-600 font-semibold">✓ Color preseleccionado: {p.color}</div>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col items-end gap-1">
                   <div className="text-sm font-semibold text-gray-700">Bs {Number(p.precio).toFixed(2)}</div>
-                  <button type="button" onMouseDown={e => { e.preventDefault(); onAdd(p); setShowSuggestions(false); onChange(''); }} className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-sm">Agregar</button>
+                  {p.variante_id ? (
+                    // Si la variante fue preseleccionada por código de barras, mostrar solo un botón "Agregar"
+                    <button
+                      type="button"
+                      onMouseDown={e => {
+                        e.preventDefault();
+                        onAdd({
+                          ...p,
+                          variante_id: p.variante_id,
+                          color: p.color || 'Sin color',
+                          precio: Number(p.precio ?? 0),
+                          stock: Number(p.stock || 0)
+                        });
+                        setShowSuggestions(false);
+                        onChange('');
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-sm font-semibold"
+                      title="Agregar producto con color preseleccionado"
+                    >
+                      ✓ Agregar
+                    </button>
+                  ) : Array.isArray(p.variantes) && p.variantes.length > 0 ? (
+                    <div className="flex flex-wrap justify-end gap-1 max-w-56">
+                      {p.variantes
+                        .filter(v => Number(v.stock || 0) > 0)
+                        .slice(0, 6)
+                        .map((v, idx) => {
+                          const variantId = v.variante_id ?? v.id;
+                          return (
+                            <button
+                              key={`${p.user_id}-${String(variantId)}-${idx}`}
+                              type="button"
+                              onMouseDown={e => {
+                                e.preventDefault();
+                                onAdd({
+                                  ...p,
+                                  variante_id: variantId,
+                                  color: v.color || 'Sin color',
+                                  precio: Number(v.precio ?? p.precio ?? 0),
+                                  stock: Number(v.stock || 0)
+                                });
+                                setShowSuggestions(false);
+                                onChange('');
+                              }}
+                              className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs"
+                              title={`Agregar color ${v.color || 'Sin color'}`}
+                            >
+                              {v.color || 'Color'} ({Number(v.stock || 0)})
+                            </button>
+                          );
+                        })}
+                    </div>
+                  ) : (
+                    <button type="button" onMouseDown={e => { e.preventDefault(); onAdd(p); setShowSuggestions(false); onChange(''); }} className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-sm">Agregar</button>
+                  )}
                 </div>
               </li>
             ))}

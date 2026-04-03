@@ -53,6 +53,80 @@ function ImagePreviewModal({ isOpen, onClose, imageList, imageIndex, productName
 }
 
 // --------------------------------------------------------------------------
+// COMPONENTE 3: Modal para Seleccionar Colores a Imprimir
+// --------------------------------------------------------------------------
+function PrintVariantesModal({ isOpen, onClose, product, variantes, onPrint, selectedColors, onColorToggle }) {
+    if (!isOpen || !product) return null;
+    
+    const allSelected = variantes && variantes.length > 0 && variantes.every(v => selectedColors[v.id]);
+    const anySelected = variantes && variantes.some(v => selectedColors[v.id]);
+    
+    return (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50">
+            <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-2xl">
+                <h3 className="text-xl font-bold mb-4 text-gray-800">Seleccionar Colores para Imprimir</h3>
+                <p className="text-sm text-gray-600 mb-4">Producto: <b>{product.nombre}</b></p>
+                
+                <div className="space-y-3 max-h-96 overflow-y-auto mb-6 border rounded-lg p-4 bg-gray-50">
+                    {variantes && variantes.length > 0 ? (
+                        variantes.map((v) => (
+                            <label key={v.id} className="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 p-2 rounded transition">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedColors[v.id] || false}
+                                    onChange={() => onColorToggle(v.id)}
+                                    className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    {v.color} (Stock: {v.stock}) - Código: <b>{v.codigo_barra}</b>
+                                </span>
+                            </label>
+                        ))
+                    ) : (
+                        <p className="text-sm text-gray-500 text-center py-4">No hay colores disponibles</p>
+                    )}
+                </div>
+                
+                <div className="flex justify-between mb-4">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            const newSelection = {};
+                            variantes.forEach(v => newSelection[v.id] = !allSelected);
+                            setSelectedColorsToPrint(newSelection);
+                        }}
+                        className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+                    >
+                        {allSelected ? 'Deseleccionar todos' : 'Seleccionar todos'}
+                    </button>
+                    <span className="text-sm text-gray-600">
+                        {Object.values(selectedColors).filter(Boolean).length} / {variantes?.length || 0} seleccionados
+                    </span>
+                </div>
+                
+                <div className="flex justify-end space-x-4">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => onPrint()}
+                        disabled={!anySelected}
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                        🖨️ Imprimir Seleccionados
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// --------------------------------------------------------------------------
 // COMPONENTE 2: Modal de Confirmación de Eliminación
 // --------------------------------------------------------------------------
 function DeleteConfirmationModal({ isOpen, onClose, onConfirm, productName }) {
@@ -122,6 +196,7 @@ export default function AdminProductosPage() {
     const [userRole, setUserRole] = useState(null); 
     const [productos, setProductos] = useState([]);
     const [imagenesProductos, setImagenesProductos] = useState({});
+    const [variantesProductos, setVariantesProductos] = useState({});
     const newImageInputRef = useRef(null); 
     const [showDeleteModal, setShowDeleteModal] = useState(false); 
     const [productToDelete, setProductToDelete] = useState(null); 
@@ -139,10 +214,12 @@ export default function AdminProductosPage() {
         descripcion: '', 
         precio: '', 
         precio_compra: '',
-        stock: '', 
         category_id: '',
         codigo_barra: ''
     }); 
+    const [newVariants, setNewVariants] = useState([
+        { color: 'Único', stock: '', precio: '', sku: '', codigo_barra: String(Date.now()).slice(-6) + '0001' }
+    ]);
     const [editingProduct, setEditingProduct] = useState(null); 
     const [editImageFiles, setEditImageFiles] = useState([]); 
     const [editImageList, setEditImageList] = useState([]); // URLs actuales
@@ -151,6 +228,11 @@ export default function AdminProductosPage() {
     const [message, setMessage] = useState(''); 
     const [isDeleting, setIsDeleting] = useState(false); 
     const [exporting, setExporting] = useState(false);
+    
+    // Estados para el modal de impresión de variantes
+    const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+    const [productToPrint, setProductToPrint] = useState(null);
+    const [selectedColorsToPrint, setSelectedColorsToPrint] = useState({});
 
     // Nuevo: estado y carga de promociones
     const [promociones, setPromociones] = useState([]);
@@ -290,6 +372,58 @@ export default function AdminProductosPage() {
       printInIframe(html);
     };
 
+    // Listener para imprimir código de barras de variante
+    useEffect(() => {
+      const handlePrintVariantBarcode = async (event) => {
+        const { codigoBarras, nombre } = event.detail;
+        if (!codigoBarras) return;
+        
+        // Usar la función existente handlePrintBarcode
+        await handlePrintBarcode(codigoBarras, nombre);
+      };
+
+      window.addEventListener('printVariantBarcode', handlePrintVariantBarcode);
+      return () => window.removeEventListener('printVariantBarcode', handlePrintVariantBarcode);
+    }, []);
+
+    // Función para abrir modal de impresión de variantes
+    const openPrintVariantesModal = (producto) => {
+      setProductToPrint(producto);
+      setSelectedColorsToPrint({});
+      setIsPrintModalOpen(true);
+    };
+
+    // Función para manejar toggle de colores
+    const handleColorToggle = (varianteId) => {
+      setSelectedColorsToPrint(prev => ({
+        ...prev,
+        [varianteId]: !prev[varianteId]
+      }));
+    };
+
+    // Función para imprimir múltiples variantes
+    const handlePrintMultipleVariantes = async () => {
+      if (!productToPrint) return;
+
+      const variantes = variantesProductos[productToPrint.user_id] || [];
+      const selectedVariantes = variantes.filter(v => selectedColorsToPrint[v.id]);
+
+      // Imprimir cada variante con un pequeño delay entre ellas
+      for (let i = 0; i < selectedVariantes.length; i++) {
+        const variante = selectedVariantes[i];
+        await handlePrintBarcode(variante.codigo_barra, `${productToPrint.nombre} - ${variante.color}`);
+        // Esperar un poco antes de la siguiente impresión
+        if (i < selectedVariantes.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+
+      setIsPrintModalOpen(false);
+      setProductToPrint(null);
+      setSelectedColorsToPrint({});
+    };
+
+
     // useEffect de autenticación y rol
     useEffect(() => {
         const checkAuthAndRole = async () => {
@@ -346,6 +480,23 @@ export default function AdminProductosPage() {
         }
         setNewProduct({ ...newProduct, [name]: value }); 
     }; 
+
+    const handleVariantChange = (index, field, value) => {
+        setNewVariants(prev => prev.map((v, i) => (i === index ? { ...v, [field]: value } : v)));
+    };
+
+    const addVariantRow = () => {
+        // Generar código de barras único: timestamp + índice
+        const newCode = String(Date.now()).slice(-6) + String(newVariants.length + 1).padStart(4, '0');
+        setNewVariants(prev => [...prev, { color: '', stock: '', precio: '', sku: '', codigo_barra: newCode }]);
+    };
+
+    const removeVariantRow = (index) => {
+        setNewVariants(prev => {
+            if (prev.length <= 1) return prev;
+            return prev.filter((_, i) => i !== index);
+        });
+    };
     
     const handleEditProductChange = (e) => { 
         setEditingProduct({ ...editingProduct, [e.target.name]: e.target.value }); 
@@ -448,8 +599,23 @@ export default function AdminProductosPage() {
                 });
                 setImagenesProductos(agrupadas);
             }
+
+            const { data: varsData, error: varsError } = await supabase
+                .from('producto_variantes')
+                .select('id, producto_id, color, stock, precio, sku, activo')
+                .in('producto_id', ids)
+                .order('color', { ascending: true });
+            if (!varsError && Array.isArray(varsData)) {
+                const grouped = {};
+                varsData.forEach(v => {
+                    if (!grouped[v.producto_id]) grouped[v.producto_id] = [];
+                    grouped[v.producto_id].push(v);
+                });
+                setVariantesProductos(grouped);
+            }
         } else {
             setImagenesProductos({});
+            setVariantesProductos({});
         }
         setLoading(false);
     };
@@ -513,6 +679,20 @@ export default function AdminProductosPage() {
                 imagenUrls = await uploadProductImages(imageFiles);
             }
             const categoryIdValue = newProduct.category_id ? parseInt(newProduct.category_id) : null;
+            const variantsPayload = (newVariants || [])
+                .map(v => ({
+                    color: String(v.color || '').trim(),
+                    stock: parseInt(v.stock || 0) || 0,
+                    precio: v.precio === '' ? null : (parseFloat(v.precio) || 0),
+                    sku: String(v.sku || '').trim() || null
+                }))
+                .filter(v => v.color.length > 0);
+
+            if (variantsPayload.length === 0) {
+                throw new Error('Debes agregar al menos una variante con color.');
+            }
+
+            const stockTotal = variantsPayload.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
             // Generar código de barras automáticamente si no se proporciona
             const codigoBarra = newProduct.codigo_barra || generateBarcode();
 
@@ -525,7 +705,7 @@ export default function AdminProductosPage() {
                         descripcion: newProduct.descripcion,
                         precio: parseFloat(newProduct.precio) || 0,
                         precio_compra: parseFloat(newProduct.precio_compra) || 0,
-                        stock: parseInt(newProduct.stock) || 0,
+                        stock: stockTotal,
                         category_id: categoryIdValue,
                         codigo_barra: codigoBarra,
                         // Llenar created_at con la fecha actual (ISO)
@@ -548,9 +728,30 @@ export default function AdminProductosPage() {
                 }
             }
 
+            // Insertar variantes por color
+            if (productoInsertado && productoInsertado.length > 0) {
+                const productoId = productoInsertado[0].user_id;
+                const finalVariants = variantsPayload.map((v, idx) => ({
+                    producto_id: productoId,
+                    color: v.color,
+                    stock: v.stock,
+                    precio: v.precio,
+                    sku: v.sku,
+                    // Generar código de barras definitivo basado en el producto_id
+                    codigo_barra: String(productoId).padStart(6, '0') + String(idx + 1).padStart(4, '0'),
+                    imagen_url: null,
+                    activo: true
+                }));
+                const { error: variantsError } = await supabase.from('producto_variantes').insert(finalVariants);
+                if (variantsError) {
+                    throw new Error(`Error al insertar variantes: ${variantsError.message}`);
+                }
+            }
+
             setMessage('✅ Producto creado con éxito!');
             // ya no imprimimos automáticamente al añadir, el usuario puede usar el botón manual
-            setNewProduct({ nombre: '', descripcion: '', precio: '', precio_compra: '', stock: '', category_id: '', codigo_barra: '' });
+            setNewProduct({ nombre: '', descripcion: '', precio: '', precio_compra: '', category_id: '', codigo_barra: '' });
+            setNewVariants([{ color: 'Único', stock: '', precio: '', sku: '' }]);
             sessionStorage.removeItem('pendingProduct');
             setImageFiles([]);
             if (newImageInputRef.current) {
@@ -808,15 +1009,13 @@ export default function AdminProductosPage() {
                             step="0.01" 
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
                         /> 
-                        <input 
-                            type="number" 
-                            name="stock" 
-                            placeholder="Stock (Cantidad)" 
-                            value={newProduct.stock} 
-                            onChange={handleNewProductChange} 
-                            required 
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
-                        /> 
+                        <input
+                            type="number"
+                            value={(newVariants || []).reduce((sum, v) => sum + (parseInt(v.stock || 0) || 0), 0)}
+                            readOnly
+                            placeholder="Stock Total"
+                            className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-900 font-semibold"
+                        />
                         
                         {/* Selección de Categoría */} 
                         <select
@@ -832,6 +1031,104 @@ export default function AdminProductosPage() {
                             <option value="create" className="font-semibold text-blue-700">+ Agregar categoría</option>
                         </select>
                     </div> {/* cierre del grid principal */}
+
+                    <div className="border rounded-lg p-4 bg-gray-50 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <h3 className="font-bold text-gray-800">Colores disponibles</h3>
+                            <button
+                                type="button"
+                                onClick={addVariantRow}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 text-sm rounded-lg transition"
+                            >
+                                + Agregar color
+                            </button>
+                        </div>
+                        {newVariants.length === 0 ? (
+                            <div className="text-sm text-gray-500">Sin colores. Agrega al menos uno.</div>
+                        ) : (
+                            <div className="space-y-2">
+                                <div className="text-xs text-gray-600 mb-2 grid grid-cols-1 md:grid-cols-7 gap-2 px-2">
+                                    <span>Color</span>
+                                    <span>Stock</span>
+                                    <span>Precio</span>
+                                    <span>SKU</span>
+                                    <span>Código</span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                {newVariants.map((variant, idx) => (
+                                    <div key={`variant-${idx}`} className="grid grid-cols-1 md:grid-cols-7 gap-2 items-center">
+                                        <input
+                                            type="text"
+                                            value={variant.color}
+                                            onChange={(e) => handleVariantChange(idx, 'color', e.target.value)}
+                                            placeholder="Color (ej: Rojo)"
+                                            className="p-2 border border-gray-300 rounded bg-white text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                            required
+                                        />
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={variant.stock}
+                                            onChange={(e) => handleVariantChange(idx, 'stock', e.target.value)}
+                                            placeholder="Stock"
+                                            className="p-2 border border-gray-300 rounded bg-white text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                            required
+                                        />
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            value={variant.precio}
+                                            onChange={(e) => handleVariantChange(idx, 'precio', e.target.value)}
+                                            placeholder="Precio (opcional)"
+                                            className="p-2 border border-gray-300 rounded bg-white text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={variant.sku}
+                                            onChange={(e) => handleVariantChange(idx, 'sku', e.target.value)}
+                                            placeholder="SKU (opcional)"
+                                            className="p-2 border border-gray-300 rounded bg-white text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={variant.codigo_barra || ''}
+                                            readOnly
+                                            placeholder="Código auto"
+                                            className="p-2 border border-gray-300 rounded bg-gray-100 text-gray-900 text-sm"
+                                            title="Código de barras (se asignará al guardar)"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                              if (variant.codigo_barra) {
+                                                const event = new CustomEvent('printVariantBarcode', {
+                                                  detail: { codigoBarras: variant.codigo_barra, nombre: `Redondos (${variant.color})` }
+                                                });
+                                                window.dispatchEvent(event);
+                                              }
+                                            }}
+                                            className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 text-xs rounded transition"
+                                            disabled={!variant.codigo_barra}
+                                            title="Imprimir código de barras"
+                                        >
+                                            🖨️
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeVariantRow(idx)}
+                                            className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                            disabled={newVariants.length <= 1}
+                                            title="Eliminar variante"
+                                        >
+                                            -
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                     <textarea 
                         name="descripcion" 
                         placeholder="Descripción del Producto" 
@@ -972,6 +1269,7 @@ export default function AdminProductosPage() {
                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Precio Compra (Bs)</th>
                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Precio Venta (Bs)</th>
                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Stock</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Colores</th>
                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-900 uppercase tracking-wider bg-white">Acciones</th>
                             </tr>
                         </thead>
@@ -1019,7 +1317,14 @@ export default function AdminProductosPage() {
                                                 />
                                                 <div className="text-center text-xs font-semibold mt-1 text-gray-600 truncate" title={safe(producto.codigo_barra)}>{safe(producto.codigo_barra)}</div>
                                                 <button
-                                                    onClick={() => handlePrintBarcode(safe(producto.codigo_barra), producto.nombre)}
+                                                    onClick={() => {
+                                                        const variantes = variantesProductos[producto.user_id] || [];
+                                                        if (variantes.length > 0) {
+                                                            openPrintVariantesModal(producto);
+                                                        } else {
+                                                            handlePrintBarcode(safe(producto.codigo_barra), producto.nombre);
+                                                        }
+                                                    }}
                                                     className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition text-base font-semibold"
                                                     title="Imprimir Código de Barra"
                                                 >
@@ -1039,6 +1344,18 @@ export default function AdminProductosPage() {
                                             />
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-700">{safe(producto.stock)}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-700">
+                                            <div className="flex flex-wrap gap-1">
+                                                {(variantesProductos[producto.user_id] || []).map((v) => (
+                                                    <span key={`${producto.user_id}-${v.id}`} className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold">
+                                                        {v.color} ({v.stock})
+                                                    </span>
+                                                ))}
+                                                {(!variantesProductos[producto.user_id] || variantesProductos[producto.user_id].length === 0) && (
+                                                    <span className="text-xs text-gray-400">Sin variantes</span>
+                                                )}
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex space-x-2">
                                                 <button
@@ -1142,6 +1459,21 @@ export default function AdminProductosPage() {
                     </div>
                 </div>
             )}
+            
+            {/* Modal de Selección de Colores para Imprimir */}
+            <PrintVariantesModal
+                isOpen={isPrintModalOpen}
+                onClose={() => {
+                    setIsPrintModalOpen(false);
+                    setProductToPrint(null);
+                    setSelectedColorsToPrint({});
+                }}
+                product={productToPrint}
+                variantes={productToPrint ? (variantesProductos[productToPrint.user_id] || []) : []}
+                onPrint={handlePrintMultipleVariantes}
+                selectedColors={selectedColorsToPrint}
+                onColorToggle={handleColorToggle}
+            />
             
             {/* Modal de Confirmación de Eliminación */}
             <DeleteConfirmationModal 

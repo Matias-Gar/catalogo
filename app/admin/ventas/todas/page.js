@@ -17,7 +17,7 @@ export default function TodasVentasPage() {
         if (ids.length > 0) {
           const { data: dets } = await supabase
             .from("ventas_detalle")
-            .select("venta_id, producto_id, cantidad, precio_unitario");
+            .select("venta_id, producto_id, variante_id, color, cantidad, precio_unitario");
           if (dets) {
             const agrupados = {};
             dets.forEach(d => {
@@ -54,7 +54,7 @@ export default function TodasVentasPage() {
               <ul className="list-disc pl-6">
                 {(detalles[v.id] || []).map((d, i) => (
                   <li key={i} className="text-gray-900">
-                    Producto #{d.producto_id} x{d.cantidad} (Bs {Number(d.precio_unitario).toFixed(2)})
+                    Producto #{d.producto_id} {d.color ? `(${d.color})` : ''} x{d.cantidad} (Bs {Number(d.precio_unitario).toFixed(2)})
                   </li>
                 ))}
               </ul>

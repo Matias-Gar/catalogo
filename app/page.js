@@ -144,8 +144,8 @@ export default function Home() {
     setError(null);
     try {
       const { data, error } = await supabase
-        .from('productos')
-        .select('user_id, nombre, descripcion, precio, stock, category_id');
+        .from('v_productos_catalogo')
+        .select('producto_id, nombre, descripcion, precio_base, imagen_base, category_id, categoria, stock_total, codigo_barra, variantes');
         
       if (error) {
         throw new Error(`Error al cargar productos: ${error.message}`);
@@ -155,10 +155,21 @@ export default function Home() {
         setProductos([]);
         return;
       }
+
+      // Normalizar datos de la vista
+      const normalized = data.map(p => ({
+        user_id: p.producto_id,
+        nombre: p.nombre,
+        descripcion: p.descripcion,
+        precio: Number(p.precio_base || 0),
+        stock: Number(p.stock_total || 0),
+        category_id: p.category_id,
+        variantes: Array.isArray(p.variantes) ? p.variantes : []
+      }));
       
-      setProductos(data);
+      setProductos(normalized);
       // Buscar imágenes
-      const ids = data.map(p => p.user_id);
+      const ids = normalized.map(p => p.user_id);
       if (ids.length > 0) {
         const { data: imgs, error: imgsError } = await supabase
           .from('producto_imagenes')
@@ -214,6 +225,41 @@ export default function Home() {
     });
     return match;
   });
+
+  // Función para mapear nombres de colores a códigos hexadecimales
+  const getColorHex = (colorName) => {
+    const colorMap = {
+      'rojo': '#EF4444',
+      'red': '#EF4444',
+      'azul': '#3B82F6',
+      'blue': '#3B82F6',
+      'negro': '#1F2937',
+      'black': '#1F2937',
+      'blanco': '#FFFFFF',
+      'white': '#FFFFFF',
+      'verde': '#10B981',
+      'green': '#10B981',
+      'amarillo': '#FBBF24',
+      'yellow': '#FBBF24',
+      'naranja': '#F97316',
+      'orange': '#F97316',
+      'gris': '#6B7280',
+      'gray': '#6B7280',
+      'rosa': '#EC4899',
+      'pink': '#EC4899',
+      'púrpura': '#A855F7',
+      'purple': '#A855F7',
+      'marrón': '#8B5A3C',
+      'brown': '#8B5A3C',
+      'plateado': '#C0C0C0',
+      'silver': '#C0C0C0',
+      'dorado': '#FFD700',
+      'gold': '#FFD700',
+      'único': '#6B7280',
+    };
+    const normalized = String(colorName || '').trim().toLowerCase();
+    return colorMap[normalized] || '#9CA3AF'; // Gris por defecto si no coincide
+  };
 
   return (
   <div className="min-h-screen bg-gray-100 p-2 sm:p-4">
@@ -432,6 +478,40 @@ export default function Home() {
                   />
                   
                   <div className="text-xs text-gray-500 mb-2">Categoría: {getCategoriaNombre(p.category_id, categorias)}</div>
+
+                  {/* Mostrar colores disponibles como paleta de círculos */}
+                  {/* Mostrar colores disponibles como paleta de círculos */}
+                  {(() => {
+                    const coloresEnStock = Array.isArray(p.variantes)
+                      ? p.variantes.filter(v => Number(v?.stock || 0) > 0 && v?.color && v.color.toLowerCase().trim() !== 'único' && v.color.toLowerCase().trim() !== 'unico')
+                      : [];
+                    if (coloresEnStock.length <= 1) return null;
+                    return (
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <p className="text-xs text-gray-600 font-medium mb-2">Disponible en color:</p>
+                        <div className="flex gap-2 flex-wrap justify-center">
+                          {coloresEnStock.map((v, vIdx) => {
+                              const hexColor = getColorHex(v.color);
+                              return (
+                                <div
+                                  key={`${p.user_id}-${vIdx}`}
+                                  className="relative group"
+                                  title={`${v.color} (${Number(v.stock || 0)} disponibles)`}
+                                >
+                                  <div
+                                    className="w-6 h-6 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all cursor-pointer shadow-sm hover:shadow-md hover:scale-110"
+                                    style={{ backgroundColor: hexColor }}
+                                  />
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                    {v.color}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             );

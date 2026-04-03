@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useCarrito } from '../../../../hooks/useCarrito';
 import { useCliente } from '../../../../hooks/useCliente';
@@ -54,13 +54,21 @@ export default function NuevaVenta() {
 
   const [modoPago, setModoPago] = React.useState('');
   const [pago, setPago] = React.useState(0);
-  const cambio = pago > 0 ? pago - total : 0;
+  const [cobrarImpuestos, setCobrarImpuestos] = React.useState(false);
+  const tasaImpuestos = 0.16;
+  const [showInsufficientPaymentWarning, setShowInsufficientPaymentWarning] = React.useState(false);
   // campos contables adicionales
   const [envio, setEnvio] = React.useState(0);
   const [comision, setComision] = React.useState(0);
-  const [impuestos, setImpuestos] = React.useState(0);
   const [publicidad, setPublicidad] = React.useState(0);
   const [rebajas, setRebajas] = React.useState(0);
+
+  const totalBaseOperacion = Math.max(0, Number(total) + Number(envio) + Number(comision) - Number(publicidad) - Number(rebajas));
+  const totalConImpuestos = cobrarImpuestos ? (totalBaseOperacion / (1 - tasaImpuestos)) : totalBaseOperacion;
+  const impuestosCalculados = cobrarImpuestos ? (totalConImpuestos - totalBaseOperacion) : 0;
+  const totalCobrar = Number(totalConImpuestos.toFixed(2));
+  const cambio = pago > 0 ? pago - totalCobrar : 0;
+  const pagoInsuficiente = modoPago === 'efectivo' && pago > 0 && pago < totalCobrar;
 
   const printerRef = useRef<TicketPrinterHandle>(null);
   const efectivizarBtnRef = useRef<HTMLButtonElement>(null);
@@ -68,7 +76,7 @@ export default function NuevaVenta() {
   // shortcuts
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key.toLowerCase() === 'b') { e.preventDefault(); document.querySelector<HTMLInputElement>('input[placeholder="Escanea o ingresa código de barra"]')?.focus(); }
+      if (e.ctrlKey && e.key.toLowerCase() === 'b') { e.preventDefault(); document.querySelector<HTMLInputElement>('input[placeholder="Escanea o ingresa cÃ³digo de barra"]')?.focus(); }
       if (e.ctrlKey && e.key.toLowerCase() === 'f') { e.preventDefault(); document.querySelector<HTMLInputElement>('input[placeholder*="Buscar producto"]')?.focus(); }
       if (e.ctrlKey && e.key.toLowerCase() === 'k') { e.preventDefault(); document.querySelector<HTMLInputElement>('input[placeholder*="Carnet"]')?.focus(); }
       if (e.ctrlKey && e.key.toLowerCase() === 'e') { e.preventDefault(); document.querySelector<HTMLButtonElement>('button[aria-label="efectivizar-venta"]')?.click(); }
@@ -89,9 +97,18 @@ export default function NuevaVenta() {
 
   // pago auto
   useEffect(() => {
-    if (modoPago && modoPago !== 'efectivo') setPago(total);
+    if (modoPago && modoPago !== 'efectivo') setPago(totalCobrar);
     if (!modoPago) setPago(0);
-  }, [modoPago, total]);
+  }, [modoPago, totalCobrar]);
+
+  // warning visual si el pago en efectivo es menor al total
+  useEffect(() => {
+    if (pagoInsuficiente) {
+      setShowInsufficientPaymentWarning(true);
+    } else {
+      setShowInsufficientPaymentWarning(false);
+    }
+  }, [pagoInsuficiente]);
 
   const procesarCodigo = useCallback((codigo: string) => {
     const producto = productos.find(p => {
@@ -107,24 +124,24 @@ export default function NuevaVenta() {
 
     agregar(producto);
 
-    // 🔊 sonido
+    // ðŸ”Š sonido
     beepRef.current?.play().catch(() => {});
 
-    // 📳 vibración (si soporta)
+    // ðŸ“³ vibraciÃ³n (si soporta)
     if (navigator.vibrate) navigator.vibrate(80);
 
-    // 💡 animación visual
+    // ðŸ’¡ animaciÃ³n visual
     setScanFeedback(true);
     setTimeout(() => setScanFeedback(false), 200);
   }, [productos, agregar]);
 
-  // detector de scanner real (teclado rápido + ENTER)
+  // detector de scanner real (teclado rÃ¡pido + ENTER)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key;
       const active = document.activeElement as HTMLElement | null;
       const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || active.isContentEditable);
-      const isBarcodeInput = isInput && active instanceof HTMLInputElement && active.placeholder?.includes('Escanea o ingresa código de barra');
+      const isBarcodeInput = isInput && active instanceof HTMLInputElement && active.placeholder?.includes('Escanea o ingresa cÃ³digo de barra');
 
       // ignorar teclas especiales
       if (key === 'Shift' || key === 'Control' || key === 'Alt' || key === 'Meta') return;
@@ -151,7 +168,7 @@ export default function NuevaVenta() {
         return;
       }
 
-      // solo números
+      // solo nÃºmeros
       if (/^[0-9]$/.test(key)) {
         if (isInput && !isBarcodeInput) return; // dejamos escribir cantidades y pagos normales
 
@@ -179,19 +196,20 @@ export default function NuevaVenta() {
 
   // acciones de venta
   const efectivizarVenta = useCallback(async () => {
-    if (carrito.length === 0) return alert('El carrito está vacío');
-    if (!modoPago) return alert('Selecciona un método de pago');
-    if (cliente.requiereFactura && (!cliente.nombre.trim() || !cliente.nit.trim())) return alert('Completa los datos de facturación (nombre y NIT)');
-    if (modoPago === 'efectivo' && pago < total) return alert('El pago recibido es insuficiente');
+    if (carrito.length === 0) return alert('El carrito estÃ¡ vacÃ­o');
+    if (!modoPago) return alert('Selecciona un mÃ©todo de pago');
+    if (cliente.requiereFactura && (!cliente.nombre.trim() || !cliente.nit.trim())) return alert('Completa los datos de facturaciÃ³n (nombre y NIT)');
+    if (modoPago === 'efectivo' && pago < totalCobrar) return alert('El pago recibido es insuficiente');
 
-    // lógica replicada del componente antiguo con service helpers
+    // lÃ³gica replicada del componente antiguo con service helpers
     setEfectivizando(true);
     try {
       // armar objeto de costos extra
       const costos_extra = {
         envio: Number(envio) || 0,
         comision: Number(comision) || 0,
-        impuestos: Number(impuestos) || 0,
+        impuestos: Number(impuestosCalculados.toFixed(2)) || 0,
+        cobrar_impuestos: cobrarImpuestos,
         publicidad: Number(publicidad) || 0,
         rebajas: Number(rebajas) || 0,
         descuento: Number(totalDescuento) || 0
@@ -204,7 +222,7 @@ export default function NuevaVenta() {
         cliente_nit: cliente.nit,
         requiere_factura: cliente.requiereFactura,
         modo_pago: modoPago,
-        total,
+        total: totalCobrar,
         pago,
         cambio,
         descuentos: totalDescuento,
@@ -222,7 +240,7 @@ export default function NuevaVenta() {
               producto_id: null,
               cantidad,
               precio_unitario: pack.precio_pack,
-              descripcion: `📦 Pack: ${pack.nombre}`,
+              descripcion: `ðŸ“¦ Pack: ${pack.nombre}`,
               tipo: 'pack',
               pack_id: pack.id
             });
@@ -249,16 +267,22 @@ export default function NuevaVenta() {
         requiere_factura: cliente.requiereFactura,
         subtotal,
         descuento: totalDescuento,
-        total,
+        total: totalCobrar,
+        envio,
+        comision,
+        publicidad,
+        rebajas,
+        impuestos: Number(impuestosCalculados.toFixed(2)),
+        cobrar_impuestos: cobrarImpuestos,
         pago,
         cambio
       };
       printerRef.current?.printComprobante();
-      // limpieza de carrito y cliente después de impresión
+      // limpieza de carrito y cliente despuÃ©s de impresiÃ³n
       setCarrito([]);
       setPago(0);
       // reset costos
-      setEnvio(0); setComision(0); setImpuestos(0); setPublicidad(0); setRebajas(0);
+      setEnvio(0); setComision(0); setPublicidad(0); setRebajas(0); setCobrarImpuestos(false);
       cambiarCampo('nombre',''); cambiarCampo('carnet',''); cambiarCampo('telefono',''); cambiarCampo('email',''); cambiarCampo('nit',''); cambiarCampo('guardado',false); cambiarCampo('requiereFactura',false);
       setEfectivizando(false);
       alert('Venta efectivizada y stock actualizado');
@@ -267,7 +291,7 @@ export default function NuevaVenta() {
       alert('Error al crear venta: ' + errorMessage);
       setEfectivizando(false);
     }
-  }, [carrito, cliente, modoPago, pago, cambio, total, subtotal, totalDescuento, packs, setCarrito, cambiarCampo]);
+  }, [carrito, cliente, modoPago, pago, cambio, totalCobrar, subtotal, totalDescuento, packs, setCarrito, cambiarCampo, envio, comision, publicidad, rebajas, impuestosCalculados, cobrarImpuestos]);
 
   // ...continued building UI mostly replicates previous layout using components
 
@@ -281,21 +305,23 @@ export default function NuevaVenta() {
               <span className="font-bold text-gray-900 text-lg">Resumen de la venta</span>
               <span className="text-gray-900">Subtotal: <span className="font-bold">Bs {subtotal.toFixed(2)}</span></span>
               {totalDescuento > 0 && <span className="text-green-700">Descuentos: -Bs {totalDescuento.toFixed(2)}</span>}
-              <span className="text-2xl font-extrabold text-gray-900">Total: Bs {total.toFixed(2)}</span>
+              <span className="text-gray-900">Base operativa: <span className="font-bold">Bs {totalBaseOperacion.toFixed(2)}</span></span>
+              {cobrarImpuestos && <span className="text-amber-700">IVA+IT (16%): +Bs {impuestosCalculados.toFixed(2)}</span>}
+              <span className="text-2xl font-extrabold text-gray-900">Total a cobrar: Bs {totalCobrar.toFixed(2)}</span>
             </div>
             {/* costos adicionales configurables por admin */}
             <div className="mt-4 grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-gray-700">Envío</label>
+                <label className="block text-gray-700">EnvÃ­o</label>
                 <input type="number" step="0.01" min="0" value={envio} onChange={e=>setEnvio(Number(e.target.value))} className="w-full border p-2 rounded" />
               </div>
               <div>
-                <label className="block text-gray-700">Comisión</label>
+                <label className="block text-gray-700">ComisiÃ³n</label>
                 <input type="number" step="0.01" min="0" value={comision} onChange={e=>setComision(Number(e.target.value))} className="w-full border p-2 rounded" />
               </div>
               <div>
                 <label className="block text-gray-700">Impuestos</label>
-                <input type="number" step="0.01" min="0" value={impuestos} onChange={e=>setImpuestos(Number(e.target.value))} className="w-full border p-2 rounded" />
+                <input type="number" step="0.01" min="0" value={Number(impuestosCalculados.toFixed(2))} readOnly className="w-full border p-2 rounded bg-gray-100" />
               </div>
               <div>
                 <label className="block text-gray-700">Publicidad</label>
@@ -306,6 +332,15 @@ export default function NuevaVenta() {
                 <input type="number" step="0.01" min="0" value={rebajas} onChange={e=>setRebajas(Number(e.target.value))} className="w-full border p-2 rounded" />
               </div>
             </div>
+            <label className="inline-flex items-center gap-2 text-sm font-semibold text-gray-800">
+              <input
+                type="checkbox"
+                checked={cobrarImpuestos}
+                onChange={(e) => setCobrarImpuestos(e.target.checked)}
+                className="w-4 h-4"
+              />
+              Cobrar IVA + IT (16% sobre precio final)
+            </label>
             {modoPago === 'efectivo' && (
               <div className="flex flex-col gap-2 mt-2">
                 <label className="text-gray-900 font-bold">Pago recibido:</label>
@@ -323,8 +358,9 @@ export default function NuevaVenta() {
             )}
             {modoPago && (
               <button
-                className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded-lg text-lg print:hidden mt-2"
+                className="w-full bg-blue-700 hover:bg-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-2 rounded-lg text-lg print:hidden mt-2"
                 onClick={() => printerRef.current?.printComprobante()}
+                disabled={pagoInsuficiente}
               >
                 {cliente.requiereFactura ? 'Imprimir factura' : 'Imprimir comprobante'}
               </button>
@@ -390,12 +426,19 @@ export default function NuevaVenta() {
             promociones={promociones}
           />
 
+          {showInsufficientPaymentWarning && (
+            <div className="mt-4 p-4 rounded-lg border border-red-300 bg-red-50">
+              <p className="text-red-800 font-bold">El pago recibido es insuficiente</p>
+              <p className="text-red-700 text-sm">Faltan: Bs {(totalCobrar - pago).toFixed(2)}</p>
+            </div>
+          )}
+
           <button
             ref={efectivizarBtnRef}
             aria-label="efectivizar-venta"
             onClick={efectivizarVenta}
             className="mt-4 w-full bg-black hover:bg-gray-900 text-white font-bold py-3 rounded-lg text-lg disabled:opacity-60"
-            disabled={efectivizando}
+            disabled={efectivizando || showInsufficientPaymentWarning}
           >
             {efectivizando ? "Procesando..." : "Efectivizar venta"}
           </button>
@@ -411,7 +454,7 @@ export default function NuevaVenta() {
         <>
           <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-50">
             <div className="bg-green-500/90 text-white px-6 py-3 rounded-xl text-xl font-bold shadow-2xl animate-pulse">
-              ✔ Producto agregado
+              âœ” Producto agregado
             </div>
           </div>
           <div className="fixed inset-0 bg-green-400/20 z-40 pointer-events-none" />
@@ -427,7 +470,13 @@ export default function NuevaVenta() {
         requiereFactura={cliente.requiereFactura}
         subtotal={subtotal}
         totalDescuento={totalDescuento}
-        total={total}
+        total={totalCobrar}
+        envio={envio}
+        comision={comision}
+        publicidad={publicidad}
+        rebajas={rebajas}
+        impuestos={Number(impuestosCalculados.toFixed(2))}
+        cobrarImpuestos={cobrarImpuestos}
         pago={pago}
         cambio={cambio}
         ultimoTicket={undefined}
@@ -436,3 +485,5 @@ export default function NuevaVenta() {
     </div>
   );
 }
+
+

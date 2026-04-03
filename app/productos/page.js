@@ -96,14 +96,21 @@ export default function CatalogoPage() {
         const fetchProductosYCategoriasYImagenes = async () => {
             // Traer productos
             const { data: productosData, error: productosError } = await supabase
-                .from('productos')
-                .select('*');
+                .from('v_productos_catalogo')
+                .select('producto_id, nombre, descripcion, precio_base, imagen_base, category_id, categoria, stock_total, codigo_barra, variantes');
             if (productosError || !productosData) {
                 setProductos([]);
                 setImagenesProductos({});
                 return;
             }
-            setProductos(productosData);
+            const normalizedProducts = productosData.map((p) => ({
+                ...p,
+                user_id: p.producto_id,
+                precio: Number(p.precio_base || 0),
+                stock: Number(p.stock_total || 0),
+                variantes: Array.isArray(p.variantes) ? p.variantes : []
+            }));
+            setProductos(normalizedProducts);
 
             // Traer categorías
             const { data: categoriasData, error: categoriasError } = await supabase
@@ -176,18 +183,70 @@ export default function CatalogoPage() {
         return Math.max(0, precioFinal);
     };
 
-    // Buscar producto en el carrito por id
-    const getProductInCart = (user_id) => cart.find(p => p.user_id === user_id);
+    const getCartKey = (producto) => `prod:${String(producto.user_id)}:${String(producto.variante_id ?? 'default')}`;
+
+    // Buscar producto en el carrito por id y variante
+    const getProductInCart = (producto) => {
+        const key = getCartKey(producto);
+        return cart.find((p) => (p.cart_key || getCartKey(p)) === key);
+    };
+
+    const seleccionarVariante = (producto) => {
+        const variantes = Array.isArray(producto.variantes)
+            ? producto.variantes.filter(v => Number(v?.stock || 0) > 0)
+            : [];
+
+        if (variantes.length === 0) {
+            return {
+                variante_id: null,
+                color: null,
+                precio: Number(producto.precio || 0)
+            };
+        }
+
+        if (variantes.length === 1) {
+            const v = variantes[0];
+            return {
+                variante_id: v.variante_id ?? v.id,
+                color: v.color || null,
+                precio: Number(v.precio ?? producto.precio ?? 0)
+            };
+        }
+
+        const opciones = variantes
+            .map((v, idx) => `${idx + 1}. ${v.color || 'Sin color'} (stock: ${Number(v.stock || 0)})`)
+            .join('\n');
+        const selected = window.prompt(`Selecciona color para ${producto.nombre}:\n${opciones}\n\nEscribe el número:`);
+        const index = Number(selected) - 1;
+        if (Number.isNaN(index) || index < 0 || index >= variantes.length) return null;
+        const v = variantes[index];
+        return {
+            variante_id: v.variante_id ?? v.id,
+            color: v.color || null,
+            precio: Number(v.precio ?? producto.precio ?? 0)
+        };
+    };
 
     // Añadir producto al carrito (por id)
     const addToCart = (producto) => {
-        const precioFinal = getPrecioFinal(producto);
+        const varianteSeleccionada = seleccionarVariante(producto);
+        if (varianteSeleccionada === null) return;
+
+        const productoConVariante = {
+            ...producto,
+            variante_id: varianteSeleccionada.variante_id,
+            color: varianteSeleccionada.color,
+            precio: varianteSeleccionada.precio
+        };
+
+        const precioFinal = getPrecioFinal(productoConVariante);
+        const cartKey = getCartKey(productoConVariante);
         
         // 📊 Track Facebook Pixel - Add to Cart
         trackAddToCart(producto.user_id.toString(), precioFinal);
         
         setCart(prev => {
-            const idx = prev.findIndex(p => p.user_id === producto.user_id);
+            const idx = prev.findIndex(p => (p.cart_key || getCartKey(p)) === cartKey);
             if (idx !== -1) {
                 // Producto ya en el carrito: Aumentar cantidad
                 const updated = [...prev];
@@ -195,24 +254,24 @@ export default function CatalogoPage() {
                 return updated;
             } else {
                 // Producto nuevo: Añadir al carrito con cantidad 1 y precio promocional
-                return [...prev, { ...producto, cantidad: 1, precio: precioFinal }];
+                return [...prev, { ...productoConVariante, cart_key: cartKey, cantidad: 1, precio: precioFinal }];
             }
         });
     };
 
     // Cambiar cantidad de producto en el carrito (por id)
-    const updateCartQty = (user_id, newQty) => {
+    const updateCartQty = (itemKey, newQty) => {
         const quantity = Math.max(1, newQty); // Asegura que la cantidad sea al menos 1
         setCart(prev =>
             prev.map(item =>
-                item.user_id === user_id ? { ...item, cantidad: quantity } : item
+                (item.cart_key || getCartKey(item)) === itemKey ? { ...item, cantidad: quantity } : item
             )
         );
     };
 
     // Eliminar producto del carrito (por id)
-    const removeFromCart = (user_id) => {
-        setCart(prev => prev.filter(item => item.user_id !== user_id));
+    const removeFromCart = (itemKey) => {
+        setCart(prev => prev.filter(item => (item.cart_key || getCartKey(item)) !== itemKey));
     };
 
     // --- Función para abrir confirmación de pedido ---
@@ -254,7 +313,13 @@ export default function CatalogoPage() {
                 cliente_telefono: nitciLlenado || null, // Usar NIT/CI en lugar de teléfono
                 usuario_id: usuario ? usuario.id : null,
                 usuario_email: emailFinal || null,
-                productos: cart.map(p => ({ producto_id: p.user_id, cantidad: p.cantidad, precio_unitario: p.precio })),
+                productos: cart.map(p => ({
+                    producto_id: p.user_id,
+                    variante_id: p.variante_id || null,
+                    color: p.color || null,
+                    cantidad: p.cantidad,
+                    precio_unitario: p.precio
+                })),
             }
         ]).select('id').single();
         
@@ -305,6 +370,41 @@ export default function CatalogoPage() {
         
         // Mensaje de éxito
         alert("¡Pedido enviado exitosamente! Se ha abierto WhatsApp para completar tu pedido.");
+    };
+
+    // Función para mapear nombres de colores a códigos hexadecimales
+    const getColorHex = (colorName) => {
+        const colorMap = {
+            'rojo': '#EF4444',
+            'red': '#EF4444',
+            'azul': '#3B82F6',
+            'blue': '#3B82F6',
+            'negro': '#1F2937',
+            'black': '#1F2937',
+            'blanco': '#FFFFFF',
+            'white': '#FFFFFF',
+            'verde': '#10B981',
+            'green': '#10B981',
+            'amarillo': '#FBBF24',
+            'yellow': '#FBBF24',
+            'naranja': '#F97316',
+            'orange': '#F97316',
+            'gris': '#6B7280',
+            'gray': '#6B7280',
+            'rosa': '#EC4899',
+            'pink': '#EC4899',
+            'púrpura': '#A855F7',
+            'purple': '#A855F7',
+            'marrón': '#8B5A3C',
+            'brown': '#8B5A3C',
+            'plateado': '#C0C0C0',
+            'silver': '#C0C0C0',
+            'dorado': '#FFD700',
+            'gold': '#FFD700',
+            'único': '#6B7280',
+        };
+        const normalized = String(colorName || '').trim().toLowerCase();
+        return colorMap[normalized] || '#9CA3AF'; // Gris por defecto si no coincide
     };
 
     // --- Renderizado ---
@@ -486,7 +586,7 @@ export default function CatalogoPage() {
                         console.log('📦 Productos filtrados:', productosFiltrados.length, 'de', productos.length);
                         
                         return productosFiltrados.map((producto, idx) => {
-                            const isInCart = getProductInCart(producto.user_id);
+                            const isInCart = getProductInCart(producto);
                             const imagenes = imagenesProductos[producto.user_id] || [];
                             // Definir la variable categoria justo antes del return
                             const categoria = Array.isArray(categorias) ? categorias.find(c => c.id === producto.category_id) : null;
@@ -537,6 +637,39 @@ export default function CatalogoPage() {
                                             promociones={promociones}
                                             className="mb-1"
                                         />
+                                        {/* Mostrar colores disponibles como paleta de círculos */}
+                                        {/* Mostrar colores disponibles como paleta de círculos */}
+                                        {(() => {
+                                            const coloresEnStock = Array.isArray(producto.variantes)
+                                              ? producto.variantes.filter(v => Number(v?.stock || 0) > 0 && v?.color && v.color.toLowerCase().trim() !== 'único' && v.color.toLowerCase().trim() !== 'unico')
+                                              : [];
+                                            if (coloresEnStock.length <= 1) return null;
+                                            return (
+                                              <div className="mt-2">
+                                                  <p className="text-xs text-gray-600 font-medium mb-1.5">Disponible en color:</p>
+                                                  <div className="flex gap-1.5 flex-wrap">
+                                                      {coloresEnStock.map((v, vIdx) => {
+                                                              const hexColor = getColorHex(v.color);
+                                                              return (
+                                                                  <div
+                                                                      key={`${producto.user_id}-${vIdx}`}
+                                                                      className="relative group"
+                                                                      title={`${v.color} (${Number(v.stock || 0)} disponibles)`}
+                                                                  >
+                                                                      <div
+                                                                          className="w-5 h-5 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all cursor-pointer shadow-sm hover:shadow-md hover:scale-110"
+                                                                          style={{ backgroundColor: hexColor }}
+                                                                      />
+                                                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                                                          {v.color}
+                                                                      </div>
+                                                                  </div>
+                                                              );
+                                                          })}
+                                                  </div>
+                                              </div>
+                                            );
+                                        })()}
                                         
                                         {/* Stock eliminado por requerimiento */}
                                     </div>
@@ -649,8 +782,10 @@ export default function CatalogoPage() {
                         <>
                             <ul className="divide-y divide-gray-200 max-h-60 overflow-y-auto mb-4">
                                 {cart.length > 0 ? (
-                                    cart.map(item => (
-                                        <li key={item.user_id} className={`flex items-center py-2 gap-2 rounded-lg mb-2 shadow-sm ${
+                                    cart.map(item => {
+                                        const itemKey = item.cart_key || getCartKey(item);
+                                        return (
+                                        <li key={itemKey} className={`flex items-center py-2 gap-2 rounded-lg mb-2 shadow-sm ${
                                             item.tipo === 'pack' 
                                                 ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200' 
                                                 : 'bg-gradient-to-r from-green-50 to-blue-50'
@@ -683,6 +818,9 @@ export default function CatalogoPage() {
                                                 }`}>
                                                     {item.tipo === 'pack' ? `📦 ${item.nombre}` : item.nombre}
                                                 </div>
+                                                {item.color && (
+                                                    <div className="text-xs text-blue-700 font-semibold">Color: {item.color}</div>
+                                                )}
                                                 {item.tipo === 'pack' && item.pack_data && (
                                                     <div className="text-xs text-purple-600 truncate">
                                                         {item.pack_data.pack_productos?.map(p => 
@@ -720,7 +858,7 @@ export default function CatalogoPage() {
                                                 type="number"
                                                 min={1}
                                                 value={item.cantidad}
-                                                onChange={e => updateCartQty(item.user_id, parseInt(e.target.value) || 1)}
+                                                onChange={e => updateCartQty(itemKey, parseInt(e.target.value) || 1)}
                                                 className={`w-12 border-2 rounded px-1 py-0.5 text-center text-sm font-semibold bg-white focus:ring-blue-500 ${
                                                     item.tipo === 'pack' 
                                                         ? 'border-purple-400 text-purple-800 focus:border-purple-500' 
@@ -731,13 +869,13 @@ export default function CatalogoPage() {
                                             {/* Botón eliminar */}
                                             <button
                                                 className="ml-2 text-white bg-red-600 hover:bg-red-700 rounded-full w-6 h-6 flex items-center justify-center text-base font-bold shadow transition"
-                                                onClick={() => removeFromCart(item.user_id)}
+                                                onClick={() => removeFromCart(itemKey)}
                                                 title="Quitar"
                                             >
                                                 ×
                                             </button>
                                         </li>
-                                    ))
+                                    )})
                                 ) : null}
                             </ul>
                             <div className="flex justify-between items-center mb-3 pt-2 border-t-2 border-green-600 font-extrabold">

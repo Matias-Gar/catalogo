@@ -11,7 +11,7 @@ export default function PromocionesProductosPage() {
   const [promociones, setPromociones] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editandoPromo, setEditandoPromo] = useState(null);
-  const [nuevoPromo, setNuevoPromo] = useState({
+  const [promoDraft, setPromoDraft] = useState({
     producto_id: "",
     tipo: "",
     valor: "",
@@ -41,7 +41,8 @@ export default function PromocionesProductosPage() {
           precio, 
           stock, 
           categoria,
-          descripcion
+          descripcion,
+          codigo_barra
         `)
         .order('nombre');
 
@@ -81,13 +82,20 @@ export default function PromocionesProductosPage() {
 
   // Filtrar productos en tiempo real
   const productosFiltrados = productos.filter(producto => {
-    // Búsqueda por nombre - coincidencia desde el inicio o contenida
-    const nombreProducto = producto.nombre.toLowerCase();
+    // Búsqueda por nombre o código de barra (startsWith / includes)
+    const nombreProducto = (producto.nombre ?? '').toString().toLowerCase();
+    const codigoBarra = (producto.codigo_barra ?? '').toString().toLowerCase();
     const textoBusqueda = busqueda.toLowerCase().trim();
     
-    const matchBusqueda = textoBusqueda === '' || 
+    const matchNombre = textoBusqueda === '' || 
       nombreProducto.startsWith(textoBusqueda) || 
       nombreProducto.includes(textoBusqueda);
+
+    const matchCodigoBarra = textoBusqueda === '' || 
+      codigoBarra.startsWith(textoBusqueda) || 
+      codigoBarra.includes(textoBusqueda);
+
+    const matchBusqueda = matchNombre || matchCodigoBarra;
     
     const matchCategoria = !filtroCategoria || producto.categoria === filtroCategoria;
     const matchStock = !filtroStock || 
@@ -109,7 +117,7 @@ export default function PromocionesProductosPage() {
 
   // Crear nueva promoción
   const crearPromocion = async () => {
-    if (!nuevoPromo.producto_id || !nuevoPromo.tipo || !nuevoPromo.valor) {
+    if (!promoDraft.producto_id || !promoDraft.tipo || !promoDraft.valor) {
       alert("Por favor completa todos los campos obligatorios");
       return;
     }
@@ -117,18 +125,18 @@ export default function PromocionesProductosPage() {
     setLoading(true);
     try {
       const { error } = await supabase.from("promociones").insert([{
-        producto_id: nuevoPromo.producto_id,
-        tipo: nuevoPromo.tipo,
-        valor: parseFloat(nuevoPromo.valor),
-        descripcion: nuevoPromo.descripcion,
-        fecha_inicio: nuevoPromo.fecha_inicio || new Date().toISOString().split('T')[0],
-        fecha_fin: nuevoPromo.fecha_fin || null,
-        activa: nuevoPromo.activa
+        producto_id: promoDraft.producto_id,
+        tipo: promoDraft.tipo,
+        valor: parseFloat(promoDraft.valor),
+        descripcion: promoDraft.descripcion,
+        fecha_inicio: promoDraft.fecha_inicio || new Date().toISOString().split('T')[0],
+        fecha_fin: promoDraft.fecha_fin || null,
+        activa: promoDraft.activa
       }]);
 
       if (error) throw error;
 
-      setNuevoPromo({
+      setPromoDraft({
         producto_id: "",
         tipo: "",
         valor: "",
@@ -336,116 +344,6 @@ export default function PromocionesProductosPage() {
           </CardContent>
         </Card>
 
-        {/* Formulario para nueva promoción */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Crear Nueva Promoción</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-black mb-2">
-                  Producto *
-                </label>
-                <select
-                  className="w-full p-2 border border-gray-400 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black font-medium"
-                  value={nuevoPromo.producto_id}
-                  onChange={(e) => setNuevoPromo({...nuevoPromo, producto_id: e.target.value})}
-                >
-                  <option value="">Seleccionar producto</option>
-                  {productos.map(producto => (
-                    <option key={producto.user_id} value={producto.user_id}>
-                      {producto.nombre} (Stock: {producto.stock})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-black mb-2">
-                  Tipo *
-                </label>
-                <select
-                  className="w-full p-2 border border-gray-400 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black font-medium"
-                  value={nuevoPromo.tipo}
-                  onChange={(e) => setNuevoPromo({...nuevoPromo, tipo: e.target.value})}
-                >
-                  <option value="">Seleccionar tipo</option>
-                  <option value="descuento">Descuento (%)</option>
-                  <option value="precio_fijo">Precio fijo</option>
-                  <option value="descuento_absoluto">Descuento absoluto (Bs)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-black mb-2">
-                  Valor *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder={
-                    nuevoPromo.tipo === 'descuento' ? "Ej: 20 (20%)" :
-                    nuevoPromo.tipo === 'precio_fijo' ? "Ej: 50.00" :
-                    nuevoPromo.tipo === 'descuento_absoluto' ? "Ej: 10.00" :
-                    "Valor"
-                  }
-                  className="w-full p-2 border border-gray-400 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black font-medium"
-                  value={nuevoPromo.valor}
-                  onChange={(e) => setNuevoPromo({...nuevoPromo, valor: e.target.value})}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-black mb-2">
-                  Fecha inicio
-                </label>
-                <input
-                  type="date"
-                  className="w-full p-2 border border-gray-400 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black font-medium"
-                  value={nuevoPromo.fecha_inicio}
-                  onChange={(e) => setNuevoPromo({...nuevoPromo, fecha_inicio: e.target.value})}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-black mb-2">
-                  Fecha fin
-                </label>
-                <input
-                  type="date"
-                  className="w-full p-2 border border-gray-400 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black font-medium"
-                  value={nuevoPromo.fecha_fin}
-                  onChange={(e) => setNuevoPromo({...nuevoPromo, fecha_fin: e.target.value})}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-black mb-2">
-                  Descripción
-                </label>
-                <input
-                  type="text"
-                  placeholder="Descripción opcional"
-                  className="w-full p-2 border border-gray-400 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black font-medium"
-                  value={nuevoPromo.descripcion}
-                  onChange={(e) => setNuevoPromo({...nuevoPromo, descripcion: e.target.value})}
-                />
-              </div>
-
-              <div className="flex items-end">
-                <Button 
-                  onClick={crearPromocion} 
-                  disabled={loading || !nuevoPromo.producto_id || !nuevoPromo.tipo || !nuevoPromo.valor}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  ➕ Crear Promoción
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Tabla de productos */}
         <Card>
           <CardHeader>
@@ -481,6 +379,9 @@ export default function PromocionesProductosPage() {
                       </th>
                       <th className="border border-gray-400 px-4 py-3 text-left font-bold text-black">
                         Categoría
+                      </th>
+                      <th className="border border-gray-400 px-4 py-3 text-left font-bold text-black">
+                        Código de Barra
                       </th>
                       <th className="border border-gray-400 px-4 py-3 text-left font-bold text-black">
                         Precio Base
@@ -524,6 +425,11 @@ export default function PromocionesProductosPage() {
                           <td className="border border-gray-400 px-4 py-3">
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-blue-200 text-blue-900">
                               {producto.categoria || 'Sin categoría'}
+                            </span>
+                          </td>
+                          <td className="border border-gray-400 px-4 py-3">
+                            <span className="text-sm text-gray-700 font-medium">
+                              {producto.codigo_barra || '—'}
                             </span>
                           </td>
                           <td className="border border-gray-400 px-4 py-3">
@@ -595,14 +501,88 @@ export default function PromocionesProductosPage() {
                             )}
                           </td>
                           <td className="border border-gray-400 px-4 py-3">
-                            <Button
-                              onClick={() => setNuevoPromo({...nuevoPromo, producto_id: producto.user_id})}
-                              size="sm"
-                              variant="outline"
-                              className="text-xs font-bold"
-                            >
-                              + Promoción
-                            </Button>
+                            {promoDraft.producto_id === producto.user_id ? (
+                              <div className="space-y-2">
+                                <select
+                                  className="w-full p-1 border border-gray-300 rounded-md text-xs"
+                                  value={promoDraft.tipo}
+                                  onChange={(e) => setPromoDraft({...promoDraft, tipo: e.target.value})}
+                                >
+                                  <option value="">Tipo</option>
+                                  <option value="descuento">Descuento (%)</option>
+                                  <option value="precio_fijo">Precio fijo</option>
+                                  <option value="descuento_absoluto">Descuento Bs</option>
+                                </select>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="Valor"
+                                  className="w-full p-1 border border-gray-300 rounded-md text-xs"
+                                  value={promoDraft.valor}
+                                  onChange={(e) => setPromoDraft({...promoDraft, valor: e.target.value})}
+                                />
+                                <input
+                                  type="date"
+                                  className="w-full p-1 border border-gray-300 rounded-md text-xs"
+                                  value={promoDraft.fecha_inicio}
+                                  onChange={(e) => setPromoDraft({...promoDraft, fecha_inicio: e.target.value})}
+                                />
+                                <input
+                                  type="date"
+                                  className="w-full p-1 border border-gray-300 rounded-md text-xs"
+                                  value={promoDraft.fecha_fin}
+                                  onChange={(e) => setPromoDraft({...promoDraft, fecha_fin: e.target.value})}
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Descripción"
+                                  className="w-full p-1 border border-gray-300 rounded-md text-xs"
+                                  value={promoDraft.descripcion}
+                                  onChange={(e) => setPromoDraft({...promoDraft, descripcion: e.target.value})}
+                                />
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={crearPromocion}
+                                    disabled={loading || !promoDraft.tipo || !promoDraft.valor}
+                                  >
+                                    Guardar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setPromoDraft({
+                                      producto_id: "",
+                                      tipo: "",
+                                      valor: "",
+                                      descripcion: "",
+                                      fecha_inicio: "",
+                                      fecha_fin: "",
+                                      activa: true
+                                    })}
+                                  >
+                                    Cancelar
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-xs font-bold"
+                                onClick={() => setPromoDraft({
+                                  producto_id: producto.user_id,
+                                  tipo: "",
+                                  valor: "",
+                                  descripcion: "",
+                                  fecha_inicio: "",
+                                  fecha_fin: "",
+                                  activa: true
+                                })}
+                              >
+                                + Promoción
+                              </Button>
+                            )}
                           </td>
                         </tr>
                       );

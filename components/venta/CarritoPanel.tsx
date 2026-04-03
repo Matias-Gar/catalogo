@@ -58,9 +58,10 @@ export default function CarritoPanel({
                 if (item.tipo === 'pack') {
                   const pack = item.pack_data || packs.find((p) => p.id === item.pack_id);
                   if (!pack) return null;
+                  const packKey = item.cart_key || `pack:${String(item.pack_id ?? item.user_id)}`;
                   const { descuentoPorcentaje, descuentoAbsoluto } = calcularDescuentoPack(pack);
                   return (
-                    <tr key={`pack-${item.pack_id}`} className="bg-purple-50 border-2 border-purple-200">
+                    <tr key={packKey} className="bg-purple-50 border-2 border-purple-200">
                       <td className="p-2 text-center align-middle">
                         <div className="h-14 w-14 mx-auto bg-purple-100 rounded-lg border-2 border-purple-300 flex items-center justify-center shadow-sm">
                           <span className="text-2xl">📦</span>
@@ -80,7 +81,7 @@ export default function CarritoPanel({
                           type="number"
                           min={1}
                           value={item.cantidad}
-                          onChange={e => cambiarCantidad(item.user_id, Number(e.target.value))}
+                          onChange={e => cambiarCantidad(packKey, Number(e.target.value))}
                           className="w-16 border border-gray-900 rounded px-2 py-1 text-gray-900"
                         />
                       </td>
@@ -100,15 +101,16 @@ export default function CarritoPanel({
                         Bs {(pack.precio_pack * item.cantidad).toFixed(2)}
                       </td>
                       <td className="p-2">
-                        <button onClick={() => quitar(item.user_id)} className="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded font-bold">Quitar</button>
+                        <button onClick={() => quitar(packKey)} className="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded font-bold">Quitar</button>
                       </td>
                     </tr>
                   );
                 }
                 const descuento = item.nombre && item.nombre.toLowerCase().includes('promo') ? 0.1 : 0;
                 const precioInfo = calcularPrecioConPromocion(item, promociones);
+                const itemKey = item.cart_key || `prod:${String(item.user_id)}:${String(item.variante_id ?? 'default')}`;
                 return (
-                  <tr key={item.user_id}>
+                  <tr key={itemKey}>
                     <td className="p-2 text-center align-middle">
                       {imagenes[item.user_id]?.[0] ? (
                         <Image 
@@ -124,14 +126,15 @@ export default function CarritoPanel({
                       )}
                     </td>
                     <td className="p-2 text-left font-bold text-gray-900">
-                      {item.nombre}
+                      <div>{item.nombre}</div>
+                      {item.color && <div className="text-xs font-semibold text-blue-700">Color: {item.color}</div>}
                     </td>
                     <td className="p-2">
                       <input
                         type="number"
                         min={1}
                         value={item.cantidad}
-                        onChange={e => cambiarCantidad(item.user_id, Number(e.target.value))}
+                        onChange={e => cambiarCantidad(itemKey, Number(e.target.value))}
                         className="w-16 border border-gray-900 rounded px-2 py-1 text-gray-900"
                       />
                     </td>
@@ -158,7 +161,7 @@ export default function CarritoPanel({
                     </td>
                     <td className="p-2">
                       <button 
-                        onClick={() => quitar(item.user_id)} 
+                        onClick={() => quitar(itemKey)} 
                         className="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded font-bold"
                       >
                         Quitar

@@ -4,10 +4,21 @@ import { usePacks, calcularDescuentoPack } from '../lib/packs';
 
 export interface Producto {
   user_id: string;
+  variante_id?: string | number;
+  color?: string;
+  cart_key?: string;
+  variantes?: Array<{
+    variante_id?: string | number;
+    id?: string | number;
+    color?: string;
+    stock?: number;
+    precio?: number;
+  }>;
   codigo_barra?: string;
   codigo?: string;
   nombre: string;
   precio: number;
+  precio_original?: number;
   cantidad?: number;
   tipo?: 'pack' | 'producto';
   pack_id?: string | number;
@@ -32,9 +43,18 @@ export interface Pack {
   pack_productos?: PackProduct[];
 }
 
+export interface PromocionAplicada {
+  tipo?: string;
+  valor?: number;
+  descripcion?: string;
+}
+
 export interface CartItem extends Producto {
   cantidad: number;
   precio: number;
+  precio_original?: number;
+  descuento_item?: number;
+  promocion_aplicada?: PromocionAplicada | null;
   pack_id?: string | number;
   pack_data?: Pack;
   descuento_pack?: number;
@@ -42,10 +62,31 @@ export interface CartItem extends Producto {
   categoria?: string;
 }
 
+const getItemKey = (item: { tipo?: 'pack' | 'producto'; user_id?: string | number; variante_id?: string | number; cart_key?: string; pack_id?: string | number }) => {
+  if (item.cart_key) return item.cart_key;
+  if (item.tipo === 'pack') return `pack:${String(item.pack_id ?? item.user_id ?? '')}`;
+  return `prod:${String(item.user_id ?? '')}:${String(item.variante_id ?? 'default')}`;
+};
+
 // Este hook centraliza todo lo relacionado al carrito: estado, operaciones y totales.
 export function useCarrito(promociones: unknown[]) {
   const { packs, loading: loadingPacks } = usePacks() as { packs: Pack[]; loading: boolean; };
   const [carrito, setCarrito] = useState<CartItem[]>([]);
+
+  // recalculate cart if promociones change (fixed new promo detect)
+  useEffect(() => {
+    setCarrito(prev => prev.map(item => {
+      if (item.tipo === 'pack') return item;
+      const precioInfo = calcularPrecioConPromocion(item, promociones);
+      return {
+        ...item,
+        precio: precioInfo.precioFinal,
+        precio_original: precioInfo.precioOriginal,
+        descuento_item: precioInfo.descuento,
+        promocion_aplicada: precioInfo.promocion
+      };
+    }));
+  }, [promociones]);
 
   // cargar/guardar localstorage
   useEffect(() => {
@@ -63,14 +104,32 @@ export function useCarrito(promociones: unknown[]) {
   }, [carrito]);
 
   const agregar = useCallback((prod: Producto) => {
-    const precioInfo = calcularPrecioConPromocion(prod, promociones);
+    const basePrice = Number(prod.precio_original ?? prod.precio ?? 0);
+    const prodBase = { ...prod, precio: basePrice, precio_original: basePrice };
+    const precioInfo = calcularPrecioConPromocion(prodBase, promociones);
     const precioFinal = precioInfo.precioFinal;
+
     setCarrito(prev => {
-      const existe = prev.find(p => p.user_id === prod.user_id);
+      const cartKey = getItemKey(prod);
+      const existe = prev.find(p => getItemKey(p) === cartKey);
       if (existe) {
-        return prev.map(p => p.user_id === prod.user_id ? { ...p, cantidad: p.cantidad + 1 } : p);
+        return prev.map(p => getItemKey(p) === cartKey ? {
+          ...p,
+          cantidad: p.cantidad + 1,
+          precio: precioFinal,
+          precio_original: precioInfo.precioOriginal,
+          descuento_item: precioInfo.descuento,
+          promocion_aplicada: precioInfo.promocion
+        } : p);
       }
-      return [...prev, { ...prod, cantidad: 1, precio: precioFinal }];
+      return [...prev, {
+        ...prodBase,
+        cart_key: cartKey,
+        cantidad: 1,
+        precio: precioFinal,
+        descuento_item: precioInfo.descuento,
+        promocion_aplicada: precioInfo.promocion
+      }];
     });
   }, [promociones]);
 
@@ -78,6 +137,7 @@ export function useCarrito(promociones: unknown[]) {
     const { precioIndividual, descuentoAbsoluto } = calcularDescuentoPack(pack);
     const itemPack: CartItem = {
       user_id: `pack-${pack.id}`,
+      cart_key: `pack:${String(pack.id)}`,
       nombre: `📦 ${pack.nombre}`,
       precio: pack.precio_pack,
       stock: 999,
@@ -89,20 +149,22 @@ export function useCarrito(promociones: unknown[]) {
       descuento_pack: descuentoAbsoluto
     };
     setCarrito(prev => {
-      const existe = prev.find(p => p.user_id === itemPack.user_id);
+      const existe = prev.find(p => getItemKey(p) === itemPack.cart_key);
       if (existe) {
-        return prev.map(p => p.user_id === itemPack.user_id ? { ...p, cantidad: p.cantidad + 1 } : p);
+        return prev.map(p => getItemKey(p) === itemPack.cart_key ? { ...p, cantidad: p.cantidad + 1 } : p);
       }
       return [...prev, itemPack];
     });
   }, []);
 
-  const quitar = useCallback((user_id: string | number) => {
-    setCarrito(prev => prev.filter(i => i.user_id !== user_id));
+  const quitar = useCallback((itemKey: string | number) => {
+    const normalized = String(itemKey);
+    setCarrito(prev => prev.filter(i => getItemKey(i) !== normalized));
   }, []);
 
-  const cambiarCantidad = useCallback((user_id: string | number, cantidad: number) => {
-    setCarrito(prev => prev.map(i => i.user_id === user_id ? { ...i, cantidad: Math.max(1, cantidad) } : i));
+  const cambiarCantidad = useCallback((itemKey: string | number, cantidad: number) => {
+    const normalized = String(itemKey);
+    setCarrito(prev => prev.map(i => getItemKey(i) === normalized ? { ...i, cantidad: Math.max(1, cantidad) } : i));
   }, []);
 
   const subtotal = useMemo(() => {
@@ -120,15 +182,15 @@ export function useCarrito(promociones: unknown[]) {
     return carrito.reduce((acc, item) => {
       if (item.tipo === 'pack') {
         const pack = packs.find(p => p.id === item.pack_id);
-        return acc + (pack ? (Number(pack.precio_individual || 0) - pack.precio_pack) * item.cantidad : 0);
+        const packDescuento = pack && pack.precio_individual ? (Number(pack.precio_individual) - pack.precio_pack) * item.cantidad : 0;
+        return acc + Math.max(0, packDescuento);
       }
-      // simple descuento simulado
-      const descuento = item.precio ? Number(item.precio) * (item.nombre?.toLowerCase().includes('promo') ? 0.1 : 0) * item.cantidad : 0;
-      return acc + descuento;
+      const itemDescuento = item.descuento_item || (item.precio_original ? Number(item.precio_original) - Number(item.precio) : 0);
+      return acc + (itemDescuento * item.cantidad);
     }, 0);
   }, [carrito, packs]);
 
-  const total = subtotal;
+  const total = Math.max(0, subtotal - totalDescuento);
 
   return {
     carrito,

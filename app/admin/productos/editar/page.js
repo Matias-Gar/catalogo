@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 export default function EditarCatalogo() {
   const [productos, setProductos] = useState([]);
   const [imagenes, setImagenes] = useState({});
+  const [variantes, setVariantes] = useState({});
   const [categories, setCategories] = useState([]);
   const [editando, setEditando] = useState({});
   const [modalConfirm, setModalConfirm] = useState({ visible: false, id: null });
@@ -50,6 +51,19 @@ export default function EditarCatalogo() {
           agg[i.producto_id].push(i);
         });
         setImagenes(agg);
+
+        const { data: vars } = await supabase
+          .from("producto_variantes")
+          .select("id, producto_id, color, stock, precio, sku, codigo_barra, activo")
+          .in("producto_id", ids)
+          .order("color", { ascending: true });
+
+        const varsAgg = {};
+        vars?.forEach((v) => {
+          if (!varsAgg[v.producto_id]) varsAgg[v.producto_id] = [];
+          varsAgg[v.producto_id].push(v);
+        });
+        setVariantes(varsAgg);
       }
 
       setLoading(false);
@@ -58,11 +72,178 @@ export default function EditarCatalogo() {
     fetchData();
   }, []);
 
+  // Listener para imprimir código de barras por variante
+  useEffect(() => {
+    const handlePrintVariantBarcode = async (event) => {
+      const { codigoBarras, nombre } = event.detail;
+      if (!codigoBarras) return;
+
+      const barcodeValue = String(codigoBarras).trim();
+      let svgString = '';
+      
+      try {
+        const JsBarcode = (await import('jsbarcode')).default;
+        const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        JsBarcode(svgEl, barcodeValue, {
+          format: 'EAN13',
+          displayValue: false,
+          width: 1.2,
+          height: 35,
+          margin: 0,
+        });
+        svgString = new XMLSerializer().serializeToString(svgEl);
+      } catch (err) {
+        svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="40">
+          <text x="0" y="20">${barcodeValue}</text>
+        </svg>`;
+      }
+
+      const barcodeDataUri = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgString)))}`;
+
+      const html = `
+      <html>
+      <head>
+        <style>
+          @page {
+            size: 78mm auto;
+            margin: 0;
+          }
+          html, body {
+            width: 78mm;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+          }
+          .label {
+            width: 78mm;
+            height: 22mm;
+            box-sizing: border-box;
+            padding: 1mm;
+            display: flex;
+            border: 1px solid black;
+          }
+          .left {
+            width: 48mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+          }
+          .left img {
+            width: 100%;
+          }
+          .code {
+            font-size: 9pt;
+          }
+          .right {
+            width: calc(78mm - 48mm - 2mm);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 8pt;
+            word-break: break-word;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="label">
+          <div class="left">
+            <img src="${barcodeDataUri}" />
+            <div class="code">${barcodeValue}</div>
+          </div>
+          <div class="right">${nombre}</div>
+        </div>
+      </body>
+      </html>
+      `;
+
+      const printInIframe = (htmlContent) => {
+        let iframe = document.getElementById('variant-barcode-print-iframe');
+        if (!iframe) {
+          iframe = document.createElement('iframe');
+          iframe.id = 'variant-barcode-print-iframe';
+          iframe.style.position = 'fixed';
+          iframe.style.width = '0';
+          iframe.style.height = '0';
+          iframe.style.border = '0';
+          iframe.style.visibility = 'hidden';
+          document.body.appendChild(iframe);
+        }
+
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!doc) return;
+
+        doc.open();
+        doc.write(htmlContent);
+        doc.close();
+
+        setTimeout(() => {
+          try {
+            iframe.contentWindow?.focus();
+            iframe.contentWindow?.print();
+          } catch (err) {
+            console.warn('Impresión desde iframe falló', err);
+          }
+        }, 500);
+      };
+
+      printInIframe(html);
+    };
+
+    window.addEventListener('printVariantBarcode', handlePrintVariantBarcode);
+    return () => window.removeEventListener('printVariantBarcode', handlePrintVariantBarcode);
+  }, []);
+
   const setEditDataField = (prodId, field, value) => {
     setEditando((prev) => ({
       ...prev,
       [prodId]: { ...prev[prodId], [field]: value },
     }));
+  };
+
+  const ensureVariantsDraft = (prodId) => {
+    const current = editando[prodId]?.variantes;
+    if (Array.isArray(current)) return current;
+    return (variantes[prodId] || []).map((v) => ({ ...v }));
+  };
+
+  const handleAddVariantRow = (prodId) => {
+    // Generar código de barras único: productoId + variantes existentes + secuencial
+    const base = ensureVariantsDraft(prodId);
+    const totalVariantes = base.length;
+    const newCodigoBarras = String(prodId).padStart(6, '0') + String(totalVariantes + 1).padStart(4, '0');
+    
+    setEditDataField(prodId, "variantes", [
+      ...base,
+      { id: null, producto_id: prodId, color: "", stock: 0, precio: null, sku: null, codigo_barra: newCodigoBarras, activo: true },
+    ]);
+  };
+
+  const handleVariantFieldChange = (prodId, index, field, value) => {
+    const base = ensureVariantsDraft(prodId);
+    const updated = base.map((v, i) => {
+      if (i !== index) return v;
+      return { ...v, [field]: value };
+    });
+    setEditDataField(prodId, "variantes", updated);
+  };
+
+  const handleRemoveVariantRow = (prodId, index) => {
+    const base = ensureVariantsDraft(prodId);
+    const target = base[index];
+    const next = base.filter((_, i) => i !== index);
+    if (next.length === 0) {
+      showToast("Debe existir al menos un color", "error");
+      return;
+    }
+    setEditDataField(prodId, "variantes", next);
+    if (target?.id) {
+      setEditDataField(prodId, "removedVariantIds", [
+        ...(editando[prodId]?.removedVariantIds || []),
+        target.id,
+      ]);
+    }
   };
 
   // Añadir nuevas imágenes
@@ -145,12 +326,63 @@ export default function EditarCatalogo() {
           nombre: cambios.nombre,
           descripcion: cambios.descripcion,
           precio: cambios.precio,
-          stock: cambios.stock,
           categoria: cambios.categoria,
           category_id: cambios.category_id ? parseInt(cambios.category_id) : null,
           codigo_barra: cambios.codigo_barra,
         })
         .eq("user_id", prodId);
+
+      // 1.1) Sincronizar variantes por color
+      const removedVariantIds = cambios.removedVariantIds || [];
+      if (removedVariantIds.length > 0) {
+        await supabase.from("producto_variantes").delete().in("id", removedVariantIds);
+      }
+
+      const draftVariantes = (cambios.variantes || variantes[prodId] || [])
+        .map((v) => ({
+          ...v,
+          color: String(v.color || "").trim(),
+          stock: Math.max(0, parseInt(v.stock ?? 0) || 0),
+          precio: v.precio === "" || v.precio === null || v.precio === undefined ? null : Number(v.precio),
+          sku: String(v.sku || "").trim() || null,
+          activo: v.activo !== false,
+        }))
+        .filter((v) => v.color.length > 0);
+
+      if (draftVariantes.length === 0) {
+        throw new Error("Debes mantener al menos un color con nombre");
+      }
+
+      const existentes = draftVariantes.filter((v) => v.id);
+      const nuevos = draftVariantes.filter((v) => !v.id);
+
+      for (const v of existentes) {
+        await supabase
+          .from("producto_variantes")
+          .update({
+            color: v.color,
+            stock: v.stock,
+            precio: v.precio,
+            sku: v.sku,
+            codigo_barra: v.codigo_barra,
+            activo: v.activo,
+          })
+          .eq("id", v.id);
+      }
+
+      if (nuevos.length > 0) {
+        await supabase.from("producto_variantes").insert(
+          nuevos.map((v) => ({
+            producto_id: prodId,
+            color: v.color,
+            stock: v.stock,
+            precio: v.precio,
+            sku: v.sku,
+            codigo_barra: v.codigo_barra || String(prodId).padStart(6, '0') + String(nuevos.indexOf(v) + 1).padStart(4, '0'),
+            activo: v.activo,
+          }))
+        );
+      }
 
       // 2) Eliminar imágenes marcadas
       if (cambios.removeImages?.length) {
@@ -229,6 +461,22 @@ export default function EditarCatalogo() {
         .order("nombre", { ascending: true });
 
       setProductos(prods || []);
+
+      const ids = (prods || []).map((p) => p.user_id);
+      if (ids.length > 0) {
+        const { data: vars } = await supabase
+          .from("producto_variantes")
+          .select("id, producto_id, color, stock, precio, sku, activo")
+          .in("producto_id", ids)
+          .order("color", { ascending: true });
+        const varsAgg = {};
+        vars?.forEach((v) => {
+          if (!varsAgg[v.producto_id]) varsAgg[v.producto_id] = [];
+          varsAgg[v.producto_id].push(v);
+        });
+        setVariantes(varsAgg);
+      }
+
       setEditando((prev) => ({ ...prev, [prodId]: undefined }));
     } catch (err) {
       showToast("Error guardando producto", "error");
@@ -306,9 +554,13 @@ export default function EditarCatalogo() {
             categories={categories}
             editData={{
               originalImages: imagenes[prod.user_id],
+              originalVariants: variantes[prod.user_id] || [],
               ...editando[prod.user_id],
             }}
             setEditDataField={setEditDataField}
+            onAddVariantRow={handleAddVariantRow}
+            onVariantFieldChange={handleVariantFieldChange}
+            onRemoveVariantRow={handleRemoveVariantRow}
             handleAddImages={handleAddImages}
             handleRemoveImage={handleRemoveImage}
             handleReplaceImage={handleReplaceImage}
