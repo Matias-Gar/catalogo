@@ -111,6 +111,9 @@ export default function ProductCard({
           <Input
             type="number"
             value={variantsArr.length > 0 ? totalStockFromVariants : (editData.stock ?? prod.stock)}
+            onChange={(e) =>
+              setEditDataField(prod.user_id, "stock", e.target.value)
+            }
             readOnly={variantsArr.length > 0}
           />
           {variantsArr.length > 0 && (

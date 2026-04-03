@@ -20,6 +20,14 @@ export default function EditarCatalogo() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [sortOrder, setSortOrder] = useState("alphabetical");
 
+  const parseDecimalInput = (value, fallback = null) => {
+    if (value === undefined || value === null || value === "") return fallback;
+    if (typeof value === "number") return Number.isFinite(value) ? value : fallback;
+    const normalized = String(value).replace(/\s/g, "").replace(",", ".");
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+
   // Cargar datos
   useEffect(() => {
     async function fetchData() {
@@ -318,19 +326,23 @@ export default function EditarCatalogo() {
 
     try {
       const cambios = editando[prodId] || {};
+      const productoActual = productos.find((p) => p.user_id === prodId);
+      const precioNormalizado = parseDecimalInput(cambios.precio, parseDecimalInput(productoActual?.precio, 0));
 
       // 1) Actualizar datos principales
-      await supabase
+      const { error: updateError } = await supabase
         .from("productos")
         .update({
-          nombre: cambios.nombre,
-          descripcion: cambios.descripcion,
-          precio: cambios.precio,
-          categoria: cambios.categoria,
-          category_id: cambios.category_id ? parseInt(cambios.category_id) : null,
-          codigo_barra: cambios.codigo_barra,
+          nombre: cambios.nombre ?? productoActual?.nombre,
+          descripcion: cambios.descripcion ?? productoActual?.descripcion,
+          precio: precioNormalizado,
+          stock: cambios.stock !== undefined ? Math.max(0, parseInt(cambios.stock, 10) || 0) : productoActual?.stock,
+          categoria: cambios.categoria ?? productoActual?.categoria,
+          category_id: cambios.category_id ? parseInt(cambios.category_id, 10) : (productoActual?.category_id ?? null),
+          codigo_barra: cambios.codigo_barra ?? productoActual?.codigo_barra,
         })
         .eq("user_id", prodId);
+      if (updateError) throw updateError;
 
       // 1.1) Sincronizar variantes por color
       const removedVariantIds = cambios.removedVariantIds || [];
@@ -343,54 +355,55 @@ export default function EditarCatalogo() {
           ...v,
           color: String(v.color || "").trim(),
           stock: Math.max(0, parseInt(v.stock ?? 0) || 0),
-          precio: v.precio === "" || v.precio === null || v.precio === undefined ? null : Number(v.precio),
+          precio: v.precio === "" || v.precio === null || v.precio === undefined ? null : parseDecimalInput(v.precio, null),
           sku: String(v.sku || "").trim() || null,
           activo: v.activo !== false,
         }))
         .filter((v) => v.color.length > 0);
 
-      if (draftVariantes.length === 0) {
-        throw new Error("Debes mantener al menos un color con nombre");
-      }
+      if (draftVariantes.length > 0) {
+        const existentes = draftVariantes.filter((v) => v.id);
+        const nuevos = draftVariantes.filter((v) => !v.id);
 
-      const existentes = draftVariantes.filter((v) => v.id);
-      const nuevos = draftVariantes.filter((v) => !v.id);
+        for (const v of existentes) {
+          const { error: varUpdateError } = await supabase
+            .from("producto_variantes")
+            .update({
+              color: v.color,
+              stock: v.stock,
+              precio: v.precio,
+              sku: v.sku,
+              codigo_barra: v.codigo_barra,
+              activo: v.activo,
+            })
+            .eq("id", v.id);
+          if (varUpdateError) throw varUpdateError;
+        }
 
-      for (const v of existentes) {
-        await supabase
-          .from("producto_variantes")
-          .update({
-            color: v.color,
-            stock: v.stock,
-            precio: v.precio,
-            sku: v.sku,
-            codigo_barra: v.codigo_barra,
-            activo: v.activo,
-          })
-          .eq("id", v.id);
-      }
-
-      if (nuevos.length > 0) {
-        await supabase.from("producto_variantes").insert(
-          nuevos.map((v) => ({
-            producto_id: prodId,
-            color: v.color,
-            stock: v.stock,
-            precio: v.precio,
-            sku: v.sku,
-            codigo_barra: v.codigo_barra || String(prodId).padStart(6, '0') + String(nuevos.indexOf(v) + 1).padStart(4, '0'),
-            activo: v.activo,
-          }))
-        );
+        if (nuevos.length > 0) {
+          const { error: varInsertError } = await supabase.from("producto_variantes").insert(
+            nuevos.map((v, i) => ({
+              producto_id: prodId,
+              color: v.color,
+              stock: v.stock,
+              precio: v.precio,
+              sku: v.sku,
+              codigo_barra: v.codigo_barra || String(prodId).padStart(6, '0') + String(i + 1).padStart(4, '0'),
+              activo: v.activo,
+            }))
+          );
+          if (varInsertError) throw varInsertError;
+        }
       }
 
       // 2) Eliminar imágenes marcadas
       if (cambios.removeImages?.length) {
         for (const img of cambios.removeImages) {
-          await supabase
+          const { error: deleteImageError } = await supabase
             .from("producto_imagenes")
             .delete()
             .eq("id", img.id);
+          if (deleteImageError) throw deleteImageError;
         }
       }
 
@@ -421,6 +434,8 @@ export default function EditarCatalogo() {
                 producto_id: prodId,
                 imagen_url: urlData.publicUrl,
               });
+          } else {
+            throw upErr;
           }
         }
       }
@@ -446,6 +461,8 @@ export default function EditarCatalogo() {
                 producto_id: prodId,
                 imagen_url: urlData.publicUrl,
               });
+          } else {
+            throw upErr;
           }
         }
       }
@@ -479,7 +496,9 @@ export default function EditarCatalogo() {
 
       setEditando((prev) => ({ ...prev, [prodId]: undefined }));
     } catch (err) {
-      showToast("Error guardando producto", "error");
+      const msg = err?.message || "Error guardando producto";
+      showToast(`Error guardando producto: ${msg}`, "error");
+      console.error("Error guardando producto:", err);
     }
 
     setLoading(false);

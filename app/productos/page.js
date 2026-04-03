@@ -640,9 +640,16 @@ export default function CatalogoPage() {
                                         {/* Mostrar colores disponibles como paleta de círculos */}
                                         {/* Mostrar colores disponibles como paleta de círculos */}
                                         {(() => {
-                                            const coloresEnStock = Array.isArray(producto.variantes)
-                                              ? producto.variantes.filter(v => Number(v?.stock || 0) > 0 && v?.color && v.color.toLowerCase().trim() !== 'único' && v.color.toLowerCase().trim() !== 'unico')
-                                              : [];
+                                                                                        const coloresEnStock = Array.isArray(producto.variantes)
+                                                                                            ? producto.variantes.filter(v => {
+                                                                                                    const colorNormalizado = String(v?.color || '')
+                                                                                                        .normalize('NFD')
+                                                                                                        .replace(/[\u0300-\u036f]/g, '')
+                                                                                                        .toLowerCase()
+                                                                                                        .trim();
+                                                                                                    return Number(v?.stock || 0) > 0 && colorNormalizado && colorNormalizado !== 'unico';
+                                                                                                })
+                                                                                            : [];
                                             if (coloresEnStock.length <= 1) return null;
                                             return (
                                               <div className="mt-2">

@@ -5,6 +5,7 @@ import { supabase } from '../lib/SupabaseClient';
 import { PrecioConPromocion } from '../lib/promociones';
 import { usePromociones } from '../lib/usePromociones';
 import { usePacks, calcularDescuentoPack } from '../lib/packs';
+import ExpandableDescription from '../components/ui/ExpandableDescription';
 
 
 
@@ -468,7 +469,13 @@ export default function Home() {
                 </div>
                 <div className="w-full text-center">
                   <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-1">{p.nombre}</h2>
-                  <p className="text-gray-600 text-xs sm:text-sm mb-2">{p.descripcion}</p>
+                  <ExpandableDescription
+                    text={p.descripcion}
+                    lines={3}
+                    className="mb-2"
+                    textClassName="text-gray-600 text-xs sm:text-sm"
+                    buttonClassName="mt-1 text-[11px] sm:text-xs font-semibold text-blue-600 hover:text-blue-800"
+                  />
                   
                   {/* Usar el componente de precio con promoción */}
                   <PrecioConPromocion 
@@ -483,7 +490,14 @@ export default function Home() {
                   {/* Mostrar colores disponibles como paleta de círculos */}
                   {(() => {
                     const coloresEnStock = Array.isArray(p.variantes)
-                      ? p.variantes.filter(v => Number(v?.stock || 0) > 0 && v?.color && v.color.toLowerCase().trim() !== 'único' && v.color.toLowerCase().trim() !== 'unico')
+                      ? p.variantes.filter(v => {
+                          const colorNormalizado = String(v?.color || '')
+                            .normalize('NFD')
+                            .replace(/[\u0300-\u036f]/g, '')
+                            .toLowerCase()
+                            .trim();
+                          return Number(v?.stock || 0) > 0 && colorNormalizado && colorNormalizado !== 'unico';
+                        })
                       : [];
                     if (coloresEnStock.length <= 1) return null;
                     return (

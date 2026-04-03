@@ -18,6 +18,11 @@ function generateBarcode() {
     return Math.floor(100000000000 + Math.random() * 900000000000).toString();
 }
 
+function generateVariantBarcode(index = 1) {
+    // 12 dígitos para EAN13 (el lector/generador calcula el dígito de control)
+    return String(Date.now()).slice(-8) + String(index).padStart(4, '0');
+}
+
 // --------------------------------------------------------------------------
 // COMPONENTE 1: Modal de Vista Previa de Imagen (IMAGEN COMPLETA)
 // --------------------------------------------------------------------------
@@ -163,28 +168,34 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, productName }) {
 const uploadProductImages = async (files) => {
     if (!files || files.length === 0) return [];
     const BUCKET_NAME = 'product_images';
-    const urls = [];
     // Usar un prefijo genérico para todos los usuarios (no requiere login para ver)
     const userId = 'public';
-    for (const file of files) {
-        const fileExtension = file.name.split('.').pop();
+
+    const uploadTasks = files.map(async (file) => {
+        const fileExtension = (file.name.split('.').pop() || 'jpg').toLowerCase();
         const fileName = `${uuidv4()}.${fileExtension}`;
         const filePath = `${userId}/${fileName}`;
+
         const { error: uploadError } = await supabase.storage
             .from(BUCKET_NAME)
             .upload(filePath, file, {
-                cacheControl: '3600',
+                cacheControl: '31536000',
                 upsert: false,
+                contentType: file.type || 'image/jpeg'
             });
+
         if (uploadError) {
             throw new Error(`Error al subir imagen a storage (Bucket: ${BUCKET_NAME}): ${uploadError.message}`);
         }
+
         const { data: publicUrlData } = supabase.storage
             .from(BUCKET_NAME)
             .getPublicUrl(filePath);
-        urls.push(publicUrlData.publicUrl);
-    }
-    return urls;
+
+        return publicUrlData.publicUrl;
+    });
+
+    return Promise.all(uploadTasks);
 };
 
 // -------------------------------------------------------------------------- 
@@ -218,7 +229,7 @@ export default function AdminProductosPage() {
         codigo_barra: ''
     }); 
     const [newVariants, setNewVariants] = useState([
-        { color: 'Único', stock: '', precio: '', sku: '', codigo_barra: String(Date.now()).slice(-6) + '0001' }
+        { color: 'Único', stock: '', precio: '', sku: '', codigo_barra: generateVariantBarcode(1) }
     ]);
     const [editingProduct, setEditingProduct] = useState(null); 
     const [editImageFiles, setEditImageFiles] = useState([]); 
@@ -254,12 +265,14 @@ export default function AdminProductosPage() {
       const productName = String(productoNombre || '').trim() || 'SIN NOMBRE';
       const barcodeValue = rawCode || '0000000000000';
 
-      let svgString = '';
+            let svgString = '';
       try {
         const JsBarcode = (await import('jsbarcode')).default;
         const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                const digitsOnly = /^\d+$/.test(barcodeValue);
+                const canUseEAN = digitsOnly && (barcodeValue.length === 12 || barcodeValue.length === 13);
         JsBarcode(svgEl, barcodeValue, {
-          format: 'EAN13',
+                    format: canUseEAN ? 'EAN13' : 'CODE128',
           displayValue: false,
           width: 1.2,
           height: 35,
@@ -486,8 +499,7 @@ export default function AdminProductosPage() {
     };
 
     const addVariantRow = () => {
-        // Generar código de barras único: timestamp + índice
-        const newCode = String(Date.now()).slice(-6) + String(newVariants.length + 1).padStart(4, '0');
+        const newCode = generateVariantBarcode(newVariants.length + 1);
         setNewVariants(prev => [...prev, { color: '', stock: '', precio: '', sku: '', codigo_barra: newCode }]);
     };
 
@@ -562,6 +574,7 @@ export default function AdminProductosPage() {
                 nombre,
                 descripcion,
                 precio,
+                precio_compra,
                 stock,
                 imagen_url,
                 category_id,
@@ -731,14 +744,12 @@ export default function AdminProductosPage() {
             // Insertar variantes por color
             if (productoInsertado && productoInsertado.length > 0) {
                 const productoId = productoInsertado[0].user_id;
-                const finalVariants = variantsPayload.map((v, idx) => ({
+                const finalVariants = variantsPayload.map((v) => ({
                     producto_id: productoId,
                     color: v.color,
                     stock: v.stock,
                     precio: v.precio,
                     sku: v.sku,
-                    // Generar código de barras definitivo basado en el producto_id
-                    codigo_barra: String(productoId).padStart(6, '0') + String(idx + 1).padStart(4, '0'),
                     imagen_url: null,
                     activo: true
                 }));
@@ -1104,7 +1115,7 @@ export default function AdminProductosPage() {
                                             onClick={() => {
                                               if (variant.codigo_barra) {
                                                 const event = new CustomEvent('printVariantBarcode', {
-                                                  detail: { codigoBarras: variant.codigo_barra, nombre: `Redondos (${variant.color})` }
+                                                                                                    detail: { codigoBarras: variant.codigo_barra, nombre: `${newProduct.nombre || 'Producto'} (${variant.color})` }
                                                 });
                                                 window.dispatchEvent(event);
                                               }

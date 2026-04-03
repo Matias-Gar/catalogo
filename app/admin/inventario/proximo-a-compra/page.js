@@ -4,6 +4,7 @@ import { supabase } from "../../../../lib/SupabaseClient";
 import { Card, CardHeader, CardTitle, CardContent } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
 import { CONFIG, whatsappUtils } from "../../../../lib/config";
+import ExpandableDescription from "../../../../components/ui/ExpandableDescription";
 
 export default function ProximoACompraPage() {
   const [productos, setProductos] = useState([]);
@@ -62,7 +63,13 @@ export default function ProximoACompraPage() {
                   ) : (
                     <span className="text-gray-400">Sin imagen</span>
                   )}
-                  <div className="text-gray-900 text-sm mt-2">{prod.descripcion}</div>
+                    <ExpandableDescription
+                      text={prod.descripcion}
+                      lines={3}
+                      className="mt-2"
+                      textClassName="text-gray-900 text-sm"
+                      buttonClassName="mt-1 text-xs font-semibold text-blue-600 hover:text-blue-800"
+                    />
                   <div className="text-gray-900 font-bold">Bs {Number(prod.precio).toFixed(2)}</div>
                   <div className="text-red-600 font-bold">Stock: {prod.stock}</div>
                   <div className="text-gray-900">Categoría: {prod.categoria || '-'}</div>

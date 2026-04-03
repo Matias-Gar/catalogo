@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
+import ExpandableDescription from "../../../../components/ui/ExpandableDescription";
 
 // Mover candidateBuckets al nivel de módulo (fuera del componente) para que su referencia sea estable
 const candidateBuckets = ["imagenes_del_producto", "productos", "images", "imagenes", "public", "uploads"];
@@ -56,6 +57,19 @@ export default function CatalogoPage() {
         const prods = Array.isArray(prodsData) ? prodsData : [];
 
         const productIds = prods.map(p => p.producto_id).filter(Boolean);
+        let costoCompraMap = {};
+        if (productIds.length) {
+          const { data: costosData } = await supabase
+            .from("productos")
+            .select("user_id, precio_compra")
+            .in("user_id", productIds);
+          const costos = Array.isArray(costosData) ? costosData : [];
+          costoCompraMap = costos.reduce((acc, it) => {
+            acc[String(it.user_id)] = Number(it.precio_compra || 0);
+            return acc;
+          }, {});
+        }
+
         let imagenesMap = {};
         if (productIds.length) {
           const { data: imgsData } = await supabase
@@ -107,6 +121,7 @@ export default function CatalogoPage() {
             id,
             nombre,
             precio,
+            precio_compra: Number(costoCompraMap[String(id)] || 0),
             descripcion,
             stock,
             variantes,
@@ -331,13 +346,26 @@ export default function CatalogoPage() {
 
                 <h3 style={{ margin: 0, fontSize: 18, color: "#4a0f0f", textAlign: "center" }}>{p.nombre}</h3>
                 <strong style={{ fontSize: 16, color: "#004080", textAlign: "center" }}>{formatPrice(p.precio)}</strong>
-                <p style={{ margin: 0, fontSize: 14, textAlign: "center", lineHeight: 1.4 }}>{p.descripcion}</p>
+                <span style={{ fontSize: 13, color: "#2f6f2f", textAlign: "center", fontWeight: 700 }}>Costo: {formatPrice(p.precio_compra)}</span>
+                <ExpandableDescription
+                  text={p.descripcion}
+                  lines={3}
+                  textStyle={{ margin: 0, fontSize: 14, textAlign: "center", lineHeight: 1.4 }}
+                  buttonStyle={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#004080", background: "transparent", border: "none", cursor: "pointer" }}
+                />
                 
                 {/* Mostrar colores disponibles como paleta de círculos */}
                 {/* Mostrar colores disponibles como paleta de círculos */}
                 {(() => {
                   const coloresEnStock = Array.isArray(p.variantes)
-                    ? p.variantes.filter(v => Number(v?.stock || 0) > 0 && v?.color && v.color.toLowerCase().trim() !== 'único' && v.color.toLowerCase().trim() !== 'unico')
+                    ? p.variantes.filter(v => {
+                        const colorNormalizado = String(v?.color || '')
+                          .normalize('NFD')
+                          .replace(/[\u0300-\u036f]/g, '')
+                          .toLowerCase()
+                          .trim();
+                        return Number(v?.stock || 0) > 0 && colorNormalizado && colorNormalizado !== 'unico';
+                      })
                     : [];
                   if (coloresEnStock.length <= 1) return null;
                   return (
