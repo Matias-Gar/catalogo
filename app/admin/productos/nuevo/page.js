@@ -16,6 +16,15 @@ const Barcode = dynamic(() => import('react-barcode'), { ssr: false });
 
 const DEFAULT_COLOR_PALETTE = [
     'Negro',
+    'Negro con Dorado',
+    'Negro con Plateado',
+    'Blanco con Dorado',
+    'Blanco con Plateado',
+    'Rojo con Negro',
+    'Azul con Blanco',
+    'Verde con Negro',
+    'Rosado con Blanco',
+    'Beige con Dorado',
     'Navy',
     'Naranja',
     'Natural',
@@ -28,6 +37,9 @@ const DEFAULT_COLOR_PALETTE = [
     'Verde',
     'Amarillo',
     'Marron',
+    'Cafe',
+    'Cafe Claro',
+    'Cafe Oscuro',
     'Beige',
     'Dorado',
     'Plateado',
@@ -45,6 +57,7 @@ const DEFAULT_COLOR_PALETTE = [
     'Crema',
     'Transparente',
     'Multicolor',
+    'Animal Print',
     'Único',
 ];
 
@@ -177,7 +190,7 @@ function PrintVariantesModal({
                 </div>
 
                 <div className="mb-4 rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-sm text-indigo-800">
-                    Se imprimirá automáticamente según stock por color (ejemplo: stock 10 = 10 etiquetas).
+                    Se imprimirá 1 etiqueta por cada color seleccionado en este catálogo.
                 </div>
 
                 {showQzStatus && (
@@ -890,9 +903,8 @@ export default function AdminProductosPage() {
       for (let i = 0; i < selectedVariantes.length; i++) {
         const variante = selectedVariantes[i];
                                 const codigo = variante.codigo_barra || variante.sku;
-                                const copiesByStock = Math.max(1, Math.min(200, Number(variante.stock) || 1));
                 if (!codigo) continue;
-                                await handlePrintBarcode(codigo, `${productToPrint.nombre} - ${variante.color}`, copiesByStock, 'browser');
+                                                                await handlePrintBarcode(codigo, `${productToPrint.nombre} - ${variante.color}`, 1, 'browser');
         // Esperar un poco antes de la siguiente impresión
         if (i < selectedVariantes.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 500));

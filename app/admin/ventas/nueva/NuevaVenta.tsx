@@ -12,6 +12,7 @@ import BuscadorProductos from '../../../../components/venta/BuscadorProductos';
 import CarritoPanel from '../../../../components/venta/CarritoPanel';
 import TicketPrinter, { TicketPrinterHandle } from '../../../../components/venta/TicketPrinter';
 import { CartItem, Pack, PackProduct, Producto } from '../../../../hooks/useCarrito';
+import { supabase } from '../../../../lib/SupabaseClient';
 
 export default function NuevaVenta() {
   // hooks
@@ -268,6 +269,46 @@ export default function NuevaVenta() {
 
 
   // acciones de venta
+  const registrarIngresoEnCaja = useCallback(async (venta: any) => {
+    try {
+      const modo = String(venta?.modo_pago || "").toLowerCase();
+      const payment_method =
+        modo === "efectivo"
+          ? "cash"
+          : modo === "qr"
+            ? "qr"
+            : modo === "transferencia"
+              ? "transfer"
+              : "other";
+
+      const amount = Number(venta?.total || 0);
+      if (!Number.isFinite(amount) || amount <= 0) return;
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) return;
+
+      await fetch('/api/cash/movements', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          date: new Date().toISOString().slice(0, 10),
+          type: 'income',
+          payment_method,
+          amount,
+          description: `Ingreso automatico por venta #${venta?.id}`,
+          cashbox_id: 'main',
+        }),
+      });
+    } catch (cashError) {
+      // No bloqueamos la venta por un error de sincronización de caja.
+      console.error('No se pudo registrar ingreso automatico en caja:', cashError);
+    }
+  }, []);
+
   const efectivizarVenta = useCallback(async () => {
     if (carrito.length === 0) return alert('El carrito estÃ¡ vacÃ­o');
     if (!modoPago) return alert('Selecciona un mÃ©todo de pago');
@@ -329,6 +370,9 @@ export default function NuevaVenta() {
         }
       }));
 
+      // Sincroniza automáticamente ingresos de ventas con flujo de caja.
+      await registrarIngresoEnCaja(venta);
+
       // snapshot ticket y imprimir
       const ticket = {
         venta,
@@ -364,7 +408,7 @@ export default function NuevaVenta() {
       alert('Error al crear venta: ' + errorMessage);
       setEfectivizando(false);
     }
-  }, [carrito, cliente, modoPago, pago, cambio, totalCobrar, subtotal, totalDescuento, packs, setCarrito, cambiarCampo, envio, comision, publicidad, rebajas, impuestosCalculados, cobrarImpuestos]);
+  }, [carrito, cliente, modoPago, pago, cambio, totalCobrar, subtotal, totalDescuento, packs, setCarrito, cambiarCampo, envio, comision, publicidad, rebajas, impuestosCalculados, cobrarImpuestos, registrarIngresoEnCaja]);
 
   // ...continued building UI mostly replicates previous layout using components
 

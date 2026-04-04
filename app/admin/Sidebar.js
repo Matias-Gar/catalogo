@@ -21,6 +21,7 @@ const menu = [
     label: 'Gestión de Productos',
     children: [
       { label: 'Añadir Nuevos Artículos', path: '/admin/productos/nuevo' },
+      { label: 'Aumentar Stock', path: '/admin/productos/aumentar-stock' },
       { label: 'Editar Artículos', path: '/admin/productos/editar' },
       { label: 'Eliminar Artículos', path: '/admin/productos/eliminar' },
     ],
@@ -51,6 +52,7 @@ const menu = [
       { label: 'Estadísticas', path: '/admin/pagos/estadistica' },
     ],
   },
+  { label: 'Flujo de Caja', path: '/admin/flujo-caja' },
   {
     label: 'Categorías',
     children: [
