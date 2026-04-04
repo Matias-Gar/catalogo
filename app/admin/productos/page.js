@@ -8,6 +8,8 @@ import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
 import { PrecioConPromocion } from '../../../lib/promociones';
 import { usePromociones } from '../../../lib/usePromociones';
+import { getOptimizedImageUrl, buildImageSrcSet } from '../../../lib/imageOptimization';
+import { optimizeImageForUpload } from '../../../lib/imageUploadOptimization';
 
 // Desactivar SSR para el componente de código de barras si usa librerías de cliente como 'react-barcode'
 // Si la tabla usa react-barcode, este dynamic es necesario. Si solo usa la función handlePrintBarcode, se podría quitar.
@@ -25,6 +27,7 @@ function generateBarcode() {
 // --------------------------------------------------------------------------
 function ImagePreviewModal({ isOpen, onClose, imageList, imageIndex, productName, onPrev, onNext }) {
     if (!isOpen || !imageList || imageList.length === 0) return null;
+    const modalImage = imageList[imageIndex];
     return (
         <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center p-2 sm:p-4 z-[999]" onClick={onClose}>
             <div className="relative w-full h-full max-w-screen-2xl max-h-[95vh] flex flex-col items-center justify-center" onClick={e => e.stopPropagation()}>
@@ -36,7 +39,11 @@ function ImagePreviewModal({ isOpen, onClose, imageList, imageIndex, productName
                     &times;
                 </button>
                 <img
-                    src={imageList[imageIndex]}
+                    src={getOptimizedImageUrl(modalImage, 2200, { quality: 99, format: 'origin' })}
+                    srcSet={buildImageSrcSet(modalImage, [900, 1400, 2200], { quality: 99, format: 'origin' })}
+                    sizes="(max-width: 768px) 100vw, 90vw"
+                    loading="lazy"
+                    decoding="async"
                     alt={`Vista previa de ${productName}`}
                     className="max-w-full max-h-full object-scale-down rounded-lg shadow-2xl"
                 />
@@ -95,12 +102,20 @@ const uploadProductImages = async (files) => {
     // Usar un prefijo genérico para todos los usuarios (no requiere login para ver)
     const userId = 'public';
     for (const file of files) {
-        const fileExtension = file.name.split('.').pop();
+        const { file: preparedFile } = await optimizeImageForUpload(file, {
+            maxDimension: 2600,
+            targetMaxBytes: 2.8 * 1024 * 1024,
+            hardMaxBytes: 4.2 * 1024 * 1024,
+            preferredQuality: 0.98,
+            minQuality: 0.9,
+        });
+
+        const fileExtension = preparedFile.name.split('.').pop();
         const fileName = `${uuidv4()}.${fileExtension}`;
         const filePath = `${userId}/${fileName}`;
         const { error: uploadError } = await supabase.storage
             .from(BUCKET_NAME)
-            .upload(filePath, file, {
+            .upload(filePath, preparedFile, {
                 cacheControl: '3600',
                 upsert: false,
             });
@@ -792,7 +807,11 @@ export default function AdminProductosPage() {
                                                     return (
                                                         <img
                                                             key={safe(img)}
-                                                            src={safe(img)}
+                                                            src={getOptimizedImageUrl(safe(img), 280, { quality: 95, format: 'origin' })}
+                                                            srcSet={buildImageSrcSet(safe(img), [140, 280, 560], { quality: 95, format: 'origin' })}
+                                                            sizes="48px"
+                                                            loading="lazy"
+                                                            decoding="async"
                                                             alt={safe(producto.nombre)}
                                                             className="h-12 w-12 object-cover rounded-md cursor-pointer hover:shadow-lg transition border"
                                                             onClick={() => openImageModal(arr, idx, producto.nombre)}
@@ -898,7 +917,11 @@ export default function AdminProductosPage() {
                                     {editImageList.map((url) => (
                                         <div key={url} className="relative group">
                                             <img 
-                                                src={url} 
+                                                src={getOptimizedImageUrl(url, 300, { quality: 95, format: 'origin' })} 
+                                                srcSet={buildImageSrcSet(url, [150, 300, 600], { quality: 95, format: 'origin' })}
+                                                sizes="64px"
+                                                loading="lazy"
+                                                decoding="async"
                                                 alt="Imagen de producto" 
                                                 className="h-16 w-16 object-cover rounded-md border cursor-pointer" 
                                                 onClick={() => handleRemoveEditImage(url)}

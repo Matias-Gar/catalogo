@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 import { whatsappUtils } from "../../../../lib/config";
 import ExpandableDescription from "../../../../components/ui/ExpandableDescription";
+import { getOptimizedImageUrl, buildImageSrcSet } from "../../../../lib/imageOptimization";
 
 export default function StockPage() {
   const [productos, setProductos] = useState([]);
@@ -163,7 +164,15 @@ export default function StockPage() {
                 <div className="w-20 h-20 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
                   {prod.imagen_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={prod.imagen_url} alt={prod.nombre} className="w-full h-full object-cover" />
+                    <img
+                      src={getOptimizedImageUrl(prod.imagen_url, 320)}
+                      srcSet={buildImageSrcSet(prod.imagen_url, [160, 320, 640], { quality: 95, format: "origin" })}
+                      sizes="80px"
+                      loading="lazy"
+                      decoding="async"
+                      alt={prod.nombre}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-300">-</div>
                   )}

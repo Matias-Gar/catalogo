@@ -7,6 +7,7 @@ import { Toast } from "@/components/ui/Toast";
 import { showToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/SupabaseClient";
 import { Input } from "@/components/ui/input";
+import { optimizeImageForUpload } from "@/lib/imageUploadOptimization";
 
 export default function EditarCatalogo() {
   const [productos, setProductos] = useState([]);
@@ -19,6 +20,18 @@ export default function EditarCatalogo() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [sortOrder, setSortOrder] = useState("alphabetical");
+  const [stockFilter, setStockFilter] = useState("all");
+  const [imageFilter, setImageFilter] = useState("all");
+
+  const getProductKey = (product) => product?.id ?? product?.user_id ?? null;
+
+  const clearFilters = () => {
+    setSearch("");
+    setCategoryFilter("");
+    setSortOrder("alphabetical");
+    setStockFilter("all");
+    setImageFilter("all");
+  };
 
   const parseDecimalInput = (value, fallback = null) => {
     if (value === undefined || value === null || value === "") return fallback;
@@ -46,7 +59,7 @@ export default function EditarCatalogo() {
       const { data: cats } = await supabase.from("categorias").select("id, categori");
       setCategories(cats || []);
 
-      const ids = prods.map((p) => p.user_id);
+      const ids = (prods || []).map((p) => getProductKey(p)).filter(Boolean);
       if (ids.length > 0) {
         const { data: imgs } = await supabase
           .from("producto_imagenes")
@@ -62,7 +75,7 @@ export default function EditarCatalogo() {
 
         const { data: vars } = await supabase
           .from("producto_variantes")
-          .select("id, producto_id, color, stock, precio, sku, codigo_barra, activo")
+          .select("id, producto_id, color, stock, precio, sku, activo")
           .in("producto_id", ids)
           .order("color", { ascending: true });
 
@@ -224,7 +237,7 @@ export default function EditarCatalogo() {
     
     setEditDataField(prodId, "variantes", [
       ...base,
-      { id: null, producto_id: prodId, color: "", stock: 0, precio: null, sku: null, codigo_barra: newCodigoBarras, activo: true },
+      { id: null, producto_id: prodId, color: "", stock: 0, precio: null, sku: newCodigoBarras, activo: true },
     ]);
   };
 
@@ -241,10 +254,6 @@ export default function EditarCatalogo() {
     const base = ensureVariantsDraft(prodId);
     const target = base[index];
     const next = base.filter((_, i) => i !== index);
-    if (next.length === 0) {
-      showToast("Debe existir al menos un color", "error");
-      return;
-    }
     setEditDataField(prodId, "variantes", next);
     if (target?.id) {
       setEditDataField(prodId, "removedVariantIds", [
@@ -326,22 +335,27 @@ export default function EditarCatalogo() {
 
     try {
       const cambios = editando[prodId] || {};
-      const productoActual = productos.find((p) => p.user_id === prodId);
+      const productoActual = productos.find((p) => getProductKey(p) === prodId);
       const precioNormalizado = parseDecimalInput(cambios.precio, parseDecimalInput(productoActual?.precio, 0));
 
       // 1) Actualizar datos principales
-      const { error: updateError } = await supabase
-        .from("productos")
-        .update({
-          nombre: cambios.nombre ?? productoActual?.nombre,
-          descripcion: cambios.descripcion ?? productoActual?.descripcion,
-          precio: precioNormalizado,
-          stock: cambios.stock !== undefined ? Math.max(0, parseInt(cambios.stock, 10) || 0) : productoActual?.stock,
-          categoria: cambios.categoria ?? productoActual?.categoria,
-          category_id: cambios.category_id ? parseInt(cambios.category_id, 10) : (productoActual?.category_id ?? null),
-          codigo_barra: cambios.codigo_barra ?? productoActual?.codigo_barra,
-        })
-        .eq("user_id", prodId);
+      const updatePayload = {
+        nombre: cambios.nombre ?? productoActual?.nombre,
+        descripcion: cambios.descripcion ?? productoActual?.descripcion,
+        precio: precioNormalizado,
+        stock: cambios.stock !== undefined ? Math.max(0, parseInt(cambios.stock, 10) || 0) : productoActual?.stock,
+        categoria: cambios.categoria ?? productoActual?.categoria,
+        category_id: cambios.category_id ? parseInt(cambios.category_id, 10) : (productoActual?.category_id ?? null),
+        codigo_barra: cambios.codigo_barra ?? productoActual?.codigo_barra,
+      };
+
+      let updateQuery = supabase.from("productos").update(updatePayload);
+      if (productoActual?.id !== undefined && productoActual?.id !== null) {
+        updateQuery = updateQuery.eq("id", productoActual.id);
+      } else {
+        updateQuery = updateQuery.eq("user_id", prodId);
+      }
+      const { error: updateError } = await updateQuery;
       if (updateError) throw updateError;
 
       // 1.1) Sincronizar variantes por color
@@ -350,16 +364,33 @@ export default function EditarCatalogo() {
         await supabase.from("producto_variantes").delete().in("id", removedVariantIds);
       }
 
+      const originalesPorId = new Map((variantes[prodId] || []).filter((v) => v?.id).map((v) => [v.id, v]));
+
       const draftVariantes = (cambios.variantes || variantes[prodId] || [])
         .map((v) => ({
           ...v,
           color: String(v.color || "").trim(),
           stock: Math.max(0, parseInt(v.stock ?? 0) || 0),
           precio: v.precio === "" || v.precio === null || v.precio === undefined ? null : parseDecimalInput(v.precio, null),
-          sku: String(v.sku || "").trim() || null,
+          sku: (() => {
+            const currentSku = String(v.sku || "").trim();
+            if (currentSku) return currentSku;
+            if (v.id && originalesPorId.has(v.id)) {
+              const prevSku = String(originalesPorId.get(v.id)?.sku || "").trim();
+              if (prevSku) return prevSku;
+            }
+            const seed = String(prodId).padStart(6, '0') + String(Math.floor(Math.random() * 9000) + 1000);
+            return seed;
+          })(),
           activo: v.activo !== false,
         }))
         .filter((v) => v.color.length > 0);
+
+      const normalizedColors = draftVariantes.map((v) => v.color.toLowerCase());
+      const uniqueColors = new Set(normalizedColors);
+      if (uniqueColors.size !== normalizedColors.length) {
+        throw new Error("Hay colores repetidos. Corrigelos antes de guardar.");
+      }
 
       if (draftVariantes.length > 0) {
         const existentes = draftVariantes.filter((v) => v.id);
@@ -373,7 +404,6 @@ export default function EditarCatalogo() {
               stock: v.stock,
               precio: v.precio,
               sku: v.sku,
-              codigo_barra: v.codigo_barra,
               activo: v.activo,
             })
             .eq("id", v.id);
@@ -388,7 +418,6 @@ export default function EditarCatalogo() {
               stock: v.stock,
               precio: v.precio,
               sku: v.sku,
-              codigo_barra: v.codigo_barra || String(prodId).padStart(6, '0') + String(i + 1).padStart(4, '0'),
               activo: v.activo,
             }))
           );
@@ -415,7 +444,14 @@ export default function EditarCatalogo() {
             .delete()
             .eq("id", r.old.id);
 
-          const file = r.file;
+          const prepared = await optimizeImageForUpload(r.file, {
+            maxDimension: 2600,
+            targetMaxBytes: 2.8 * 1024 * 1024,
+            hardMaxBytes: 4.2 * 1024 * 1024,
+            preferredQuality: 0.98,
+            minQuality: 0.9,
+          });
+          const file = prepared.file;
           const ext = file.name.split(".").pop();
           const fname = `${prodId}-${Date.now()}.${ext}`;
 
@@ -443,12 +479,20 @@ export default function EditarCatalogo() {
       // 4) Añadir nuevas imágenes
       if (cambios.newImages?.length) {
         for (const file of cambios.newImages) {
-          const ext = file.name.split(".").pop();
+          const prepared = await optimizeImageForUpload(file, {
+            maxDimension: 2600,
+            targetMaxBytes: 2.8 * 1024 * 1024,
+            hardMaxBytes: 4.2 * 1024 * 1024,
+            preferredQuality: 0.98,
+            minQuality: 0.9,
+          });
+          const optimizedFile = prepared.file;
+          const ext = optimizedFile.name.split(".").pop();
           const fname = `${prodId}-${Date.now()}.${ext}`;
 
           const { error: upErr } = await supabase.storage
             .from("product_images")
-            .upload(`public/${fname}`, file, { upsert: true });
+            .upload(`public/${fname}`, optimizedFile, { upsert: true });
 
           if (!upErr) {
             const { data: urlData } = supabase.storage
@@ -479,7 +523,7 @@ export default function EditarCatalogo() {
 
       setProductos(prods || []);
 
-      const ids = (prods || []).map((p) => p.user_id);
+      const ids = (prods || []).map((p) => getProductKey(p)).filter(Boolean);
       if (ids.length > 0) {
         const { data: vars } = await supabase
           .from("producto_variantes")
@@ -506,58 +550,143 @@ export default function EditarCatalogo() {
   };
 
   const filteredAndSortedProducts = () => {
-    let list = productos;
-    if (search)
-      list = list.filter((p) =>
-        p.nombre.toLowerCase().includes(search.toLowerCase())
-      );
-    if (categoryFilter)
-      list = list.filter((p) => p.category_id === parseInt(categoryFilter));
-    if (sortOrder === "alphabetical")
-      list = list.sort((a, b) => a.nombre.localeCompare(b.nombre));
-    else
+    let list = [...productos];
+
+    const normalizedSearch = String(search || "").trim().toLowerCase();
+    if (normalizedSearch) {
+      list = list.filter((p) => {
+        const productKey = getProductKey(p);
+        const productVariants = editando[productKey]?.variantes ?? variantes[productKey] ?? [];
+        const colorsText = productVariants.map((v) => String(v?.color || "")).join(" ").toLowerCase();
+        const nombre = String(p?.nombre || "").toLowerCase();
+        const categoria = String(p?.categoria || "").toLowerCase();
+        const descripcion = String(p?.descripcion || "").toLowerCase();
+        const codigoBarra = String(p?.codigo_barra || "").toLowerCase();
+        return (
+          nombre.includes(normalizedSearch) ||
+          categoria.includes(normalizedSearch) ||
+          descripcion.includes(normalizedSearch) ||
+          codigoBarra.includes(normalizedSearch) ||
+          colorsText.includes(normalizedSearch)
+        );
+      });
+    }
+
+    if (categoryFilter) {
+      const selectedCategory = String(categoryFilter);
+      list = list.filter((p) => String(p?.category_id ?? "") === selectedCategory);
+    }
+
+    if (stockFilter !== "all") {
+      list = list.filter((p) => {
+        const productKey = getProductKey(p);
+        const productVariants = editando[productKey]?.variantes ?? variantes[productKey] ?? [];
+        const stock = productVariants.length > 0
+          ? productVariants.reduce((sum, v) => sum + (parseInt(v?.stock ?? 0, 10) || 0), 0)
+          : (parseInt(p?.stock ?? 0, 10) || 0);
+
+        if (stockFilter === "inStock") return stock > 0;
+        if (stockFilter === "outOfStock") return stock <= 0;
+        if (stockFilter === "lowStock") return stock > 0 && stock <= 5;
+        return true;
+      });
+    }
+
+    if (imageFilter !== "all") {
+      list = list.filter((p) => {
+        const productKey = getProductKey(p);
+        const imageCount = (imagenes[productKey] || []).length;
+        if (imageFilter === "withImages") return imageCount > 0;
+        if (imageFilter === "withoutImages") return imageCount === 0;
+        return true;
+      });
+    }
+
+    if (sortOrder === "alphabetical") {
+      list = list.sort((a, b) => String(a?.nombre || "").localeCompare(String(b?.nombre || "")));
+    } else {
       list = list.sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+        (a, b) => new Date(b?.created_at || 0) - new Date(a?.created_at || 0)
       );
+    }
     return list;
   };
 
   return (
-    <div className="p-6 max-w-screen-xl mx-auto">
+    <div className="p-6 max-w-screen-xl mx-auto bg-slate-50 min-h-screen">
       <h1 className="text-4xl text-center font-bold text-indigo-700 mb-8">
         Editar Artículos
       </h1>
 
       {/* Filtros */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nombre..."
-          className="w-full md:w-1/3"
-        />
+      <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-4 md:p-5 mb-8 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por nombre, color, código o categoría"
+            className="w-full lg:col-span-2"
+          />
 
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="w-full md:w-1/4 border-indigo-500 rounded-lg p-3"
-        >
-          <option value="">Filtrar por categoría</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.categori}
-            </option>
-          ))}
-        </select>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="w-full border-slate-300 rounded-lg p-3 bg-white"
+          >
+            <option value="">Todas las categorías</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.categori}
+              </option>
+            ))}
+          </select>
 
-        <select
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value)}
-          className="w-full md:w-1/4 border-indigo-500 rounded-lg p-3"
-        >
-          <option value="alphabetical">Orden alfabético</option>
-          <option value="date">Orden por fecha</option>
-        </select>
+          <select
+            value={stockFilter}
+            onChange={(e) => setStockFilter(e.target.value)}
+            className="w-full border-slate-300 rounded-lg p-3 bg-white"
+          >
+            <option value="all">Todo el stock</option>
+            <option value="inStock">Con stock</option>
+            <option value="lowStock">Stock bajo (1-5)</option>
+            <option value="outOfStock">Sin stock</option>
+          </select>
+
+          <select
+            value={imageFilter}
+            onChange={(e) => setImageFilter(e.target.value)}
+            className="w-full border-slate-300 rounded-lg p-3 bg-white"
+          >
+            <option value="all">Todas las imágenes</option>
+            <option value="withImages">Con imágenes</option>
+            <option value="withoutImages">Sin imágenes</option>
+          </select>
+        </div>
+
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+          <div className="text-sm text-slate-600">
+            Mostrando <span className="font-semibold text-slate-900">{filteredAndSortedProducts().length}</span> de <span className="font-semibold text-slate-900">{productos.length}</span> productos
+          </div>
+
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="w-full md:w-auto border-slate-300 rounded-lg p-3 bg-white"
+            >
+              <option value="alphabetical">Orden alfabético</option>
+              <option value="date">Más recientes primero</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 transition"
+            >
+              Limpiar filtros
+            </button>
+          </div>
+        </div>
       </div>
 
       {loading && (
@@ -566,15 +695,17 @@ export default function EditarCatalogo() {
 
       {/* LISTA DE PRODUCTOS */}
       <div className="space-y-8">
-        {filteredAndSortedProducts().map((prod) => (
+        {filteredAndSortedProducts().map((prod) => {
+          const productKey = getProductKey(prod);
+          return (
           <ProductCard
-            key={prod.user_id}
+            key={productKey}
             prod={prod}
             categories={categories}
             editData={{
-              originalImages: imagenes[prod.user_id],
-              originalVariants: variantes[prod.user_id] || [],
-              ...editando[prod.user_id],
+              originalImages: imagenes[productKey],
+              originalVariants: variantes[productKey] || [],
+              ...editando[productKey],
             }}
             setEditDataField={setEditDataField}
             onAddVariantRow={handleAddVariantRow}
@@ -586,7 +717,7 @@ export default function EditarCatalogo() {
             handleReorderImages={handleReorderImages}
             openConfirm={openConfirm}
           />
-        ))}
+        )})}
       </div>
 
       {/* MODAL CONFIRM */}

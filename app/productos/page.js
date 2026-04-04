@@ -9,6 +9,7 @@ import { usePromociones } from '../../lib/usePromociones';
 import { usePacks, calcularDescuentoPack } from '../../lib/packs';
 import { CONFIG } from '../../lib/config';
 import { useFacebookPixel } from '../../components/FacebookPixel';
+import { getOptimizedImageUrl } from '../../lib/imageOptimization';
 
 export default function CatalogoPage() {
     // --- Estados ---
@@ -599,10 +600,12 @@ export default function CatalogoPage() {
                                         {Array.isArray(imagenes) && imagenes.length > 0 && typeof imagenes[0] === 'string' ? (
                                             <div className="w-full h-32 sm:h-40 mb-2 overflow-hidden rounded-lg relative group cursor-pointer">
                                                 <Image
-                                                    src={imagenes[0]}
+                                                    src={getOptimizedImageUrl(imagenes[0], 900, { quality: 96, format: 'origin' })}
                                                     alt={producto.nombre}
                                                     width={300}
                                                     height={200}
+                                                    quality={96}
+                                                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                                                     className="object-cover w-full h-full transition-transform duration-200 group-hover:scale-105"
                                                     onClick={() => setModalImg({ urls: imagenes, index: 0, nombre: producto.nombre })}
                                                     onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen'; }}
@@ -732,10 +735,12 @@ export default function CatalogoPage() {
                             </>
                         )}
                         <Image
-                            src={modalImg.urls[modalImg.index]}
+                            src={getOptimizedImageUrl(modalImg.urls[modalImg.index], 2200, { quality: 99, format: 'origin' })}
                             alt={modalImg.nombre}
                             width={800}
                             height={600}
+                            quality={99}
+                            sizes="(max-width: 768px) 100vw, 80vw"
                             className="w-full max-h-[80vh] object-contain rounded-xl bg-white"
                         />
                         <div className="text-center text-white font-bold mt-2 text-lg drop-shadow-lg">{modalImg.nombre}</div>
@@ -745,10 +750,12 @@ export default function CatalogoPage() {
                                 {modalImg.urls.map((img, idx) => (
                                     <Image
                                         key={img + '-' + idx}
-                                        src={img}
+                                        src={getOptimizedImageUrl(img, 180, { quality: 95, format: 'origin' })}
                                         alt={modalImg.nombre + ' miniatura ' + (idx + 1)}
                                         width={56}
                                         height={56}
+                                        quality={95}
+                                        sizes="56px"
                                         className={`w-14 h-14 object-cover rounded border-2 cursor-pointer ${idx === modalImg.index ? 'border-green-600' : 'border-gray-300'}`}
                                         onClick={() => setModalImg(m => ({ ...m, index: idx }))}
                                     />
@@ -805,10 +812,12 @@ export default function CatalogoPage() {
                                                     </div>
                                                 ) : imagenesProductos[item.user_id]?.[0] ? (
                                                     <Image 
-                                                        src={imagenesProductos[item.user_id][0]} 
+                                                        src={getOptimizedImageUrl(imagenesProductos[item.user_id][0], 120, { quality: 94, format: 'origin' })} 
                                                         alt={item.nombre}
                                                         width={32}
                                                         height={32}
+                                                        quality={94}
+                                                        sizes="32px"
                                                         className="w-8 h-8 object-cover rounded-lg border"
                                                     />
                                                 ) : (

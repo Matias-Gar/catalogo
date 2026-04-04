@@ -5,6 +5,7 @@ import { usePacks, calcularDescuentoPack } from '../lib/packs';
 export interface Producto {
   user_id: string;
   variante_id?: string | number;
+  stock?: number;
   color?: string;
   cart_key?: string;
   variantes?: Array<{
@@ -62,6 +63,13 @@ export interface CartItem extends Producto {
   categoria?: string;
 }
 
+const getAvailableStock = (item: { tipo?: 'pack' | 'producto'; stock?: number }) => {
+  if (item.tipo === 'pack') return Number.POSITIVE_INFINITY;
+  const parsedStock = Number(item.stock);
+  if (!Number.isFinite(parsedStock)) return Number.POSITIVE_INFINITY;
+  return Math.max(0, parsedStock);
+};
+
 const getItemKey = (item: { tipo?: 'pack' | 'producto'; user_id?: string | number; variante_id?: string | number; cart_key?: string; pack_id?: string | number }) => {
   if (item.cart_key) return item.cart_key;
   if (item.tipo === 'pack') return `pack:${String(item.pack_id ?? item.user_id ?? '')}`;
@@ -72,6 +80,7 @@ const getItemKey = (item: { tipo?: 'pack' | 'producto'; user_id?: string | numbe
 export function useCarrito(promociones: unknown[]) {
   const { packs, loading: loadingPacks } = usePacks() as { packs: Pack[]; loading: boolean; };
   const [carrito, setCarrito] = useState<CartItem[]>([]);
+  const [stockWarning, setStockWarning] = useState('');
 
   // recalculate cart if promociones change (fixed new promo detect)
   useEffect(() => {
@@ -103,19 +112,34 @@ export function useCarrito(promociones: unknown[]) {
     }
   }, [carrito]);
 
+  const clearStockWarning = useCallback(() => {
+    setStockWarning('');
+  }, []);
+
   const agregar = useCallback((prod: Producto) => {
     const basePrice = Number(prod.precio_original ?? prod.precio ?? 0);
     const prodBase = { ...prod, precio: basePrice, precio_original: basePrice };
     const precioInfo = calcularPrecioConPromocion(prodBase, promociones);
     const precioFinal = precioInfo.precioFinal;
+    const availableStock = getAvailableStock(prodBase);
+
+    if (availableStock <= 0) {
+      setStockWarning(`${prod.nombre}${prod.color ? ` (${prod.color})` : ''} ya no tiene stock disponible.`);
+      return false;
+    }
 
     setCarrito(prev => {
       const cartKey = getItemKey(prod);
       const existe = prev.find(p => getItemKey(p) === cartKey);
       if (existe) {
+        if (existe.cantidad >= availableStock) {
+          setStockWarning(`${prod.nombre}${prod.color ? ` (${prod.color})` : ''} solo tiene ${availableStock} unidad${availableStock === 1 ? '' : 'es'} disponible${availableStock === 1 ? '' : 's'}.`);
+          return prev;
+        }
         return prev.map(p => getItemKey(p) === cartKey ? {
           ...p,
-          cantidad: p.cantidad + 1,
+          cantidad: Math.min(p.cantidad + 1, availableStock),
+          stock: Number.isFinite(availableStock) ? availableStock : p.stock,
           precio: precioFinal,
           precio_original: precioInfo.precioOriginal,
           descuento_item: precioInfo.descuento,
@@ -126,11 +150,14 @@ export function useCarrito(promociones: unknown[]) {
         ...prodBase,
         cart_key: cartKey,
         cantidad: 1,
+        stock: Number.isFinite(availableStock) ? availableStock : Number(prod.stock ?? 0),
         precio: precioFinal,
         descuento_item: precioInfo.descuento,
         promocion_aplicada: precioInfo.promocion
       }];
     });
+    setStockWarning('');
+    return true;
   }, [promociones]);
 
   const agregarPack = useCallback((pack: Pack) => {
@@ -164,7 +191,20 @@ export function useCarrito(promociones: unknown[]) {
 
   const cambiarCantidad = useCallback((itemKey: string | number, cantidad: number) => {
     const normalized = String(itemKey);
-    setCarrito(prev => prev.map(i => getItemKey(i) === normalized ? { ...i, cantidad: Math.max(1, cantidad) } : i));
+    setCarrito(prev => prev.map(i => {
+      if (getItemKey(i) !== normalized) return i;
+      const availableStock = getAvailableStock(i);
+      const requested = Math.max(1, Number(cantidad) || 1);
+      const nextCantidad = Math.min(requested, availableStock);
+
+      if (requested > availableStock && Number.isFinite(availableStock)) {
+        setStockWarning(`${i.nombre}${i.color ? ` (${i.color})` : ''} solo tiene ${availableStock} unidad${availableStock === 1 ? '' : 'es'} disponible${availableStock === 1 ? '' : 's'}.`);
+      } else {
+        setStockWarning('');
+      }
+
+      return { ...i, cantidad: nextCantidad };
+    }));
   }, []);
 
   const subtotal = useMemo(() => {
@@ -202,6 +242,8 @@ export function useCarrito(promociones: unknown[]) {
     subtotal,
     totalDescuento,
     total,
-    loadingPacks
+    loadingPacks,
+    stockWarning,
+    clearStockWarning
   };
 }

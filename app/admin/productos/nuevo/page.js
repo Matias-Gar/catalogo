@@ -6,21 +6,74 @@ import { supabase } from "../../../../lib/SupabaseClient";
 import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
+import { getOptimizedImageUrl, buildImageSrcSet } from '../../../../lib/imageOptimization';
+import { optimizeImageForUpload } from '../../../../lib/imageUploadOptimization';
 
 // Desactivar SSR para el componente de código de barras si usa librerías de cliente como 'react-barcode'
 // Si la tabla usa react-barcode, este dynamic es necesario. Si solo usa la función handlePrintBarcode, se podría quitar.
 // Lo mantendremos por si acaso el componente de tabla lo usa internamente.
 const Barcode = dynamic(() => import('react-barcode'), { ssr: false });
 
-// Generador de código de barras EAN13 simple
-function generateBarcode() {
-    // Genera un número de 12 dígitos, el 13 lo calcula el lector
-    return Math.floor(100000000000 + Math.random() * 900000000000).toString();
+const DEFAULT_COLOR_PALETTE = [
+    'Negro',
+    'Navy',
+    'Naranja',
+    'Natural',
+    'Nude',
+    'Blanco',
+    'Gris',
+    'Plomo',
+    'Rojo',
+    'Azul',
+    'Verde',
+    'Amarillo',
+    'Marron',
+    'Beige',
+    'Dorado',
+    'Plateado',
+    'Rosado',
+    'Fucsia',
+    'Morado',
+    'Lila',
+    'Celeste',
+    'Turquesa',
+    'Coral',
+    'Violeta',
+    'Mostaza',
+    'Oliva',
+    'Bordo',
+    'Crema',
+    'Transparente',
+    'Multicolor',
+    'Único',
+];
+
+function generateVariantBarcode(existingCodes = new Set()) {
+    let code = '';
+    do {
+        code = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+    } while (existingCodes.has(code));
+    return code;
 }
 
-function generateVariantBarcode(index = 1) {
-    // 12 dígitos para EAN13 (el lector/generador calcula el dígito de control)
-    return String(Date.now()).slice(-8) + String(index).padStart(4, '0');
+function createVariantDraft(existingVariants = [], overrides = {}) {
+    const existingCodes = new Set(
+        (existingVariants || [])
+            .map((variant) => String(variant?.codigo_barra || variant?.sku || '').trim())
+            .filter(Boolean)
+    );
+    const code = generateVariantBarcode(existingCodes);
+    return {
+        color: '',
+        stock: '',
+        precio: '',
+        sku: code,
+        codigo_barra: code,
+        activo: true,
+        ...overrides,
+        sku: overrides.sku ?? code,
+        codigo_barra: overrides.codigo_barra ?? code,
+    };
 }
 
 // --------------------------------------------------------------------------
@@ -28,6 +81,7 @@ function generateVariantBarcode(index = 1) {
 // --------------------------------------------------------------------------
 function ImagePreviewModal({ isOpen, onClose, imageList, imageIndex, productName, onPrev, onNext }) {
     if (!isOpen || !imageList || imageList.length === 0) return null;
+    const modalImage = imageList[imageIndex];
     return (
         <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center p-2 sm:p-4 z-[999]" onClick={onClose}>
             <div className="relative w-full h-full max-w-screen-2xl max-h-[95vh] flex flex-col items-center justify-center" onClick={e => e.stopPropagation()}>
@@ -39,7 +93,11 @@ function ImagePreviewModal({ isOpen, onClose, imageList, imageIndex, productName
                     &times;
                 </button>
                 <img
-                    src={imageList[imageIndex]}
+                    src={getOptimizedImageUrl(modalImage, 2200, { quality: 99, format: 'origin' })}
+                    srcSet={buildImageSrcSet(modalImage, [900, 1400, 2200], { quality: 99, format: 'origin' })}
+                    sizes="(max-width: 768px) 100vw, 90vw"
+                    loading="lazy"
+                    decoding="async"
                     alt={`Vista previa de ${productName}`}
                     className="max-w-full max-h-full object-scale-down rounded-lg shadow-2xl"
                 />
@@ -60,7 +118,20 @@ function ImagePreviewModal({ isOpen, onClose, imageList, imageIndex, productName
 // --------------------------------------------------------------------------
 // COMPONENTE 3: Modal para Seleccionar Colores a Imprimir
 // --------------------------------------------------------------------------
-function PrintVariantesModal({ isOpen, onClose, product, variantes, onPrint, selectedColors, onColorToggle }) {
+function PrintVariantesModal({
+    isOpen,
+    onClose,
+    product,
+    variantes,
+    onPrint,
+    selectedColors,
+    onColorToggle,
+    onToggleAll,
+    qzHealth,
+    onCheckQz,
+    cutMode,
+    showQzStatus,
+}) {
     if (!isOpen || !product) return null;
     
     const allSelected = variantes && variantes.length > 0 && variantes.every(v => selectedColors[v.id]);
@@ -83,7 +154,7 @@ function PrintVariantesModal({ isOpen, onClose, product, variantes, onPrint, sel
                                     className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                                 />
                                 <span className="text-sm font-medium text-gray-700">
-                                    {v.color} (Stock: {v.stock}) - Código: <b>{v.codigo_barra}</b>
+                                    {v.color} (Stock: {v.stock}) - Código: <b>{v.codigo_barra || v.sku || 'Sin código'}</b>
                                 </span>
                             </label>
                         ))
@@ -95,11 +166,7 @@ function PrintVariantesModal({ isOpen, onClose, product, variantes, onPrint, sel
                 <div className="flex justify-between mb-4">
                     <button
                         type="button"
-                        onClick={() => {
-                            const newSelection = {};
-                            variantes.forEach(v => newSelection[v.id] = !allSelected);
-                            setSelectedColorsToPrint(newSelection);
-                        }}
+                        onClick={() => onToggleAll(!allSelected)}
                         className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
                     >
                         {allSelected ? 'Deseleccionar todos' : 'Seleccionar todos'}
@@ -108,6 +175,48 @@ function PrintVariantesModal({ isOpen, onClose, product, variantes, onPrint, sel
                         {Object.values(selectedColors).filter(Boolean).length} / {variantes?.length || 0} seleccionados
                     </span>
                 </div>
+
+                <div className="mb-4 rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-sm text-indigo-800">
+                    Se imprimirá automáticamente según stock por color (ejemplo: stock 10 = 10 etiquetas).
+                </div>
+
+                {showQzStatus && (
+                <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm">
+                    <div className="mb-2 flex items-center justify-between">
+                        <span className="font-semibold text-gray-800">Estado de impresión automática</span>
+                        <button
+                            type="button"
+                            onClick={onCheckQz}
+                            disabled={qzHealth?.loading}
+                            className="rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                        >
+                            {qzHealth?.loading ? 'Verificando...' : 'Verificar'}
+                        </button>
+                    </div>
+                    <div className="space-y-1 text-xs">
+                        <div className={qzHealth?.installed ? 'text-green-700' : 'text-red-700'}>
+                            QZ Tray: {qzHealth?.installed ? 'Conectado' : 'No disponible'}
+                        </div>
+                        <div className={qzHealth?.printerReady ? 'text-green-700' : 'text-amber-700'}>
+                            Impresora POS-80C: {qzHealth?.printerReady ? 'Detectada' : 'No detectada'}
+                        </div>
+                        <div className={(qzHealth?.installed && qzHealth?.printerReady) ? 'text-green-700' : 'text-amber-700'}>
+                            Corte QZ: {cutMode === 'raw-per-copy'
+                                ? ((qzHealth?.installed && qzHealth?.printerReady) ? 'Por etiqueta' : 'No disponible')
+                                : cutMode === 'qz-html-per-label'
+                                    ? ((qzHealth?.installed && qzHealth?.printerReady) ? 'Por etiqueta (diseño HTML)' : 'No disponible')
+                                : cutMode === 'browser-per-label'
+                                    ? ((qzHealth?.installed && qzHealth?.printerReady) ? 'Por etiqueta (mantiene diseño)' : 'No disponible')
+                                    : cutMode === 'browser-final'
+                                    ? ((qzHealth?.installed && qzHealth?.printerReady) ? 'Solo corte final' : 'No disponible')
+                                    : 'Desactivado'}
+                        </div>
+                        {qzHealth?.error && (
+                            <div className="text-red-700">Detalle: {qzHealth.error}</div>
+                        )}
+                    </div>
+                </div>
+                )}
                 
                 <div className="flex justify-end space-x-4">
                     <button
@@ -172,16 +281,24 @@ const uploadProductImages = async (files) => {
     const userId = 'public';
 
     const uploadTasks = files.map(async (file) => {
-        const fileExtension = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        const { file: preparedFile } = await optimizeImageForUpload(file, {
+            maxDimension: 2600,
+            targetMaxBytes: 2.8 * 1024 * 1024,
+            hardMaxBytes: 4.2 * 1024 * 1024,
+            preferredQuality: 0.98,
+            minQuality: 0.9,
+        });
+
+        const fileExtension = (preparedFile.name.split('.').pop() || 'jpg').toLowerCase();
         const fileName = `${uuidv4()}.${fileExtension}`;
         const filePath = `${userId}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
             .from(BUCKET_NAME)
-            .upload(filePath, file, {
+            .upload(filePath, preparedFile, {
                 cacheControl: '31536000',
                 upsert: false,
-                contentType: file.type || 'image/jpeg'
+                contentType: preparedFile.type || 'image/jpeg'
             });
 
         if (uploadError) {
@@ -228,8 +345,8 @@ export default function AdminProductosPage() {
         category_id: '',
         codigo_barra: ''
     }); 
-    const [newVariants, setNewVariants] = useState([
-        { color: 'Único', stock: '', precio: '', sku: '', codigo_barra: generateVariantBarcode(1) }
+    const [newVariants, setNewVariants] = useState(() => [
+        createVariantDraft([], { color: '' })
     ]);
     const [editingProduct, setEditingProduct] = useState(null); 
     const [editImageFiles, setEditImageFiles] = useState([]); 
@@ -244,9 +361,53 @@ export default function AdminProductosPage() {
     const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
     const [productToPrint, setProductToPrint] = useState(null);
     const [selectedColorsToPrint, setSelectedColorsToPrint] = useState({});
+    const [qzHealth, setQzHealth] = useState({
+        loading: false,
+        installed: false,
+        printerReady: false,
+        error: ''
+    });
 
     // Nuevo: estado y carga de promociones
     const [promociones, setPromociones] = useState([]);
+    const [activeColorRow, setActiveColorRow] = useState(null);
+
+    const normalizeText = (text = '') =>
+        String(text)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim();
+
+    const getColorSuggestions = (value = '') => {
+        const query = normalizeText(value);
+        if (!query) return colorOptions.slice(0, 8);
+
+        const startsWith = colorOptions.filter((c) => normalizeText(c).startsWith(query));
+        const includes = colorOptions.filter(
+            (c) => !startsWith.includes(c) && normalizeText(c).includes(query)
+        );
+        return [...startsWith, ...includes].slice(0, 8);
+    };
+
+    const selectColorSuggestion = (rowIndex, colorValue) => {
+        handleVariantChange(rowIndex, 'color', colorValue);
+        setActiveColorRow(null);
+    };
+
+    const colorOptions = Array.from(
+        new Set(
+            [
+                ...DEFAULT_COLOR_PALETTE,
+                ...Object.values(variantesProductos)
+                    .flat()
+                    .map((v) => String(v?.color || '').trim())
+                    .filter(Boolean),
+            ].map((c) => c.trim())
+                .filter(Boolean)
+        )
+    ).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+
     useEffect(() => {
         async function loadPromociones() {
             try {
@@ -260,10 +421,218 @@ export default function AdminProductosPage() {
         loadPromociones();
     }, []);
 
-    const handlePrintBarcode = async (codigo, productoNombre = '') => {
+    const QZ_PRINTER_NAME = 'POS-80C';
+    const ENABLE_QZ_RAW_LABEL_PRINT = false;
+    const ENABLE_QZ_HTML_LABEL_PRINT = false;
+    const ENABLE_QZ_DIRECT_VARIANT_PRINT = true;
+    const ENABLE_QZ_CUT_PER_LABEL_WITH_BROWSER_PRINT = false;
+    const ENABLE_QZ_CUT_ONLY_AFTER_BROWSER_PRINT = false;
+    const ENABLE_QZ_PRODUCT_LABEL_FLOW =
+        ENABLE_QZ_RAW_LABEL_PRINT ||
+        ENABLE_QZ_HTML_LABEL_PRINT ||
+        ENABLE_QZ_CUT_PER_LABEL_WITH_BROWSER_PRINT ||
+        ENABLE_QZ_CUT_ONLY_AFTER_BROWSER_PRINT;
+
+    const loadQzTray = () => new Promise((resolve, reject) => {
+        if (typeof window === 'undefined') {
+            reject(new Error('QZ Tray solo está disponible en navegador.'));
+            return;
+        }
+
+        if (window.qz) {
+            resolve(window.qz);
+            return;
+        }
+
+        const existing = document.getElementById('qz-tray-script');
+        if (existing) {
+            existing.addEventListener('load', () => resolve(window.qz));
+            existing.addEventListener('error', () => reject(new Error('No se pudo cargar QZ Tray.')));
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.id = 'qz-tray-script';
+        script.src = 'https://cdn.jsdelivr.net/npm/qz-tray@2.2.5/qz-tray.js';
+        script.async = true;
+        script.onload = () => resolve(window.qz);
+        script.onerror = () => reject(new Error('No se pudo cargar QZ Tray.'));
+        document.head.appendChild(script);
+    });
+
+    const ensureQzConnection = async () => {
+        const qz = await loadQzTray();
+        if (!qz) throw new Error('QZ Tray no disponible.');
+
+        // Configuración de desarrollo para facilitar conexión local.
+        if (qz.security) {
+            qz.security.setCertificatePromise((resolve) => resolve(null));
+            qz.security.setSignaturePromise(() => (resolve) => resolve(''));
+        }
+
+        if (!qz.websocket.isActive()) {
+            await qz.websocket.connect({ retries: 1, delay: 0 });
+        }
+
+        return qz;
+    };
+
+    const buildEscPosBarcodeCommand = (value) => {
+        const text = String(value || '').trim();
+        const digitsOnly = /^\d+$/.test(text);
+
+        // Solo usar EAN13 cuando llegan exactamente 12 dígitos.
+        // Para 13+ se respeta el valor completo usando CODE128.
+        if (digitsOnly && text.length === 12) {
+            const ean12 = text.slice(0, 12);
+            return `\x1D\x6B\x02${ean12}\x00`;
+        }
+
+        // CODE128 con Set B para contenido alfanumérico general.
+        const code128 = `{B${text || '000000'}}`;
+        return `\x1D\x6B\x49${String.fromCharCode(code128.length)}${code128}`;
+    };
+
+    const tryPrintBarcodeWithQz = async ({ barcodeValue, productName, copies }) => {
+        try {
+            const qz = await ensureQzConnection();
+            const printer = await qz.printers.find(QZ_PRINTER_NAME);
+            if (!printer) throw new Error(`No se encontró la impresora ${QZ_PRINTER_NAME}.`);
+            const config = qz.configs.create(printer, { encoding: 'CP1252' });
+
+            for (let i = 0; i < copies; i++) {
+                const raw = [
+                    '\x1B\x40',                 // init
+                    '\x1B\x61\x01',           // align center
+                    '\x1D\x48\x00',           // HRI off (lo imprimimos manual)
+                    '\x1D\x68\x46',           // barcode height
+                    '\x1D\x77\x01',           // barcode module width (evita recorte lateral)
+                    buildEscPosBarcodeCommand(barcodeValue),
+                    '\n',
+                    `${String(barcodeValue || '').slice(0, 32)}\n`,
+                    `${String(productName || '').slice(0, 32)}\n`,
+                    '\x1B\x64\x03',           // feed 3 lines antes de cortar
+                    '\x1D\x56\x00'            // full cut
+                ].join('');
+
+                await qz.print(config, [raw]);
+            }
+
+            return true;
+        } catch (err) {
+            console.warn('QZ Tray no disponible, se usa impresión del navegador.', err);
+            return false;
+        }
+    };
+
+    const tryCutOnlyWithQz = async ({ cuts = 1 } = {}) => {
+        const qzCutEnabled =
+            ENABLE_QZ_CUT_PER_LABEL_WITH_BROWSER_PRINT ||
+            ENABLE_QZ_CUT_ONLY_AFTER_BROWSER_PRINT;
+        if (!qzCutEnabled) return false;
+        const safeCuts = Math.max(0, Math.min(200, Number(cuts) || 0));
+        if (safeCuts === 0) return false;
+
+        try {
+            const qz = await ensureQzConnection();
+            const printer = await qz.printers.find(QZ_PRINTER_NAME);
+            if (!printer) throw new Error(`No se encontró la impresora ${QZ_PRINTER_NAME}.`);
+            const config = qz.configs.create(printer, { encoding: 'CP1252' });
+
+            for (let i = 0; i < safeCuts; i++) {
+                await qz.print(config, ['\x1D\x56\x00']);
+            }
+
+            return true;
+        } catch (err) {
+            console.warn('No se pudo ejecutar corte por QZ Tray.', err);
+            return false;
+        }
+    };
+
+    const tryPrintHtmlLabelWithQz = async ({ labelHtml, copies, enabled = ENABLE_QZ_HTML_LABEL_PRINT }) => {
+        if (!enabled) return false;
+        try {
+            const qz = await ensureQzConnection();
+            const printer = await qz.printers.find(QZ_PRINTER_NAME);
+            if (!printer) throw new Error(`No se encontró la impresora ${QZ_PRINTER_NAME}.`);
+
+            const pixelConfig = qz.configs.create(printer);
+            const safeCopies = Math.max(1, Math.min(200, Number(copies) || 1));
+
+            for (let i = 0; i < safeCopies; i++) {
+                await qz.print(pixelConfig, [{
+                    type: 'pixel',
+                    format: 'html',
+                    flavor: 'plain',
+                    data: labelHtml,
+                }]);
+                if (i < safeCopies - 1) {
+                    await new Promise((resolve) => setTimeout(resolve, 120));
+                }
+            }
+
+            return true;
+        } catch (err) {
+            console.warn('No se pudo imprimir HTML por QZ Tray.', err);
+            return false;
+        }
+    };
+
+    const checkQzHealth = async () => {
+        if (!ENABLE_QZ_PRODUCT_LABEL_FLOW) {
+            setQzHealth({
+                loading: false,
+                installed: false,
+                printerReady: false,
+                error: 'QZ Tray desactivado en esta pantalla.'
+            });
+            return;
+        }
+
+        setQzHealth((prev) => ({ ...prev, loading: true, error: '' }));
+        try {
+            const qz = await ensureQzConnection();
+            const printer = await qz.printers.find(QZ_PRINTER_NAME);
+            setQzHealth({
+                loading: false,
+                installed: true,
+                printerReady: Boolean(printer),
+                error: ''
+            });
+        } catch (err) {
+            setQzHealth({
+                loading: false,
+                installed: false,
+                printerReady: false,
+                error: err?.message || 'No se pudo verificar QZ Tray.'
+            });
+        }
+    };
+
+        const handlePrintBarcode = async (codigo, productoNombre = '', copies = 1, printMode = 'browser') => {
       const rawCode = String(codigo || '').trim();
       const productName = String(productoNombre || '').trim() || 'SIN NOMBRE';
       const barcodeValue = rawCode || '0000000000000';
+            const safeCopies = Math.max(1, Math.min(200, Number(copies) || 1));
+                        const labelWidthMm = 70;
+                        const labelHeightMm = 22;
+
+            const shouldUseQzRaw = printMode === 'qz-raw' && ENABLE_QZ_RAW_LABEL_PRINT;
+            const shouldUseQzHtml = printMode === 'qz-html' && ENABLE_QZ_DIRECT_VARIANT_PRINT;
+
+            const qzPrinted = shouldUseQzRaw
+                ? await tryPrintBarcodeWithQz({
+                    barcodeValue,
+                    productName,
+                    copies: safeCopies,
+                })
+                : false;
+
+            if (qzPrinted) {
+                setMessage('✅ Etiquetas enviadas por QZ Tray con corte por cada copia.');
+                return;
+            }
 
             let svgString = '';
       try {
@@ -287,29 +656,59 @@ export default function AdminProductosPage() {
 
       const barcodeDataUri = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgString)))}`;
 
-      const html = `
+            const buildLabelMarkup = () => `
+                <div class="sheet">
+                    <div class="label">
+                        <div class="left">
+                            <img src="${barcodeDataUri}" />
+                            <div class="code">${barcodeValue}</div>
+                        </div>
+                        <div class="right">${productName}</div>
+                    </div>
+                </div>
+            `;
+
+            const labelsHtml = Array.from({ length: safeCopies }).map(() => buildLabelMarkup()).join('');
+
+            const buildPrintHtml = (labelsMarkup) => `
       <html>
       <head>
         <style>
-          @page {
-            size: 78mm auto; /* 🔥 CLAVE: sirve para TODO */
-            margin: 0;
-          }
+                    @page {
+                        size: ${labelWidthMm}mm auto;
+                        margin: 0;
+                    }
 
           html, body {
-            width: 78mm;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-          }
+            width: ${labelWidthMm}mm;
+                        margin: 0;
+                        padding: 0;
+                        height: auto;
+                        font-family: Arial, sans-serif;
+                    }
+
+                    body {
+                        background: white;
+                        display: block;
+                    }
+
+                    .sheet {
+                        width: ${labelWidthMm}mm;
+                        min-height: ${labelHeightMm}mm;
+                        margin: 0;
+                        padding: 0;
+                        break-after: auto;
+                        page-break-after: auto;
+                    }
 
           .label {
-            width: 78mm;
-            height: 22mm; /* 🔥 solo etiquetas usan altura fija */
+            width: ${labelWidthMm}mm;
+                        min-height: ${labelHeightMm}mm;
             box-sizing: border-box;
             padding: 1mm;
             display: flex;
             border: 1px solid black;
+            overflow: hidden;
           }
 
           .left {
@@ -329,7 +728,7 @@ export default function AdminProductosPage() {
           }
 
           .right {
-            width: calc(78mm - 48mm - 2mm);
+                        width: calc(${labelWidthMm}mm - 48mm - 2mm);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -340,19 +739,26 @@ export default function AdminProductosPage() {
         </style>
       </head>
       <body>
-        <div class="label">
-          <div class="left">
-            <img src="${barcodeDataUri}" />
-            <div class="code">${barcodeValue}</div>
-          </div>
-          <div class="right">${productName}</div>
-        </div>
+                                ${labelsMarkup}
 
       </body>
       </html>
       `;
 
-      const printInIframe = (htmlContent) => {
+            const qzHtmlPrinted = shouldUseQzHtml
+                ? await tryPrintHtmlLabelWithQz({
+                    labelHtml: buildPrintHtml(buildLabelMarkup()),
+                    copies: safeCopies,
+                    enabled: true,
+                })
+                : false;
+
+            if (qzHtmlPrinted) {
+                setMessage('✅ Etiquetas impresas por QZ Tray con corte por cada etiqueta.');
+                return;
+            }
+
+        const printInIframe = (htmlContent) => new Promise((resolve) => {
         let iframe = document.getElementById('barcode-print-iframe');
         if (!iframe) {
           iframe = document.createElement('iframe');
@@ -366,40 +772,85 @@ export default function AdminProductosPage() {
         }
 
         const doc = iframe.contentDocument || iframe.contentWindow?.document;
-        if (!doc) return;
+                if (!doc) {
+                        resolve(false);
+                        return;
+                }
 
         doc.open();
         doc.write(htmlContent);
         doc.close();
 
-        setTimeout(() => {
+                setTimeout(() => {
           try {
             iframe.contentWindow?.focus();
             iframe.contentWindow?.print();
+                        resolve(true);
           } catch (err) {
             console.warn('Impresión desde iframe falló', err);
+                        resolve(false);
           }
         }, 500);
-      };
+            });
 
-      printInIframe(html);
+            if (!ENABLE_QZ_RAW_LABEL_PRINT && ENABLE_QZ_CUT_PER_LABEL_WITH_BROWSER_PRINT) {
+                for (let i = 0; i < safeCopies; i++) {
+                        await printInIframe(buildPrintHtml(buildLabelMarkup()));
+                    // Pequeña espera para evitar cortar antes de que termine de salir la etiqueta.
+                    await new Promise((resolve) => setTimeout(resolve, 900));
+                    // Cortar solo entre etiquetas evita un corte adicional al final.
+                    if (i < safeCopies - 1) {
+                        await tryCutOnlyWithQz({ cuts: 1 });
+                    }
+                        if (i < safeCopies - 1) {
+                                await new Promise((resolve) => setTimeout(resolve, 250));
+                        }
+                }
+                return;
+            }
+
+            await printInIframe(buildPrintHtml(labelsHtml));
+
+            // Mantiene exactamente el diseño actual y delega a QZ solo el corte final.
+            if (!ENABLE_QZ_RAW_LABEL_PRINT && ENABLE_QZ_CUT_ONLY_AFTER_BROWSER_PRINT) {
+                    await tryCutOnlyWithQz({ cuts: 1 });
+            }
     };
 
     // Listener para imprimir código de barras de variante
     useEffect(() => {
       const handlePrintVariantBarcode = async (event) => {
-        const { codigoBarras, nombre } = event.detail;
+            const { codigoBarras, nombre, copies, printMode } = event.detail;
         if (!codigoBarras) return;
         
         // Usar la función existente handlePrintBarcode
-        await handlePrintBarcode(codigoBarras, nombre);
+            await handlePrintBarcode(codigoBarras, nombre, copies, printMode || 'qz-html');
       };
 
       window.addEventListener('printVariantBarcode', handlePrintVariantBarcode);
       return () => window.removeEventListener('printVariantBarcode', handlePrintVariantBarcode);
     }, []);
 
+    useEffect(() => {
+        if (isPrintModalOpen && ENABLE_QZ_PRODUCT_LABEL_FLOW) {
+            checkQzHealth();
+        }
+    }, [isPrintModalOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
     // Función para abrir modal de impresión de variantes
+        const getPrintableVariantes = (producto) => {
+            if (!producto) return [];
+            const raw = variantesProductos[producto.user_id] || [];
+            if (raw.length > 0) {
+                return raw.map((v) => ({
+                    ...v,
+                    codigo_barra: v.codigo_barra || v.sku || ''
+                }));
+            }
+
+            return [];
+        };
+
     const openPrintVariantesModal = (producto) => {
       setProductToPrint(producto);
       setSelectedColorsToPrint({});
@@ -414,17 +865,34 @@ export default function AdminProductosPage() {
       }));
     };
 
+        const handleToggleAllColors = (shouldSelect) => {
+            const variantes = productToPrint ? getPrintableVariantes(productToPrint) : [];
+            const newSelection = {};
+            variantes.forEach((v) => {
+                newSelection[v.id] = shouldSelect;
+            });
+            setSelectedColorsToPrint(newSelection);
+        };
+
     // Función para imprimir múltiples variantes
     const handlePrintMultipleVariantes = async () => {
       if (!productToPrint) return;
 
-      const variantes = variantesProductos[productToPrint.user_id] || [];
+            const variantes = getPrintableVariantes(productToPrint);
       const selectedVariantes = variantes.filter(v => selectedColorsToPrint[v.id]);
+
+            if (selectedVariantes.length === 0) {
+                setMessage('⚠️ Selecciona al menos un color para imprimir.');
+                return;
+            }
 
       // Imprimir cada variante con un pequeño delay entre ellas
       for (let i = 0; i < selectedVariantes.length; i++) {
         const variante = selectedVariantes[i];
-        await handlePrintBarcode(variante.codigo_barra, `${productToPrint.nombre} - ${variante.color}`);
+                                const codigo = variante.codigo_barra || variante.sku;
+                                const copiesByStock = Math.max(1, Math.min(200, Number(variante.stock) || 1));
+                if (!codigo) continue;
+                                await handlePrintBarcode(codigo, `${productToPrint.nombre} - ${variante.color}`, copiesByStock, 'browser');
         // Esperar un poco antes de la siguiente impresión
         if (i < selectedVariantes.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 500));
@@ -495,12 +963,20 @@ export default function AdminProductosPage() {
     }; 
 
     const handleVariantChange = (index, field, value) => {
-        setNewVariants(prev => prev.map((v, i) => (i === index ? { ...v, [field]: value } : v)));
+        setNewVariants(prev => prev.map((v, i) => {
+            if (i !== index) return v;
+            if (field === 'codigo_barra') {
+                return { ...v, codigo_barra: value, sku: value };
+            }
+            if (field === 'sku') {
+                return { ...v, sku: value, codigo_barra: value };
+            }
+            return { ...v, [field]: value };
+        }));
     };
 
     const addVariantRow = () => {
-        const newCode = generateVariantBarcode(newVariants.length + 1);
-        setNewVariants(prev => [...prev, { color: '', stock: '', precio: '', sku: '', codigo_barra: newCode }]);
+        setNewVariants(prev => [...prev, createVariantDraft(prev)]);
     };
 
     const removeVariantRow = (index) => {
@@ -679,11 +1155,39 @@ export default function AdminProductosPage() {
         } catch {}
     }, [newProduct]);
 
+    const confirmMissingProductData = ({ descripcion, imageCount, actionLabel }) => {
+        const missing = [];
+        if (!String(descripcion || '').trim()) {
+            missing.push('descripción');
+        }
+        if ((Number(imageCount) || 0) <= 0) {
+            missing.push('fotos');
+        }
+        if (missing.length === 0) return true;
+
+        const detail = missing.length === 1
+            ? `Te falta ${missing[0]}`
+            : `Te faltan ${missing.join(' y ')}`;
+
+        return window.confirm(`⚠️ ${detail}. ¿Estás seguro de ${actionLabel} sin estos datos?`);
+    };
+
     
     // Función para Añadir Producto
     const handleAñadirProducto = async (e) => {
         e.preventDefault();
         setMessage('');
+
+        const canContinue = confirmMissingProductData({
+            descripcion: newProduct?.descripcion,
+            imageCount: imageFiles?.length || 0,
+            actionLabel: 'añadir el producto',
+        });
+        if (!canContinue) {
+            setMessage('ℹ️ Operación cancelada. Completa descripción o fotos si deseas.');
+            return;
+        }
+
         setLoading(true);
         let imagenUrls = [];
         try {
@@ -692,22 +1196,34 @@ export default function AdminProductosPage() {
                 imagenUrls = await uploadProductImages(imageFiles);
             }
             const categoryIdValue = newProduct.category_id ? parseInt(newProduct.category_id) : null;
+            const usedVariantCodes = new Set();
             const variantsPayload = (newVariants || [])
-                .map(v => ({
-                    color: String(v.color || '').trim(),
+                .map((v) => {
+                    let finalSku = String(v.codigo_barra || v.sku || '').trim();
+                    if (!finalSku || usedVariantCodes.has(finalSku)) {
+                        finalSku = generateVariantBarcode(usedVariantCodes);
+                    }
+                    usedVariantCodes.add(finalSku);
+                    const normalizedColor = String(v.color || '').trim() || 'Único';
+                    return {
+                    color: normalizedColor,
                     stock: parseInt(v.stock || 0) || 0,
-                    precio: v.precio === '' ? null : (parseFloat(v.precio) || 0),
-                    sku: String(v.sku || '').trim() || null
-                }))
-                .filter(v => v.color.length > 0);
+                    precio: v.precio === '' ? null : (parseFloat(String(v.precio).replace(',', '.')) || 0),
+                    sku: finalSku,
+                    activo: v.activo !== false
+                };});
+
+            const normalizedColors = variantsPayload.map(v => v.color.toLowerCase());
+            if (new Set(normalizedColors).size !== normalizedColors.length) {
+                throw new Error('Hay colores repetidos. Corrigelos antes de guardar.');
+            }
 
             if (variantsPayload.length === 0) {
-                throw new Error('Debes agregar al menos una variante con color.');
+                throw new Error('Debes agregar al menos una variante.');
             }
 
             const stockTotal = variantsPayload.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
-            // Generar código de barras automáticamente si no se proporciona
-            const codigoBarra = newProduct.codigo_barra || generateBarcode();
+            const codigoBarra = String(newProduct.codigo_barra || '').trim() || null;
 
             // Usamos .select() para obtener el producto insertado y su user_id
             const { data: productoInsertado, error: insertError } = await supabase
@@ -730,9 +1246,10 @@ export default function AdminProductosPage() {
                 throw new Error(insertError.message);
             }
 
+            const productoId = productoInsertado?.[0]?.id ?? productoInsertado?.[0]?.user_id;
+
             // Insertar las imágenes en la tabla producto_imagenes
-            if (productoInsertado && productoInsertado.length > 0 && imagenUrls.length > 0) {
-                const productoId = productoInsertado[0].user_id;
+            if (productoId && imagenUrls.length > 0) {
                 const imagesToInsert = imagenUrls.map(url => ({ producto_id: productoId, imagen_url: url }));
                 const { error: imgInsertError } = await supabase.from('producto_imagenes').insert(imagesToInsert);
                 if (imgInsertError) {
@@ -742,8 +1259,7 @@ export default function AdminProductosPage() {
             }
 
             // Insertar variantes por color
-            if (productoInsertado && productoInsertado.length > 0) {
-                const productoId = productoInsertado[0].user_id;
+            if (productoId) {
                 const finalVariants = variantsPayload.map((v) => ({
                     producto_id: productoId,
                     color: v.color,
@@ -751,7 +1267,7 @@ export default function AdminProductosPage() {
                     precio: v.precio,
                     sku: v.sku,
                     imagen_url: null,
-                    activo: true
+                    activo: v.activo
                 }));
                 const { error: variantsError } = await supabase.from('producto_variantes').insert(finalVariants);
                 if (variantsError) {
@@ -762,7 +1278,7 @@ export default function AdminProductosPage() {
             setMessage('✅ Producto creado con éxito!');
             // ya no imprimimos automáticamente al añadir, el usuario puede usar el botón manual
             setNewProduct({ nombre: '', descripcion: '', precio: '', precio_compra: '', category_id: '', codigo_barra: '' });
-            setNewVariants([{ color: 'Único', stock: '', precio: '', sku: '' }]);
+            setNewVariants([createVariantDraft([], { color: '' })]);
             sessionStorage.removeItem('pendingProduct');
             setImageFiles([]);
             if (newImageInputRef.current) {
@@ -816,6 +1332,18 @@ export default function AdminProductosPage() {
         if (!editingProduct) return;
 
         setMessage('');
+
+        const totalImagesAfterSave = (editImageList?.length || 0) + (editImageFiles?.length || 0);
+        const canContinue = confirmMissingProductData({
+            descripcion: editingProduct?.descripcion,
+            imageCount: totalImagesAfterSave,
+            actionLabel: 'guardar los cambios',
+        });
+        if (!canContinue) {
+            setMessage('ℹ️ Operación cancelada. Completa descripción o fotos si deseas.');
+            return;
+        }
+
         setLoading(true);
         try {
             // 1. Subir nuevas imágenes si hay
@@ -1062,21 +1590,48 @@ export default function AdminProductosPage() {
                                     <span>Color</span>
                                     <span>Stock</span>
                                     <span>Precio</span>
-                                    <span>SKU</span>
-                                    <span>Código</span>
+                                    <span>Código auto</span>
+                                    <span>Activo</span>
                                     <span></span>
                                     <span></span>
                                 </div>
                                 {newVariants.map((variant, idx) => (
                                     <div key={`variant-${idx}`} className="grid grid-cols-1 md:grid-cols-7 gap-2 items-center">
-                                        <input
-                                            type="text"
-                                            value={variant.color}
-                                            onChange={(e) => handleVariantChange(idx, 'color', e.target.value)}
-                                            placeholder="Color (ej: Rojo)"
-                                            className="p-2 border border-gray-300 rounded bg-white text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                                            required
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={variant.color}
+                                                onFocus={() => setActiveColorRow(idx)}
+                                                onBlur={() => setTimeout(() => setActiveColorRow((current) => (current === idx ? null : current)), 120)}
+                                                onChange={(e) => {
+                                                    handleVariantChange(idx, 'color', e.target.value);
+                                                    setActiveColorRow(idx);
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Escape') setActiveColorRow(null);
+                                                }}
+                                                placeholder="Color (ej: Rojo)"
+                                                autoComplete="off"
+                                                className="p-2 border border-gray-300 rounded bg-white text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 text-sm w-full"
+                                            />
+                                            {activeColorRow === idx && getColorSuggestions(variant.color).length > 0 && (
+                                                <div className="absolute z-20 mt-1 w-full max-h-36 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg">
+                                                    {getColorSuggestions(variant.color).map((color) => (
+                                                        <button
+                                                            key={`${idx}-${color}`}
+                                                            type="button"
+                                                            onMouseDown={(e) => {
+                                                                e.preventDefault();
+                                                                selectColorSuggestion(idx, color);
+                                                            }}
+                                                            className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50"
+                                                        >
+                                                            {color}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                         <input
                                             type="number"
                                             min="0"
@@ -1097,26 +1652,31 @@ export default function AdminProductosPage() {
                                         />
                                         <input
                                             type="text"
-                                            value={variant.sku}
-                                            onChange={(e) => handleVariantChange(idx, 'sku', e.target.value)}
-                                            placeholder="SKU (opcional)"
-                                            className="p-2 border border-gray-300 rounded bg-white text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={variant.codigo_barra || ''}
+                                            value={variant.codigo_barra || variant.sku || ''}
                                             readOnly
-                                            placeholder="Código auto"
                                             className="p-2 border border-gray-300 rounded bg-gray-100 text-gray-900 text-sm"
-                                            title="Código de barras (se asignará al guardar)"
+                                            title="Código de variante generado automáticamente al agregar el color"
                                         />
+                                        <label className="flex items-center gap-2 text-xs text-gray-700 px-1">
+                                            <input
+                                                type="checkbox"
+                                                checked={variant.activo !== false}
+                                                onChange={(e) => handleVariantChange(idx, 'activo', e.target.checked)}
+                                            />
+                                            Activo
+                                        </label>
                                         <button
                                             type="button"
                                             onClick={() => {
                                               if (variant.codigo_barra) {
-                                                const event = new CustomEvent('printVariantBarcode', {
-                                                                                                    detail: { codigoBarras: variant.codigo_barra, nombre: `${newProduct.nombre || 'Producto'} (${variant.color})` }
-                                                });
+                                                                                                const event = new CustomEvent('printVariantBarcode', {
+                                                                                                                                                                                                        detail: {
+                                                                                                                                                                                                                codigoBarras: variant.codigo_barra,
+                                                                                                                                                                                                                nombre: `${newProduct.nombre || 'Producto'} (${variant.color})`,
+                                                                                                                                                                                                            copies: Math.max(1, Math.min(200, Number(variant.stock) || 1)),
+                                                                                                                                                                                                            printMode: 'qz-html'
+                                                                                                                                                                                                        }
+                                                                                                });
                                                 window.dispatchEvent(event);
                                               }
                                             }}
@@ -1148,34 +1708,6 @@ export default function AdminProductosPage() {
                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 h-24 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
                     /> 
                     
-                    {/* Campo de Código de Barras (Opcional) */}
-                    <div className="flex items-center space-x-2">
-                        <input 
-                            type="text" 
-                            name="codigo_barra" 
-                            placeholder="Código de Barra (Opcional - Se genera si está vacío)" 
-                            value={newProduct.codigo_barra} 
-                            onChange={handleNewProductChange} 
-                            className="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
-                            maxLength={13}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => {
-                                let code = newProduct.codigo_barra;
-                                if (!code) {
-                                    code = generateBarcode();
-                                    setNewProduct(prev => ({ ...prev, codigo_barra: code }));
-                                }
-                                handlePrintBarcode(code, newProduct.nombre);
-                            }}
-                            className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-                            title="Imprimir código de barra (se generará si no existe)"
-                        >
-                            🖨️
-                        </button>
-                    </div>
-
                     {/* Campo de Subida de Imagen */} 
                     <div className="flex flex-col">
                         <label className="text-gray-700 font-medium mb-2">Imágenes del Producto</label>
@@ -1298,10 +1830,15 @@ export default function AdminProductosPage() {
                                             <div className="imagenes-grid">
                                                 {imagenes.map((img, idx, arr) => {
                                                     if (typeof img !== 'string') return null;
+                                                    const rawSrc = safe(img);
                                                     return (
                                                         <img
                                                             key={safe(img)}
-                                                            src={safe(img)}
+                                                            src={getOptimizedImageUrl(rawSrc, 300)}
+                                                            srcSet={buildImageSrcSet(rawSrc, [300, 600, 900], { quality: 95, format: 'origin' })}
+                                                            sizes="(max-width: 768px) 120px, 300px"
+                                                            loading="lazy"
+                                                            decoding="async"
                                                             alt={safe(producto.nombre)}
                                                             className="thumbnail cursor-pointer hover:shadow-lg transition"
                                                             onClick={() => openImageModal(arr, idx, producto.nombre)}
@@ -1329,12 +1866,12 @@ export default function AdminProductosPage() {
                                                 <div className="text-center text-xs font-semibold mt-1 text-gray-600 truncate" title={safe(producto.codigo_barra)}>{safe(producto.codigo_barra)}</div>
                                                 <button
                                                     onClick={() => {
-                                                        const variantes = variantesProductos[producto.user_id] || [];
-                                                        if (variantes.length > 0) {
-                                                            openPrintVariantesModal(producto);
-                                                        } else {
-                                                            handlePrintBarcode(safe(producto.codigo_barra), producto.nombre);
+                                                        const variantes = getPrintableVariantes(producto);
+                                                        if (variantes.length === 0) {
+                                                            setMessage(`⚠️ El producto "${producto.nombre}" no tiene colores cargados para seleccionar.`);
+                                                            return;
                                                         }
+                                                        openPrintVariantesModal(producto);
                                                     }}
                                                     className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition text-base font-semibold"
                                                     title="Imprimir Código de Barra"
@@ -1409,7 +1946,7 @@ export default function AdminProductosPage() {
                                 <input type="number" name="stock" placeholder="Stock" value={editingProduct.stock} onChange={handleEditProductChange} required className="w-full p-3 border rounded-lg"/>
                                 <select
                                     name="category_id"
-                                    value={editingProduct.category_id}
+                                    value={editingProduct.category_id ?? ''}
                                     onChange={handleEditProductChange}
                                     className="w-full p-3 border rounded-lg bg-white"
                                 >
@@ -1434,7 +1971,11 @@ export default function AdminProductosPage() {
                                     {editImageList.map((url) => (
                                         <div key={url} className="relative group">
                                             <img 
-                                                src={url} 
+                                                src={getOptimizedImageUrl(url, 300)} 
+                                                srcSet={buildImageSrcSet(url, [200, 300, 600], { quality: 95, format: 'origin' })}
+                                                sizes="64px"
+                                                loading="lazy"
+                                                decoding="async"
                                                 alt="Imagen de producto" 
                                                 className="h-16 w-16 object-cover rounded-md border cursor-pointer" 
                                                 onClick={() => handleRemoveEditImage(url)}
@@ -1480,10 +2021,21 @@ export default function AdminProductosPage() {
                     setSelectedColorsToPrint({});
                 }}
                 product={productToPrint}
-                variantes={productToPrint ? (variantesProductos[productToPrint.user_id] || []) : []}
+                variantes={productToPrint ? getPrintableVariantes(productToPrint) : []}
                 onPrint={handlePrintMultipleVariantes}
                 selectedColors={selectedColorsToPrint}
                 onColorToggle={handleColorToggle}
+                onToggleAll={handleToggleAllColors}
+                qzHealth={qzHealth}
+                onCheckQz={checkQzHealth}
+                showQzStatus={ENABLE_QZ_PRODUCT_LABEL_FLOW}
+                cutMode={ENABLE_QZ_RAW_LABEL_PRINT
+                    ? 'raw-per-copy'
+                    : (ENABLE_QZ_HTML_LABEL_PRINT
+                        ? 'qz-html-per-label'
+                        : (ENABLE_QZ_CUT_PER_LABEL_WITH_BROWSER_PRINT
+                        ? 'browser-per-label'
+                        : (ENABLE_QZ_CUT_ONLY_AFTER_BROWSER_PRINT ? 'browser-final' : 'off')))}
             />
             
             {/* Modal de Confirmación de Eliminación */}

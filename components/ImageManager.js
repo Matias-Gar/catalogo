@@ -1,3 +1,5 @@
+import { getOptimizedImageUrl, buildImageSrcSet } from "@/lib/imageOptimization";
+
 export default function ImageManager({
   prodId,
   images,
@@ -28,7 +30,11 @@ export default function ImageManager({
             className="relative border rounded-lg overflow-hidden"
           >
             <img
-              src={imgObj.imagen_url}
+              src={getOptimizedImageUrl(imgObj.imagen_url, 420)}
+              srcSet={buildImageSrcSet(imgObj.imagen_url, [210, 420, 840], { quality: 95, format: "origin" })}
+              sizes="(max-width: 768px) 33vw, 210px"
+              loading="lazy"
+              decoding="async"
               alt="Producto"
               className="w-full h-28 object-cover"
             />
@@ -61,6 +67,8 @@ export default function ImageManager({
             <div key={index} className="border rounded-lg overflow-hidden">
               <img
                 src={URL.createObjectURL(file)}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-28 object-cover"
               />
             </div>

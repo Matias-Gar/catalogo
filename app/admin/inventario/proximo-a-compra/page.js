@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "../../../../components
 import { Button } from "../../../../components/ui/button";
 import { CONFIG, whatsappUtils } from "../../../../lib/config";
 import ExpandableDescription from "../../../../components/ui/ExpandableDescription";
+import { getOptimizedImageUrl, buildImageSrcSet } from "../../../../lib/imageOptimization";
 
 export default function ProximoACompraPage() {
   const [productos, setProductos] = useState([]);
@@ -59,7 +60,15 @@ export default function ProximoACompraPage() {
               <CardContent>
                 <div className="flex flex-col items-center gap-2 text-gray-900">
                   {imagenes[prod.user_id]?.[0] ? (
-                    <img src={imagenes[prod.user_id][0]} alt="img" className="h-32 w-32 object-cover rounded-lg border shadow" />
+                    <img
+                      src={getOptimizedImageUrl(imagenes[prod.user_id][0], 320)}
+                      srcSet={buildImageSrcSet(imagenes[prod.user_id][0], [160, 320, 640], { quality: 95, format: "origin" })}
+                      sizes="128px"
+                      loading="lazy"
+                      decoding="async"
+                      alt="img"
+                      className="h-32 w-32 object-cover rounded-lg border shadow"
+                    />
                   ) : (
                     <span className="text-gray-400">Sin imagen</span>
                   )}

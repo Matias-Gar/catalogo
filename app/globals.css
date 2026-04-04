@@ -78,3 +78,229 @@ button {
   font-size: 0.92rem;
 }
 
+.producto-galeria {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.catalogo-all-images {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 140px));
+  justify-content: start;
+  gap: 8px;
+}
+
+.catalogo-imagen {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+}
+
+.producto-card.single-image-card {
+  justify-content: center;
+}
+
+.producto-card.single-image-card .producto-galeria {
+  align-items: center;
+}
+
+.producto-card.single-image-card .catalogo-all-images {
+  justify-content: center;
+}
+
+.producto-card.single-image-card .catalogo-info {
+  align-items: center;
+  text-align: center;
+}
+
+.producto-card.single-image-card .catalogo-info .desc-corta,
+.producto-card.single-image-card .catalogo-info .desc-completa {
+  text-align: center !important;
+}
+
+/* Imagen principal */
+.main-img {
+  width: 100%;
+  max-width: 380px;
+  height: 380px;
+  object-fit: cover;
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+}
+
+/* Hover elegante */
+.main-img:hover {
+  transform: scale(1.03);
+}
+
+/* Carrusel elegante */
+.carousel {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.carousel img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.carousel img:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.pdf-galeria {
+  display: none;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.pdf-galeria img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+body.printing .carousel {
+  display: none !important;
+}
+
+body.printing .main-img {
+  display: none !important;
+}
+
+body.printing .pdf-galeria {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+body.printing .pdf-galeria img {
+  width: 32%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.desc-corta {
+  display: block;
+  margin: 0;
+  font-size: 14px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.desc-completa {
+  display: none;
+}
+
+.producto-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 900px) {
+  .producto-card {
+    flex-direction: column !important;
+  }
+
+  .producto-card .producto-galeria {
+    width: 100%;
+    align-items: center;
+    flex: initial !important;
+    max-width: 100% !important;
+  }
+
+  .producto-card > div[style*="max-width: 20%"] {
+    max-width: 100% !important;
+    flex: 1 1 auto !important;
+    width: 100%;
+  }
+
+  .catalogo-all-images {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  .catalogo-imagen {
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  .producto-card .main-img {
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+}
+
+@media print {
+  .producto-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .producto-card {
+    flex-direction: row !important;
+  }
+
+  .catalogo-all-images {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 120px)) !important;
+    justify-content: start !important;
+    gap: 8px !important;
+  }
+
+  .catalogo-imagen {
+    height: 120px !important;
+    aspect-ratio: auto !important;
+  }
+
+  .desc-corta {
+    display: none !important;
+  }
+
+  .desc-completa {
+    display: block !important;
+    margin: 0;
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .carousel {
+    display: none !important;
+  }
+
+  .pdf-galeria {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .pdf-galeria img {
+    width: 32%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  .main-img {
+    display: none !important;
+  }
+}
+

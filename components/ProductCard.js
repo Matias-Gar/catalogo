@@ -1,6 +1,7 @@
 import ImageManager from "@/components/ImageManager";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { getOptimizedImageUrl, buildImageSrcSet } from "@/lib/imageOptimization";
 
 export default function ProductCard({
   prod,
@@ -16,6 +17,7 @@ export default function ProductCard({
   handleReorderImages,
   openConfirm,
 }) {
+  const productId = prod?.id ?? prod?.user_id;
   const imagesArr = editData.reordered ?? editData.originalImages ?? [];
   const variantsArr = editData.variantes ?? editData.originalVariants ?? [];
   const totalStockFromVariants = variantsArr.reduce(
@@ -24,12 +26,35 @@ export default function ProductCard({
   );
   const firstImage = imagesArr.length > 0 ? imagesArr[0].imagen_url : "";
 
+  const normalizeColor = (value) => {
+    const raw = String(value || "").trim().replace(/\s+/g, " ");
+    if (!raw) return "";
+    return raw
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg space-y-6">
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">{prod.nombre}</h2>
+          <p className="text-xs text-slate-500">ID: {productId}</p>
+        </div>
+        <span className="text-xs px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+          Editor avanzado
+        </span>
+      </div>
+
       {firstImage && (
         <div className="flex justify-center">
           <img
-            src={firstImage}
+            src={getOptimizedImageUrl(firstImage, 360)}
+            srcSet={buildImageSrcSet(firstImage, [180, 360, 720], { quality: 95, format: "origin" })}
+            sizes="144px"
+            loading="lazy"
+            decoding="async"
             alt={prod.nombre}
             className="w-36 h-36 object-cover rounded-lg border"
           />
@@ -37,7 +62,7 @@ export default function ProductCard({
       )}
 
       <ImageManager
-        prodId={prod.user_id}
+        prodId={productId}
         images={imagesArr}
         editData={editData}
         handleAddImages={handleAddImages}
@@ -52,7 +77,7 @@ export default function ProductCard({
           <Input
             value={editData.nombre ?? prod.nombre}
             onChange={(e) =>
-              setEditDataField(prod.user_id, "nombre", e.target.value)
+              setEditDataField(productId, "nombre", e.target.value)
             }
           />
         </div>
@@ -62,7 +87,7 @@ export default function ProductCard({
           <Input
             value={editData.descripcion ?? prod.descripcion}
             onChange={(e) =>
-              setEditDataField(prod.user_id, "descripcion", e.target.value)
+              setEditDataField(productId, "descripcion", e.target.value)
             }
           />
         </div>
@@ -72,7 +97,7 @@ export default function ProductCard({
           <Input
             value={editData.codigo_barra ?? prod.codigo_barra}
             onChange={(e) =>
-              setEditDataField(prod.user_id, "codigo_barra", e.target.value)
+              setEditDataField(productId, "codigo_barra", e.target.value)
             }
           />
         </div>
@@ -82,7 +107,7 @@ export default function ProductCard({
           <select
             value={editData.category_id ?? prod.category_id ?? ""}
             onChange={(e) =>
-              setEditDataField(prod.user_id, "category_id", e.target.value)
+              setEditDataField(productId, "category_id", e.target.value)
             }
             className="p-3 border-indigo-500 rounded-lg"
           >
@@ -101,7 +126,7 @@ export default function ProductCard({
             type="number"
             value={editData.precio ?? prod.precio}
             onChange={(e) =>
-              setEditDataField(prod.user_id, "precio", e.target.value)
+              setEditDataField(productId, "precio", e.target.value)
             }
           />
         </div>
@@ -112,7 +137,7 @@ export default function ProductCard({
             type="number"
             value={variantsArr.length > 0 ? totalStockFromVariants : (editData.stock ?? prod.stock)}
             onChange={(e) =>
-              setEditDataField(prod.user_id, "stock", e.target.value)
+              setEditDataField(productId, "stock", e.target.value)
             }
             readOnly={variantsArr.length > 0}
           />
@@ -122,36 +147,54 @@ export default function ProductCard({
         </div>
       </div>
 
-      <div className="border rounded-lg p-4 bg-gray-50 space-y-3">
+      <div className="border rounded-lg p-4 bg-slate-50 space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-gray-800">Colores disponibles</h3>
-          <Button
-            type="button"
-            onClick={() => onAddVariantRow(prod.user_id)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 text-sm"
-          >
-            + Agregar color
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              onClick={() =>
+                setEditDataField(
+                  productId,
+                  "variantes",
+                  (editData.originalVariants || []).map((v) => ({ ...v }))
+                )
+              }
+              className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 px-3 py-1 text-sm"
+            >
+              Restaurar colores
+            </Button>
+            <Button
+              type="button"
+              onClick={() => onAddVariantRow(productId)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 text-sm"
+            >
+              + Agregar color
+            </Button>
+          </div>
         </div>
 
         {variantsArr.length === 0 ? (
-          <div className="text-sm text-gray-500">Sin colores. Agrega al menos uno.</div>
+          <div className="text-sm text-slate-600">Sin colores. Puedes guardar asi o agregar nuevos colores.</div>
         ) : (
           <div className="space-y-2">
-            <div className="text-xs text-gray-600 mb-2 grid grid-cols-1 md:grid-cols-7 gap-2 px-2">
+            <div className="text-xs text-slate-500 mb-1">
+              Lista editable por variante: color, stock, precio, SKU y estado.
+            </div>
+            <div className="text-xs text-gray-600 mb-2 grid grid-cols-1 md:grid-cols-6 gap-2 px-2">
               <span>Color</span>
               <span>Stock</span>
               <span>Precio</span>
               <span>SKU</span>
-              <span>Código</span>
-              <span></span>
+              <span>Activo</span>
               <span></span>
             </div>
             {variantsArr.map((variant, idx) => (
-              <div key={`${prod.user_id}-variant-${variant.id ?? idx}`} className="grid grid-cols-1 md:grid-cols-7 gap-2 items-center">
+              <div key={`${productId}-variant-${variant.id ?? idx}`} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center bg-white border border-slate-200 rounded-lg p-2">
                 <Input
                   value={variant.color ?? ""}
-                  onChange={(e) => onVariantFieldChange(prod.user_id, idx, "color", e.target.value)}
+                  onChange={(e) => onVariantFieldChange(productId, idx, "color", e.target.value)}
+                  onBlur={(e) => onVariantFieldChange(productId, idx, "color", normalizeColor(e.target.value))}
                   placeholder="Color"
                   className="text-sm"
                 />
@@ -159,7 +202,7 @@ export default function ProductCard({
                   type="number"
                   min="0"
                   value={variant.stock ?? 0}
-                  onChange={(e) => onVariantFieldChange(prod.user_id, idx, "stock", e.target.value)}
+                  onChange={(e) => onVariantFieldChange(productId, idx, "stock", e.target.value)}
                   placeholder="Stock"
                   className="text-sm"
                 />
@@ -168,46 +211,30 @@ export default function ProductCard({
                   step="0.01"
                   min="0"
                   value={variant.precio ?? ""}
-                  onChange={(e) => onVariantFieldChange(prod.user_id, idx, "precio", e.target.value)}
+                  onChange={(e) => onVariantFieldChange(productId, idx, "precio", e.target.value)}
                   placeholder="Precio"
                   className="text-sm"
                 />
                 <Input
                   value={variant.sku ?? ""}
-                  onChange={(e) => onVariantFieldChange(prod.user_id, idx, "sku", e.target.value)}
+                  onChange={(e) => onVariantFieldChange(productId, idx, "sku", e.target.value)}
                   placeholder="SKU (opt)"
                   className="text-sm"
                 />
-                <Input
-                  value={variant.codigo_barra ?? ""}
-                  readOnly
-                  placeholder="Código auto"
-                  className="text-sm bg-gray-100"
-                  title="Código de barras generado automáticamente"
-                />
+                <label className="flex items-center gap-2 text-xs text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={variant.activo !== false}
+                    onChange={(e) => onVariantFieldChange(productId, idx, "activo", e.target.checked)}
+                  />
+                  Activo
+                </label>
                 <Button
                   type="button"
-                  onClick={() => {
-                    if (variant.codigo_barra) {
-                      const event = new CustomEvent('printVariantBarcode', {
-                        detail: { codigoBarras: variant.codigo_barra, nombre: `${prod.nombre} (${variant.color})` }
-                      });
-                      window.dispatchEvent(event);
-                    }
-                  }}
-                  className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 text-xs"
-                  disabled={!variant.codigo_barra}
-                  title="Imprimir código de barras"
-                >
-                  🖨️
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => onRemoveVariantRow(prod.user_id, idx)}
+                  onClick={() => onRemoveVariantRow(productId, idx)}
                   className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-xs"
-                  disabled={variantsArr.length <= 1}
                 >
-                  -
+                  Eliminar
                 </Button>
               </div>
             ))}
@@ -217,7 +244,7 @@ export default function ProductCard({
 
       <div className="flex justify-center mt-6">
         <Button
-          onClick={() => openConfirm(prod.user_id)}
+          onClick={() => openConfirm(productId)}
           className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700"
         >
           Guardar cambios

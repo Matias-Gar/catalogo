@@ -6,6 +6,7 @@ import { PrecioConPromocion } from '../lib/promociones';
 import { usePromociones } from '../lib/usePromociones';
 import { usePacks, calcularDescuentoPack } from '../lib/packs';
 import ExpandableDescription from '../components/ui/ExpandableDescription';
+import { getOptimizedImageUrl, buildImageSrcSet } from '../lib/imageOptimization';
 
 
 
@@ -58,7 +59,11 @@ function ImageGalleryModal({ isOpen, onClose, imageList, imageIndex, productName
           </>
         )}
         <img
-          src={imageList[imageIndex]}
+          src={getOptimizedImageUrl(imageList[imageIndex], 2000, { quality: 98, format: 'origin' })}
+          srcSet={buildImageSrcSet(imageList[imageIndex], [800, 1200, 2000], { quality: 98, format: 'origin' })}
+          sizes="(max-width: 768px) 100vw, 80vw"
+          loading="lazy"
+          decoding="async"
           alt={productName}
           className="w-full max-h-[80vh] object-contain rounded-xl bg-white"
         />
@@ -69,7 +74,11 @@ function ImageGalleryModal({ isOpen, onClose, imageList, imageIndex, productName
             {imageList.map((img, idx) => (
               <img
                 key={idx}
-                src={img}
+                src={getOptimizedImageUrl(img, 200, { quality: 95, format: 'origin' })}
+                srcSet={buildImageSrcSet(img, [100, 200, 400], { quality: 95, format: 'origin' })}
+                sizes="56px"
+                loading="lazy"
+                decoding="async"
                 alt={productName + ' miniatura ' + (idx + 1)}
                 className={`w-14 h-14 object-cover rounded border-2 cursor-pointer ${idx === imageIndex ? 'border-green-600' : 'border-gray-300'}`}
                 onClick={() => onPrev(idx - imageIndex < 0 ? imageList.length - 1 : idx)}
@@ -454,7 +463,11 @@ export default function Home() {
                 <div className="w-full h-32 sm:h-48 flex items-center justify-center mb-2 cursor-pointer relative group">
                   {imagenesProductos[p.user_id] && imagenesProductos[p.user_id].length > 0 ? (
                     <img
-                      src={imagenesProductos[p.user_id][0]}
+                      src={getOptimizedImageUrl(imagenesProductos[p.user_id][0], 800, { quality: 96, format: 'origin' })}
+                      srcSet={buildImageSrcSet(imagenesProductos[p.user_id][0], [400, 800, 1200], { quality: 96, format: 'origin' })}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+                      loading="lazy"
+                      decoding="async"
                       alt={p.nombre}
                       className="w-full h-48 object-contain rounded-xl bg-gray-50 group-hover:opacity-80 transition"
                       onClick={() => openImageModal(imagenesProductos[p.user_id], 0, p.nombre)}

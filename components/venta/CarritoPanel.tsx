@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { PrecioConPromocion, calcularPrecioConPromocion } from '../../lib/promociones';
 import { calcularDescuentoPack } from '../../lib/packs';
 import { CartItem, Pack, PackProduct } from '../../hooks/useCarrito';
+import { getOptimizedImageUrl } from '../../lib/imageOptimization';
 
 interface Props {
   carrito: CartItem[];
@@ -114,10 +115,12 @@ export default function CarritoPanel({
                     <td className="p-2 text-center align-middle">
                       {imagenes[item.user_id]?.[0] ? (
                         <Image 
-                          src={imagenes[item.user_id][0]} 
+                          src={getOptimizedImageUrl(imagenes[item.user_id][0], 120, { quality: 94, format: 'origin' })} 
                           alt="img" 
                           width={56}
                           height={56}
+                          quality={94}
+                          sizes="56px"
                           className="object-cover rounded-lg border mx-auto shadow-sm" 
                           style={{maxWidth:'56px',maxHeight:'56px'}} 
                         />
@@ -133,6 +136,7 @@ export default function CarritoPanel({
                       <input
                         type="number"
                         min={1}
+                        max={Number.isFinite(Number(item.stock)) ? Math.max(1, Number(item.stock)) : undefined}
                         value={item.cantidad}
                         onChange={e => cambiarCantidad(itemKey, Number(e.target.value))}
                         className="w-16 border border-gray-900 rounded px-2 py-1 text-gray-900"

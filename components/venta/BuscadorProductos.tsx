@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import Image from 'next/image';
+import { getOptimizedImageUrl } from '@/lib/imageOptimization';
 
 interface Producto {
   user_id: string;
@@ -50,7 +51,12 @@ export default function BuscadorProductos({
           placeholder="Escanea o ingresa código de barra / nombre / categoría (Ctrl+B/cmd+B)"
           value={busqueda}
           onChange={e => { onChange(e.target.value); setShowSuggestions(true); }}
-          onKeyDown={e => { if (e.key === 'Enter') e.preventDefault(); }}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              onSubmit();
+            }
+          }}
           onFocus={() => { setShowSuggestions(true); if (!busqueda.trim()) onSubmit(); }}
           onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
         />
@@ -64,7 +70,15 @@ export default function BuscadorProductos({
                 <div className="flex items-center gap-3 truncate">
                   <div className="w-10 h-10 bg-gray-50 rounded overflow-hidden flex-shrink-0 flex items-center justify-center">
                     {imagenes[p.user_id]?.[0] ? (
-                      <Image src={imagenes[p.user_id][0]} width={40} height={40} alt="thumb" className="object-cover" />
+                      <Image
+                        src={getOptimizedImageUrl(imagenes[p.user_id][0], 120, { quality: 94, format: 'origin' })}
+                        width={40}
+                        height={40}
+                        alt="thumb"
+                        quality={94}
+                        sizes="40px"
+                        className="object-cover"
+                      />
                     ) : (
                       <div className="text-gray-300 text-xs">No img</div>
                     )}

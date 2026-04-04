@@ -28,7 +28,9 @@ export default function NuevaVenta() {
     totalDescuento,
     total,
     loadingPacks,
-    setCarrito
+    setCarrito,
+    stockWarning,
+    clearStockWarning
   } = useCarrito(promociones);
 
   const {
@@ -110,19 +112,62 @@ export default function NuevaVenta() {
     }
   }, [pagoInsuficiente]);
 
-  const procesarCodigo = useCallback((codigo: string) => {
-    const producto = productos.find(p => {
-      const cod = String(p.codigo_barra ?? p.codigo ?? p.user_id ?? '').replace(/\D/g, '');
-      const code12 = codigo.length === 13 ? codigo.slice(0, -1) : codigo;
-      return cod === codigo || cod === code12;
-    });
+  useEffect(() => {
+    if (!stockWarning) return;
+    const timeoutId = setTimeout(() => clearStockWarning(), 2500);
+    return () => clearTimeout(timeoutId);
+  }, [stockWarning, clearStockWarning]);
 
-    if (!producto) {
-      console.log("No encontrado:", codigo);
-      return;
+  const procesarCodigo = useCallback(async (codigo: string) => {
+    const normalizeCode = (value: unknown) => String(value ?? '').replace(/\D/g, '');
+    const matchesBarcode = (input: string, stored: unknown) => {
+      const a = normalizeCode(input);
+      const b = normalizeCode(stored);
+      if (!a || !b) return false;
+      return a === b || (a.length === 13 && a.slice(0, 12) === b) || (b.length === 13 && b.slice(0, 12) === a);
+    };
+
+    const buildScannedProduct = (p: Producto) => {
+      const variants = Array.isArray((p as any).variantes) ? (p as any).variantes : [];
+      const matchedVariant = variants.find((v: any) => matchesBarcode(codigo, v?.codigo_barra) || matchesBarcode(codigo, v?.sku));
+      if (!matchedVariant) return null;
+
+      return {
+        ...p,
+        variante_id: matchedVariant?.variante_id ?? matchedVariant?.id,
+        color: matchedVariant?.color || 'Sin color',
+        precio: Number(matchedVariant?.precio ?? p.precio ?? 0),
+        stock: Number(matchedVariant?.stock ?? 0),
+        codigo: String(matchedVariant?.sku || '')
+      } as Producto;
+    };
+
+    let productoEncontrado: Producto | null = null;
+    for (const p of productos) {
+      const candidate = buildScannedProduct(p);
+      if (candidate) {
+        productoEncontrado = candidate;
+        break;
+      }
     }
 
-    agregar(producto);
+    // Fallback: buscar en DB por si el producto se creó recientemente y la página sigue abierta
+    if (!productoEncontrado) {
+      const resultados = await searchProductos(codigo);
+      if (Array.isArray(resultados) && resultados.length > 0) {
+        const conVariante = resultados.find((r) => Boolean((r as any).variante_id));
+        if (conVariante) {
+          productoEncontrado = conVariante as Producto;
+        }
+      }
+    }
+
+    if (!productoEncontrado) {
+      console.log("No encontrado:", codigo);
+      return false;
+    }
+
+    agregar(productoEncontrado);
 
     // ðŸ”Š sonido
     beepRef.current?.play().catch(() => {});
@@ -133,7 +178,35 @@ export default function NuevaVenta() {
     // ðŸ’¡ animaciÃ³n visual
     setScanFeedback(true);
     setTimeout(() => setScanFeedback(false), 200);
-  }, [productos, agregar]);
+    return true;
+  }, [productos, agregar, searchProductos]);
+
+  const handleBuscadorSubmit = useCallback(async () => {
+    const raw = busqueda.trim();
+    if (!raw) {
+      await searchProductos('');
+      setShowSuggestions(true);
+      return;
+    }
+
+    const codigoNumerico = raw.replace(/\D/g, '');
+    if (codigoNumerico.length >= 6) {
+      const now = Date.now();
+      const last = lastAutoAddRef.current;
+      if (!(last.code === codigoNumerico && now - last.timestamp < 700)) {
+        const agregado = await procesarCodigo(codigoNumerico);
+        if (agregado) {
+          lastAutoAddRef.current = { code: codigoNumerico, timestamp: now };
+          setBusqueda('');
+          setShowSuggestions(false);
+          return;
+        }
+      }
+    }
+
+    await searchProductos(raw);
+    setShowSuggestions(true);
+  }, [busqueda, procesarCodigo, searchProductos]);
 
   // detector de scanner real (teclado rÃ¡pido + ENTER)
   useEffect(() => {
@@ -152,7 +225,7 @@ export default function NuevaVenta() {
 
         const codigo = scanBuffer.current;
 
-        if (codigo.length >= 12) {
+        if (codigo.length >= 6) {
           procesarCodigo(codigo);
         }
 
@@ -402,7 +475,7 @@ export default function NuevaVenta() {
           <BuscadorProductos
             busqueda={busqueda}
             onChange={val => { setBusqueda(val); searchProductos(val); }}
-            onSubmit={() => searchProductos(busqueda)}
+            onSubmit={handleBuscadorSubmit}
             searchResults={searchResults}
             searchLoading={searchLoading}
             imagenes={imagenes}
@@ -425,6 +498,13 @@ export default function NuevaVenta() {
             packs={packs}
             promociones={promociones}
           />
+
+          {stockWarning && (
+            <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3">
+              <p className="font-bold text-amber-800">Stock insuficiente</p>
+              <p className="text-sm text-amber-700">{stockWarning}</p>
+            </div>
+          )}
 
           {showInsufficientPaymentWarning && (
             <div className="mt-4 p-4 rounded-lg border border-red-300 bg-red-50">

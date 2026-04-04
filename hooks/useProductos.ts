@@ -93,14 +93,31 @@ export function useProductos(includeCost = false) {
       const term = q.trim();
       let resultados: Producto[] = [];
 
+      const normalizeCode = (value: unknown) => String(value ?? '').replace(/\D/g, '');
+      const matchesBarcode = (input: string, stored: unknown) => {
+        const a = normalizeCode(input);
+        const b = normalizeCode(stored);
+        if (!a || !b) return false;
+        return a === b || (a.length === 13 && a.slice(0, 12) === b) || (b.length === 13 && b.slice(0, 12) === a);
+      };
+
       // Primero, buscar por código de barras de variante si es numérico
       if (term.match(/^\d+$/) && term.length > 3) {
-        const { data: variantMatches } = await supabase
+        const fallbackCode = term.length === 13 ? term.slice(0, -1) : '';
+        let variantQuery = supabase
           .from('producto_variantes')
-          .select('producto_id, id, color, stock, precio, codigo_barra');
+          .select('producto_id, id, color, stock, precio, sku');
+
+        if (fallbackCode) {
+          variantQuery = variantQuery.or(`sku.eq.${term},sku.eq.${fallbackCode}`);
+        } else {
+          variantQuery = variantQuery.eq('sku', term);
+        }
+
+        const { data: variantMatches } = await variantQuery;
 
         if (Array.isArray(variantMatches) && variantMatches.length > 0) {
-          const matchedVariants = variantMatches.filter(v => String(v.codigo_barra) === term);
+          const matchedVariants = variantMatches.filter(v => matchesBarcode(term, (v as any).sku));
           
           if (matchedVariants.length > 0) {
             // Obtener los productos de las variantes encontradas
@@ -124,7 +141,7 @@ export function useProductos(includeCost = false) {
                   precio: precioBase,
                   precio_base: precioBase,
                   precio_compra: undefined,
-                  stock: Number(p.stock_total ?? 0),
+                  stock: Number(matchedVar?.stock ?? p.stock_total ?? 0),
                   stock_total: Number(p.stock_total ?? 0),
                   codigo_barra: String(p.codigo_barra ?? ''),
                   categoria: String(p.categoria ?? ''),
@@ -132,7 +149,8 @@ export function useProductos(includeCost = false) {
                   variantes,
                   // Preseleccionar la variante encontrada
                   variante_id: matchedVar?.id || matchedVar?.id,
-                  color: matchedVar?.color || ''
+                  color: matchedVar?.color || '',
+                  codigo: String((matchedVar as any)?.sku || '')
                 } as Producto;
               });
             }
@@ -140,7 +158,16 @@ export function useProductos(includeCost = false) {
         }
       }
 
-      // Si no encontramos por código de variante, buscar por producto
+      const numericMatch = term.match(/^\d+$/);
+
+      // Si no encontramos por código de variante y la búsqueda era numérica,
+      // devolvemos vacío para evitar caer al código general de producto.
+      if (resultados.length === 0 && numericMatch) {
+        setSearchResults([]);
+        return [] as Producto[];
+      }
+
+      // Si no encontramos por código de variante, buscar por nombre/categoría
       if (resultados.length === 0) {
         const selectFields = 'producto_id, nombre, precio_base, stock_total, codigo_barra, categoria, variantes';
         let query = supabase
@@ -149,17 +176,7 @@ export function useProductos(includeCost = false) {
           .order('nombre', { ascending: true })
           .limit(50);
         if (term) {
-          const numericMatch = term.match(/^\d+$/);
-          let fallbackCode = '';
-          if (numericMatch && term.length === 13) {
-            fallbackCode = term.slice(0, -1);
-          }
-
-          if (numericMatch && fallbackCode) {
-            query = query.or(`nombre.ilike.%${term}%,codigo_barra.ilike.%${term}%,categoria.ilike.%${term}%,codigo_barra.eq.${term},codigo_barra.eq.${fallbackCode}`);
-          } else {
-            query = query.or(`nombre.ilike.%${term}%,codigo_barra.ilike.%${term}%,categoria.ilike.%${term}%`);
-          }
+          query = query.or(`nombre.ilike.%${term}%,categoria.ilike.%${term}%`);
         }
         const { data, error } = await query;
         if (error) throw error;
@@ -198,9 +215,11 @@ export function useProductos(includeCost = false) {
           setImagenes(prev => ({ ...prev, ...agruparImagenes(imgs) }));
         }
       }
+      return resultados;
     } catch (e) {
       console.error('searchProductos error', e);
       setSearchResults([]);
+      return [] as Producto[];
     } finally {
       setSearchLoading(false);
     }

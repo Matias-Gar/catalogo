@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
+import { getOptimizedImageUrl, buildImageSrcSet } from "../../../../lib/imageOptimization";
 
 export default function EliminarCatalogo() {
   const [productos, setProductos] = useState([]);
@@ -40,8 +41,9 @@ export default function EliminarCatalogo() {
   const eliminarProducto = async (user_id) => {
     if (!window.confirm("¿Seguro que deseas eliminar este producto?")) return;
     setEliminando(user_id);
-    await supabase.from("productos").delete().eq("user_id", user_id);
+    await supabase.from("producto_variantes").delete().eq("producto_id", user_id);
     await supabase.from("producto_imagenes").delete().eq("producto_id", user_id);
+    await supabase.from("productos").delete().eq("user_id", user_id);
     setEliminando(null);
   };
 
@@ -60,7 +62,15 @@ export default function EliminarCatalogo() {
               <CardContent>
                 <div className="flex flex-col items-center gap-2">
                   {imagenes[prod.user_id]?.[0] ? (
-                    <img src={imagenes[prod.user_id][0]} alt="img" className="h-28 w-28 object-cover rounded-lg border shadow" />
+                    <img
+                      src={getOptimizedImageUrl(imagenes[prod.user_id][0], 280)}
+                      srcSet={buildImageSrcSet(imagenes[prod.user_id][0], [140, 280, 560], { quality: 95, format: "origin" })}
+                      sizes="112px"
+                      loading="lazy"
+                      decoding="async"
+                      alt="img"
+                      className="h-28 w-28 object-cover rounded-lg border shadow"
+                    />
                   ) : (
                     <span className="text-gray-400">Sin imagen</span>
                   )}
