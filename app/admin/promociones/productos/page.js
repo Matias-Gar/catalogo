@@ -415,11 +415,6 @@ export default function PromocionesProductosPage() {
                               <div className="font-bold text-black">
                                 {resaltarTexto(producto.nombre, busqueda)}
                               </div>
-                              {producto.descripcion && (
-                                <div className="text-sm text-gray-700 font-medium">
-                                  {resaltarTexto(producto.descripcion, busqueda)}
-                                </div>
-                              )}
                             </div>
                           </td>
                           <td className="border border-gray-400 px-4 py-3">

@@ -182,39 +182,50 @@ export default function CatalogoPage() {
     return `Bs ${num.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
-  // Función para mapear nombres de colores a códigos hexadecimales
-  const getColorHex = (colorName) => {
-    const colorMap = {
-      'rojo': '#EF4444',
-      'red': '#EF4444',
-      'azul': '#3B82F6',
-      'blue': '#3B82F6',
-      'negro': '#1F2937',
-      'black': '#1F2937',
-      'blanco': '#FFFFFF',
-      'white': '#FFFFFF',
-      'verde': '#10B981',
-      'green': '#10B981',
-      'amarillo': '#FBBF24',
-      'yellow': '#FBBF24',
-      'naranja': '#F97316',
-      'orange': '#F97316',
-      'gris': '#6B7280',
-      'gray': '#6B7280',
-      'rosa': '#EC4899',
-      'pink': '#EC4899',
-      'púrpura': '#A855F7',
-      'purple': '#A855F7',
-      'marrón': '#8B5A3C',
-      'brown': '#8B5A3C',
-      'plateado': '#C0C0C0',
-      'silver': '#C0C0C0',
-      'dorado': '#FFD700',
-      'gold': '#FFD700',
-      'único': '#6B7280',
-    };
-    const normalized = String(colorName || '').trim().toLowerCase();
-    return colorMap[normalized] || '#9CA3AF'; // Gris por defecto si no coincide
+  const normalizeColorName = (colorName) =>
+    String(colorName || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+
+  // Devuelve estilos visuales para mostrar el color de forma fiel en el swatch.
+  const getColorStyle = (colorName) => {
+    const normalized = normalizeColorName(colorName);
+
+    if (!normalized) return { backgroundColor: '#9CA3AF' };
+
+    if (normalized.includes('animal print')) {
+      return {
+        backgroundColor: '#C7A06B',
+        backgroundImage:
+          'radial-gradient(circle at 25% 25%, #3A2515 14%, transparent 15%), radial-gradient(circle at 70% 55%, #4A2E1B 15%, transparent 16%), radial-gradient(circle at 45% 78%, #2E1C12 11%, transparent 12%)',
+        backgroundSize: '16px 16px',
+      };
+    }
+
+    if (normalized.includes('negro') || normalized.includes('black')) return { backgroundColor: '#111827' };
+    if (normalized.includes('blanco') || normalized.includes('white')) return { backgroundColor: '#FFFFFF' };
+    if (normalized.includes('beige') || normalized.includes('nude') || normalized.includes('natural') || normalized.includes('crema')) return { backgroundColor: '#D9B995' };
+    if (normalized.includes('gris') || normalized.includes('gray') || normalized.includes('plomo')) return { backgroundColor: '#6B7280' };
+    if (normalized.includes('rojo') || normalized.includes('red') || normalized.includes('bordo')) return { backgroundColor: '#C92A2A' };
+    if (normalized.includes('azul') || normalized.includes('blue') || normalized.includes('navy') || normalized.includes('celeste')) return { backgroundColor: '#2563EB' };
+    if (normalized.includes('verde') || normalized.includes('green') || normalized.includes('oliva')) return { backgroundColor: '#16A34A' };
+    if (normalized.includes('amarillo') || normalized.includes('yellow') || normalized.includes('mostaza')) return { backgroundColor: '#EAB308' };
+    if (normalized.includes('naranja') || normalized.includes('orange') || normalized.includes('coral')) return { backgroundColor: '#F97316' };
+    if (normalized.includes('rosa') || normalized.includes('rosado') || normalized.includes('pink') || normalized.includes('fucsia')) return { backgroundColor: '#EC4899' };
+    if (normalized.includes('morado') || normalized.includes('lila') || normalized.includes('violeta') || normalized.includes('purple')) return { backgroundColor: '#7C3AED' };
+    if (normalized.includes('marron') || normalized.includes('cafe') || normalized.includes('brown')) return { backgroundColor: '#8B5A3C' };
+    if (normalized.includes('dorado') || normalized.includes('gold')) return { backgroundColor: '#D4AF37' };
+    if (normalized.includes('plateado') || normalized.includes('silver')) return { backgroundColor: '#C0C0C0' };
+    if (normalized.includes('transparente')) return { backgroundColor: '#FFFFFF', opacity: 0.35 };
+    if (normalized.includes('multicolor')) {
+      return {
+        backgroundImage: 'linear-gradient(135deg, #ef4444, #f59e0b, #22c55e, #3b82f6, #a855f7)',
+      };
+    }
+
+    return { backgroundColor: '#9CA3AF' };
   };
 
   const productosFiltrados = categoriaSeleccionada === "Todas"
@@ -496,7 +507,7 @@ export default function CatalogoPage() {
                         <p style={{ margin: 0, fontSize: 12, color: "#666", fontWeight: "bold" }}>Disponible en color:</p>
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                           {coloresEnStock.map((v, vIdx) => {
-                              const hexColor = getColorHex(v.color);
+                              const colorStyle = getColorStyle(v.color);
                               return (
                                 <div key={`${p.id}-${vIdx}`} style={{ position: "relative", cursor: "pointer" }} title={`${v.color} (${Number(v.stock || 0)} disponibles)`}>
                                   <div
@@ -505,7 +516,7 @@ export default function CatalogoPage() {
                                       height: 20,
                                       borderRadius: "50%",
                                       border: "2px solid #ccc",
-                                      backgroundColor: hexColor,
+                                      ...colorStyle,
                                       boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                                       transition: "all 0.2s"
                                     }}
