@@ -88,17 +88,6 @@ function ImageGalleryModal({ isOpen, onClose, imageList, imageIndex, productName
         )}
       </div>
 
-      {/* Botón flotante para invitar a hacer pedido */}
-      <a
-        href="/productos"
-        className="fixed bottom-8 right-8 z-50 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full shadow-xl text-lg font-bold flex items-center gap-2 animate-bounce transition-colors duration-200"
-        title="Ir a hacer un pedido"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        ¿Quieres hacer un pedido? Ingresa aquí
-      </a>
     </div>
   );
 }
@@ -564,6 +553,18 @@ export default function Home() {
           onPrev={prevImage}
           onNext={nextImage}
         />
+
+        {/* Botón flotante para invitar a hacer pedido */}
+        <a
+          href="/productos"
+          className="fixed bottom-6 right-4 sm:bottom-8 sm:right-8 z-50 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-full shadow-xl text-sm sm:text-lg font-bold flex items-center gap-2 animate-bounce transition-colors duration-200"
+          title="Ir a hacer un pedido"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 sm:w-7 sm:h-7">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          ¿Quieres hacer tu pedido?
+        </a>
       </div>
     </div>
   );
