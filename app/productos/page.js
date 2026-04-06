@@ -458,6 +458,35 @@ export default function CatalogoPage() {
             .toLowerCase()
             .trim();
 
+    const resolveColorHex = (rawName = '') => {
+        const name = normalizeColorName(rawName);
+        if (!name) return null;
+
+        if (name.includes('negro') || name.includes('black')) return '#111827';
+        if (name.includes('blanco') || name.includes('white')) return '#FFFFFF';
+        if (name.includes('plateado') || name.includes('silver') || name.includes('plata')) return '#C0C0C0';
+        if (name.includes('dorado') || name.includes('gold') || name.includes('oro')) return '#D4AF37';
+        if (name.includes('gris') || name.includes('gray') || name.includes('plomo')) return '#6B7280';
+
+        if (name.includes('beige') || name.includes('nude') || name.includes('natural') || name.includes('crema') || name.includes('camel') || name.includes('taupe')) return '#D9B995';
+        if (name.includes('marron') || name.includes('cafe') || name.includes('brown') || name.includes('cobre') || name.includes('bronce')) return '#8B5A3C';
+
+        if (name.includes('guindo') || name.includes('vino') || name.includes('bordo') || name.includes('ciruela') || name.includes('berenjena')) return '#7F1D1D';
+        if (name.includes('rojo') || name.includes('red') || name.includes('coral') || name.includes('salmon') || name.includes('durazno')) return '#DC2626';
+        if (name.includes('fucsia') || name.includes('magenta') || name.includes('rosa') || name.includes('rosado') || name.includes('pink')) return '#EC4899';
+
+        if (name.includes('azul') || name.includes('blue') || name.includes('navy') || name.includes('celeste') || name.includes('cielo') || name.includes('petroleo') || name.includes('teal')) return '#2563EB';
+        if (name.includes('turquesa') || name.includes('verde agua') || name.includes('menta')) return '#14B8A6';
+        if (name.includes('verde') || name.includes('green') || name.includes('oliva') || name.includes('kaki') || name.includes('esmeralda') || name.includes('emerald') || name.includes('pistacho') || name.includes('lima')) return '#16A34A';
+
+        if (name.includes('amarillo') || name.includes('yellow') || name.includes('mostaza')) return '#FACC15';
+        if (name.includes('naranja') || name.includes('orange') || name.includes('mandarina')) return '#F97316';
+
+        if (name.includes('morado') || name.includes('lila') || name.includes('violeta') || name.includes('lavanda') || name.includes('purpura') || name.includes('purple')) return '#7C3AED';
+
+        return null;
+    };
+
     // Devuelve estilos visuales para mostrar el color de forma fiel en el swatch.
     const getColorStyle = (colorName) => {
         const normalized = normalizeColorName(colorName);
@@ -473,26 +502,39 @@ export default function CatalogoPage() {
             };
         }
 
-        if (normalized.includes('negro') || normalized.includes('black')) return { backgroundColor: '#111827' };
-        if (normalized.includes('blanco') || normalized.includes('white')) return { backgroundColor: '#FFFFFF' };
-        if (normalized.includes('beige') || normalized.includes('nude') || normalized.includes('natural') || normalized.includes('crema')) return { backgroundColor: '#D9B995' };
-        if (normalized.includes('gris') || normalized.includes('gray') || normalized.includes('plomo')) return { backgroundColor: '#6B7280' };
-        if (normalized.includes('rojo') || normalized.includes('red') || normalized.includes('bordo')) return { backgroundColor: '#C92A2A' };
-        if (normalized.includes('azul') || normalized.includes('blue') || normalized.includes('navy') || normalized.includes('celeste')) return { backgroundColor: '#2563EB' };
-        if (normalized.includes('verde') || normalized.includes('green') || normalized.includes('oliva')) return { backgroundColor: '#16A34A' };
-        if (normalized.includes('amarillo') || normalized.includes('yellow') || normalized.includes('mostaza')) return { backgroundColor: '#EAB308' };
-        if (normalized.includes('naranja') || normalized.includes('orange') || normalized.includes('coral')) return { backgroundColor: '#F97316' };
-        if (normalized.includes('rosa') || normalized.includes('rosado') || normalized.includes('pink') || normalized.includes('fucsia')) return { backgroundColor: '#EC4899' };
-        if (normalized.includes('morado') || normalized.includes('lila') || normalized.includes('violeta') || normalized.includes('purple')) return { backgroundColor: '#7C3AED' };
-        if (normalized.includes('marron') || normalized.includes('cafe') || normalized.includes('brown')) return { backgroundColor: '#8B5A3C' };
-        if (normalized.includes('dorado') || normalized.includes('gold')) return { backgroundColor: '#D4AF37' };
-        if (normalized.includes('plateado') || normalized.includes('silver')) return { backgroundColor: '#C0C0C0' };
-        if (normalized.includes('transparente')) return { backgroundColor: '#FFFFFF', opacity: 0.35 };
-        if (normalized.includes('multicolor')) {
+        if (normalized.includes('multicolor') || normalized.includes('iridiscente') || normalized.includes('holografico') || normalized.includes('tie dye') || normalized.includes('degradado') || normalized.includes('ombre')) {
             return {
                 backgroundImage: 'linear-gradient(135deg, #ef4444, #f59e0b, #22c55e, #3b82f6, #a855f7)',
             };
         }
+
+        if (normalized.includes('transparente') || normalized.includes('traslucido')) {
+            return {
+                backgroundColor: '#FFFFFF',
+                opacity: 0.45,
+            };
+        }
+
+        const parts = normalized
+            .split(/\s+con\s+/i)
+            .map((part) => part.trim())
+            .filter(Boolean);
+
+        if (parts.length > 1) {
+            const comboHexes = parts
+                .map((part) => resolveColorHex(part))
+                .filter(Boolean);
+
+            if (comboHexes.length >= 2) {
+                const uniqueHexes = Array.from(new Set(comboHexes));
+                return {
+                    backgroundImage: `linear-gradient(135deg, ${uniqueHexes.join(', ')})`,
+                };
+            }
+        }
+
+        const singleHex = resolveColorHex(normalized);
+        if (singleHex) return { backgroundColor: singleHex };
 
         return { backgroundColor: '#9CA3AF' };
     };

@@ -146,6 +146,7 @@ const DEFAULT_COLOR_PALETTE = [
     'Azul con Oro',
     'Verde con Negro',
     'Verde con Blanco',
+    'Verde con Dorado',
     'Rosado con Blanco',
     'Beige con Dorado',
     'Gris con Blanco',
@@ -177,6 +178,16 @@ const DEFAULT_COLOR_PALETTE = [
     'Denin',
     'Unico',
 ];
+
+const COLOR_COMBINATION_METALS = ['Dorado', 'Plateado'];
+const AUTO_GENERATED_COLOR_COMBINATIONS = Array.from(
+    new Set(
+        DEFAULT_COLOR_PALETTE
+            .filter((color) => !/\scon\s/i.test(color))
+            .filter((color) => !COLOR_COMBINATION_METALS.includes(color))
+            .flatMap((color) => COLOR_COMBINATION_METALS.map((metal) => `${color} con ${metal}`))
+    )
+);
 
 function generateVariantBarcode(existingCodes = new Set()) {
     let code = '';
@@ -529,6 +540,7 @@ export default function AdminProductosPage() {
         new Set(
             [
                 ...DEFAULT_COLOR_PALETTE,
+                ...AUTO_GENERATED_COLOR_COMBINATIONS,
                 ...Object.values(variantesProductos)
                     .flat()
                     .map((v) => String(v?.color || '').trim())
