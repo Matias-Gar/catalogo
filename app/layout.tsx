@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google"; 
 import "./globals.css";
 import Header from "../components/Header"; 
+import StoreFooter from "../components/StoreFooter";
 import FacebookPixel from "../components/FacebookPixel"; 
 import ToastProvider from "@/components/ui/ToastProvider";
 
@@ -42,6 +43,7 @@ export default function RootLayout({
         <Header /> 
         
         {children}
+        <StoreFooter />
         
         {/* 📊 Facebook Pixel para tracking */}
         <FacebookPixel />

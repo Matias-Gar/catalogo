@@ -15,7 +15,7 @@ export default function PerfilesAdminPage() {
     nombre: '',
     telefono: '',
     nit_ci: '',
-    rol: 'usuario'
+    rol: 'vendedor'
   });
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export default function PerfilesAdminPage() {
         
         setUserProfile(perfilData);
         
-        if (perfilData?.rol === 'administracion' || perfilData?.rol === 'admin') {
+        if (perfilData?.rol === 'admin') {
           cargarPerfiles();
         }
       }
@@ -75,7 +75,7 @@ export default function PerfilesAdminPage() {
       nombre: perfil.nombre || '',
       telefono: perfil.telefono || '',
       nit_ci: perfil.nit_ci || '',
-      rol: perfil.rol || 'usuario'
+      rol: perfil.rol || 'vendedor'
     });
   };
 
@@ -115,7 +115,7 @@ export default function PerfilesAdminPage() {
       nombre: '',
       telefono: '',
       nit_ci: '',
-      rol: 'usuario'
+      rol: 'vendedor'
     });
   };
 
@@ -179,7 +179,7 @@ export default function PerfilesAdminPage() {
     );
   }
 
-  if (!user || (userProfile?.rol !== 'administracion' && userProfile?.rol !== 'admin')) {
+  if (!user || userProfile?.rol !== 'admin') {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
         <div className="text-center p-8">
@@ -275,7 +275,7 @@ export default function PerfilesAdminPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">
-                {perfiles.filter(p => p.rol === 'administracion' || p.rol === 'admin').length}
+                {perfiles.filter(p => p.rol === 'admin').length}
               </p>
               <p className="text-gray-600 text-sm">Administradores</p>
             </div>
@@ -391,20 +391,24 @@ export default function PerfilesAdminPage() {
                         onChange={(e) => setFormData({...formData, rol: e.target.value})}
                         className="w-full px-2 py-1 border rounded text-sm"
                       >
-                        <option value="usuario">Usuario</option>
                         <option value="admin">Admin</option>
                         <option value="administracion">Administración</option>
                         <option value="vendedor">Vendedor</option>
+                        <option value="almacen">Almacén</option>
                       </select>
                     ) : (
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        (perfil.rol === 'administracion' || perfil.rol === 'admin')
+                        perfil.rol === 'admin'
                           ? 'bg-red-100 text-red-800' 
+                          : perfil.rol === 'administracion'
+                          ? 'bg-purple-100 text-purple-800'
                           : perfil.rol === 'vendedor'
                           ? 'bg-blue-100 text-blue-800'
+                          : perfil.rol === 'almacen'
+                          ? 'bg-amber-100 text-amber-800'
                           : 'bg-green-100 text-green-800'
                       }`}>
-                        {perfil.rol || 'usuario'}
+                        {perfil.rol || 'vendedor'}
                       </span>
                     )}
                   </td>

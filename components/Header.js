@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/SupabaseClient'; // Asegúrate que esta ruta es correcta
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from '../lib/storeSettings';
+import { getDefaultAdminRoute, isAdminPanelRole } from '../lib/adminPermissions';
 
 export default function Header() {
   const [session, setSession] = useState(null);
@@ -80,6 +81,9 @@ export default function Header() {
     await supabase.auth.signOut();
   };
 
+  const hasAdminPanelAccess = isAdminPanelRole(userRole);
+  const adminPanelRoute = getDefaultAdminRoute(userRole);
+
   return (
     <header className="bg-gray-800 p-2 sm:p-4 shadow-lg sticky top-0 z-10">
       {/* Layout móvil mejorado */}
@@ -119,11 +123,11 @@ export default function Header() {
               </>
             )}
             
-            {session && userRole === 'admin' && (
+            {session && hasAdminPanelAccess && (
               <>
-                <Link href="/admin">
+                <Link href={adminPanelRoute}>
                   <div className="bg-green-600 hover:bg-green-700 text-white font-bold px-3 py-2 rounded-lg text-sm transition duration-300 shadow-md">
-                    Panel Admin
+                    Panel
                   </div>
                 </Link>
                 <Link href="/productos">
@@ -134,7 +138,7 @@ export default function Header() {
               </>
             )}
             
-            {session && userRole !== 'admin' && (
+            {session && !hasAdminPanelAccess && (
               <Link href="/perfil">
                 <div className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-2 rounded-lg text-sm transition duration-300 shadow-md">
                   👤 Perfil
@@ -170,12 +174,11 @@ export default function Header() {
           </div>
         </Link>
         <div className="flex gap-4 items-center">
-          {/* Botón de Admin solo si userRole es 'admin' */}
-          {userRole === 'admin' && (
+          {hasAdminPanelAccess && (
             <>
-              <Link href="/admin">
+              <Link href={adminPanelRoute}>
                 <div className="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded-lg text-base transition duration-300 shadow-md">
-                  Panel Admin
+                  Panel
                 </div>
               </Link>
               <Link href="/productos">
@@ -188,8 +191,7 @@ export default function Header() {
           {/* Lógica Condicional del Botón de Sesión */}
           {session ? (
             <div className="flex gap-2 items-center">
-              {/* Botón de Perfil para usuarios normales (no admin) */}
-              {userRole !== 'admin' && (
+              {!hasAdminPanelAccess && (
                 <Link href="/perfil">
                   <div className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-base transition duration-300 shadow-md">
                     👤 Perfil

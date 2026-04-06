@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from "../../lib/SupabaseClient";
 import Link from 'next/link'; // ¡Importación necesaria para el botón!
+import { ADMIN_MENU, canAccessAdminPath, filterAdminMenuByRole, isAdminPanelRole } from '../../lib/adminPermissions';
 
 export default function AdminDashboard() {
     const [userRole, setUserRole] = useState(null); 
@@ -40,8 +41,7 @@ export default function AdminDashboard() {
                 return;
             }
             
-            if (profile.rol !== 'admin') {
-                console.warn("Acceso denegado: No tienes permisos de administrador.");
+            if (!isAdminPanelRole(profile.rol) || !canAccessAdminPath(profile.rol, '/admin')) {
                 router.push('/');
             }
         };
@@ -54,11 +54,14 @@ export default function AdminDashboard() {
         return <div className="min-h-screen flex items-center justify-center text-xl font-medium text-gray-700">Verificando permisos, por favor espera...</div>;
     }
 
-    if (userRole !== 'admin') {
+    if (!isAdminPanelRole(userRole) || !canAccessAdminPath(userRole, '/admin')) {
         return <div className="min-h-screen flex items-center justify-center text-xl font-medium text-red-500">Acceso denegado. Redirigiendo...</div>;
     }
 
-    // Contenido del Dashboard (Solo visible para admins)
+    const quickLinks = filterAdminMenuByRole(userRole, ADMIN_MENU)
+        .flatMap((item) => Array.isArray(item.children) ? item.children : (item.path ? [item] : []))
+        .slice(0, 8);
+
     return (
         <div className="min-h-screen p-8 bg-gray-100">
             {/* Botón para volver al Catálogo */}
@@ -73,19 +76,15 @@ export default function AdminDashboard() {
                 </Link>
             </div>
             
-            <h1 className="text-4xl font-bold text-gray-800 mb-8">Panel de Administración 🛠️</h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
-                <a href="/admin/productos" className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300">
-                    <h2 className="text-2xl font-semibold text-indigo-600">Gestión de Productos</h2>
-                    <p className="mt-2 text-gray-600">Añadir, editar o eliminar productos del catálogo.</p>
-                </a>
-
-                <a href="/admin/inventario" className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300">
-                    <h2 className="text-2xl font-semibold text-green-600">Control de Inventario</h2>
-                    <p className="mt-2 text-gray-600">Actualizar stock y ver niveles de inventario.</p>
-                </a>
-                
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">Panel de Administración 🛠️</h1>
+            <p className="mb-8 text-gray-600">Accesos disponibles para el rol: <span className="font-bold">{userRole}</span></p>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                {quickLinks.map((entry) => (
+                    <Link key={entry.path} href={entry.path} className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300">
+                        <h2 className="text-2xl font-semibold text-indigo-600">{entry.label}</h2>
+                        <p className="mt-2 text-gray-600">Abrir {entry.label.toLowerCase()}.</p>
+                    </Link>
+                ))}
             </div>
             
             <button onClick={() => supabase.auth.signOut()} className="mt-10 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">

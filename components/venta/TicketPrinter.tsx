@@ -142,6 +142,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
     try {
       const settings = await fetchStoreSettings();
       const storeName = limpiarTexto(settings?.store_name) || limpiarTexto(cfg.BUSINESS_NAME || cfg.NOMBRE_NEGOCIO || 'Tienda');
+      const storeAddress = limpiarTexto(settings?.store_address) || cfg.BUSINESS_ADDRESS || cfg.DIRECCION_COMERCIAL || '';
       const whatsappDigits = String(settings?.whatsapp_number || cfg.WHATSAPP_BUSINESS || '').replace(/\D/g, '');
       const whatsappDisplay = whatsappDigits ? `+${whatsappDigits}` : (cfg.BUSINESS_PHONE || '');
       const whatsappUrl = whatsappDigits
@@ -150,7 +151,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
 
       return {
         storeName,
-        businessAddress: cfg.BUSINESS_ADDRESS || cfg.DIRECCION_COMERCIAL || '',
+        businessAddress: storeAddress,
         businessNit: cfg.BUSINESS_NIT || '',
         whatsappDisplay,
         whatsappUrl,

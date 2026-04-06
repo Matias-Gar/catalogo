@@ -10,6 +10,7 @@ import { PrecioConPromocion } from '../../../lib/promociones';
 import { usePromociones } from '../../../lib/usePromociones';
 import { getOptimizedImageUrl, buildImageSrcSet } from '../../../lib/imageOptimization';
 import { optimizeImageForUpload } from '../../../lib/imageUploadOptimization';
+import { canAccessAdminPath } from '../../../lib/adminPermissions';
 
 // Desactivar SSR para el componente de código de barras si usa librerías de cliente como 'react-barcode'
 // Si la tabla usa react-barcode, este dynamic es necesario. Si solo usa la función handlePrintBarcode, se podría quitar.
@@ -320,12 +321,12 @@ export default function AdminProductosPage() {
                 router.push('/');
                 return;
             }
-            if (profile.rol !== 'admin') {
+            if (!canAccessAdminPath(profile.rol, '/admin/productos')) {
                 setUserRole(profile.rol);
                 router.push('/');
                 return;
             }
-            setUserRole('admin');
+            setUserRole(profile.rol);
         };
         checkAuthAndRole();
     }, [router]);
@@ -403,7 +404,7 @@ export default function AdminProductosPage() {
 
     // Función para cargar productos y sus imágenes
     const fetchProductos = async () => {
-        if (userRole !== 'admin') {
+        if (!canAccessAdminPath(userRole, '/admin/productos')) {
             return;
         }
         setLoading(true);
@@ -461,7 +462,7 @@ export default function AdminProductosPage() {
     // useEffect para cargar categorías y productos después de declarar las funciones
     useEffect(() => {
         // Solo cargar datos si el rol no se ha determinado o es admin
-        if (userRole === 'admin' || userRole === null) {
+        if ((userRole && canAccessAdminPath(userRole, '/admin/productos')) || userRole === null) {
             fetchCategories();
             fetchProductos();
         }
@@ -650,7 +651,7 @@ export default function AdminProductosPage() {
     if (userRole === 'not_logged') {
         return <div className="p-8 text-center text-xl text-gray-500">Redirigiendo a Login...</div>;
     }
-    if (userRole !== 'admin') {
+    if (!canAccessAdminPath(userRole, '/admin/productos')) {
         return <div className="p-8 text-center text-xl text-red-500">Acceso Denegado. No tiene permisos de Administrador.</div>;
     }
 

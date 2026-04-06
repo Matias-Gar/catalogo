@@ -111,7 +111,7 @@ export default function StoreSettingsPage() {
         <section className="rounded-2xl bg-white p-6 shadow">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">Configuración Global de la Tienda</h1>
           <p className="mt-2 text-gray-600">
-            Cambia aquí el nombre, el WhatsApp y el logo para que se actualice en toda la página.
+            Cambia aquí el nombre, la información, el WhatsApp, la dirección y el logo para que se actualice en toda la página.
           </p>
         </section>
 
@@ -129,6 +129,18 @@ export default function StoreSettingsPage() {
             </div>
 
             <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-700">Información de la tienda</label>
+              <textarea
+                value={form.store_info || ''}
+                onChange={(e) => onChange('store_info', e.target.value)}
+                placeholder="Ej: Ropa, accesorios, ventas por mayor y menor"
+                rows={3}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+              />
+              <p className="mt-1 text-xs text-gray-500">Este texto aparecerá en el pie de página como información general del negocio.</p>
+            </div>
+
+            <div>
               <label className="mb-1 block text-sm font-semibold text-gray-700">Número de WhatsApp</label>
               <input
                 type="text"
@@ -138,6 +150,18 @@ export default function StoreSettingsPage() {
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
               />
               <p className="mt-1 text-xs text-gray-500">Solo se usarán números para el enlace de WhatsApp.</p>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-700">Dirección</label>
+              <textarea
+                value={form.store_address || ''}
+                onChange={(e) => onChange('store_address', e.target.value)}
+                placeholder="Ej: Av. Principal 123, Cochabamba"
+                rows={3}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+              />
+              <p className="mt-1 text-xs text-gray-500">Esta dirección se usará en comprobantes y en cualquier sección que muestre la ubicación del negocio.</p>
             </div>
 
             <div>
@@ -207,7 +231,9 @@ export default function StoreSettingsPage() {
             )}
             <div>
               <div className="font-extrabold text-gray-900">{form.store_name || 'Mi Tienda Online'}</div>
+              {form.store_info ? <div className="text-sm text-gray-600">{form.store_info}</div> : null}
               <div className="text-sm text-gray-600">WhatsApp: {form.whatsapp_number || 'No configurado'}</div>
+              {form.store_address ? <div className="text-sm text-gray-600">Dirección: {form.store_address}</div> : null}
               {whatsappLink && (
                 <a href={whatsappLink} target="_blank" rel="noreferrer" className="text-sm text-green-700 hover:underline">
                   Abrir chat de WhatsApp

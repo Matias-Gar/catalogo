@@ -1,82 +1,11 @@
 "use client";
 import { useState } from 'react';
 import Link from 'next/link';
+import { filterAdminMenuByRole } from '../../lib/adminPermissions';
 
-const menu = [
-  {
-    label: 'Perfiles',
-    children: [
-      { label: 'Mi Perfil', path: '/admin/perfil' },
-      { label: 'Perfiles', path: '/admin/perfiles' },
-    ],
-  },
-  {
-    label: 'Pedidos',
-    children: [
-      { label: 'Gestionar Pedidos', path: '/admin/pedidos' },
-    ],
-  },
-  { label: 'Catálogo', path: '/admin/productos/catalogo' },
-  {
-    label: 'Gestión de Productos',
-    children: [
-      { label: 'Añadir Nuevos Artículos', path: '/admin/productos/nuevo' },
-      { label: 'Aumentar Stock', path: '/admin/productos/aumentar-stock' },
-      { label: 'Editar Artículos', path: '/admin/productos/editar' },
-      { label: 'Eliminar Artículos', path: '/admin/productos/eliminar' },
-    ],
-  },
-  {
-    label: 'Control de Inventario',
-    children: [
-      { label: 'Stock', path: '/admin/inventario/stock' },
-  { label: 'Próximo a compra', path: '/admin/inventario/proximo-a-compra' },
-      { label: 'Estadística', path: '/admin/inventario/estadistica' },
-    ],
-  },
-  {
-    label: 'Ventas',
-    children: [
-      { label: 'Venta de Productos', path: '/admin/ventas/nueva' },
-  { label: 'Todas las ventas', path: '/admin/ventas/todas' },
-      { label: 'Estadística', path: '/admin/ventas/estadistica' },
-    ],
-  },
-  {
-    label: 'Pagos',
-    children: [
-      { label: 'QR', path: '/admin/pagos/qr' },
-      { label: 'Transferencias', path: '/admin/pagos/transferencias' },
-      { label: 'Tarjeta', path: '/admin/pagos/tarjeta' },
-      { label: 'Efectivo', path: '/admin/pagos/efectivo' },
-      { label: 'Estadísticas', path: '/admin/pagos/estadistica' },
-    ],
-  },
-  { label: 'Flujo de Caja', path: '/admin/flujo-caja' },
-  {
-    label: 'Categorías',
-    children: [
-      { label: 'Gestionar Categorías', path: '/admin/categorias' },
-    ],
-  },
-  {
-    label: 'Promociones',
-    children: [
-      { label: 'Productos', path: '/admin/promociones/productos' },
-      { label: 'Descuentos', path: '/admin/promociones/descuentos' },
-      { label: 'Packs', path: '/admin/promociones/packs' },
-    ],
-  },
-  {
-    label: 'Configuración',
-    children: [
-      { label: 'Panel de Control', path: '/admin/whatsapp' },
-    ],
-  },
-];
-
-export default function Sidebar({ mobileOpen, setMobileOpen }) {
+export default function Sidebar({ mobileOpen, setMobileOpen, userRole }) {
   const [open, setOpen] = useState({});
+  const menu = filterAdminMenuByRole(userRole);
 
   const toggle = (idx) => {
     setOpen((prev) => ({ ...prev, [idx]: !prev[idx] }));
@@ -100,7 +29,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
         style={{ minWidth: '16rem', maxWidth: '100vw' }}
       >
         <div className="p-4 text-2xl font-bold border-b border-gray-800 flex items-center justify-between">
-          <span>Panel Admin</span>
+          <span>Panel</span>
           {/* Botón cerrar siempre visible */}
           <button
             className="text-white text-2xl ml-2 focus:outline-none"

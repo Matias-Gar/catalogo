@@ -3,14 +3,16 @@
 import Sidebar from './Sidebar';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/SupabaseClient';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Toast } from '../../components/ui/Toast';
+import { canAccessAdminPath, getDefaultAdminRoute, isAdminPanelRole } from '../../lib/adminPermissions';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const checkUserRole = async () => {
@@ -32,10 +34,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         
         const role = profile?.rol || 'cliente';
         setUserRole(role);
-        
-        // Si no es admin, redirigir al perfil o página principal
-        if (role !== 'admin') {
-          router.push('/admin/perfil');
+
+        if (!isAdminPanelRole(role)) {
+          router.push('/');
+          return;
+        }
+
+        if (!canAccessAdminPath(role, pathname)) {
+          router.push(getDefaultAdminRoute(role));
           return;
         }
         
@@ -61,7 +67,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
 
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, [pathname, router]);
 
   // Mostrar loading mientras verificamos
   if (loading) {
@@ -72,8 +78,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  // Solo mostrar el layout completo si es admin
-  if (userRole !== 'admin') {
+  if (!isAdminPanelRole(userRole) || !canAccessAdminPath(userRole, pathname)) {
     return null; // El redirect ya se maneja en useEffect
   }
 
@@ -102,7 +107,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
-      <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+      <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} userRole={userRole} />
       <main className="flex-1 bg-gray-100 p-6 overflow-y-auto">
         {children}
       </main>
