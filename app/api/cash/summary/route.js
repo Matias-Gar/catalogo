@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import { getSupabaseServerClientFromRequest } from "@/lib/supabaseServer";
 import { getCashSummary } from "@/services/cash.service";
 import { getUserIdFromRequest } from "@/lib/authUserFromRequest";
 
@@ -11,7 +11,7 @@ export async function GET(request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const summary = await getCashSummary(getSupabaseServerClient(), {
+    const summary = await getCashSummary(getSupabaseServerClientFromRequest(request), {
       start_date: searchParams.get("start_date"),
       end_date: searchParams.get("end_date"),
       opening_balance: searchParams.get("opening_balance"),

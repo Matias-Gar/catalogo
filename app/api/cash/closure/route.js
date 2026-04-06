@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import { getSupabaseServerClientFromRequest } from "@/lib/supabaseServer";
 import { createCashClosure } from "@/services/cash.service";
 import { getUserIdFromRequest } from "@/lib/authUserFromRequest";
 
@@ -11,7 +11,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const result = await createCashClosure(getSupabaseServerClient(), {
+    const result = await createCashClosure(getSupabaseServerClientFromRequest(request), {
       ...body,
       user_id: loggedUserId,
     });

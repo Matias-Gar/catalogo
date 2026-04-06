@@ -28,6 +28,15 @@ interface Producto {
   categorias?: { categori?: string };
 }
 
+interface VarianteBusqueda {
+  producto_id: string | number;
+  id?: number;
+  color?: string;
+  stock?: number;
+  precio?: number;
+  sku?: string;
+}
+
 // simple util to group images by producto_id
 function agruparImagenes(imgs: Array<{ producto_id: string | number; imagen_url?: string }>) {
   const out: Record<string, string[]> = {};
@@ -117,7 +126,7 @@ export function useProductos(includeCost = false) {
         const { data: variantMatches } = await variantQuery;
 
         if (Array.isArray(variantMatches) && variantMatches.length > 0) {
-          const matchedVariants = variantMatches.filter(v => matchesBarcode(term, (v as any).sku));
+          const matchedVariants = (variantMatches as VarianteBusqueda[]).filter((variant) => matchesBarcode(term, variant.sku));
           
           if (matchedVariants.length > 0) {
             // Obtener los productos de las variantes encontradas
@@ -150,7 +159,7 @@ export function useProductos(includeCost = false) {
                   // Preseleccionar la variante encontrada
                   variante_id: matchedVar?.id || matchedVar?.id,
                   color: matchedVar?.color || '',
-                  codigo: String((matchedVar as any)?.sku || '')
+                  codigo: String(matchedVar?.sku || '')
                 } as Producto;
               });
             }

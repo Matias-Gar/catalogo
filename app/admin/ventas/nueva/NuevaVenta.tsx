@@ -13,6 +13,24 @@ import CarritoPanel from '../../../../components/venta/CarritoPanel';
 import TicketPrinter, { TicketPrinterHandle } from '../../../../components/venta/TicketPrinter';
 import { CartItem, Pack, PackProduct, Producto } from '../../../../hooks/useCarrito';
 import { supabase } from '../../../../lib/SupabaseClient';
+import { showToast } from '../../../../components/ui/Toast';
+
+type VariantMatch = {
+  variante_id?: number | string;
+  id?: number | string;
+  color?: string;
+  precio?: number;
+  stock?: number;
+  sku?: string;
+  codigo_barra?: string;
+};
+
+type VentaCajaPayload = {
+  id?: number | string;
+  fecha?: string;
+  total?: number;
+  modo_pago?: string;
+};
 
 export default function NuevaVenta() {
   // hooks
@@ -129,8 +147,11 @@ export default function NuevaVenta() {
     };
 
     const buildScannedProduct = (p: Producto) => {
-      const variants = Array.isArray((p as any).variantes) ? (p as any).variantes : [];
-      const matchedVariant = variants.find((v: any) => matchesBarcode(codigo, v?.codigo_barra) || matchesBarcode(codigo, v?.sku));
+      const variants = Array.isArray(p.variantes) ? p.variantes : [];
+      const matchedVariant = variants.find((variant) => {
+        const currentVariant = variant as VariantMatch;
+        return matchesBarcode(codigo, currentVariant?.codigo_barra) || matchesBarcode(codigo, currentVariant?.sku);
+      }) as VariantMatch | undefined;
       if (!matchedVariant) return null;
 
       return {
@@ -156,9 +177,9 @@ export default function NuevaVenta() {
     if (!productoEncontrado) {
       const resultados = await searchProductos(codigo);
       if (Array.isArray(resultados) && resultados.length > 0) {
-        const conVariante = resultados.find((r) => Boolean((r as any).variante_id));
+        const conVariante = resultados.find((resultado) => resultado.variante_id != null);
         if (conVariante) {
-          productoEncontrado = conVariante as Producto;
+          productoEncontrado = conVariante;
         }
       }
     }
@@ -269,7 +290,7 @@ export default function NuevaVenta() {
 
 
   // acciones de venta
-  const registrarIngresoEnCaja = useCallback(async (venta: any) => {
+  const registrarIngresoEnCaja = useCallback(async (venta: VentaCajaPayload) => {
     try {
       const modo = String(venta?.modo_pago || "").toLowerCase();
       const payment_method =
@@ -277,6 +298,8 @@ export default function NuevaVenta() {
           ? "cash"
           : modo === "qr"
             ? "qr"
+            : modo === "tarjeta"
+              ? "card"
             : modo === "transferencia"
               ? "transfer"
               : "other";
@@ -284,18 +307,20 @@ export default function NuevaVenta() {
       const amount = Number(venta?.total || 0);
       if (!Number.isFinite(amount) || amount <= 0) return;
 
+      const saleDate = String(venta?.fecha || "").slice(0, 10) || new Date().toISOString().slice(0, 10);
+
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
       if (!token) return;
 
-      await fetch('/api/cash/movements', {
+      const response = await fetch('/api/cash/movements', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          date: new Date().toISOString().slice(0, 10),
+          date: saleDate,
           type: 'income',
           payment_method,
           amount,
@@ -303,21 +328,50 @@ export default function NuevaVenta() {
           cashbox_id: 'main',
         }),
       });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !payload?.success) {
+        throw new Error(payload?.error || 'No se pudo registrar el ingreso automatico en caja');
+      }
     } catch (cashError) {
-      // No bloqueamos la venta por un error de sincronización de caja.
+      // No bloqueamos la venta por un error de sincronizacion de caja.
       console.error('No se pudo registrar ingreso automatico en caja:', cashError);
+      showToast('La venta se guardo, pero no se pudo reflejar en flujo de caja automaticamente.', 'info');
     }
   }, []);
 
   const efectivizarVenta = useCallback(async () => {
-    if (carrito.length === 0) return alert('El carrito estÃ¡ vacÃ­o');
-    if (!modoPago) return alert('Selecciona un mÃ©todo de pago');
-    if (cliente.requiereFactura && (!cliente.nombre.trim() || !cliente.nit.trim())) return alert('Completa los datos de facturaciÃ³n (nombre y NIT)');
-    if (modoPago === 'efectivo' && pago < totalCobrar) return alert('El pago recibido es insuficiente');
+    if (carrito.length === 0) { showToast('El carrito esta vacio', 'error'); return; }
+    if (!modoPago) { showToast('Selecciona un metodo de pago', 'error'); return; }
+    if (cliente.requiereFactura && (!cliente.nombre.trim() || !cliente.nit.trim())) { showToast('Completa los datos de facturacion (nombre y NIT)', 'error'); return; }
+    if (modoPago === 'efectivo' && pago < totalCobrar) { showToast('El pago recibido es insuficiente', 'error'); return; }
 
     // lÃ³gica replicada del componente antiguo con service helpers
     setEfectivizando(true);
     try {
+      const productIds = Array.from(
+        new Set(
+          carrito
+            .filter((item: Producto) => item.tipo !== 'pack' && item.user_id)
+            .map((item: Producto) => String(item.user_id))
+        )
+      );
+      const productCostMap = new Map<string, { user_id?: string | number; precio_compra?: number; nombre?: string }>();
+
+      if (productIds.length > 0) {
+        const { data: productCostsByUserId, error: productCostsByUserIdError } = await supabase
+          .from('productos')
+          .select('user_id, nombre, precio_compra')
+          .in('user_id', productIds);
+
+        if (productCostsByUserIdError) throw productCostsByUserIdError;
+
+        const foundByUserId = Array.isArray(productCostsByUserId) ? productCostsByUserId : [];
+        foundByUserId.forEach((product) => {
+          if (product?.user_id != null) productCostMap.set(String(product.user_id), product);
+        });
+      }
+
       // armar objeto de costos extra
       const costos_extra = {
         envio: Number(envio) || 0,
@@ -349,24 +403,48 @@ export default function NuevaVenta() {
         if (p.tipo === 'pack') {
           const pack = p.pack_data || packs.find((pk: Pack) => pk.id === p.pack_id);
           if (pack) {
-            await ventasService.insertarVentaDetalle({
+            const { error: detallePackError } = await ventasService.insertarVentaDetalle({
               venta_id: venta.id,
               producto_id: null,
               cantidad,
               precio_unitario: pack.precio_pack,
+              costo_unitario: 0,
+              color: null,
               descripcion: `ðŸ“¦ Pack: ${pack.nombre}`,
               tipo: 'pack',
               pack_id: pack.id
             });
+
+            if (detallePackError) throw detallePackError;
+
             await Promise.all((pack.pack_productos ?? []).map(async (item: PackProduct) => {
               const cantidadTotal = item.cantidad * cantidad;
-              await ventasService.descontarStock(item.productos.user_id, cantidadTotal);
+              const { error: stockPackError } = await ventasService.descontarStock(item.productos.user_id, cantidadTotal);
+              if (stockPackError) throw stockPackError;
             }));
           }
         } else {
           const precioInfo = calcularPrecioConPromocion(p, []);
-          await ventasService.insertarVentaDetalle({ venta_id: venta.id, producto_id: p.user_id, cantidad, precio_unitario: precioInfo.precioFinal });
-          await ventasService.descontarStock(p.user_id, cantidad);
+          const productInfo = productCostMap.get(String(p.user_id));
+          const costoUnitario = Number(productInfo?.precio_compra || 0);
+          const descripcionItem = `${p.nombre}${p.color ? ` ${p.color}` : ''}`.trim();
+
+          const { error: detalleProductoError } = await ventasService.insertarVentaDetalle({
+            venta_id: venta.id,
+            producto_id: p.user_id,
+            cantidad,
+            precio_unitario: precioInfo.precioFinal,
+            costo_unitario: costoUnitario,
+            variante_id: p.variante_id || null,
+            color: p.color || null,
+            descripcion: descripcionItem,
+            tipo: 'producto',
+          });
+
+          if (detalleProductoError) throw detalleProductoError;
+
+          const { error: stockProductoError } = await ventasService.descontarStock(p.user_id, cantidad);
+          if (stockProductoError) throw stockProductoError;
         }
       }));
 
@@ -402,10 +480,21 @@ export default function NuevaVenta() {
       setEnvio(0); setComision(0); setPublicidad(0); setRebajas(0); setCobrarImpuestos(false);
       cambiarCampo('nombre',''); cambiarCampo('carnet',''); cambiarCampo('telefono',''); cambiarCampo('email',''); cambiarCampo('nit',''); cambiarCampo('guardado',false); cambiarCampo('requiereFactura',false);
       setEfectivizando(false);
-      alert('Venta efectivizada y stock actualizado');
+      showToast('Venta efectivizada y stock actualizado');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      alert('Error al crear venta: ' + errorMessage);
+      const errorContext = err && typeof err === 'object'
+        ? ['message', 'details', 'hint']
+            .map((key) => {
+              const value = (err as Record<string, unknown>)[key];
+              return typeof value === 'string' && value.trim() ? value : null;
+            })
+            .filter(Boolean)
+            .join(' | ')
+        : '';
+      const errorMessage = err instanceof Error
+        ? err.message
+        : errorContext || String(err);
+      showToast('Error al crear venta: ' + errorMessage, 'error');
       setEfectivizando(false);
     }
   }, [carrito, cliente, modoPago, pago, cambio, totalCobrar, subtotal, totalDescuento, packs, setCarrito, cambiarCampo, envio, comision, publicidad, rebajas, impuestosCalculados, cobrarImpuestos, registrarIngresoEnCaja]);
@@ -429,11 +518,11 @@ export default function NuevaVenta() {
             {/* costos adicionales configurables por admin */}
             <div className="mt-4 grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-gray-700">EnvÃ­o</label>
+                <label className="block text-gray-700">Envio</label>
                 <input type="number" step="0.01" min="0" value={envio} onChange={e=>setEnvio(Number(e.target.value))} className="w-full border p-2 rounded" />
               </div>
               <div>
-                <label className="block text-gray-700">ComisiÃ³n</label>
+                <label className="block text-gray-700">Comision</label>
                 <input type="number" step="0.01" min="0" value={comision} onChange={e=>setComision(Number(e.target.value))} className="w-full border p-2 rounded" />
               </div>
               <div>

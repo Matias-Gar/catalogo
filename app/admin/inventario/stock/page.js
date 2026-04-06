@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 import { CONFIG, whatsappUtils } from "../../../../lib/config";
+import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from "../../../../lib/storeSettings";
 import { Toast, showToast } from "../../../../components/ui/Toast";
 
 export default function StockPage() {
@@ -22,6 +23,7 @@ export default function StockPage() {
   const [sendingAlertId, setSendingAlertId] = useState(null);
   const [printing, setPrinting] = useState(false);
   const [notifying, setNotifying] = useState(false);
+  const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
 
   useEffect(() => {
     fetchProductos();
@@ -30,6 +32,18 @@ export default function StockPage() {
 
   useEffect(() => {
     fetchCategorias();
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadStoreSettings = async () => {
+      const settings = await fetchStoreSettings();
+      if (mounted) setStoreSettings(settings);
+    };
+    loadStoreSettings();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -192,7 +206,7 @@ export default function StockPage() {
 
     const pid = prod.user_id ?? prod.id ?? prod.codigo_barra ?? prod.nombre;
     const stockMinimo = getStockMinimo(prod);
-    const phone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || CONFIG.WHATSAPP_BUSINESS;
+    const phone = storeSettings?.whatsapp_number || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || CONFIG.WHATSAPP_BUSINESS;
     if (!phone) {
       showToast("Configura NEXT_PUBLIC_WHATSAPP_NUMBER para enviar alertas", "error");
       return;
@@ -209,7 +223,7 @@ export default function StockPage() {
     try {
       setSendingAlertId(pid);
       window.__whatsapp_alertas[pid] = Date.now();
-        whatsappUtils.sendToBusinessWhatsApp(mensaje);
+      whatsappUtils.openWhatsApp(phone, mensaje);
       showToast(`Alerta preparada para ${prod.nombre}`);
     } catch (err) {
       showToast(err?.message || "No se pudo abrir WhatsApp", "error");
@@ -353,7 +367,7 @@ export default function StockPage() {
           `
             <h1>Reporte de stock de la categoría: ${targetCategory}</h1>
             <p>Generado el ${now}</p>
-            <div class="meta">WhatsApp: ${CONFIG.WHATSAPP_BUSINESS_DISPLAY} | Correo: ${CONFIG.NOTIFICATION_EMAIL}</div>
+            <div class="meta">WhatsApp: ${storeSettings?.whatsapp_number || CONFIG.WHATSAPP_BUSINESS_DISPLAY} | Correo: ${CONFIG.NOTIFICATION_EMAIL}</div>
             <div class="meta">Productos: ${visibles.length} | Unidades: ${totalUnidades} | Valor estimado: Bs ${totalValor.toFixed(2)}</div>
             <table>
               <thead>
@@ -399,7 +413,7 @@ export default function StockPage() {
           `
             <h1>Reporte de stock por categorias</h1>
             <p>Generado el ${now}</p>
-            <div class="meta">WhatsApp: ${CONFIG.WHATSAPP_BUSINESS_DISPLAY} | Correo: ${CONFIG.NOTIFICATION_EMAIL}</div>
+            <div class="meta">WhatsApp: ${storeSettings?.whatsapp_number || CONFIG.WHATSAPP_BUSINESS_DISPLAY} | Correo: ${CONFIG.NOTIFICATION_EMAIL}</div>
             <table>
               <thead>
                 <tr>
@@ -436,7 +450,7 @@ export default function StockPage() {
         `
           <h1>Reporte total de stock</h1>
           <p>Generado el ${now}</p>
-          <div class="meta">WhatsApp: ${CONFIG.WHATSAPP_BUSINESS_DISPLAY} | Correo: ${CONFIG.NOTIFICATION_EMAIL}</div>
+          <div class="meta">WhatsApp: ${storeSettings?.whatsapp_number || CONFIG.WHATSAPP_BUSINESS_DISPLAY} | Correo: ${CONFIG.NOTIFICATION_EMAIL}</div>
           <div class="meta">Productos: ${visibles.length} | Unidades: ${totalUnidades} | Valor estimado: Bs ${totalValor.toFixed(2)}</div>
           <table>
             <thead>
@@ -639,7 +653,7 @@ export default function StockPage() {
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-sky-100 bg-sky-50 p-4 text-sm text-slate-700 shadow-sm lg:flex-row lg:items-center lg:justify-between">
           <div className="text-center lg:text-left">
             <div className="font-semibold text-slate-900">Canales de notificación de stock bajo</div>
-            <div className="mt-1">WhatsApp: {CONFIG.WHATSAPP_BUSINESS_DISPLAY}</div>
+            <div className="mt-1">WhatsApp: {storeSettings?.whatsapp_number || CONFIG.WHATSAPP_BUSINESS_DISPLAY}</div>
             <div>Correo: {CONFIG.NOTIFICATION_EMAIL}</div>
           </div>
           <button

@@ -68,7 +68,7 @@ const menu = [
     ],
   },
   {
-    label: 'WhatsApp Business',
+    label: 'Configuración',
     children: [
       { label: 'Panel de Control', path: '/admin/whatsapp' },
     ],

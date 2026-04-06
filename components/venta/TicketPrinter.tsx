@@ -2,6 +2,7 @@
 import React, { useImperativeHandle, forwardRef, useRef } from 'react';
 import jsPDF from 'jspdf';
 import { CONFIG } from '../../lib/config';
+import { fetchStoreSettings } from '../../lib/storeSettings';
 
 interface TicketItem {
   nombre?: string;
@@ -127,6 +128,46 @@ function calcularItem(item: TicketItem) {
 const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props, ref) => {
   const ticketRef = useRef<HTMLDivElement>(null);
 
+  async function getReceiptBranding() {
+    const cfg = CONFIG as unknown as {
+      WHATSAPP_BUSINESS: string;
+      NOMBRE_NEGOCIO: string;
+      BUSINESS_NAME?: string;
+      BUSINESS_ADDRESS?: string;
+      BUSINESS_PHONE?: string;
+      BUSINESS_NIT?: string;
+      DIRECCION_COMERCIAL?: string;
+    };
+
+    try {
+      const settings = await fetchStoreSettings();
+      const storeName = limpiarTexto(settings?.store_name) || limpiarTexto(cfg.BUSINESS_NAME || cfg.NOMBRE_NEGOCIO || 'Tienda');
+      const whatsappDigits = String(settings?.whatsapp_number || cfg.WHATSAPP_BUSINESS || '').replace(/\D/g, '');
+      const whatsappDisplay = whatsappDigits ? `+${whatsappDigits}` : (cfg.BUSINESS_PHONE || '');
+      const whatsappUrl = whatsappDigits
+        ? `https://wa.me/${whatsappDigits}?text=Hola%2C%20quiero%20informacion`
+        : '';
+
+      return {
+        storeName,
+        businessAddress: cfg.BUSINESS_ADDRESS || cfg.DIRECCION_COMERCIAL || '',
+        businessNit: cfg.BUSINESS_NIT || '',
+        whatsappDisplay,
+        whatsappUrl,
+      };
+    } catch {
+      const storeName = limpiarTexto(cfg.BUSINESS_NAME || cfg.NOMBRE_NEGOCIO || 'Tienda');
+      const whatsappDigits = String(cfg.WHATSAPP_BUSINESS || '').replace(/\D/g, '');
+      return {
+        storeName,
+        businessAddress: cfg.BUSINESS_ADDRESS || cfg.DIRECCION_COMERCIAL || '',
+        businessNit: cfg.BUSINESS_NIT || '',
+        whatsappDisplay: whatsappDigits ? `+${whatsappDigits}` : (cfg.BUSINESS_PHONE || ''),
+        whatsappUrl: whatsappDigits ? `https://wa.me/${whatsappDigits}?text=Hola%2C%20quiero%20informacion` : '',
+      };
+    }
+  }
+
   // replicamos funciones desde Página original
   async function printTicketAsPDF(ticketSnapshot: TicketSnapshot) {
     console.log('printTicketAsPDF init', { ticketSnapshot });
@@ -141,6 +182,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
     if (items.length === 0) console.warn('printTicketAsPDF: no hay items', items);
 
     try {
+      const branding = await getReceiptBranding();
       const PAPER_WIDTH = 72; // cambia a 58 / 80 si quieres
       const MARGIN = 2;
       const CONTENT_WIDTH = PAPER_WIDTH - MARGIN * 2;
@@ -150,16 +192,20 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9);
-      doc.text('COMPROBANTE TIENDA STREETWEAR', PAPER_WIDTH / 2, y, { align: 'center' });
+      doc.text('COMPROBANTE TIENDA', PAPER_WIDTH / 2, y, { align: 'center' });
       y += 3;
       doc.setFontSize(7);
-      doc.text('StreetWear', PAPER_WIDTH / 2, y, { align: 'center' });
+      doc.text(branding.storeName || 'Tienda', PAPER_WIDTH / 2, y, { align: 'center' });
       y += 3;
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(6);
-      doc.text('Dirección:', 5, y); y += 3;
-      doc.text('Av. Capitan Victor Ustariz entre Av. Melchor Perez de Olguin y C.G. Gamarra', 5, y, { maxWidth: CONTENT_WIDTH }); y += 4;
-      doc.text('Contacto WhatsApp: +59177434023', 5, y); y += 4;
+      if (branding.businessAddress) {
+        doc.text('Direccion:', 5, y); y += 3;
+        doc.text(branding.businessAddress, 5, y, { maxWidth: CONTENT_WIDTH }); y += 4;
+      }
+      if (branding.whatsappDisplay) {
+        doc.text(`Contacto WhatsApp: ${branding.whatsappDisplay}`, 5, y); y += 4;
+      }
       doc.line(5, y, PAPER_WIDTH - 5, y); y += 4;
 
       doc.text(`Fecha: ${ticketSnapshot.fecha || new Date().toLocaleString()}`, MARGIN, y); y += 3;
@@ -247,7 +293,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
         const qr = qrModule as { toCanvas: (canvas: HTMLCanvasElement, text: string, opts?: { width: number }) => Promise<void> };
         const qrCanvasWA = document.createElement('canvas');
         const qrCanvasDigital = document.createElement('canvas');
-        const whatsappUrl = 'https://wa.me/59177434023?text=Hola%20StreetWear%2C%20quiero%20informaci%C3%B3n';
+        const whatsappUrl = branding.whatsappUrl || 'https://wa.me/59177434023?text=Hola%2C%20quiero%20informacion';
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://streetwear.example');
         const digitalUrl = `${appUrl.replace(/\/+$/, '')}/admin/ventas/comprobante/${ticketSnapshot?.venta?.id || '0000'}`;
 
@@ -320,23 +366,16 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
       return false;
     }
     try {
+      const branding = await getReceiptBranding();
       const lines: string[] = [];
       lines.push('\x1b@'); // init escpos
       lines.push('\x1b!\x00');
       const append = (text: string) => { lines.push(text + '\n'); };
-      const cfg = CONFIG as unknown as {
-        WHATSAPP_BUSINESS: string;
-        NOMBRE_NEGOCIO: string;
-        BUSINESS_NAME?: string;
-        BUSINESS_ADDRESS?: string;
-        BUSINESS_PHONE?: string;
-        BUSINESS_NIT?: string;
-        DIRECCION_COMERCIAL?: string;
-      };
-      append(String(cfg.BUSINESS_NAME || cfg.NOMBRE_NEGOCIO || 'Tienda'));
-      if (cfg.BUSINESS_ADDRESS || cfg.DIRECCION_COMERCIAL) append(cfg.BUSINESS_ADDRESS || cfg.DIRECCION_COMERCIAL || '');
-      if (cfg.BUSINESS_PHONE) append(`Tel: ${cfg.BUSINESS_PHONE}`);
-      if (cfg.BUSINESS_NIT) append(`NIT: ${cfg.BUSINESS_NIT}`);
+      append('COMPROBANTE TIENDA');
+      append(String(branding.storeName || 'Tienda'));
+      if (branding.businessAddress) append(branding.businessAddress);
+      if (branding.whatsappDisplay) append(`WhatsApp: ${branding.whatsappDisplay}`);
+      if (branding.businessNit) append(`NIT: ${branding.businessNit}`);
       append('');
       append(`Fecha: ${ticketSnapshot?.fecha || new Date().toLocaleString()}`);
       append(`Cliente: ${ticketSnapshot?.cliente_nombre || '-'}`);

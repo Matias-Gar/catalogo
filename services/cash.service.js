@@ -1,5 +1,5 @@
 const ALLOWED_TYPES = new Set(["income", "expense"]);
-const ALLOWED_METHODS = new Set(["cash", "qr", "transfer", "other"]);
+const ALLOWED_METHODS = new Set(["cash", "qr", "card", "transfer", "other"]);
 
 function parseAmount(value, fieldName = "amount") {
   const numeric = Number(value);
@@ -33,7 +33,22 @@ function buildRange(startDate, endDate) {
 }
 
 function methodTemplate() {
-  return { cash: 0, qr: 0, transfer: 0, other: 0 };
+  return { cash: 0, qr: 0, card: 0, transfer: 0, other: 0 };
+}
+
+function normalizeSalePaymentMethod(value) {
+  const raw = String(value || "").trim().toLowerCase();
+  if (raw === "efectivo" || raw === "cash") return "cash";
+  if (raw === "qr") return "qr";
+  if (raw === "tarjeta" || raw === "card") return "card";
+  if (raw === "transferencia" || raw === "transfer") return "transfer";
+  return "other";
+}
+
+function isAutoSaleIncomeMovement(row) {
+  if (!row || row.type !== "income") return false;
+  const description = String(row.description || "").toLowerCase();
+  return description.includes("ingreso automatico por venta #");
 }
 
 function summarizeMovements(rows = []) {
@@ -80,7 +95,7 @@ export async function createCashMovement(supabase, payload) {
     throw new Error("Invalid type: must be income or expense");
   }
   if (!ALLOWED_METHODS.has(paymentMethod)) {
-    throw new Error("Invalid payment_method: must be cash, qr, transfer or other");
+    throw new Error("Invalid payment_method: must be cash, qr, card, transfer or other");
   }
 
   const row = {
@@ -133,7 +148,44 @@ export async function getCashSummary(supabase, params) {
     throw new Error(movementError.message || "Failed to fetch movements");
   }
 
-  const summary = summarizeMovements(movements || []);
+  // Movimientos automaticos por venta se excluyen para evitar doble conteo,
+  // porque los ingresos principales se calculan directamente desde la tabla ventas.
+  const movementRows = (movements || []).filter((row) => !isAutoSaleIncomeMovement(row));
+
+  let salesQuery = supabase
+    .from("ventas")
+    .select("id, fecha, total, modo_pago")
+    .gte("fecha", startISO)
+    .lte("fecha", endISO)
+    .order("fecha", { ascending: true });
+
+  const { data: sales, error: salesError } = await salesQuery;
+  if (salesError) {
+    throw new Error(salesError.message || "Failed to fetch sales for cash summary");
+  }
+
+  const salesIncomeByMethod = methodTemplate();
+  for (const sale of sales || []) {
+    const method = normalizeSalePaymentMethod(sale?.modo_pago);
+    const amount = Number(sale?.total || 0);
+    if (!Number.isFinite(amount) || amount <= 0) continue;
+    salesIncomeByMethod[method] += amount;
+  }
+
+  const movementSummary = summarizeMovements(movementRows);
+
+  const incomeByMethod = {
+    cash: salesIncomeByMethod.cash + movementSummary.incomeByMethod.cash,
+    qr: salesIncomeByMethod.qr + movementSummary.incomeByMethod.qr,
+    card: salesIncomeByMethod.card + movementSummary.incomeByMethod.card,
+    transfer: salesIncomeByMethod.transfer + movementSummary.incomeByMethod.transfer,
+    other: salesIncomeByMethod.other + movementSummary.incomeByMethod.other,
+  };
+
+  const expenseByMethod = movementSummary.expenseByMethod;
+  const totalIncome = Object.values(incomeByMethod).reduce((acc, val) => acc + val, 0);
+  const totalExpense = Object.values(expenseByMethod).reduce((acc, val) => acc + val, 0);
+  const net = totalIncome - totalExpense;
 
   let openingBalance = Number(manualOpening ?? NaN);
   let openingQr = Number(manualOpeningQr ?? NaN);
@@ -166,8 +218,9 @@ export async function getCashSummary(supabase, params) {
     openingQr = 0;
   }
 
-  const expectedCash = Number((openingBalance + summary.cashIncome - summary.cashExpense).toFixed(2));
-  const expectedQr = Number((openingQr + summary.incomeByMethod.qr - summary.expenseByMethod.qr).toFixed(2));
+  const expectedCash = Number((openingBalance + incomeByMethod.cash - expenseByMethod.cash).toFixed(2));
+  const expectedQr = Number((openingQr + incomeByMethod.qr - expenseByMethod.qr).toFixed(2));
+  const incomeBank = Number((incomeByMethod.qr + incomeByMethod.card + incomeByMethod.transfer).toFixed(2));
 
   return {
     range: {
@@ -179,26 +232,82 @@ export async function getCashSummary(supabase, params) {
     opening_balance: Number(openingBalance.toFixed(2)),
     opening_qr: Number(openingQr.toFixed(2)),
     income_by_method: {
-      cash: Number(summary.incomeByMethod.cash.toFixed(2)),
-      qr: Number(summary.incomeByMethod.qr.toFixed(2)),
-      transfer: Number(summary.incomeByMethod.transfer.toFixed(2)),
-      other: Number(summary.incomeByMethod.other.toFixed(2)),
+      cash: Number(incomeByMethod.cash.toFixed(2)),
+      qr: Number(incomeByMethod.qr.toFixed(2)),
+      card: Number(incomeByMethod.card.toFixed(2)),
+      transfer: Number(incomeByMethod.transfer.toFixed(2)),
+      other: Number(incomeByMethod.other.toFixed(2)),
     },
     expense_by_method: {
-      cash: Number(summary.expenseByMethod.cash.toFixed(2)),
-      qr: Number(summary.expenseByMethod.qr.toFixed(2)),
-      transfer: Number(summary.expenseByMethod.transfer.toFixed(2)),
-      other: Number(summary.expenseByMethod.other.toFixed(2)),
+      cash: Number(expenseByMethod.cash.toFixed(2)),
+      qr: Number(expenseByMethod.qr.toFixed(2)),
+      card: Number(expenseByMethod.card.toFixed(2)),
+      transfer: Number(expenseByMethod.transfer.toFixed(2)),
+      other: Number(expenseByMethod.other.toFixed(2)),
     },
     totals: {
-      income: Number(summary.totalIncome.toFixed(2)),
-      expense: Number(summary.totalExpense.toFixed(2)),
-      net: Number(summary.net.toFixed(2)),
+      income: Number(totalIncome.toFixed(2)),
+      expense: Number(totalExpense.toFixed(2)),
+      net: Number(net.toFixed(2)),
     },
+    income_bank: incomeBank,
     expected_cash: expectedCash,
     expected_qr: expectedQr,
-    movements: movements || [],
+    movements: movementRows,
+    sales: sales || [],
   };
+}
+
+export async function listCashMovements(supabase, params = {}) {
+  const limitRaw = Number(params?.limit || 200);
+  const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 500) : 200;
+  const userId = params?.user_id ? String(params.user_id) : null;
+  const cashboxId = params?.cashbox_id ? String(params.cashbox_id) : "main";
+
+  let query = supabase
+    .from("cash_movements")
+    .select("id, date, type, payment_method, amount, description, user_id, cashbox_id, created_at")
+    .eq("cashbox_id", cashboxId)
+    .order("date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (userId) {
+    query = query.eq("user_id", userId);
+  }
+
+  const hasStart = Boolean(params?.start_date);
+  const hasEnd = Boolean(params?.end_date);
+  if (hasStart || hasEnd) {
+    const startDate = normalizeDateInput(params?.start_date || params?.end_date, "start_date");
+    const endDate = normalizeDateInput(params?.end_date || params?.start_date, "end_date");
+    const { startISO, endISO } = buildRange(startDate, endDate);
+    query = query.gte("date", startISO).lte("date", endISO);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    throw new Error(error.message || "Failed to fetch cash movements");
+  }
+
+  return data || [];
+}
+
+export async function deleteCashMovement(supabase, movementId) {
+  if (!movementId) {
+    throw new Error("Movement ID is required");
+  }
+
+  const { error } = await supabase
+    .from("cash_movements")
+    .delete()
+    .eq("id", movementId);
+
+  if (error) {
+    throw new Error(error.message || "Failed to delete cash movement");
+  }
+
+  return { success: true };
 }
 
 export async function createCashClosure(supabase, payload) {
@@ -213,6 +322,7 @@ export async function createCashClosure(supabase, payload) {
     user_id: userId,
     cashbox_id: cashboxId,
     opening_balance: payload?.opening_balance,
+    opening_qr: payload?.opening_qr,
   });
 
   const openingBalance = Number(summary.opening_balance);

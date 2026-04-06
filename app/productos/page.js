@@ -10,6 +10,7 @@ import { usePacks, calcularDescuentoPack } from '../../lib/packs';
 import { CONFIG } from '../../lib/config';
 import { useFacebookPixel } from '../../components/FacebookPixel';
 import { getOptimizedImageUrl } from '../../lib/imageOptimization';
+import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from '../../lib/storeSettings';
 
 export default function CatalogoPage() {
     // --- Estados ---
@@ -23,6 +24,8 @@ export default function CatalogoPage() {
     const [customerData, setCustomerData] = useState({ nombre: '', nit_ci: '' }); // Datos del cliente
     // Estado para modal de imagen
     const [modalImg, setModalImg] = useState(null); // { urls: string[], index: number, nombre: string }
+    const [addToCartModal, setAddToCartModal] = useState(null); // { producto, variantes, selectedVarianteId, cantidad }
+    const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
 
     // Usar el hook para promociones
     const { promociones } = usePromociones();
@@ -71,6 +74,20 @@ export default function CatalogoPage() {
             }
         };
         getUser();
+    }, []);
+
+    useEffect(() => {
+        let mounted = true;
+
+        const loadStoreSettings = async () => {
+            const settings = await fetchStoreSettings();
+            if (mounted) setStoreSettings(settings);
+        };
+
+        loadStoreSettings();
+        return () => {
+            mounted = false;
+        };
     }, []);
 
     // Auto-llenar datos del cliente cuando el usuario esté logueado
@@ -192,46 +209,80 @@ export default function CatalogoPage() {
         return cart.find((p) => (p.cart_key || getCartKey(p)) === key);
     };
 
-    const seleccionarVariante = (producto) => {
-        const variantes = Array.isArray(producto.variantes)
-            ? producto.variantes.filter(v => Number(v?.stock || 0) > 0)
-            : [];
+    const getVariantes = (producto) => (Array.isArray(producto.variantes) ? producto.variantes : []);
 
-        if (variantes.length === 0) {
-            return {
-                variante_id: null,
-                color: null,
-                precio: Number(producto.precio || 0)
-            };
+    const getStockDisponibleProducto = (producto, varianteId = null) => {
+        const variantes = getVariantes(producto);
+
+        if (variantes.length > 0) {
+            if (varianteId !== null && varianteId !== undefined) {
+                const variante = variantes.find(v => String(v.variante_id ?? v.id) === String(varianteId));
+                return Math.max(0, Number(variante?.stock || 0));
+            }
+            const totalDisponible = variantes.reduce((acc, v) => acc + Math.max(0, Number(v?.stock || 0)), 0);
+            return Math.max(0, totalDisponible);
         }
 
-        if (variantes.length === 1) {
-            const v = variantes[0];
-            return {
-                variante_id: v.variante_id ?? v.id,
-                color: v.color || null,
-                precio: Number(v.precio ?? producto.precio ?? 0)
-            };
-        }
-
-        const opciones = variantes
-            .map((v, idx) => `${idx + 1}. ${v.color || 'Sin color'} (stock: ${Number(v.stock || 0)})`)
-            .join('\n');
-        const selected = window.prompt(`Selecciona color para ${producto.nombre}:\n${opciones}\n\nEscribe el número:`);
-        const index = Number(selected) - 1;
-        if (Number.isNaN(index) || index < 0 || index >= variantes.length) return null;
-        const v = variantes[index];
-        return {
-            variante_id: v.variante_id ?? v.id,
-            color: v.color || null,
-            precio: Number(v.precio ?? producto.precio ?? 0)
-        };
+        return Math.max(0, Number(producto?.stock || 0));
     };
 
-    // Añadir producto al carrito (por id)
-    const addToCart = (producto) => {
-        const varianteSeleccionada = seleccionarVariante(producto);
-        if (varianteSeleccionada === null) return;
+    const isProductoAgotado = (producto) => getStockDisponibleProducto(producto) <= 0;
+
+    const getStockDisponibleItem = (item) => {
+        if (item?.tipo === 'pack') return 999;
+
+        const producto = productos.find(p => String(p.user_id) === String(item.user_id));
+        if (!producto) return Math.max(0, Number(item.stock || 0));
+
+        return getStockDisponibleProducto(producto, item.variante_id ?? null);
+    };
+
+    const openAddToCartModal = (producto) => {
+        const variantes = getVariantes(producto);
+        const defaultVariante = variantes.find(v => Number(v?.stock || 0) > 0) || null;
+        const defaultVarianteId = defaultVariante ? (defaultVariante.variante_id ?? defaultVariante.id) : null;
+
+        setAddToCartModal({
+            producto,
+            variantes,
+            selectedVarianteId: defaultVarianteId,
+            cantidad: 1
+        });
+    };
+
+    const confirmAddToCart = () => {
+        if (!addToCartModal?.producto) return;
+
+        const { producto, variantes, selectedVarianteId, cantidad } = addToCartModal;
+
+        const quantity = Math.max(1, Number(cantidad) || 1);
+        let varianteSeleccionada = {
+            variante_id: null,
+            color: null,
+            precio: Number(producto.precio || 0)
+        };
+        let stockDisponible = getStockDisponibleProducto(producto);
+
+        if (variantes.length > 0) {
+            const selected = variantes.find(v => String(v.variante_id ?? v.id) === String(selectedVarianteId));
+            if (!selected) {
+                alert('Selecciona un color válido para continuar.');
+                return;
+            }
+            if (Number(selected?.stock || 0) <= 0) {
+                alert('Esa opción está agotada. Elige otra disponible.');
+                return;
+            }
+            varianteSeleccionada = {
+                variante_id: selected.variante_id ?? selected.id,
+                color: selected.color || null,
+                precio: Number(selected.precio ?? producto.precio ?? 0)
+            };
+            stockDisponible = Math.max(0, Number(selected.stock || 0));
+        } else if (stockDisponible <= 0) {
+            alert('Producto agotado por el momento.');
+            return;
+        }
 
         const productoConVariante = {
             ...producto,
@@ -242,31 +293,57 @@ export default function CatalogoPage() {
 
         const precioFinal = getPrecioFinal(productoConVariante);
         const cartKey = getCartKey(productoConVariante);
-        
-        // 📊 Track Facebook Pixel - Add to Cart
-        trackAddToCart(producto.user_id.toString(), precioFinal);
-        
+
         setCart(prev => {
             const idx = prev.findIndex(p => (p.cart_key || getCartKey(p)) === cartKey);
-            if (idx !== -1) {
-                // Producto ya en el carrito: Aumentar cantidad
-                const updated = [...prev];
-                updated[idx] = { ...updated[idx], cantidad: updated[idx].cantidad + 1 };
-                return updated;
-            } else {
-                // Producto nuevo: Añadir al carrito con cantidad 1 y precio promocional
-                return [...prev, { ...productoConVariante, cart_key: cartKey, cantidad: 1, precio: precioFinal }];
+            const cantidadActual = idx !== -1 ? Number(prev[idx].cantidad || 0) : 0;
+            const disponibleParaAgregar = Math.max(0, stockDisponible - cantidadActual);
+
+            if (disponibleParaAgregar <= 0) {
+                alert(`Lo sentimos, el stock actual que puede pedir es ${stockDisponible}.`);
+                return prev;
             }
+
+            if (quantity > disponibleParaAgregar) {
+                const mensaje = cantidadActual > 0
+                    ? `Lo sentimos, el stock actual que puede pedir es ${stockDisponible}. Ya tienes ${cantidadActual} en tu cesta, puedes agregar hasta ${disponibleParaAgregar} más.`
+                    : `Lo sentimos, el stock actual que puede pedir es ${stockDisponible}.`;
+                alert(mensaje);
+                return prev;
+            }
+
+            const quantityToAdd = quantity;
+
+            // 📊 Track Facebook Pixel - Add to Cart
+            trackAddToCart(producto.user_id.toString(), precioFinal * quantityToAdd);
+
+            if (idx !== -1) {
+                const updated = [...prev];
+                updated[idx] = { ...updated[idx], cantidad: updated[idx].cantidad + quantityToAdd };
+                return updated;
+            }
+            return [...prev, { ...productoConVariante, cart_key: cartKey, cantidad: quantityToAdd, precio: precioFinal }];
         });
+
+        setAddToCartModal(null);
     };
 
     // Cambiar cantidad de producto en el carrito (por id)
     const updateCartQty = (itemKey, newQty) => {
-        const quantity = Math.max(1, newQty); // Asegura que la cantidad sea al menos 1
         setCart(prev =>
-            prev.map(item =>
-                (item.cart_key || getCartKey(item)) === itemKey ? { ...item, cantidad: quantity } : item
-            )
+            prev.flatMap(item => {
+                if ((item.cart_key || getCartKey(item)) !== itemKey) return [item];
+
+                const maxStock = getStockDisponibleItem(item);
+                if (maxStock <= 0) return [];
+
+                const requested = Math.max(1, Number(newQty) || 1);
+                if (requested > maxStock) {
+                    alert(`Lo sentimos, el stock actual que puede pedir es ${maxStock}.`);
+                }
+                const quantity = Math.max(1, Math.min(requested, maxStock));
+                return [{ ...item, cantidad: quantity }];
+            })
         );
     };
 
@@ -360,7 +437,8 @@ export default function CatalogoPage() {
             `¡Hola! Me gustaría hacer el siguiente pedido:\n\n${pedidoTexto}\n${nombreTexto}${nitciTexto}\n${itemsList}\n\n*Total:* Bs ${total}\n\n¡Gracias!`
         );
         
-        const whatsappURL = `https://wa.me/${CONFIG.WHATSAPP_BUSINESS}?text=${message}`;
+        const whatsappNumber = storeSettings?.whatsapp_number || CONFIG.WHATSAPP_BUSINESS;
+        const whatsappURL = `https://wa.me/${whatsappNumber}?text=${message}`;
         window.open(whatsappURL, '_blank');
         
         // Limpiar carrito y cerrar modales
@@ -425,8 +503,12 @@ export default function CatalogoPage() {
         <div className="min-h-screen bg-gray-50 p-4 sm:p-8 relative">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-extrabold text-gray-900 text-center flex items-center gap-2">
-                    <Image src="/free-shopping-icons-vector.jpg" alt="icono pedido" width={36} height={36} className="inline-block align-middle mr-2 rounded" />
-                    Realiza tu pedido
+                    {storeSettings?.store_logo_url ? (
+                        <img src={storeSettings.store_logo_url} alt="logo tienda" className="h-9 w-9 inline-block align-middle mr-2 rounded-full object-cover" />
+                    ) : (
+                        <Image src="/free-shopping-icons-vector.jpg" alt="icono pedido" width={36} height={36} className="inline-block align-middle mr-2 rounded" />
+                    )}
+                    {storeSettings?.store_name ? `Pedido en ${storeSettings.store_name}` : 'Realiza tu pedido'}
                 </h1>
             </div>
 
@@ -598,7 +680,11 @@ export default function CatalogoPage() {
                         console.log('📦 Productos filtrados:', productosFiltrados.length, 'de', productos.length);
                         
                         return productosFiltrados.map((producto, idx) => {
-                            const isInCart = getProductInCart(producto);
+                            const quantityInCart = cart
+                                .filter(item => item.tipo !== 'pack' && String(item.user_id) === String(producto.user_id))
+                                .reduce((acc, item) => acc + Number(item.cantidad || 0), 0);
+                            const isInCart = quantityInCart > 0;
+                            const agotado = isProductoAgotado(producto);
                             const imagenes = imagenesProductos[producto.user_id] || [];
                             // Definir la variable categoria justo antes del return
                             const categoria = Array.isArray(categorias) ? categorias.find(c => c.id === producto.category_id) : null;
@@ -690,18 +776,25 @@ export default function CatalogoPage() {
                                               </div>
                                             );
                                         })()}
-                                        
-                                        {/* Stock eliminado por requerimiento */}
+                                        {agotado && (
+                                            <span className="mt-2 inline-flex self-start bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-md">
+                                                Agotado
+                                            </span>
+                                        )}
                                     </div>
                                     <button
-                                        className={`mt-3 sm:mt-4 w-full sm:w-auto sm:self-end ${isInCart ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-600 hover:bg-green-700'} text-white rounded-lg sm:rounded-full px-4 py-2 sm:w-9 sm:h-9 flex items-center justify-center text-sm sm:text-2xl font-bold shadow-xl focus:outline-none transition-colors duration-150`}
-                                        onClick={() => addToCart(producto)}
-                                        title={isInCart ? `Añadir otra unidad (actual: ${isInCart.cantidad})` : "Agregar a la cesta"}
+                                        disabled={agotado}
+                                        className={`mt-3 sm:mt-4 w-full sm:w-auto sm:self-end ${agotado ? 'bg-gray-400 cursor-not-allowed' : isInCart ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-600 hover:bg-green-700'} text-white rounded-lg sm:rounded-full px-4 py-2 sm:w-9 sm:h-9 flex items-center justify-center text-sm sm:text-2xl font-bold shadow-xl focus:outline-none transition-colors duration-150`}
+                                        onClick={() => {
+                                            if (agotado) return;
+                                            openAddToCartModal(producto);
+                                        }}
+                                        title={agotado ? 'Producto agotado' : isInCart ? `Agregar más unidades (actual: ${quantityInCart})` : 'Agregar a la cesta'}
                                     >
                                         <span className="sm:hidden">
-                                            {isInCart ? `+ Agregar otra (${isInCart.cantidad} en cesta)` : '🛒 Agregar al carrito'}
+                                            {agotado ? 'Agotado' : isInCart ? `+ Agregar (${quantityInCart} en cesta)` : '🛒 Agregar al carrito'}
                                         </span>
-                                        <span className="hidden sm:inline">+</span>
+                                        <span className="hidden sm:inline">{agotado ? '×' : '+'}</span>
                                     </button>
                                 </div>
                             );
@@ -775,6 +868,100 @@ export default function CatalogoPage() {
                     </div>
                 </div>
             )}
+
+            {/* MODAL PARA AGREGAR PRODUCTO (COLOR + CANTIDAD) */}
+            {addToCartModal && (
+                <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setAddToCartModal(null)}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
+                        {(() => {
+                            const selectedVariante = addToCartModal.variantes.find(
+                                v => String(v.variante_id ?? v.id) === String(addToCartModal.selectedVarianteId)
+                            );
+                            const maxCantidad = addToCartModal.variantes.length > 0
+                                ? Math.max(0, Number(selectedVariante?.stock || 0))
+                                : Math.max(0, Number(addToCartModal.producto?.stock || 0));
+
+                            return (
+                                <>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-bold text-gray-900">Agregar a la cesta</h3>
+                            <button
+                                onClick={() => setAddToCartModal(null)}
+                                className="text-gray-500 hover:text-red-600 text-2xl leading-none"
+                                title="Cerrar"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div className="mb-4">
+                            <p className="text-sm text-gray-500">Producto</p>
+                            <p className="font-semibold text-gray-900">{addToCartModal.producto.nombre}</p>
+                        </div>
+
+                        {addToCartModal.variantes.length > 0 && (
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                                <select
+                                    value={addToCartModal.selectedVarianteId ?? ''}
+                                    onChange={(e) => setAddToCartModal(prev => ({
+                                        ...prev,
+                                        selectedVarianteId: e.target.value
+                                    }))}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    {addToCartModal.variantes.map((v, idx) => {
+                                        const optionValue = v.variante_id ?? v.id;
+                                        const disponible = Number(v.stock || 0) > 0;
+                                        return (
+                                            <option key={`${optionValue}-${idx}`} value={optionValue} disabled={!disponible}>
+                                                {v.color || 'Sin color'}{disponible ? '' : ' - Agotado'}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+                            </div>
+                        )}
+
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+                            <input
+                                type="number"
+                                min={1}
+                                disabled={maxCantidad <= 0}
+                                value={addToCartModal.cantidad}
+                                onChange={(e) => setAddToCartModal(prev => ({
+                                    ...prev,
+                                    cantidad: Math.max(1, Number(e.target.value) || 1)
+                                }))}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                            {maxCantidad <= 0 && (
+                                <p className="mt-2 text-sm text-red-600 font-semibold">Agotado</p>
+                            )}
+                        </div>
+
+                        <div className="flex gap-2 justify-end">
+                            <button
+                                onClick={() => setAddToCartModal(null)}
+                                className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={confirmAddToCart}
+                                disabled={maxCantidad <= 0}
+                                className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold"
+                            >
+                                Agregar
+                            </button>
+                        </div>
+                                </>
+                            );
+                        })()}
+                    </div>
+                </div>
+            )}
             {/* ICONO DE CESTA GLOBAL */}
             <button
                 className="fixed bottom-4 right-4 z-50 bg-white border border-gray-300 rounded-full shadow-xl p-3 flex items-center justify-center hover:bg-green-50 transition-colors focus:outline-none focus:ring-4 focus:ring-green-500/50"
@@ -808,6 +995,7 @@ export default function CatalogoPage() {
                                 {cart.length > 0 ? (
                                     cart.map(item => {
                                         const itemKey = item.cart_key || getCartKey(item);
+                                        const maxStockItem = getStockDisponibleItem(item);
                                         return (
                                         <li key={itemKey} className={`flex items-center py-2 gap-2 rounded-lg mb-2 shadow-sm ${
                                             item.tipo === 'pack' 
@@ -880,17 +1068,41 @@ export default function CatalogoPage() {
                                             </div>
                                             
                                             {/* Cantidad */}
-                                            <input
-                                                type="number"
-                                                min={1}
-                                                value={item.cantidad}
-                                                onChange={e => updateCartQty(itemKey, parseInt(e.target.value) || 1)}
-                                                className={`w-12 border-2 rounded px-1 py-0.5 text-center text-sm font-semibold bg-white focus:ring-blue-500 ${
-                                                    item.tipo === 'pack' 
-                                                        ? 'border-purple-400 text-purple-800 focus:border-purple-500' 
-                                                        : 'border-green-400 text-green-800 focus:border-blue-500'
-                                                }`}
-                                            />
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    className="w-6 h-6 rounded bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold"
+                                                    onClick={() => {
+                                                        if (item.cantidad <= 1) {
+                                                            removeFromCart(itemKey);
+                                                        } else {
+                                                            updateCartQty(itemKey, item.cantidad - 1);
+                                                        }
+                                                    }}
+                                                    title="Reducir"
+                                                >
+                                                    -
+                                                </button>
+                                                <input
+                                                    type="number"
+                                                    min={1}
+                                                    max={item.tipo === 'pack' ? undefined : Math.max(1, maxStockItem)}
+                                                    value={item.cantidad}
+                                                    onChange={e => updateCartQty(itemKey, parseInt(e.target.value) || 1)}
+                                                    className={`w-12 border-2 rounded px-1 py-0.5 text-center text-sm font-semibold bg-white focus:ring-blue-500 ${
+                                                        item.tipo === 'pack' 
+                                                            ? 'border-purple-400 text-purple-800 focus:border-purple-500' 
+                                                            : 'border-green-400 text-green-800 focus:border-blue-500'
+                                                    }`}
+                                                />
+                                                <button
+                                                    className="w-6 h-6 rounded bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    disabled={item.tipo !== 'pack' && item.cantidad >= Math.max(1, maxStockItem)}
+                                                    onClick={() => updateCartQty(itemKey, item.cantidad + 1)}
+                                                    title="Aumentar"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
                                             
                                             {/* Botón eliminar */}
                                             <button

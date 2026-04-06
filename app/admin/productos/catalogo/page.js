@@ -15,6 +15,7 @@ export default function CatalogoPage() {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todas");
   const [categoriasDisponibles, setCategoriasDisponibles] = useState([]);
   const [userRole, setUserRole] = useState("checking");
+  const [isCompactLayout, setIsCompactLayout] = useState(false);
 
   useEffect(() => {
     const link = document.createElement("link");
@@ -176,6 +177,17 @@ export default function CatalogoPage() {
     return () => { try { document.head.removeChild(link); } catch { } };
   }, [router]); // ya no requiere candidateBuckets en deps porque es estable a nivel de módulo
 
+  useEffect(() => {
+    const syncLayout = () => {
+      setIsCompactLayout(window.innerWidth <= 1180);
+    };
+
+    syncLayout();
+    window.addEventListener("resize", syncLayout);
+
+    return () => window.removeEventListener("resize", syncLayout);
+  }, []);
+
   function formatPrice(v) {
     if (v == null) return "Bs 0.00";
     const num = Number(v) || 0;
@@ -232,82 +244,197 @@ export default function CatalogoPage() {
     ? productos
     : productos.filter(p => p.categoriaNombre === categoriaSeleccionada);
 
+  async function toBase64(url) {
+    try {
+      const res = await fetch(url, { mode: "cors" });
+      const blob = await res.blob();
+      return await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return url;
+    }
+  }
+
   async function exportPdf() {
     if (exporting) return;
     setExporting(true);
-    let exportClone = null;
     try {
-      if (typeof window.html2pdf === "undefined") {
-        await new Promise((resolve, reject) => {
-          const s = document.createElement("script");
-          s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js";
-          s.onload = resolve;
-          s.onerror = reject;
-          document.head.appendChild(s);
-        });
-      }
+      const { jsPDF } = await import("jspdf");
+      const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const contentWidth = pageWidth - margin * 2;
+      const cardPadding = 4;
+      const thumbSize = 28;
+      const thumbGap = 4;
+      const thumbsPerRow = 3;
+      const maxImageRows = 2;
+      const maxImagesPerProduct = 6;
+      const imageGridWidth = (thumbsPerRow * thumbSize) + ((thumbsPerRow - 1) * thumbGap);
+      const imageGridHeight = (maxImageRows * thumbSize) + ((maxImageRows - 1) * thumbGap);
+      const imageAreaWidth = imageGridWidth + (cardPadding * 2);
+      const imageBlockHeight = imageGridHeight + (cardPadding * 2);
+      const infoX = margin + imageAreaWidth + 6;
+      const infoWidth = pageWidth - margin - infoX - 8;
+      let cursorY = margin;
 
-      const element = document.getElementById("catalogo-root");
-      if (!element) throw new Error("Elemento del catálogo no encontrado");
-
-      exportClone = element.cloneNode(true);
-      exportClone.id = "catalogo-root-export";
-      exportClone.style.position = "fixed";
-      exportClone.style.left = "0";
-      exportClone.style.top = "0";
-      exportClone.style.width = "1200px";
-      exportClone.style.maxWidth = "1200px";
-      exportClone.style.zIndex = "-1";
-      exportClone.style.opacity = "1";
-      exportClone.style.pointerEvents = "none";
-      exportClone.style.background = "#ffffff";
-
-      exportClone.querySelectorAll(".no-export").forEach((node) => {
-        node.style.display = "none";
-      });
-      exportClone.querySelectorAll(".catalogo-all-images").forEach((node) => {
-        node.style.display = "grid";
-        node.style.gridTemplateColumns = "repeat(4, minmax(0, 1fr))";
-        node.style.gap = "8px";
-      });
-      exportClone.querySelectorAll("img").forEach((img) => {
-        img.setAttribute("crossOrigin", "anonymous");
-        img.setAttribute("loading", "eager");
-        img.setAttribute("decoding", "sync");
-      });
-
-      document.body.appendChild(exportClone);
-
-      const imgs = exportClone.querySelectorAll("img");
-
-      // Esperar a que todas las imágenes estén cargadas antes de generar el PDF
-      await Promise.all(
-        Array.from(imgs).map((img) => {
-          if (img.complete) return Promise.resolve();
-          return new Promise((resolve) => {
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
-          });
-        })
-      );
-
-      const opt = {
-        margin: 0,
-        filename: `catalogo_street_wear_${new Date().toISOString().slice(0,10)}.pdf`,
-        image: { type: "jpeg", quality: 0.95 },
-        html2canvas: { scale: 3, useCORS: true, windowWidth: 1200 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+      const ensureSpace = (neededHeight) => {
+        if (cursorY + neededHeight <= pageHeight - margin) return;
+        pdf.addPage();
+        cursorY = margin;
       };
 
-      await window.html2pdf().set(opt).from(exportClone).save();
-    } catch (err) {
-      console.error("Error exportando PDF:", err);
-      alert("Error al generar PDF; revisa la consola. Las imágenes deben ser públicas y con CORS habilitado.");
-    } finally {
-      if (exportClone && exportClone.parentNode) {
-        exportClone.parentNode.removeChild(exportClone);
+      const drawCategoryHeader = (categoria) => {
+        ensureSpace(16);
+        pdf.setFillColor(74, 15, 15);
+        pdf.roundedRect(margin, cursorY, contentWidth, 10, 3, 3, "F");
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(14);
+        pdf.text(String(categoria || "Sin categoría").toUpperCase(), pageWidth / 2, cursorY + 6.5, { align: "center" });
+        pdf.setTextColor(51, 51, 51);
+        cursorY += 14;
+      };
+
+      const drawImagePlaceholder = (x, y, width, height) => {
+        pdf.setDrawColor(220, 220, 220);
+        pdf.setFillColor(245, 245, 245);
+        pdf.roundedRect(x, y, width, height, 2, 2, "FD");
+        pdf.setFontSize(8);
+        pdf.setTextColor(120, 120, 120);
+        pdf.text("Sin imagen", x + width / 2, y + height / 2, { align: "center" });
+        pdf.setTextColor(51, 51, 51);
+      };
+
+      const getImageFormat = (dataUrl) => {
+        if (typeof dataUrl !== "string") return "JPEG";
+        if (dataUrl.startsWith("data:image/png")) return "PNG";
+        if (dataUrl.startsWith("data:image/webp")) return "WEBP";
+        return "JPEG";
+      };
+
+      const drawProductCard = async (producto) => {
+        const descripcion = String(producto.descripcion || "").replace(/\s+/g, " ").trim();
+        const colores = Array.isArray(producto.variantes)
+          ? producto.variantes
+              .filter((v) => Number(v?.stock || 0) > 0 && String(v?.color || "").trim())
+              .map((v) => String(v.color).trim())
+          : [];
+        const coloresTexto = colores.length > 0 ? `Colores disponibles: ${Array.from(new Set(colores)).join(", ")}` : "";
+        const titleLinesRaw = pdf.splitTextToSize(String(producto.nombre || "Producto"), infoWidth);
+        const titleLines = titleLinesRaw.slice(0, 2);
+        if (titleLinesRaw.length > 2 && titleLines.length > 0) {
+          const last = String(titleLines[titleLines.length - 1]);
+          titleLines[titleLines.length - 1] = `${last.slice(0, Math.max(0, last.length - 3))}...`;
+        }
+        const descripcionLinesRaw = descripcion ? pdf.splitTextToSize(descripcion, infoWidth) : [];
+        const colorLinesRaw = coloresTexto ? pdf.splitTextToSize(coloresTexto, infoWidth) : [];
+        const maxDescripcionLines = 6;
+        const maxColorLines = 2;
+        const descripcionLines = descripcionLinesRaw.slice(0, maxDescripcionLines);
+        const colorLines = colorLinesRaw.slice(0, maxColorLines);
+        if (descripcionLinesRaw.length > maxDescripcionLines && descripcionLines.length > 0) {
+          const last = String(descripcionLines[descripcionLines.length - 1]);
+          descripcionLines[descripcionLines.length - 1] = `${last.slice(0, Math.max(0, last.length - 3))}...`;
+        }
+        if (colorLinesRaw.length > maxColorLines && colorLines.length > 0) {
+          const last = String(colorLines[colorLines.length - 1]);
+          colorLines[colorLines.length - 1] = `${last.slice(0, Math.max(0, last.length - 3))}...`;
+        }
+        const cardHeight = imageBlockHeight + cardPadding * 2;
+
+        ensureSpace(cardHeight + 4);
+
+        pdf.setFillColor(255, 255, 255);
+        pdf.setDrawColor(230, 230, 230);
+        pdf.roundedRect(margin, cursorY, contentWidth, cardHeight, 4, 4, "FD");
+
+        const images = Array.isArray(producto.imagenPublicUrls)
+          ? producto.imagenPublicUrls.slice(0, maxImagesPerProduct)
+          : [];
+        if (images.length === 0) {
+          drawImagePlaceholder(margin + cardPadding, cursorY + cardPadding, imageAreaWidth - (cardPadding * 2), imageBlockHeight - (cardPadding * 2));
+        } else {
+          for (let index = 0; index < images.length; index += 1) {
+            const imageX = margin + cardPadding + (index % thumbsPerRow) * (thumbSize + thumbGap);
+            const imageY = cursorY + cardPadding + Math.floor(index / thumbsPerRow) * (thumbSize + thumbGap);
+            try {
+              const dataUrl = await toBase64(images[index]);
+              pdf.addImage(dataUrl, getImageFormat(dataUrl), imageX, imageY, thumbSize, thumbSize, undefined, "FAST");
+            } catch {
+              drawImagePlaceholder(imageX, imageY, thumbSize, thumbSize);
+            }
+          }
+        }
+
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(14);
+        pdf.setTextColor(74, 15, 15);
+        let textY = cursorY + 8;
+        titleLines.forEach((line) => {
+          pdf.text(line, infoX, textY);
+          textY += 5.5;
+        });
+
+        pdf.setFontSize(13);
+        pdf.setTextColor(0, 64, 128);
+        pdf.text(formatPrice(producto.precio), infoX, textY + 1);
+        textY += 8;
+
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+        pdf.setTextColor(60, 60, 60);
+        descripcionLines.forEach((line) => {
+          pdf.text(line, infoX, textY);
+          textY += 4.5;
+        });
+
+        if (colorLines.length > 0) {
+          textY += 1;
+          pdf.setFontSize(9);
+          pdf.setTextColor(90, 90, 90);
+          colorLines.forEach((line) => {
+            pdf.text(line, infoX, textY);
+            textY += 4.2;
+          });
+        }
+
+        if (Number(producto.stock || 0) <= 0) {
+          pdf.setTextColor(200, 0, 0);
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(11);
+          pdf.text("AGOTADO", pageWidth - margin - 4, cursorY + 10, { align: "right" });
+          pdf.setTextColor(51, 51, 51);
+        }
+
+        cursorY += cardHeight + 4;
+      };
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(22);
+      pdf.setTextColor(74, 15, 15);
+      pdf.text("Street Wear", pageWidth / 2, cursorY + 4, { align: "center" });
+      pdf.setFontSize(11);
+      pdf.setTextColor(0, 64, 128);
+      pdf.text("Catalogo Profesional", pageWidth / 2, cursorY + 10, { align: "center" });
+      cursorY += 18;
+
+      for (const [categoria, items] of Object.entries(productosPorCategoria)) {
+        drawCategoryHeader(categoria);
+        for (const producto of items) {
+          await drawProductCard(producto);
+        }
       }
 
+      pdf.save(`catalogo_street_wear_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch (err) {
+      console.error("Error exportando PDF:", err);
+      alert("Error al generar PDF. Revisa la consola para más detalles.");
+    } finally {
       setExporting(false);
     }
   }
@@ -366,7 +493,7 @@ export default function CatalogoPage() {
         </div>
       </header>
 
-      <main style={{ marginTop: 20, width: "100%", maxWidth: 1000 }}>
+      <main style={{ marginTop: 20, width: "100%", maxWidth: 1100, overflowX: "hidden" }}>
         {Object.keys(productosPorCategoria).map((categoria) => (
           <div key={categoria}>
             <div style={{
@@ -388,6 +515,7 @@ export default function CatalogoPage() {
                 const useSplit8020 = imageCount >= 6;
                 const isSingleImage = productImages.length === 1;
                 const compactColumns = Math.min(imageCount, 5);
+                const useVerticalCard = isCompactLayout || !useSplit8020;
                 return (
               <div
                 key={p.id ?? `${p.nombre ?? 'producto'}-${idx}`}
@@ -398,8 +526,8 @@ export default function CatalogoPage() {
                   background: "rgba(255,255,255,0.9)",
                   padding: 16,
                   display: "flex",
-                  flexDirection: "row",
-                  alignItems: "stretch",
+                  flexDirection: useVerticalCard ? "column" : "row",
+                  alignItems: useVerticalCard ? "stretch" : "stretch",
                   gap: 18,
                   boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
                   pageBreakInside: "avoid",
@@ -407,8 +535,9 @@ export default function CatalogoPage() {
                   transition: "all 0.2s ease",
                   cursor: "pointer",
                   overflow: "hidden",
-                  justifyContent: !useSplit8020 ? "center" : "flex-start",
-                  gap: !useSplit8020 ? 12 : 18
+                  justifyContent: "flex-start",
+                  width: "100%",
+                  maxWidth: "100%"
                 }}
               >
                 {p.stock === 0 && (
@@ -434,13 +563,20 @@ export default function CatalogoPage() {
 
                 <div
                   className="producto-galeria"
-                  style={useSplit8020
-                    ? { flex: "0 0 80%", maxWidth: "80%" }
-                    : { flex: "0 0 auto", maxWidth: "none", width: "auto" }}
+                  style={useVerticalCard
+                    ? { width: "100%", maxWidth: "100%", minWidth: 0 }
+                    : useSplit8020
+                      ? { flex: "0 0 80%", maxWidth: "80%", minWidth: 0 }
+                      : { width: "100%", maxWidth: "100%", minWidth: 0 }}
                 >
                   <div
                     className="catalogo-all-images"
-                    style={!useSplit8020 ? { gridTemplateColumns: `repeat(${compactColumns}, 140px)` } : undefined}
+                    style={useVerticalCard || !useSplit8020
+                      ? {
+                          gridTemplateColumns: "repeat(auto-fill, minmax(140px, 140px))",
+                          justifyContent: "flex-start"
+                        }
+                      : undefined}
                   >
                     {productImages.map((imgUrl, idxImg) => (
                       <img
@@ -460,8 +596,20 @@ export default function CatalogoPage() {
 
                 <div
                   className="catalogo-info"
-                  style={useSplit8020
+                  style={useVerticalCard
                     ? {
+                        width: "100%",
+                        maxWidth: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "flex-start",
+                        minWidth: 0,
+                        padding: 0,
+                        alignItems: "flex-start",
+                        textAlign: "left"
+                      }
+                    : useSplit8020
+                      ? {
                         flex: "0 0 20%",
                         maxWidth: "20%",
                         display: "flex",
@@ -471,22 +619,26 @@ export default function CatalogoPage() {
                         padding: "4px 2px"
                       }
                     : {
-                        flex: "0 0 auto",
-                        maxWidth: "none",
+                        width: "100%",
+                        maxWidth: "100%",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",
-                        minWidth: 280,
-                        padding: "4px 2px",
-                        alignItems: isSingleImage ? "center" : "flex-start",
-                        textAlign: isSingleImage ? "center" : "left"
+                        minWidth: 0,
+                        padding: 0,
+                        alignItems: "flex-start",
+                        textAlign: "left"
                       }}
                 >
                   <div>
                     <h3 style={{ margin: 0, fontSize: 24, color: "#4a0f0f", lineHeight: 1.2 }}>{p.nombre}</h3>
                     <strong style={{ display: "inline-block", marginTop: 8, fontSize: 22, color: "#004080" }}>{formatPrice(p.precio)}</strong>
-                    <p className="desc-corta" style={{ textAlign: "left", marginTop: 12 }}>{p.descripcion || "Sin descripción"}</p>
-                    <p className="desc-completa" style={{ textAlign: "left", marginTop: 12 }}>{p.descripcion || "Sin descripción"}</p>
+                    {String(p.descripcion || "").trim() ? (
+                      <>
+                        <p className="desc-corta" style={{ textAlign: "left", marginTop: 12 }}>{p.descripcion}</p>
+                        <p className="desc-completa" style={{ textAlign: "left", marginTop: 12 }}>{p.descripcion}</p>
+                      </>
+                    ) : null}
                   </div>
                 
                   {/* Mostrar colores disponibles como paleta de círculos */}

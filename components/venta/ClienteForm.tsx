@@ -9,17 +9,20 @@ interface Cliente {
   email?: string;
   requiereFactura?: boolean;
   guardado?: boolean;
+  existente?: boolean;
 }
 
 interface ClienteFormProps {
   cliente: Cliente;
   onChange: (campo: keyof Cliente, valor: string | boolean) => void;
   onBuscar: () => void;
-  onGuardar: () => void;
+  onGuardar: (accion: 'add' | 'update') => void;
   onBuscarEmailHistorico: () => void;
 }
 
 export default function ClienteForm({ cliente, onChange, onBuscar, onGuardar, onBuscarEmailHistorico }: ClienteFormProps) {
+  const canSaveClient = Boolean(String(cliente.nombre || '').trim()) && Boolean(String(cliente.telefono || '').trim());
+
   return (
     <div className="bg-white shadow-md rounded-lg p-6 mb-6">
       <h2 className="text-xl font-bold text-gray-900 mb-4">Datos del Cliente</h2>
@@ -28,7 +31,7 @@ export default function ClienteForm({ cliente, onChange, onBuscar, onGuardar, on
         <div className="sm:col-span-3 flex gap-2 items-center">
           <input
             className="flex-1 border border-gray-300 bg-gray-50 text-gray-900 rounded px-3 py-2 placeholder-gray-500 focus:border-gray-900 focus:ring focus:ring-gray-900/30"
-            placeholder="Carnet / CI"
+            placeholder="Carnet / CI (opcional)"
             value={cliente.carnet}
             onChange={e => onChange('carnet', e.target.value)}
           />
@@ -82,14 +85,25 @@ export default function ClienteForm({ cliente, onChange, onBuscar, onGuardar, on
         </label>
 
         <div className="sm:col-span-3">
-          <button
-            type="button"
-            onClick={onGuardar}
-            disabled={!cliente.carnet || !cliente.nombre || !cliente.email}
-            className={`w-full px-4 py-2 rounded font-semibold transition ${cliente.guardado ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
-          >
-            {cliente.guardado ? 'Guardado' : 'Añadir / actualizar cliente'}
-          </button>
+          {cliente.existente ? (
+            <button
+              type="button"
+              onClick={() => onGuardar('update')}
+              disabled={!canSaveClient}
+              className="w-full px-4 py-2 rounded font-semibold transition bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-gray-300 disabled:text-gray-500"
+            >
+              Actualizar cliente
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onGuardar('add')}
+              disabled={!canSaveClient}
+              className="w-full px-4 py-2 rounded font-semibold transition bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500"
+            >
+              Añadir cliente
+            </button>
+          )}
         </div>
       </div>
     </div>

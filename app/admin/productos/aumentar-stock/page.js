@@ -16,12 +16,6 @@ export default function AumentarStockPage() {
   const [increments, setIncrements] = useState({});
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [qzHealth, setQzHealth] = useState({
-    loading: false,
-    installed: false,
-    printerReady: false,
-    error: "",
-  });
 
   useEffect(() => {
     fetchData();
@@ -71,28 +65,7 @@ export default function AumentarStockPage() {
     return qz;
   };
 
-  const checkQzHealth = async () => {
-    setQzHealth((prev) => ({ ...prev, loading: true, error: "" }));
-    try {
-      const qz = await ensureQzConnection();
-      const printer = await qz.printers.find(QZ_PRINTER_NAME);
-      setQzHealth({
-        loading: false,
-        installed: true,
-        printerReady: Boolean(printer),
-        error: "",
-      });
-    } catch (err) {
-      setQzHealth({
-        loading: false,
-        installed: false,
-        printerReady: false,
-        error: err?.message || "No se pudo verificar QZ Tray",
-      });
-    }
-  };
-
-  // QZ se verifica solo bajo demanda (boton o impresión) para evitar popup al entrar.
+  // QZ se verifica solo al momento de imprimir para evitar ruido visual al entrar.
 
   function escapeHtml(value) {
     return String(value || "")
@@ -489,23 +462,6 @@ export default function AumentarStockPage() {
       <div className="mx-auto w-full max-w-6xl">
         <header className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h1 className="text-3xl font-black text-slate-900">Aumentar Stock</h1>
-          <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-            <button
-              type="button"
-              onClick={checkQzHealth}
-              disabled={qzHealth.loading}
-              className="rounded-md border border-slate-300 bg-slate-50 px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-60"
-            >
-              {qzHealth.loading ? "Verificando QZ..." : "Verificar QZ Tray"}
-            </button>
-            <span className={qzHealth.installed ? "text-emerald-700" : "text-red-700"}>
-              QZ: {qzHealth.installed ? "Conectado" : "No disponible"}
-            </span>
-            <span className={qzHealth.printerReady ? "text-emerald-700" : "text-amber-700"}>
-              Impresora {QZ_PRINTER_NAME}: {qzHealth.printerReady ? "Detectada" : "No detectada"}
-            </span>
-            {qzHealth.error ? <span className="text-red-700">{qzHealth.error}</span> : null}
-          </div>
         </header>
 
         <section className="mb-6 grid grid-cols-1 gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow md:grid-cols-3">

@@ -20,8 +20,6 @@ export default function EditarCatalogo() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [sortOrder, setSortOrder] = useState("alphabetical");
-  const [stockFilter, setStockFilter] = useState("all");
-  const [imageFilter, setImageFilter] = useState("all");
 
   const getProductKey = (product) => product?.id ?? product?.user_id ?? null;
 
@@ -29,8 +27,6 @@ export default function EditarCatalogo() {
     setSearch("");
     setCategoryFilter("");
     setSortOrder("alphabetical");
-    setStockFilter("all");
-    setImageFilter("all");
   };
 
   const parseDecimalInput = (value, fallback = null) => {
@@ -577,31 +573,6 @@ export default function EditarCatalogo() {
       list = list.filter((p) => String(p?.category_id ?? "") === selectedCategory);
     }
 
-    if (stockFilter !== "all") {
-      list = list.filter((p) => {
-        const productKey = getProductKey(p);
-        const productVariants = editando[productKey]?.variantes ?? variantes[productKey] ?? [];
-        const stock = productVariants.length > 0
-          ? productVariants.reduce((sum, v) => sum + (parseInt(v?.stock ?? 0, 10) || 0), 0)
-          : (parseInt(p?.stock ?? 0, 10) || 0);
-
-        if (stockFilter === "inStock") return stock > 0;
-        if (stockFilter === "outOfStock") return stock <= 0;
-        if (stockFilter === "lowStock") return stock > 0 && stock <= 5;
-        return true;
-      });
-    }
-
-    if (imageFilter !== "all") {
-      list = list.filter((p) => {
-        const productKey = getProductKey(p);
-        const imageCount = (imagenes[productKey] || []).length;
-        if (imageFilter === "withImages") return imageCount > 0;
-        if (imageFilter === "withoutImages") return imageCount === 0;
-        return true;
-      });
-    }
-
     if (sortOrder === "alphabetical") {
       list = list.sort((a, b) => String(a?.nombre || "").localeCompare(String(b?.nombre || "")));
     } else {
@@ -620,12 +591,12 @@ export default function EditarCatalogo() {
 
       {/* Filtros */}
       <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-4 md:p-5 mb-8 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nombre, color, código o categoría"
-            className="w-full lg:col-span-2"
+            className="w-full"
           />
 
           <select
@@ -642,49 +613,26 @@ export default function EditarCatalogo() {
           </select>
 
           <select
-            value={stockFilter}
-            onChange={(e) => setStockFilter(e.target.value)}
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
             className="w-full border-slate-300 rounded-lg p-3 bg-white"
           >
-            <option value="all">Todo el stock</option>
-            <option value="inStock">Con stock</option>
-            <option value="lowStock">Stock bajo (1-5)</option>
-            <option value="outOfStock">Sin stock</option>
+            <option value="alphabetical">Orden alfabético</option>
+            <option value="date">Más recientes primero</option>
           </select>
 
-          <select
-            value={imageFilter}
-            onChange={(e) => setImageFilter(e.target.value)}
-            className="w-full border-slate-300 rounded-lg p-3 bg-white"
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 transition"
           >
-            <option value="all">Todas las imágenes</option>
-            <option value="withImages">Con imágenes</option>
-            <option value="withoutImages">Sin imágenes</option>
-          </select>
+            Limpiar filtros
+          </button>
         </div>
 
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <div className="flex items-center justify-start">
           <div className="text-sm text-slate-600">
             Mostrando <span className="font-semibold text-slate-900">{filteredAndSortedProducts().length}</span> de <span className="font-semibold text-slate-900">{productos.length}</span> productos
-          </div>
-
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              className="w-full md:w-auto border-slate-300 rounded-lg p-3 bg-white"
-            >
-              <option value="alphabetical">Orden alfabético</option>
-              <option value="date">Más recientes primero</option>
-            </select>
-
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 transition"
-            >
-              Limpiar filtros
-            </button>
           </div>
         </div>
       </div>

@@ -2,10 +2,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/SupabaseClient'; // Asegúrate que esta ruta es correcta
+import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from '../lib/storeSettings';
 
 export default function Header() {
   const [session, setSession] = useState(null);
   const [userRole, setUserRole] = useState(null); // Nuevo estado para el rol
+  const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
 
   useEffect(() => {
     // Función para obtener la sesión y el rol
@@ -45,6 +47,35 @@ export default function Header() {
     return () => subscription.unsubscribe(); // Limpiar el listener
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSettings = async () => {
+      const settings = await fetchStoreSettings();
+      if (mounted) setStoreSettings(settings);
+    };
+
+    loadSettings();
+
+    const handleStorage = (event) => {
+      if (event.key === 'store_settings_local') {
+        loadSettings();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.title = storeSettings.store_name || 'Mi Tienda Online';
+  }, [storeSettings.store_name]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
@@ -56,8 +87,15 @@ export default function Header() {
         {/* Fila superior: Título */}
         <div className="text-center mb-3">
           <Link href="/">
-            <div className="text-2xl font-extrabold text-white cursor-pointer hover:text-indigo-400 transition duration-200">
-              Mi Tienda Online
+            <div className="flex items-center justify-center gap-2 text-2xl font-extrabold text-white cursor-pointer hover:text-indigo-400 transition duration-200">
+              {storeSettings.store_logo_url ? (
+                <img
+                  src={storeSettings.store_logo_url}
+                  alt="Logo tienda"
+                  className="h-9 w-9 rounded-full object-cover border border-white/20"
+                />
+              ) : null}
+              <span>{storeSettings.store_name || 'Mi Tienda Online'}</span>
             </div>
           </Link>
         </div>
@@ -120,8 +158,15 @@ export default function Header() {
       {/* Layout desktop (sin cambios) */}
       <div className="hidden sm:flex sm:justify-between sm:items-center">
         <Link href="/">
-          <div className="text-3xl font-extrabold text-white cursor-pointer hover:text-indigo-400 transition duration-200">
-            Mi Tienda Online
+          <div className="flex items-center gap-3 text-3xl font-extrabold text-white cursor-pointer hover:text-indigo-400 transition duration-200">
+            {storeSettings.store_logo_url ? (
+              <img
+                src={storeSettings.store_logo_url}
+                alt="Logo tienda"
+                className="h-10 w-10 rounded-full object-cover border border-white/20"
+              />
+            ) : null}
+            <span>{storeSettings.store_name || 'Mi Tienda Online'}</span>
           </div>
         </Link>
         <div className="flex gap-4 items-center">

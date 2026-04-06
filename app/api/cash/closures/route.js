@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import { getSupabaseServerClientFromRequest } from "@/lib/supabaseServer";
 import { listCashClosures } from "@/services/cash.service";
 import { getUserIdFromRequest } from "@/lib/authUserFromRequest";
 
@@ -11,7 +11,7 @@ export async function GET(request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const closures = await listCashClosures(getSupabaseServerClient(), {
+    const closures = await listCashClosures(getSupabaseServerClientFromRequest(request), {
       limit: searchParams.get("limit"),
       user_id: loggedUserId,
       cashbox_id: searchParams.get("cashbox_id") || "main",

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from 'react';
 import DateFilterBar from '../../../../components/venta/dashboard/DateFilterBar';
 import KpiCard from '../../../../components/venta/dashboard/KpiCard';
 import SalesChart from '../../../../components/venta/dashboard/SalesChart';
@@ -13,6 +14,8 @@ function money(value) {
 }
 
 export default function TodasVentasPage() {
+  const [monthFilter, setMonthFilter] = useState('');
+
   const {
     loading,
     error,
@@ -26,21 +29,48 @@ export default function TodasVentasPage() {
     topProducts,
   } = useVentasDashboard();
 
+  const handleMonthChange = (month) => {
+    setMonthFilter(month || '');
+
+    if (!month) {
+      setDateFrom('');
+      setDateTo('');
+      return;
+    }
+
+    const [year, monthPart] = String(month).split('-').map(Number);
+    if (!year || !monthPart) return;
+
+    const from = `${year}-${String(monthPart).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, monthPart, 0).getDate();
+    const to = `${year}-${String(monthPart).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+    setDateFrom(from);
+    setDateTo(to);
+  };
+
+  const handleDateFromChange = (value) => {
+    setMonthFilter('');
+    setDateFrom(value);
+  };
+
+  const handleDateToChange = (value) => {
+    setMonthFilter('');
+    setDateTo(value);
+  };
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,_#e0f2fe,_#f8fafc_42%,_#f1f5f9_78%)] p-4 md:p-7">
       <div className="mx-auto max-w-7xl space-y-6">
-        <div className="rounded-3xl border border-slate-200 bg-white/75 p-6 shadow-sm backdrop-blur">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-700">Analytics</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900 md:text-4xl">Dashboard de Ventas</h1>
-          <p className="mt-2 text-sm text-slate-600">Vista financiera con ganancias, márgenes y rendimiento diario.</p>
-        </div>
-
         <DateFilterBar
           dateFrom={dateFrom}
           dateTo={dateTo}
-          onDateFromChange={setDateFrom}
-          onDateToChange={setDateTo}
+          monthValue={monthFilter}
+          onMonthChange={handleMonthChange}
+          onDateFromChange={handleDateFromChange}
+          onDateToChange={handleDateToChange}
           onClear={() => {
+            setMonthFilter('');
             setDateFrom('');
             setDateTo('');
           }}

@@ -1,347 +1,221 @@
 "use client";
-import { useState, useEffect } from 'react';
-import { supabase } from '../../../lib/SupabaseClient';
-import { CONFIG } from '../../../lib/config';
 
-export default function WhatsAppAdminPage() {
-  const [catalogo, setCatalogo] = useState(null);
-  const [mensajes, setMensajes] = useState([]);
-  const [estadisticas, setEstadisticas] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('catalogo');
+import { useEffect, useMemo, useState } from 'react';
+import { supabase } from '../../../lib/SupabaseClient';
+import { optimizeImageForUpload } from '../../../lib/imageUploadOptimization';
+import { DEFAULT_STORE_SETTINGS, fetchStoreSettings, saveStoreSettings } from '../../../lib/storeSettings';
+
+const STORE_LOGO_BUCKET = 'product_images';
+
+function getFileExtension(fileName) {
+  const parts = String(fileName || '').split('.');
+  return parts.length > 1 ? parts.pop().toLowerCase() : 'jpg';
+}
+
+export default function StoreSettingsPage() {
+  const [form, setForm] = useState(DEFAULT_STORE_SETTINGS);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [status, setStatus] = useState('');
 
   useEffect(() => {
-    cargarDatos();
+    (async () => {
+      const settings = await fetchStoreSettings();
+      setForm(settings);
+      setLoading(false);
+    })();
   }, []);
 
-  const cargarDatos = async () => {
-    setLoading(true);
-    await Promise.all([
-      cargarCatalogo(),
-      cargarMensajes(),
-      cargarEstadisticas()
-    ]);
-    setLoading(false);
+  const whatsappLink = useMemo(() => {
+    if (!form.whatsapp_number) return '';
+    return `https://wa.me/${form.whatsapp_number}`;
+  }, [form.whatsapp_number]);
+
+  const onChange = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setStatus('');
   };
 
-  const cargarCatalogo = async () => {
-    try {
-      const response = await fetch('/api/whatsapp/catalogo');
-      const data = await response.json();
-      setCatalogo(data);
-    } catch (error) {
-      console.error('Error cargando catálogo:', error);
-    }
-  };
+  const uploadLogoFile = async (event) => {
+    const selectedFile = event.target.files?.[0];
+    if (!selectedFile) return;
 
-  const cargarMensajes = async () => {
+    setUploadingLogo(true);
+    setStatus('');
+
     try {
-      const { data, error } = await supabase
-        .from('mensajes_whatsapp')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(50);
-      
-      if (!error) {
-        setMensajes(data || []);
+      const { file: preparedFile } = await optimizeImageForUpload(selectedFile, {
+        maxDimension: 1800,
+        targetMaxBytes: 1.8 * 1024 * 1024,
+        hardMaxBytes: 3 * 1024 * 1024,
+        preferredQuality: 0.96,
+        minQuality: 0.88,
+      });
+
+      const extension = getFileExtension(preparedFile.name);
+      const filePath = `store/logo-${crypto.randomUUID()}.${extension}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(STORE_LOGO_BUCKET)
+        .upload(filePath, preparedFile, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
       }
+
+      const { data: publicUrlData } = supabase.storage
+        .from(STORE_LOGO_BUCKET)
+        .getPublicUrl(filePath);
+
+      onChange('store_logo_url', publicUrlData.publicUrl);
+      setStatus('Logo subido correctamente. Ahora guarda los cambios para aplicarlo en toda la web.');
     } catch (error) {
-      console.error('Error cargando mensajes:', error);
+      setStatus(`No se pudo subir el logo. ${error?.message || 'Revisa el bucket y los permisos de Supabase Storage.'}`);
+    } finally {
+      setUploadingLogo(false);
+      event.target.value = '';
     }
   };
 
-  const cargarEstadisticas = async () => {
-    try {
-      const response = await fetch('/api/whatsapp/comando?comando=stock');
-      const data = await response.json();
-      setEstadisticas(data.estadisticas);
-    } catch (error) {
-      console.error('Error cargando estadísticas:', error);
+  const onSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+
+    const { settings, persistedToSupabase } = await saveStoreSettings(form);
+    setForm(settings);
+
+    if (persistedToSupabase) {
+      setStatus('Configuración guardada correctamente y aplicada en toda la web.');
+    } else {
+      setStatus('Configuración guardada localmente en este navegador. Si quieres compartirlo para todos, crea la tabla app_settings en Supabase.');
     }
+
+    setSaving(false);
   };
 
-  const enviarCatalogoWhatsApp = async () => {
-    if (!catalogo) return;
-    
-    const numero = CONFIG.WHATSAPP_BUSINESS;
-    const mensaje = catalogo.data.texto_whatsapp;
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, '_blank');
-  };
-
-  const copiarTexto = (texto) => {
-    navigator.clipboard.writeText(texto);
-    alert('✅ Texto copiado al portapapeles');
-  };
-
-  const generarComando = async (comando, parametro = '') => {
-    setLoading(true);
-    try {
-      const url = parametro 
-        ? `/api/whatsapp/comando?comando=${comando}&categoria=${parametro}`
-        : `/api/whatsapp/comando?comando=${comando}`;
-      
-      const response = await fetch(url);
-      const data = await response.json();
-      
-      if (data.texto_whatsapp) {
-        copiarTexto(data.texto_whatsapp);
-      }
-    } catch (error) {
-      alert('❌ Error generando comando');
-    }
-    setLoading(false);
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-6">
+        <div className="mx-auto max-w-3xl rounded-2xl bg-white p-6 shadow">Cargando configuración...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            📱 WhatsApp Business Admin
-          </h1>
-          <p className="text-gray-600">
-            Gestiona la integración de WhatsApp con tu catálogo de productos
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
+      <div className="mx-auto max-w-3xl space-y-6">
+        <section className="rounded-2xl bg-white p-6 shadow">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">Configuración Global de la Tienda</h1>
+          <p className="mt-2 text-gray-600">
+            Cambia aquí el nombre, el WhatsApp y el logo para que se actualice en toda la página.
           </p>
-          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-800">
-              <strong>Número WhatsApp Business:</strong> {CONFIG.WHATSAPP_BUSINESS}
-            </p>
-          </div>
-        </div>
+        </section>
 
-        {/* Pestañas */}
-        <div className="bg-white rounded-lg shadow-lg mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6">
-              {[
-                { id: 'catalogo', label: '🛍️ Catálogo', icon: '🛍️' },
-                { id: 'comandos', label: '⚡ Comandos', icon: '⚡' },
-                { id: 'mensajes', label: '💬 Mensajes', icon: '💬' },
-                { id: 'config', label: '⚙️ Configuración', icon: '⚙️' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`py-4 px-2 border-b-2 font-medium text-sm ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-          </div>
+        <section className="rounded-2xl bg-white p-6 shadow">
+          <form className="space-y-4" onSubmit={onSave}>
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-700">Nombre de la tienda</label>
+              <input
+                type="text"
+                value={form.store_name}
+                onChange={(e) => onChange('store_name', e.target.value)}
+                placeholder="Ej: Óptica Central"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+              />
+            </div>
 
-          <div className="p-6">
-            {/* Pestaña Catálogo */}
-            {activeTab === 'catalogo' && (
-              <div>
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Catálogo WhatsApp</h2>
-                  <div className="space-x-2">
-                    <button
-                      onClick={cargarCatalogo}
-                      disabled={loading}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-                    >
-                      🔄 Actualizar
-                    </button>
-                    <button
-                      onClick={enviarCatalogoWhatsApp}
-                      disabled={!catalogo}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-                    >
-                      📱 Enviar por WhatsApp
-                    </button>
-                  </div>
-                </div>
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-700">Número de WhatsApp</label>
+              <input
+                type="text"
+                value={form.whatsapp_number}
+                onChange={(e) => onChange('whatsapp_number', e.target.value)}
+                placeholder="Ej: 59177777777"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+              />
+              <p className="mt-1 text-xs text-gray-500">Solo se usarán números para el enlace de WhatsApp.</p>
+            </div>
 
-                {catalogo && (
-                  <div className="space-y-6">
-                    {/* Estadísticas */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <div className="text-blue-600 text-2xl font-bold">
-                          {catalogo.total_productos}
-                        </div>
-                        <div className="text-blue-800 text-sm">Total Productos</div>
-                      </div>
-                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                        <div className="text-green-600 text-2xl font-bold">
-                          {catalogo.productos_con_promocion}
-                        </div>
-                        <div className="text-green-800 text-sm">Con Promoción</div>
-                      </div>
-                      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                        <div className="text-purple-600 text-2xl font-bold">
-                          {catalogo.total_categorias}
-                        </div>
-                        <div className="text-purple-800 text-sm">Categorías</div>
-                      </div>
-                      <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                        <div className="text-yellow-600 text-2xl font-bold">
-                          {new Date().toLocaleDateString()}
-                        </div>
-                        <div className="text-yellow-800 text-sm">Última Actualización</div>
-                      </div>
-                    </div>
-
-                    {/* Texto del catálogo */}
-                    <div className="bg-gray-50 p-4 rounded-lg border">
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-lg font-semibold text-gray-800">
-                          Texto del Catálogo WhatsApp
-                        </h3>
-                        <button
-                          onClick={() => copiarTexto(catalogo.data.texto_whatsapp)}
-                          className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm"
-                        >
-                          📋 Copiar
-                        </button>
-                      </div>
-                      <pre className="whitespace-pre-wrap text-sm text-gray-700 max-h-96 overflow-y-auto bg-white p-4 rounded border">
-                        {catalogo.data.texto_whatsapp}
-                      </pre>
-                    </div>
-                  </div>
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-700">Imagen/logo de la tienda (URL)</label>
+              <input
+                type="url"
+                value={form.store_logo_url}
+                onChange={(e) => onChange('store_logo_url', e.target.value)}
+                placeholder="https://..."
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+              />
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <label className="inline-flex cursor-pointer items-center rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-900">
+                  {uploadingLogo ? 'Subiendo logo...' : 'Subir imagen'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingLogo}
+                    onChange={uploadLogoFile}
+                  />
+                </label>
+                {form.store_logo_url && (
+                  <button
+                    type="button"
+                    onClick={() => onChange('store_logo_url', '')}
+                    className="rounded-lg bg-red-100 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-200"
+                  >
+                    Quitar logo
+                  </button>
                 )}
               </div>
+              <p className="mt-2 text-xs text-gray-500">
+                La imagen se sube a Supabase Storage. Si falla, revisa que exista el bucket {STORE_LOGO_BUCKET} y que permita upload.
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={saving}
+                className="rounded-lg bg-green-600 px-4 py-2 font-bold text-white shadow hover:bg-green-700 disabled:opacity-60"
+              >
+                {saving ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+            </div>
+          </form>
+
+          {status && (
+            <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+              {status}
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-2xl bg-white p-6 shadow">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">Vista previa</h2>
+          <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+            {form.store_logo_url ? (
+              <img
+                src={form.store_logo_url}
+                alt="Logo de tienda"
+                className="h-14 w-14 rounded-full border border-gray-200 object-cover"
+              />
+            ) : (
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-200 text-gray-600">Logo</div>
             )}
-
-            {/* Pestaña Comandos */}
-            {activeTab === 'comandos' && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Comandos Rápidos</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[
-                    { comando: 'catalogo', label: '🛍️ Catálogo Completo', desc: 'Generar catálogo completo de productos' },
-                    { comando: 'promociones', label: '🔥 Solo Promociones', desc: 'Solo productos con descuentos' },
-                    { comando: 'categorias', label: '📂 Lista de Categorías', desc: 'Todas las categorías disponibles' },
-                    { comando: 'stock', label: '📊 Reporte de Stock', desc: 'Estado actual del inventario' }
-                  ].map(item => (
-                    <div key={item.comando} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
-                      <h3 className="font-semibold text-gray-800 mb-2">{item.label}</h3>
-                      <p className="text-gray-600 text-sm mb-3">{item.desc}</p>
-                      <button
-                        onClick={() => generarComando(item.comando)}
-                        disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm disabled:opacity-50"
-                      >
-                        Generar y Copiar
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-yellow-800 mb-3">
-                    💡 URLs de la API
-                  </h3>
-                  <div className="space-y-2 text-sm">
-                    <div><strong>Catálogo:</strong> <code>/api/whatsapp/catalogo</code></div>
-                    <div><strong>Comandos:</strong> <code>/api/whatsapp/comando?comando=[tipo]</code></div>
-                    <div><strong>Webhook:</strong> <code>/api/whatsapp/webhook</code></div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Pestaña Mensajes */}
-            {activeTab === 'mensajes' && (
-              <div>
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Mensajes WhatsApp</h2>
-                  <button
-                    onClick={cargarMensajes}
-                    disabled={loading}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-                  >
-                    🔄 Actualizar
-                  </button>
-                </div>
-
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {mensajes.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      📭 No hay mensajes registrados aún
-                    </div>
-                  ) : (
-                    mensajes.map((mensaje, index) => (
-                      <div key={index} className={`p-4 rounded-lg border ${
-                        mensaje.tipo === 'recibido' 
-                          ? 'bg-blue-50 border-blue-200' 
-                          : 'bg-green-50 border-green-200'
-                      }`}>
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="font-semibold text-gray-800">
-                            {mensaje.tipo === 'recibido' ? '📱' : '🤖'} {mensaje.nombre_contacto}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {new Date(mensaje.timestamp).toLocaleString()}
-                          </div>
-                        </div>
-                        <div className="text-gray-700 text-sm whitespace-pre-wrap">
-                          {mensaje.mensaje}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-2">
-                          📞 {mensaje.telefono}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Pestaña Configuración */}
-            {activeTab === 'config' && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Configuración WhatsApp Business</h2>
-                
-                <div className="space-y-6">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-blue-800 mb-4">
-                      📋 Pasos para Configurar WhatsApp Business API
-                    </h3>
-                    <ol className="space-y-2 text-blue-700">
-                      <li>1. Crear una aplicación en Facebook Developers</li>
-                      <li>2. Configurar WhatsApp Business API</li>
-                      <li>3. Obtener el token de acceso</li>
-                      <li>4. Configurar el webhook: <code>/api/whatsapp/webhook</code></li>
-                      <li>5. Añadir las variables de entorno</li>
-                    </ol>
-                  </div>
-
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                      🔧 Variables de Entorno Requeridas
-                    </h3>
-                    <div className="space-y-2 text-sm font-mono bg-black text-green-400 p-4 rounded">
-                      <div>WHATSAPP_VERIFY_TOKEN=tu_token_verificacion</div>
-                      <div>WHATSAPP_ACCESS_TOKEN=tu_token_de_acceso</div>
-                      <div>WHATSAPP_PHONE_NUMBER_ID=tu_phone_number_id</div>
-                      <div>NEXT_PUBLIC_APP_URL=https://tu-dominio.com</div>
-                    </div>
-                  </div>
-
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-green-800 mb-4">
-                      ✅ Estado Actual
-                    </h3>
-                    <div className="space-y-2">
-                      <div>📱 Número Business: {CONFIG.WHATSAPP_BUSINESS}</div>
-                      <div>🔗 Webhook URL: {process.env.NEXT_PUBLIC_APP_URL || 'localhost:3001'}/api/whatsapp/webhook</div>
-                      <div>📊 API Endpoint: {process.env.NEXT_PUBLIC_APP_URL || 'localhost:3001'}/api/whatsapp/catalogo</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            <div>
+              <div className="font-extrabold text-gray-900">{form.store_name || 'Mi Tienda Online'}</div>
+              <div className="text-sm text-gray-600">WhatsApp: {form.whatsapp_number || 'No configurado'}</div>
+              {whatsappLink && (
+                <a href={whatsappLink} target="_blank" rel="noreferrer" className="text-sm text-green-700 hover:underline">
+                  Abrir chat de WhatsApp
+                </a>
+              )}
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

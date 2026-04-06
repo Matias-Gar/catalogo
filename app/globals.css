@@ -124,6 +124,49 @@ button {
   text-align: center !important;
 }
 
+@media (max-width: 1100px) {
+  .producto-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+  }
+
+  .producto-card .producto-galeria,
+  .producto-card .catalogo-info {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .producto-card .catalogo-info {
+    padding: 0 !important;
+  }
+
+  .producto-card .catalogo-info .desc-corta,
+  .producto-card .catalogo-info .desc-completa {
+    text-align: left !important;
+  }
+
+  .producto-card .catalogo-all-images,
+  .producto-card.compact-image-card .catalogo-all-images {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 120px)) !important;
+    justify-content: start !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .producto-card .catalogo-all-images,
+  .producto-card.compact-image-card .catalogo-all-images {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 100px)) !important;
+    justify-content: start !important;
+  }
+
+  .catalogo-imagen {
+    height: 120px;
+  }
+}
+
 /* Imagen principal */
 .main-img {
   width: 100%;
