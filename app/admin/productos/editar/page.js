@@ -45,7 +45,7 @@ export default function EditarCatalogo() {
       const { data: prods } = await supabase
         .from("productos")
         .select(`
-          user_id, nombre, descripcion, precio, stock,
+          user_id, nombre, descripcion, precio, stock, imagen_url,
           categoria, category_id, codigo_barra, created_at
         `)
         .order("nombre", { ascending: true });
@@ -271,6 +271,7 @@ export default function EditarCatalogo() {
 
   // Marcar imagen para eliminar
   const handleRemoveImage = (prodId, imgObj) => {
+    const previousPrimaryId = editando[prodId]?.primaryImageId;
     setEditDataField(prodId, "removeImages", [
       ...(editando[prodId]?.removeImages || []),
       imgObj,
@@ -278,6 +279,12 @@ export default function EditarCatalogo() {
     // Actualiza UI local
     const updatedList = (imagenes[prodId] || []).filter((i) => i.id !== imgObj.id);
     setImagenes((prev) => ({ ...prev, [prodId]: updatedList }));
+
+    if (String(previousPrimaryId ?? "") === String(imgObj.id)) {
+      const fallback = updatedList[0] || null;
+      setEditDataField(prodId, "primaryImageId", fallback?.id ?? null);
+      setEditDataField(prodId, "primaryImageUrl", fallback?.imagen_url ?? null);
+    }
   };
 
   // Reemplazar imagen seleccionada
@@ -507,13 +514,41 @@ export default function EditarCatalogo() {
         }
       }
 
+      // 5) Definir y persistir imagen principal del producto
+      const { data: finalImages, error: finalImagesError } = await supabase
+        .from("producto_imagenes")
+        .select("id, imagen_url")
+        .eq("producto_id", prodId);
+      if (finalImagesError) throw finalImagesError;
+
+      const selectedById = (finalImages || []).find(
+        (img) => String(img.id) === String(cambios.primaryImageId ?? "")
+      );
+      const selectedByUrl = (finalImages || []).find(
+        (img) => String(img.imagen_url || "") === String(cambios.primaryImageUrl || "")
+      );
+      const finalPrimaryImage = selectedById || selectedByUrl || (finalImages || [])[0] || null;
+
+      if (finalPrimaryImage) {
+        let principalQuery = supabase
+          .from("productos")
+          .update({ imagen_url: finalPrimaryImage.imagen_url });
+        if (productoActual?.id !== undefined && productoActual?.id !== null) {
+          principalQuery = principalQuery.eq("id", productoActual.id);
+        } else {
+          principalQuery = principalQuery.eq("user_id", prodId);
+        }
+        const { error: principalError } = await principalQuery;
+        if (principalError) throw principalError;
+      }
+
       showToast("Producto actualizado con éxito!");
 
       // Refrescar productos desde DB
       const { data: prods } = await supabase
         .from("productos")
         .select(
-          "user_id, nombre, descripcion, precio, stock, categoria, category_id, codigo_barra, created_at"
+          "user_id, nombre, descripcion, precio, stock, imagen_url, categoria, category_id, codigo_barra, created_at"
         )
         .order("nombre", { ascending: true });
 
@@ -582,6 +617,10 @@ export default function EditarCatalogo() {
     }
     return list;
   };
+
+  const selectedProduct = productos.find(
+    (p) => getProductKey(p) === modalConfirm.id
+  );
 
   return (
     <div className="p-6 max-w-screen-xl mx-auto bg-slate-50 min-h-screen">
@@ -673,7 +712,11 @@ export default function EditarCatalogo() {
         visible={modalConfirm.visible}
         onCancel={closeConfirm}
         onConfirm={handleConfirmSave}
-        message="¿Seguro que deseas guardar los cambios?"
+        title="Guardar cambios del producto"
+        message="Se detectaron cambios pendientes en este producto."
+        detail={selectedProduct ? `Producto: ${selectedProduct.nombre}` : "Verifica la informacion antes de confirmar."}
+        confirmLabel="Si, guardar"
+        cancelLabel="Volver"
       />
 
       <Toast />

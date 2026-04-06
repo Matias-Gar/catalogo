@@ -4,6 +4,8 @@ export default function ImageManager({
   prodId,
   images,
   editData,
+  primaryImageId,
+  onSetPrimaryImage,
   handleAddImages,
   handleRemoveImage,
   handleReplaceImage,
@@ -39,7 +41,21 @@ export default function ImageManager({
               className="w-full h-28 object-cover"
             />
 
+            {String(primaryImageId ?? "") === String(imgObj.id) && (
+              <div className="absolute bottom-1 left-1 bg-indigo-600 text-white px-2 py-1 text-xs rounded">
+                Principal
+              </div>
+            )}
+
             <div className="absolute top-1 right-1 flex gap-1">
+              <button
+                type="button"
+                className="bg-indigo-500 text-white px-2 py-1 text-xs rounded"
+                onClick={() => onSetPrimaryImage?.(prodId, imgObj)}
+              >
+                Principal
+              </button>
+
               <label className="bg-yellow-400 text-white px-2 py-1 text-xs rounded cursor-pointer">
                 Reemplazar
                 <input

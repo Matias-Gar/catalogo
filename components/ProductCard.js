@@ -24,7 +24,16 @@ export default function ProductCard({
     (sum, v) => sum + (parseInt(v?.stock ?? 0) || 0),
     0
   );
-  const firstImage = imagesArr.length > 0 ? imagesArr[0].imagen_url : "";
+  const imageFromProducto = imagesArr.find(
+    (img) => String(img.imagen_url || "") === String(prod.imagen_url || "")
+  );
+  const fallbackPrimaryImageId = imageFromProducto?.id ?? imagesArr[0]?.id ?? null;
+  const selectedPrimaryImageId = editData.primaryImageId ?? fallbackPrimaryImageId;
+  const selectedPrimaryImage =
+    imagesArr.find((img) => String(img.id) === String(selectedPrimaryImageId)) ??
+    imagesArr[0] ??
+    null;
+  const firstImage = selectedPrimaryImage?.imagen_url || "";
 
   const normalizeColor = (value) => {
     const raw = String(value || "").trim().replace(/\s+/g, " ");
@@ -65,6 +74,11 @@ export default function ProductCard({
         prodId={productId}
         images={imagesArr}
         editData={editData}
+        primaryImageId={selectedPrimaryImageId}
+        onSetPrimaryImage={(pid, image) => {
+          setEditDataField(pid, "primaryImageId", image.id);
+          setEditDataField(pid, "primaryImageUrl", image.imagen_url);
+        }}
         handleAddImages={handleAddImages}
         handleRemoveImage={handleRemoveImage}
         handleReplaceImage={handleReplaceImage}
