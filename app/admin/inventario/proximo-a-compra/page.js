@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 import { Card, CardHeader, CardTitle, CardContent } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
-import { CONFIG, whatsappUtils } from "../../../../lib/config";
+import { whatsappUtils } from "../../../../lib/config";
 import ExpandableDescription from "../../../../components/ui/ExpandableDescription";
 import { getOptimizedImageUrl, buildImageSrcSet } from "../../../../lib/imageOptimization";
 

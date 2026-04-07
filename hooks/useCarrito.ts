@@ -161,7 +161,7 @@ export function useCarrito(promociones: unknown[]) {
   }, [promociones]);
 
   const agregarPack = useCallback((pack: Pack) => {
-    const { precioIndividual, descuentoAbsoluto } = calcularDescuentoPack(pack);
+    const { descuentoAbsoluto } = calcularDescuentoPack(pack);
     const itemPack: CartItem = {
       user_id: `pack-${pack.id}`,
       cart_key: `pack:${String(pack.id)}`,

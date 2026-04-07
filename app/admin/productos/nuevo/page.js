@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from "../../../../lib/SupabaseClient";
 import { useRouter } from "next/navigation";
-import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
 import { getOptimizedImageUrl, buildImageSrcSet } from '../../../../lib/imageOptimization';
 import { optimizeImageForUpload } from '../../../../lib/imageUploadOptimization';
@@ -496,7 +495,6 @@ export default function AdminProductosPage() {
     const [loading, setLoading] = useState(false); 
     const [message, setMessage] = useState(''); 
     const [isDeleting, setIsDeleting] = useState(false); 
-    const [exporting, setExporting] = useState(false);
     
     // Estados para el modal de impresión de variantes
     const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
@@ -790,7 +788,7 @@ export default function AdminProductosPage() {
           margin: 0,
         });
         svgString = new XMLSerializer().serializeToString(svgEl);
-      } catch (err) {
+            } catch (_err) {
         svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="40">
           <text x="0" y="20">${barcodeValue}</text>
         </svg>`;
@@ -959,6 +957,9 @@ export default function AdminProductosPage() {
             }
     };
 
+        const handlePrintBarcodeRef = useRef(handlePrintBarcode);
+        handlePrintBarcodeRef.current = handlePrintBarcode;
+
     // Listener para imprimir código de barras de variante
     useEffect(() => {
       const handlePrintVariantBarcode = async (event) => {
@@ -966,12 +967,12 @@ export default function AdminProductosPage() {
         if (!codigoBarras) return;
         
         // Usar la función existente handlePrintBarcode
-            await handlePrintBarcode(codigoBarras, nombre, copies, printMode || 'qz-html');
+                        await handlePrintBarcodeRef.current(codigoBarras, nombre, copies, printMode || 'qz-html');
       };
 
       window.addEventListener('printVariantBarcode', handlePrintVariantBarcode);
       return () => window.removeEventListener('printVariantBarcode', handlePrintVariantBarcode);
-    }, []);
+        }, []);
 
     useEffect(() => {
         if (isPrintModalOpen && ENABLE_QZ_PRODUCT_LABEL_FLOW) {
@@ -1264,7 +1265,7 @@ export default function AdminProductosPage() {
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'productos' },
-                (payload) => {
+                (_payload) => {
                     fetchProductos();
                 }
             )

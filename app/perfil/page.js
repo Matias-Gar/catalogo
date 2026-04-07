@@ -9,32 +9,32 @@ import AuthDebug from '../../components/AuthDebug';
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [showDebug, setShowDebug] = useState(false); // Debug oculto por defecto
+  const [showDebug] = useState(false); // Debug oculto por defecto
   const router = useRouter();
 
   useEffect(() => {
-    checkUser();
-  }, []);
+    async function checkUser() {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error) throw error;
+        
+        if (!user) {
+          router.push('/login');
+          return;
+        }
 
-  async function checkUser() {
-    try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      
-      if (error) throw error;
-      
-      if (!user) {
+        setUser(user);
+      } catch (error) {
+        console.error('Error verificando usuario:', error);
         router.push('/login');
-        return;
+      } finally {
+        setLoading(false);
       }
-
-      setUser(user);
-    } catch (error) {
-      console.error('Error verificando usuario:', error);
-      router.push('/login');
-    } finally {
-      setLoading(false);
     }
-  }
+
+    checkUser();
+  }, [router]);
 
   if (loading) {
     return (

@@ -6,7 +6,10 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint . --ignore-pattern .next/** --ignore-pattern node_modules/** --ignore-pattern out/** --ignore-pattern build/**",
+    "lint:fix": "eslint . --fix --ignore-pattern .next/** --ignore-pattern node_modules/** --ignore-pattern out/** --ignore-pattern build/**",
+    "typecheck": "tsc --noEmit",
+    "quality": "npm run typecheck && npm run lint",
     "migrate:clientes": "psql \"$DATABASE_URL\" -f database/create_clientes_table.sql || echo 'ERROR: set $DATABASE_URL (pSQL) or run SQL in Supabase dashboard'",
     "migrate:ventas": "psql \"$DATABASE_URL\" -f database/add_cliente_nit_to_ventas.sql || echo 'ERROR: set $DATABASE_URL (pSQL) or run SQL in Supabase dashboard'"
   },

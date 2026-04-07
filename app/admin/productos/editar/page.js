@@ -109,7 +109,7 @@ export default function EditarCatalogo() {
           margin: 0,
         });
         svgString = new XMLSerializer().serializeToString(svgEl);
-      } catch (err) {
+      } catch (_err) {
         svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="40">
           <text x="0" y="20">${barcodeValue}</text>
         </svg>`;
@@ -415,7 +415,7 @@ export default function EditarCatalogo() {
 
         if (nuevos.length > 0) {
           const { error: varInsertError } = await supabase.from("producto_variantes").insert(
-            nuevos.map((v, i) => ({
+            nuevos.map((v) => ({
               producto_id: prodId,
               color: v.color,
               stock: v.stock,

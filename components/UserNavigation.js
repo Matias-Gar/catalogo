@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/SupabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -12,42 +12,7 @@ export default function UserNavigation() {
   const [showDropdown, setShowDropdown] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    getUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          setUser(session.user);
-          await loadProfile(session.user.id);
-        } else {
-          setUser(null);
-          setProfile(null);
-        }
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  async function getUser() {
-    try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) throw error;
-      
-      if (user) {
-        setUser(user);
-        await loadProfile(user.id);
-      }
-    } catch (error) {
-      console.error('Error obteniendo usuario:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadProfile(userId) {
+  const loadProfile = useCallback(async (userId) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -63,7 +28,42 @@ export default function UserNavigation() {
     } catch (error) {
       console.error('Error cargando perfil:', error);
     }
-  }
+  }, []);
+
+  const getUser = useCallback(async () => {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      
+      if (user) {
+        setUser(user);
+        await loadProfile(user.id);
+      }
+    } catch (error) {
+      console.error('Error obteniendo usuario:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [loadProfile]);
+
+  useEffect(() => {
+    getUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session?.user) {
+          setUser(session.user);
+          await loadProfile(session.user.id);
+        } else {
+          setUser(null);
+          setProfile(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [getUser, loadProfile]);
 
   async function handleSignOut() {
     try {

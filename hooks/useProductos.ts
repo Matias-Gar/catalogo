@@ -48,7 +48,7 @@ function agruparImagenes(imgs: Array<{ producto_id: string | number; imagen_url?
   return out;
 }
 
-export function useProductos(includeCost = false) {
+export function useProductos(_includeCost = false) {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [imagenes, setImagenes] = useState<Record<string, string[]>>({});
   const [searchResults, setSearchResults] = useState<Producto[]>([]);

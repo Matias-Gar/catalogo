@@ -20,13 +20,13 @@ export default function PerfilesAdminPage() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
+      const { data } = await supabase.auth.getUser();
       
       if (data?.user) {
         setUser(data.user);
         
         // Verificar si es admin
-        const { data: perfilData, error: perfilError } = await supabase
+        const { data: perfilData } = await supabase
           .from('perfiles')
           .select('*')
           .eq('id', data.user.id)
@@ -44,29 +44,12 @@ export default function PerfilesAdminPage() {
   }, []);
 
   const cargarPerfiles = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('perfiles')
       .select('*')
       .order('nombre');
     
     if (data) setPerfiles(data);
-  };
-
-  const cambiarRol = async (perfilId, nuevoRol) => {
-    setProcesando(perfilId);
-    const { error } = await supabase
-      .from('perfiles')
-      .update({ rol: nuevoRol })
-      .eq('id', perfilId);
-
-    if (error) {
-      setMensaje({ tipo: 'error', texto: 'Error al cambiar rol: ' + error.message });
-    } else {
-      setMensaje({ tipo: 'success', texto: 'Rol actualizado correctamente' });
-      cargarPerfiles();
-    }
-    setProcesando(null);
-    setTimeout(() => setMensaje(null), 3000);
   };
 
   const handleEdit = (perfil) => {
@@ -101,7 +84,7 @@ export default function PerfilesAdminPage() {
         setEditingProfile(null);
         cargarPerfiles();
       }
-    } catch (err) {
+    } catch (_err) {
       setMensaje({ tipo: 'error', texto: 'Error al actualizar el perfil' });
     } finally {
       setProcesando(null);
@@ -152,7 +135,7 @@ export default function PerfilesAdminPage() {
         setMensaje({ tipo: 'success', texto: 'Perfil eliminado exitosamente' });
         cargarPerfiles();
       }
-    } catch (err) {
+    } catch (_err) {
       setMensaje({ tipo: 'error', texto: 'Error al eliminar el perfil' });
     } finally {
       setProcesando(null);

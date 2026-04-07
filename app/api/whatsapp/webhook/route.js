@@ -186,7 +186,7 @@ async function obtenerCatalogo() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/whatsapp/comando?comando=catalogo`);
     const data = await response.json();
     return data.texto_whatsapp;
-  } catch (error) {
+  } catch (_error) {
     return "❌ Error al obtener el catálogo. Por favor intenta más tarde.";
   }
 }
@@ -196,7 +196,7 @@ async function obtenerPromociones() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/whatsapp/comando?comando=promociones`);
     const data = await response.json();
     return data.texto_whatsapp;
-  } catch (error) {
+  } catch (_error) {
     return "❌ Error al obtener las promociones. Por favor intenta más tarde.";
   }
 }
@@ -206,7 +206,7 @@ async function obtenerCategorias() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/whatsapp/comando?comando=categorias`);
     const data = await response.json();
     return data.texto_whatsapp;
-  } catch (error) {
+  } catch (_error) {
     return "❌ Error al obtener las categorías. Por favor intenta más tarde.";
   }
 }
@@ -216,7 +216,7 @@ async function obtenerProductosPorCategoria(categoria) {
     const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/whatsapp/comando?comando=categoria&categoria=${encodeURIComponent(categoria)}`);
     const data = await response.json();
     return data.texto_whatsapp;
-  } catch (error) {
+  } catch (_error) {
     return `❌ Error al obtener productos de la categoría "${categoria}".`;
   }
 }
@@ -260,7 +260,7 @@ async function buscarProductoPorTexto(texto) {
 
     return respuesta;
 
-  } catch (error) {
+  } catch (_error) {
     return "❌ Error en la búsqueda. Por favor intenta más tarde.";
   }
 }

@@ -56,7 +56,7 @@ function calcularPrecioConPromocion(producto, promociones) {
   };
 }
 
-export async function GET(request) {
+export async function GET() {
   try {
     // 1. Obtener productos de la base de datos
     const { data: productos, error: productosError } = await supabase

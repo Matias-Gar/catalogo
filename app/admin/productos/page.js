@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from "../../../lib/SupabaseClient";
 import { useRouter } from "next/navigation";
-import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
 import { PrecioConPromocion } from '../../../lib/promociones';
 import { usePromociones } from '../../../lib/usePromociones';
@@ -150,7 +149,7 @@ export default function AdminProductosPage() {
     const [selectedImageName, setSelectedImageName] = useState('');
     
     // Hook para promociones
-    const { promociones, loading: loadingPromociones } = usePromociones();
+    const { promociones } = usePromociones();
     
     const [newProduct, setNewProduct] = useState({ 
         nombre: '', 
@@ -473,7 +472,7 @@ export default function AdminProductosPage() {
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'productos' },
-                (payload) => {
+                (_payload) => {
                     fetchProductos();
                 }
             )

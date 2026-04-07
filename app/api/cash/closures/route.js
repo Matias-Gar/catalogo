@@ -3,6 +3,8 @@ import { getSupabaseServerClientFromRequest } from "@/lib/supabaseServer";
 import { listCashClosures } from "@/services/cash.service";
 import { getUserIdFromRequest } from "@/lib/authUserFromRequest";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request) {
   try {
     const loggedUserId = await getUserIdFromRequest(request);
@@ -17,7 +19,16 @@ export async function GET(request) {
       cashbox_id: searchParams.get("cashbox_id") || "main",
     });
 
-    return NextResponse.json({ success: true, data: closures });
+    return NextResponse.json(
+      { success: true, data: closures },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      }
+    );
   } catch (error) {
     return NextResponse.json(
       {

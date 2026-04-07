@@ -48,11 +48,6 @@ interface TicketSnapshot {
   cambio?: number;
 }
 
-interface Cliente {
-  nombre?: string;
-  nit?: string;
-}
-
 declare global {
   interface Window {
     qz?: {
@@ -229,7 +224,6 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
         const item = calcularItem(rawItem);
         const nombre = limpiarTexto(item.nombre || item.producto_nombre) || 'Producto';
         const qty = item.cantidad || item.cant || 1;
-        const precioOriginal = item.precioOriginal;
         const descuentoItem = item.descuento;
         const precioFinal = item.precioFinal;
         const promocion = item.promocion || item.promocion_aplicada;

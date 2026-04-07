@@ -521,7 +521,6 @@ export default function AumentarStockPage() {
                     <div className="flex items-center gap-3">
                       <div className="h-14 w-14 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
                         {imagenPrincipalByProducto[pid] ? (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={imagenPrincipalByProducto[pid]}
                             alt={prod.nombre}

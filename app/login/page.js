@@ -1,7 +1,7 @@
 // app/login/page.js
 
 "use client";
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 // USAR ALIAS DE RAIZ (ahora que tsconfig.json está listo)
 import { supabase } from '@/lib/SupabaseClient'; 
@@ -12,7 +12,7 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     // Función unificada para verificar rol y redirigir
-    const checkRoleAndRedirect = async (userId) => {
+    const checkRoleAndRedirect = useCallback(async (userId) => {
         setIsLoading(true);
         try {
             const { data: profile, error: profileError } = await supabase
@@ -39,7 +39,7 @@ export default function LoginPage() {
             // Aseguramos que la carga termine si no se pudo redirigir por alguna razón.
             setIsLoading(false); 
         }
-    };
+    }, [router]);
 
     useEffect(() => {
         const checkSession = async () => {
@@ -68,7 +68,7 @@ export default function LoginPage() {
         });
 
         return () => subscription.unsubscribe();
-    }, [router]);
+    }, [router, checkRoleAndRedirect]);
 
     if (isLoading) {
         return (

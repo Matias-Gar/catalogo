@@ -8,18 +8,6 @@ import { usePacks, calcularDescuentoPack } from '../lib/packs';
 import ExpandableDescription from '../components/ui/ExpandableDescription';
 import { getOptimizedImageUrl, buildImageSrcSet } from '../lib/imageOptimization';
 
-
-
-
-
-const getProductImageUrl = (path) => {
-  if (!path) {
-    return "https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen";
-  }
-  return path;
-};
-
-
 // Componente principal de la página (Tienda)
 // Utilidad para obtener nombre de categoría por id
 function getCategoriaNombre(id, categorias) {
@@ -124,7 +112,7 @@ export default function Home() {
   const [error, setError] = useState(null);
   
   // Usar el hook para promociones
-  const { promociones, loading: loadingPromociones } = usePromociones();
+  const { promociones } = usePromociones();
   
   // Usar el hook para packs
   const { packs, loading: loadingPacks } = usePacks();
@@ -200,7 +188,7 @@ export default function Home() {
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'productos' },
-          (payload) => {
+          (_payload) => {
             fetchProductos();
           }
         )

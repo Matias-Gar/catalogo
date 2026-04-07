@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/SupabaseClient';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 
 export default function UserProfile() {
   const [user, setUser] = useState(null);
@@ -131,7 +130,7 @@ export default function UserProfile() {
     
     try {
       // Verificar si el perfil existe
-      const { data: perfilExistente, error: errorCheck } = await supabase
+      const { data: perfilExistente } = await supabase
         .from("perfiles")
         .select("id")
         .eq("id", user.id)

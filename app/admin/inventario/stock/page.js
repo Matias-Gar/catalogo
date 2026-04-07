@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 import { CONFIG, whatsappUtils } from "../../../../lib/config";
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from "../../../../lib/storeSettings";
@@ -236,7 +236,7 @@ export default function StockPage() {
     return String(prod.categorias?.categori || prod.categoria || prod.category_id || "Sin categoria");
   }
 
-  function matchesFilters(prod, searchTerm = search.trim().toLowerCase(), category = categoryFilter, stock = stockFilter) {
+  const matchesFilters = useCallback((prod, searchTerm = search.trim().toLowerCase(), category = categoryFilter, stock = stockFilter) => {
     const categoryName = getCategoryName(prod);
     const matchesSearch = !searchTerm || [prod.nombre, prod.codigo_barra, categoryName]
       .some((value) => String(value || "").toLowerCase().includes(searchTerm));
@@ -250,7 +250,7 @@ export default function StockPage() {
       || (stock === "high" && Number(prod?.stock || 0) >= highStockThreshold);
 
     return matchesSearch && matchesCategory && matchesStock;
-  }
+  }, [search, categoryFilter, stockFilter, getStockState]);
 
   async function fetchAllProductos() {
     const orderField = orden === "stock-desc" || orden === "stock-asc" ? "stock" : "user_id";
@@ -521,18 +521,18 @@ export default function StockPage() {
     }
   }
 
-  function getStockMinimo(prod) {
+  const getStockMinimo = useCallback((prod) => {
     return Number(prod?.stock_minimo ?? CONFIG.INVENTARIO.STOCK_MINIMO_ALERTA ?? 3);
-  }
+  }, []);
 
-  function getStockState(prod) {
+  const getStockState = useCallback((prod) => {
     const stock = Number(prod?.stock || 0);
     const stockMinimo = getStockMinimo(prod);
     if (stock <= 0) return "sin-stock";
     if (stock <= Math.min(stockMinimo, 2)) return "critico";
     if (stock <= stockMinimo) return "bajo";
     return "normal";
-  }
+  }, [getStockMinimo]);
 
   function getStockColor(prod) {
     const state = getStockState(prod);
@@ -560,7 +560,7 @@ export default function StockPage() {
   const filteredProductos = useMemo(() => {
     const searchTerm = search.trim().toLowerCase();
     return productos.filter((prod) => matchesFilters(prod, searchTerm));
-  }, [productos, search, categoryFilter, stockFilter]);
+  }, [productos, search, matchesFilters]);
 
   const kpis = useMemo(() => {
     const total = filteredProductos.length;
@@ -570,7 +570,7 @@ export default function StockPage() {
     }).length;
     const out = filteredProductos.filter((prod) => getStockState(prod) === "sin-stock").length;
     return { total, low, out };
-  }, [filteredProductos]);
+  }, [filteredProductos, getStockState]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 

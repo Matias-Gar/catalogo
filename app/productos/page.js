@@ -34,7 +34,7 @@ export default function CatalogoPage() {
     const { packs, loading: loadingPacks } = usePacks();
     
     // 📊 Hook para Facebook Pixel tracking
-    const { trackAddToCart, trackViewContent, trackPurchase } = useFacebookPixel();
+    const { trackAddToCart, trackPurchase } = useFacebookPixel();
 
     // --- Efectos (Hooks) ---
     // Detectar usuario logeado
@@ -204,11 +204,6 @@ export default function CatalogoPage() {
     const getCartKey = (producto) => `prod:${String(producto.user_id)}:${String(producto.variante_id ?? 'default')}`;
 
     // Buscar producto en el carrito por id y variante
-    const getProductInCart = (producto) => {
-        const key = getCartKey(producto);
-        return cart.find((p) => (p.cart_key || getCartKey(p)) === key);
-    };
-
     const getVariantes = (producto) => (Array.isArray(producto.variantes) ? producto.variantes : []);
 
     const getStockDisponibleProducto = (producto, varianteId = null) => {

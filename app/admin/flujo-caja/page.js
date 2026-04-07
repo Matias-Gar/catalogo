@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -30,6 +30,21 @@ const TYPE_OPTIONS = [
 ];
 
 const PIE_COLORS = ["#16a34a", "#0284c7", "#7c3aed", "#f59e0b"];
+
+function isAutoSaleIncomeMovement(row) {
+  if (!row || row.type !== "income") return false;
+  const description = String(row.description || "").toLowerCase();
+  return description.includes("ingreso automatico por venta #");
+}
+
+function normalizeSaleMethodForCashFlow(value) {
+  const raw = String(value || "").trim().toLowerCase();
+  if (raw === "efectivo" || raw === "cash") return "cash";
+  if (raw === "qr") return "qr";
+  if (raw === "tarjeta" || raw === "card") return "card";
+  if (raw === "transferencia" || raw === "transfer") return "transfer";
+  return "other";
+}
 
 function formatBs(value) {
   return `Bs ${Number(value || 0).toFixed(2)}`;
@@ -71,12 +86,12 @@ function monthRangeISO() {
 export default function FlujoCajaPage() {
   const [startDate, setStartDate] = useState(todayISO());
   const [endDate, setEndDate] = useState(todayISO());
-  const [openingBalanceInput, setOpeningBalanceInput] = useState("");
   const [realCashInput, setRealCashInput] = useState("");
   const [userId, setUserId] = useState("");
+  const [userDisplayName, setUserDisplayName] = useState("");
   const [cashboxId, setCashboxId] = useState("main");
-  const [openingQrInput, setOpeningQrInput] = useState("");
   const [realQrInput, setRealQrInput] = useState("");
+  const resolvedProfileUserRef = useRef("");
 
   const [summary, setSummary] = useState(null);
   const [closures, setClosures] = useState([]);
@@ -108,9 +123,32 @@ export default function FlujoCajaPage() {
     if (error || !data?.session?.user?.id || !data?.session?.access_token) {
       throw new Error("Sesion no valida. Inicia sesion para usar caja.");
     }
-    const uid = data.session.user.id;
+    const sessionUser = data.session.user;
+    const uid = sessionUser.id;
     const token = data.session.access_token;
     setUserId(uid);
+
+    const fallbackName =
+      String(sessionUser.user_metadata?.nombre || sessionUser.user_metadata?.full_name || "Perfil sin nombre").trim();
+
+    if (!userDisplayName || resolvedProfileUserRef.current !== uid) {
+      setUserDisplayName(fallbackName || uid);
+    }
+
+    if (resolvedProfileUserRef.current !== uid) {
+      resolvedProfileUserRef.current = uid;
+      const { data: profileData } = await supabase
+        .from("perfiles")
+        .select("nombre")
+        .eq("id", uid)
+        .maybeSingle();
+
+      const profileName = String(profileData?.nombre || "").trim();
+      if (profileName) {
+        setUserDisplayName(profileName);
+      }
+    }
+
     return { uid, token };
   }
 
@@ -134,10 +172,8 @@ export default function FlujoCajaPage() {
         cashbox_id: cashboxId || "main",
       });
 
-      if (openingBalanceInput !== "") params.set("opening_balance", openingBalanceInput);
-      if (openingQrInput !== "") params.set("opening_qr", openingQrInput);
-
       const res = await fetch(`/api/cash/summary?${params.toString()}`, {
+        cache: "no-store",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -167,6 +203,7 @@ export default function FlujoCajaPage() {
       });
 
       const res = await fetch(`/api/cash/closures?${params.toString()}`, {
+        cache: "no-store",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -198,6 +235,7 @@ export default function FlujoCajaPage() {
       });
 
       const res = await fetch(`/api/cash/movements?${params.toString()}`, {
+        cache: "no-store",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -238,7 +276,7 @@ export default function FlujoCajaPage() {
   }, [realCashInput, summary]);
 
   const qrDifference = useMemo(() => {
-    const expectedQr = Number(summary?.expected_qr || 0);
+    const expectedQr = Number(summary?.expected_bank || 0);
     const realQr = Number(realQrInput || 0);
     if (!Number.isFinite(realQr)) return 0;
     return Number((realQr - expectedQr).toFixed(2));
@@ -259,6 +297,108 @@ export default function FlujoCajaPage() {
       value: Number(summary?.income_by_method?.[method.value] || 0),
     }));
   }, [summary]);
+
+  const autoSalesRows = useMemo(() => {
+    const rows = Array.isArray(summary?.auto_sales_rows) ? summary.auto_sales_rows : [];
+    if (rows.length > 0) return rows;
+
+    const sales = Array.isArray(summary?.sales) ? summary.sales : [];
+    return sales.map((sale) => ({
+      id: `sale-${sale.id}`,
+      date: sale.fecha,
+      type: "income",
+      payment_method: normalizeSaleMethodForCashFlow(sale.modo_pago),
+      description: `Ingreso por venta #${sale.id}`,
+      amount: Number(sale.total || 0),
+    }));
+  }, [summary?.auto_sales_rows, summary?.sales]);
+
+  const manualMovements = useMemo(
+    () => movements.filter((movement) => !isAutoSaleIncomeMovement(movement)),
+    [movements]
+  );
+
+  const autoSalesTotal = useMemo(
+    () => Number(autoSalesRows.reduce((acc, row) => acc + Number(row.amount || 0), 0).toFixed(2)),
+    [autoSalesRows]
+  );
+
+  const manualIncomeTotal = useMemo(
+    () => Number(
+      manualMovements
+        .filter((movement) => movement.type === "income")
+        .reduce((acc, row) => acc + Number(row.amount || 0), 0)
+        .toFixed(2)
+    ),
+    [manualMovements]
+  );
+
+  const manualExpenseTotal = useMemo(
+    () => Number(
+      manualMovements
+        .filter((movement) => movement.type === "expense")
+        .reduce((acc, row) => acc + Number(row.amount || 0), 0)
+        .toFixed(2)
+    ),
+    [manualMovements]
+  );
+
+  const unifiedHistoryRows = useMemo(() => {
+    const rows = Array.isArray(summary?.ledger_entries) ? summary.ledger_entries : [];
+    return [...rows]
+      .sort((left, right) => {
+        const leftTime = left.created_at ? new Date(left.created_at).getTime() : 0;
+        const rightTime = right.created_at ? new Date(right.created_at).getTime() : 0;
+        return leftTime - rightTime;
+      });
+  }, [summary?.ledger_entries]);
+
+  const latestClosureForRange = useMemo(() => {
+    if (!Array.isArray(closures) || closures.length === 0) return null;
+    const sameRange = closures
+      .filter((closure) => closure?.start_date === startDate && closure?.end_date === endDate)
+      .sort((left, right) => {
+        const leftTime = left?.created_at ? new Date(left.created_at).getTime() : 0;
+        const rightTime = right?.created_at ? new Date(right.created_at).getTime() : 0;
+        return rightTime - leftTime;
+      });
+    return sameRange[0] || null;
+  }, [closures, startDate, endDate]);
+
+  const closureCutoffTs = useMemo(() => {
+    if (!latestClosureForRange?.created_at) return null;
+    const ts = new Date(latestClosureForRange.created_at).getTime();
+    return Number.isFinite(ts) ? ts : null;
+  }, [latestClosureForRange]);
+
+  const pendingRowsSinceClosure = useMemo(() => {
+    if (!closureCutoffTs) {
+      return unifiedHistoryRows;
+    }
+    return unifiedHistoryRows.filter((movement) => {
+      const movementTs = movement.created_at
+        ? new Date(movement.created_at).getTime()
+        : movement.date
+          ? new Date(movement.date).getTime()
+          : 0;
+      return movementTs > closureCutoffTs;
+    });
+  }, [unifiedHistoryRows, closureCutoffTs]);
+
+  const pendingTotalsSinceClosure = useMemo(() => {
+    return pendingRowsSinceClosure.reduce(
+      (acc, movement) => {
+        const amount = Number(movement.amount || 0);
+        if (movement.type === "income") {
+          acc.income += amount;
+        } else {
+          acc.expense += amount;
+        }
+        return acc;
+      },
+      { income: 0, expense: 0 }
+    );
+  }, [pendingRowsSinceClosure]);
 
   async function handleCreateMovement(e) {
     e.preventDefault();
@@ -307,8 +447,6 @@ export default function FlujoCajaPage() {
         body: JSON.stringify({
           start_date: startDate,
           end_date: endDate,
-          opening_balance: openingBalanceInput === "" ? null : Number(openingBalanceInput),
-          opening_qr: openingQrInput === "" ? null : Number(openingQrInput),
           real_cash: Number(realCashInput),
           real_qr: realQrInput === "" ? null : Number(realQrInput),
           cashbox_id: cashboxId || "main",
@@ -322,6 +460,10 @@ export default function FlujoCajaPage() {
 
       showToast("Cierre de caja registrado correctamente");
       await Promise.all([fetchSummary(), fetchClosures(), fetchMovements()]);
+      const nextExpectedCash = Number(payload?.data?.summary?.expected_cash);
+      const nextExpectedBank = Number(payload?.data?.summary?.expected_bank ?? payload?.data?.summary?.expected_qr);
+      setRealCashInput(Number.isFinite(nextExpectedCash) ? String(nextExpectedCash) : "");
+      setRealQrInput(Number.isFinite(nextExpectedBank) ? String(nextExpectedBank) : "");
     } catch (error) {
       showToast(error.message || "Error al cerrar caja", "error");
     } finally {
@@ -458,10 +600,10 @@ export default function FlujoCajaPage() {
             <div className="mt-1 flex items-center gap-2">
               <input
                 type="text"
-                value={userId || "No logueado"}
+                value={userDisplayName || "No logueado"}
                 readOnly
                 placeholder="Debes iniciar sesion"
-                className="h-10 flex-1 rounded-md border border-slate-300 bg-slate-900 px-3 font-mono text-sm font-bold text-white"
+                className="h-10 flex-1 rounded-md border border-slate-300 bg-white px-3 text-sm font-bold text-slate-900"
               />
               {userId && (
                 <div className="flex items-center gap-1 rounded-md bg-emerald-100 px-3 py-2 text-xs font-black text-emerald-700 shadow-md">
@@ -526,7 +668,7 @@ export default function FlujoCajaPage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 gap-4 lg:grid-cols-6">
+        <section className="grid grid-cols-1 gap-4 lg:grid-cols-7">
           <div className="rounded-2xl border border-emerald-200 bg-white p-5 shadow">
             <p className="text-xs font-bold uppercase tracking-wide text-emerald-600">Ingresos efectivo</p>
             <p className="mt-2 text-2xl font-black text-slate-900">{formatBs(summary?.income_by_method?.cash)}</p>
@@ -534,6 +676,11 @@ export default function FlujoCajaPage() {
           <div className="rounded-2xl border border-blue-200 bg-white p-5 shadow">
             <p className="text-xs font-bold uppercase tracking-wide text-blue-600">Ingreso banco</p>
             <p className="mt-2 text-2xl font-black text-slate-900">{formatBs(summary?.income_bank)}</p>
+            <p className="mt-1 text-xs text-slate-500">QR + Tarjeta + Transferencia</p>
+          </div>
+          <div className="rounded-2xl border border-red-200 bg-white p-5 shadow">
+            <p className="text-xs font-bold uppercase tracking-wide text-red-600">Egreso banco</p>
+            <p className="mt-2 text-2xl font-black text-slate-900">{formatBs(summary?.expense_bank)}</p>
             <p className="mt-1 text-xs text-slate-500">QR + Tarjeta + Transferencia</p>
           </div>
           <div className="rounded-2xl border border-rose-200 bg-white p-5 shadow">
@@ -548,9 +695,10 @@ export default function FlujoCajaPage() {
             <p className="text-xs font-bold uppercase tracking-wide text-indigo-600">Efectivo esperado</p>
             <p className="mt-2 text-2xl font-black text-slate-900">{formatBs(summary?.expected_cash)}</p>
           </div>
-          <div className="rounded-2xl border border-cyan-200 bg-white p-5 shadow">
-            <p className="text-xs font-bold uppercase tracking-wide text-cyan-600">QR esperado</p>
-            <p className="mt-2 text-2xl font-black text-slate-900">{formatBs(summary?.expected_qr)}</p>
+          <div className="rounded-2xl border border-fuchsia-200 bg-white p-5 shadow">
+            <p className="text-xs font-bold uppercase tracking-wide text-fuchsia-700">Saldo banco esperado</p>
+            <p className="mt-2 text-2xl font-black text-slate-900">{formatBs(summary?.expected_bank)}</p>
+            <p className="mt-1 text-xs text-slate-500">Apertura banco + neto banco</p>
           </div>
         </section>
 
@@ -639,35 +787,9 @@ export default function FlujoCajaPage() {
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow">
             <h2 className="text-lg font-extrabold text-slate-900">Cierre de caja</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              expected_cash = saldo inicial + ingresos efectivo - egresos efectivo
-            </p>
+            <p className="mt-1 text-sm text-slate-600">La apertura se calcula automaticamente desde el ultimo cierre registrado.</p>
 
             <div className="mt-4 grid grid-cols-1 gap-3">
-              <label className="text-sm font-semibold text-slate-700">
-                Saldo inicial (manual opcional)
-                <input
-                  type="number"
-                  step="0.01"
-                  value={openingBalanceInput}
-                  onChange={(e) => setOpeningBalanceInput(e.target.value)}
-                  className="mt-1 h-10 w-full rounded-md border border-slate-300 px-3"
-                  placeholder="Si esta vacio usa ultimo cierre"
-                />
-              </label>
-
-              <label className="text-sm font-semibold text-slate-700">
-                Saldo inicial QR (manual opcional)
-                <input
-                  type="number"
-                  step="0.01"
-                  value={openingQrInput}
-                  onChange={(e) => setOpeningQrInput(e.target.value)}
-                  className="mt-1 h-10 w-full rounded-md border border-slate-300 px-3"
-                  placeholder="Si esta vacio usa 0 o ultimo cierre con QR"
-                />
-              </label>
-
               <label className="text-sm font-semibold text-slate-700">
                 Efectivo contado en caja
                 <input
@@ -681,14 +803,14 @@ export default function FlujoCajaPage() {
               </label>
 
               <label className="text-sm font-semibold text-slate-700">
-                QR real (opcional para control)
+                Saldo banco real
                 <input
                   type="number"
                   step="0.01"
                   value={realQrInput}
                   onChange={(e) => setRealQrInput(e.target.value)}
                   className="mt-1 h-10 w-full rounded-md border border-slate-300 px-3"
-                  placeholder="Si esta vacio usa esperado QR"
+                  placeholder="Si esta vacio usa esperado en banco"
                 />
               </label>
 
@@ -702,8 +824,8 @@ export default function FlujoCajaPage() {
                   <span className="font-semibold text-slate-900">{formatBs(summary?.expected_cash)}</span>
                 </div>
                 <div className="mt-1 flex items-center justify-between">
-                  <span className="text-slate-600">Esperado en QR</span>
-                  <span className="font-semibold text-slate-900">{formatBs(summary?.expected_qr)}</span>
+                  <span className="text-slate-600">Esperado en banco</span>
+                  <span className="font-semibold text-slate-900">{formatBs(summary?.expected_bank)}</span>
                 </div>
                 <div className="mt-1 flex items-center justify-between">
                   <span className="text-slate-600">Diferencia</span>
@@ -716,7 +838,7 @@ export default function FlujoCajaPage() {
                   </span>
                 </div>
                 <div className="mt-1 flex items-center justify-between">
-                  <span className="text-slate-600">Diferencia QR</span>
+                  <span className="text-slate-600">Diferencia banco</span>
                   <span
                     className={`font-extrabold ${
                       qrDifference < 0 ? "text-red-600" : qrDifference > 0 ? "text-amber-600" : "text-emerald-600"
@@ -780,13 +902,80 @@ export default function FlujoCajaPage() {
         </section>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow">
+          <h3 className="text-base font-extrabold text-slate-900">Ingresos automaticos por ventas</h3>
+          <p className="mt-1 text-sm text-slate-600">Estos ingresos se crean al efectivizar una venta y se muestran por separado para auditoria.</p>
+
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm">
+              <p className="text-emerald-700 font-bold">Movimientos automaticos</p>
+              <p className="text-xl font-black text-slate-900">{autoSalesRows.length}</p>
+            </div>
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm">
+              <p className="text-blue-700 font-bold">Total automatico</p>
+              <p className="text-xl font-black text-slate-900">{formatBs(autoSalesTotal)}</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+              <p className="text-slate-600 font-bold">Ventas en resumen</p>
+              <p className="text-xl font-black text-slate-900">{(summary?.sales || []).length}</p>
+            </div>
+          </div>
+
+          {loadingMovements ? (
+            <div className="mt-4 text-sm text-slate-500">Cargando ingresos automaticos...</div>
+          ) : autoSalesRows.length === 0 ? (
+            <div className="mt-4 text-sm text-slate-500">No hay ingresos automaticos por venta en el rango.</div>
+          ) : (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[760px] border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-left text-slate-500">
+                    <th className="py-2">Fecha</th>
+                    <th className="py-2">Metodo</th>
+                    <th className="py-2">Descripcion</th>
+                    <th className="py-2 text-right">Monto</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {autoSalesRows.map((movement) => {
+                    const methodLabel = PAYMENT_OPTIONS.find((opt) => opt.value === movement.payment_method)?.label || movement.payment_method || "-";
+                    return (
+                      <tr key={movement.id} className="border-b border-slate-100 text-slate-700">
+                        <td className="py-2">{movement.date ? new Date(movement.date).toLocaleString("es-BO") : "-"}</td>
+                        <td className="py-2">{methodLabel}</td>
+                        <td className="py-2">{movement.description || "-"}</td>
+                        <td className="py-2 text-right font-bold text-emerald-700">+{formatBs(movement.amount)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow">
           <h3 className="text-base font-extrabold text-slate-900">Movimientos registrados</h3>
-          <p className="mt-1 text-sm text-slate-600">Lista de ingresos y egresos del rango seleccionado para confirmar cada registro.</p>
+          <p className="mt-1 text-sm text-slate-600">Aqui ves solo movimientos manuales (ingresos y egresos cargados desde caja).</p>
+
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm">
+              <p className="text-emerald-700 font-bold">Ingreso manual</p>
+              <p className="text-xl font-black text-slate-900">{formatBs(manualIncomeTotal)}</p>
+            </div>
+            <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm">
+              <p className="text-rose-700 font-bold">Egreso manual</p>
+              <p className="text-xl font-black text-slate-900">{formatBs(manualExpenseTotal)}</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+              <p className="text-slate-600 font-bold">Total movimientos manuales</p>
+              <p className="text-xl font-black text-slate-900">{manualMovements.length}</p>
+            </div>
+          </div>
 
           {loadingMovements ? (
             <div className="mt-4 text-sm text-slate-500">Cargando movimientos...</div>
-          ) : movements.length === 0 ? (
-            <div className="mt-4 text-sm text-slate-500">No hay movimientos en el rango seleccionado.</div>
+          ) : manualMovements.length === 0 ? (
+            <div className="mt-4 text-sm text-slate-500">No hay movimientos manuales en el rango seleccionado.</div>
           ) : (
             <div className="mt-4 overflow-x-auto">
               <table className="w-full min-w-[760px] border-collapse text-sm">
@@ -801,7 +990,7 @@ export default function FlujoCajaPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {movements.map((movement) => {
+                  {manualMovements.map((movement) => {
                     const isIncome = movement.type === "income";
                     const methodLabel = PAYMENT_OPTIONS.find((opt) => opt.value === movement.payment_method)?.label || movement.payment_method || "-";
                     return (
@@ -845,6 +1034,83 @@ export default function FlujoCajaPage() {
                             </button>
                           </div>
                         </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow">
+          <h3 className="text-base font-extrabold text-slate-900">Historial del dia (auditoria)</h3>
+          <p className="mt-1 text-sm text-slate-600">El historial no se borra al cerrar: queda para trazabilidad. Lo que debe quedar en 0 al cerrar es el pendiente desde el ultimo cierre.</p>
+
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+              <p className="font-bold text-slate-700">Ultimo cierre del rango</p>
+              <p className="mt-1 text-sm font-semibold text-slate-900">
+                {latestClosureForRange?.created_at
+                  ? new Date(latestClosureForRange.created_at).toLocaleString("es-BO")
+                  : "Sin cierre en este rango"}
+              </p>
+            </div>
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm">
+              <p className="font-bold text-emerald-700">Pendiente por cuadrar</p>
+              <p className="mt-1 text-sm text-slate-900">Ingreso: {formatBs(pendingTotalsSinceClosure.income)}</p>
+              <p className="text-sm text-slate-900">Egreso: {formatBs(pendingTotalsSinceClosure.expense)}</p>
+              <p className="text-sm font-extrabold text-slate-900">Registros: {pendingRowsSinceClosure.length}</p>
+            </div>
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm">
+              <p className="font-bold text-amber-700">Total historial del rango</p>
+              <p className="mt-1 text-xl font-black text-slate-900">{unifiedHistoryRows.length}</p>
+            </div>
+          </div>
+
+          {loadingMovements ? (
+            <div className="mt-4 text-sm text-slate-500">Cargando historial del dia...</div>
+          ) : unifiedHistoryRows.length === 0 ? (
+            <div className="mt-4 text-sm text-slate-500">No hay movimientos en el rango seleccionado.</div>
+          ) : (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[980px] border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-left text-slate-500">
+                    <th className="py-2">Creado</th>
+                    <th className="py-2">Fecha operativa</th>
+                    <th className="py-2">Origen</th>
+                    <th className="py-2">Tipo</th>
+                    <th className="py-2">Metodo</th>
+                    <th className="py-2">Descripcion</th>
+                    <th className="py-2 text-right">Monto</th>
+                    <th className="py-2 text-right">Saldo caja</th>
+                    <th className="py-2 text-right">Saldo banco</th>
+                    <th className="py-2 text-right">Saldo total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {unifiedHistoryRows.map((movement) => {
+                    const isIncome = movement.type === "income";
+                    const methodLabel = PAYMENT_OPTIONS.find((opt) => opt.value === movement.payment_method)?.label || movement.payment_method || "-";
+                    const sourceLabel = movement.source === "sale" ? "Venta sistema" : "Manual";
+
+                    return (
+                      <tr key={`history-${movement.id}`} className="border-b border-slate-100 text-slate-700">
+                        <td className="py-2">{movement.created_at ? new Date(movement.created_at).toLocaleString("es-BO") : "-"}</td>
+                        <td className="py-2">{movement.date ? new Date(movement.date).toLocaleString("es-BO") : "-"}</td>
+                        <td className="py-2">{sourceLabel}</td>
+                        <td className={`py-2 font-semibold ${isIncome ? "text-emerald-700" : "text-rose-700"}`}>
+                          {isIncome ? "Ingreso" : "Egreso"}
+                        </td>
+                        <td className="py-2">{methodLabel}</td>
+                        <td className="py-2">{movement.description || "-"}</td>
+                        <td className={`py-2 text-right font-bold ${isIncome ? "text-emerald-700" : "text-rose-700"}`}>
+                          {isIncome ? "+" : "-"}{formatBs(movement.amount)}
+                        </td>
+                        <td className="py-2 text-right font-semibold text-slate-900">{formatBs(movement.running_cash)}</td>
+                        <td className="py-2 text-right font-semibold text-slate-900">{formatBs(movement.running_bank)}</td>
+                        <td className="py-2 text-right font-black text-slate-900">{formatBs(movement.running_total)}</td>
                       </tr>
                     );
                   })}

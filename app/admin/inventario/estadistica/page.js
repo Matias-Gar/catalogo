@@ -68,8 +68,6 @@ export default function InventarioEstadisticaPage() {
   const totalProductos = productos.length;
   const stockTotal = productos.reduce((acc, p) => acc + Number(p.stock || 0), 0);
   const productosBajoStock = productos.filter(p => Number(p.stock) < 3).length;
-  const masCaro = productos.reduce((max, p) => Number(p.precio) > Number(max.precio || 0) ? p : max, productos[0] || {precio:0});
-  const masBarato = productos.reduce((min, p) => Number(p.precio) < Number(min.precio || Infinity) ? p : min, productos[0] || {precio:Infinity});
 
   // Sales aggregates
   const totalVentas = ventas.length;
@@ -109,9 +107,6 @@ export default function InventarioEstadisticaPage() {
 
   // Days since last sale per product
   const lastSaleMap = {}; // producto_id -> lastDate
-  ventas.forEach(v => {
-    // we'll need detalles grouped by venta
-  });
   detalles.forEach(d => {
     const fechaVenta = ventas.find(v => v.id === d.venta_id)?.fecha;
     if (!fechaVenta) return;

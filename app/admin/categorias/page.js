@@ -13,7 +13,6 @@ export default function AdminCategorias() {
   const [nuevaCategoria, setNuevaCategoria] = useState("");
   const [editando, setEditando] = useState(null);
   const [nombreEdit, setNombreEdit] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchCategorias();

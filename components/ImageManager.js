@@ -85,6 +85,7 @@ export default function ImageManager({
                 src={URL.createObjectURL(file)}
                 loading="lazy"
                 decoding="async"
+                alt={`Vista previa ${index + 1}`}
                 className="w-full h-28 object-cover"
               />
             </div>

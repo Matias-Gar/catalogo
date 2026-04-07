@@ -30,9 +30,6 @@ export default function CarritoPanel({
   subtotal,
   totalDescuento,
   total,
-  modoPago,
-  pago,
-  cambio,
   packs,
   promociones
 }: Props) {
@@ -107,7 +104,6 @@ export default function CarritoPanel({
                     </tr>
                   );
                 }
-                const descuento = item.nombre && item.nombre.toLowerCase().includes('promo') ? 0.1 : 0;
                 const precioInfo = calcularPrecioConPromocion(item, promociones);
                 const itemKey = item.cart_key || `prod:${String(item.user_id)}:${String(item.variante_id ?? 'default')}`;
                 return (

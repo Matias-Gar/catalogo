@@ -11,7 +11,7 @@ import ClienteForm from '../../../../components/venta/ClienteForm';
 import BuscadorProductos from '../../../../components/venta/BuscadorProductos';
 import CarritoPanel from '../../../../components/venta/CarritoPanel';
 import TicketPrinter, { TicketPrinterHandle } from '../../../../components/venta/TicketPrinter';
-import { CartItem, Pack, PackProduct, Producto } from '../../../../hooks/useCarrito';
+import { Pack, PackProduct, Producto } from '../../../../hooks/useCarrito';
 import { supabase } from '../../../../lib/SupabaseClient';
 import { showToast } from '../../../../components/ui/Toast';
 
@@ -40,13 +40,11 @@ export default function NuevaVenta() {
   const {
     carrito,
     agregar,
-    agregarPack,
     quitar,
     cambiarCantidad,
     subtotal,
     totalDescuento,
     total,
-    loadingPacks,
     setCarrito,
     stockWarning,
     clearStockWarning
@@ -56,7 +54,6 @@ export default function NuevaVenta() {
     productos,
     imagenes,
     searchResults,
-    loading,
     searchLoading,
     fetchProductos,
     searchProductos
@@ -383,6 +380,10 @@ export default function NuevaVenta() {
         descuento: Number(totalDescuento) || 0
       };
 
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id || null;
+      const userEmail = sessionData?.session?.user?.email || null;
+
       const { data: venta, error: ventaError } = await ventasService.crearVenta({
         cliente_nombre: cliente.nombre,
         cliente_telefono: cliente.telefono,
@@ -393,6 +394,8 @@ export default function NuevaVenta() {
         total: totalCobrar,
         pago,
         cambio,
+        usuario_id: userId,
+        usuario_email: userEmail,
         descuentos: totalDescuento,
         costos_extra
       });
@@ -452,7 +455,7 @@ export default function NuevaVenta() {
       await registrarIngresoEnCaja(venta);
 
       // snapshot ticket y imprimir
-      const ticket = {
+      const _ticket = {
         venta,
         items: carrito.map((it: Producto) => ({ ...it })),
         fecha: new Date().toLocaleString(),

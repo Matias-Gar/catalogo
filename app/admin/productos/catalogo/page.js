@@ -514,7 +514,6 @@ export default function CatalogoPage() {
                 const imageCount = productImages.length;
                 const useSplit8020 = imageCount >= 6;
                 const isSingleImage = productImages.length === 1;
-                const compactColumns = Math.min(imageCount, 5);
                 const useVerticalCard = isCompactLayout || !useSplit8020;
                 return (
               <div

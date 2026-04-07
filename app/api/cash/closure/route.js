@@ -15,7 +15,8 @@ export async function POST(request) {
       ...body,
       user_id: loggedUserId,
     });
-    return NextResponse.json({ success: true, data: result }, { status: 201 });
+    const status = result?.updated ? 200 : 201;
+    return NextResponse.json({ success: true, data: result }, { status });
   } catch (error) {
     const status = Number(error?.statusCode || 400);
     return NextResponse.json(

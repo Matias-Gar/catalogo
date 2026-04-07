@@ -20,7 +20,7 @@ interface ClienteFormProps {
   onBuscarEmailHistorico: () => void;
 }
 
-export default function ClienteForm({ cliente, onChange, onBuscar, onGuardar, onBuscarEmailHistorico }: ClienteFormProps) {
+export default function ClienteForm({ cliente, onChange, onBuscar, onGuardar, onBuscarEmailHistorico: _onBuscarEmailHistorico }: ClienteFormProps) {
   const canSaveClient = Boolean(String(cliente.nombre || '').trim()) && Boolean(String(cliente.telefono || '').trim());
 
   return (

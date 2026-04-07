@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Catalogo
 
-## Getting Started
+Aplicacion Next.js para gestion de catalogo, ventas y operaciones administrativas.
 
-First, run the development server:
+Este repositorio esta organizado para mantener estabilidad funcional y visual, con foco en mantenibilidad y auditoria tecnica.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Stack
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Next.js App Router
+- React 19
+- TypeScript (modo estricto)
+- Supabase (datos, auth y storage)
+- Tailwind CSS
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev`: desarrollo local
+- `npm run build`: build de produccion
+- `npm run start`: ejecutar build
+- `npm run lint`: analisis estatico ESLint
+- `npm run lint:fix`: aplicar fixes automaticos ESLint
+- `npm run typecheck`: chequeo de tipos TypeScript
+- `npm run quality`: control de calidad base (typecheck + lint)
 
-## Learn More
+## Estructura
 
-To learn more about Next.js, take a look at the following resources:
+- `app/`: paginas, layouts y API routes (App Router)
+- `components/`: componentes UI y de dominio
+- `hooks/`: hooks reutilizables
+- `lib/`: utilidades, servicios y clientes compartidos
+- `services/`: logica de servicios de negocio
+- `types/`: declaraciones y tipos globales
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Criterios De Calidad
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- No cambiar comportamiento funcional durante refactors tecnicos.
+- No cambiar presentacion visual durante limpieza interna.
+- Priorizar eliminacion de deuda de bajo riesgo: imports/variables no usadas, consistencia y reglas.
+- Mantener cambios pequenos, trazables y revisables por terceros.
 
-## Deploy on Vercel
+## Flujo De Auditoria Recomendado
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Ejecutar `npm run quality`.
+2. Revisar warnings nuevos o regresiones.
+3. Validar rutas criticas manualmente (ventas, productos, pagos, whatsapp).
+4. Revisar cambios con foco en seguridad y consistencia.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notas De Proyecto
+
+- Algunas pantallas usan `<img>` intencionalmente por URLs dinamicas y control fino de rendering.
+- Para mitigar riesgos de cambios visuales, se prioriza refactor interno sin alterar marcado funcional.
+- Ver documentos en `docs/` para estandares y checklist de revision.
