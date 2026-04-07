@@ -499,7 +499,7 @@ export default function Home() {
                       loading="lazy"
                       decoding="async"
                       alt={p.nombre}
-                      className="w-full h-48 object-contain rounded-xl bg-gray-50 group-hover:opacity-80 transition"
+                      className="w-full h-full object-contain rounded-xl bg-gray-50 group-hover:opacity-80 transition"
                       onClick={() => openImageModal(imagenesProductos[p.user_id], 0, p.nombre)}
                     />
                   ) : (

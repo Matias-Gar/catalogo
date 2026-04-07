@@ -37,7 +37,7 @@ export default function StoreFooter() {
 
   return (
     <footer className="border-t border-slate-200 bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 text-center sm:text-left">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 text-center items-center">
         <div className="text-lg font-black tracking-wide">{storeSettings?.store_name || 'Mi Tienda Online'}</div>
         {storeSettings?.store_info ? (
           <p className="max-w-3xl text-sm leading-6 text-slate-300">{storeSettings.store_info}</p>
