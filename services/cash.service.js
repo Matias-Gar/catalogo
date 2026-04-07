@@ -392,6 +392,7 @@ export async function getCashSummary(supabase, params) {
     type: row.type,
     payment_method: row.payment_method,
     amount: Number(row.amount || 0),
+    user_id: row.user_id || null,
     description: row.description || "Movimiento manual",
   }));
 
@@ -404,6 +405,7 @@ export async function getCashSummary(supabase, params) {
     type: row.type,
     payment_method: row.payment_method,
     amount: Number(row.amount || 0),
+    user_id: row.user_id || null,
     description: row.description || "Ingreso por venta (fallback)",
   }));
 
@@ -418,6 +420,7 @@ export async function getCashSummary(supabase, params) {
       type: "income",
       payment_method: method,
       amount: Number(sale?.total || 0),
+      user_id: sale?.usuario_id || null,
       description: `Ingreso por venta #${sale.id}`,
     };
   });
@@ -573,7 +576,6 @@ export async function createCashClosure(supabase, payload) {
   const summary = await getCashSummary(supabase, {
     start_date: startDate,
     end_date: endDate,
-    user_id: userId,
     cashbox_id: cashboxId,
     opening_balance: payload?.opening_balance,
     opening_qr: payload?.opening_qr,
@@ -599,10 +601,6 @@ export async function createCashClosure(supabase, payload) {
     .eq("end_date", endDate)
     .eq("cashbox_id", cashboxId)
     .limit(1);
-
-  if (userId) {
-    existingQuery = existingQuery.eq("user_id", userId);
-  }
 
   const { data: existing, error: existingError } = await existingQuery;
   if (existingError) {

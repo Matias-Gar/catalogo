@@ -50,6 +50,13 @@ function formatBs(value) {
   return `Bs ${Number(value || 0).toFixed(2)}`;
 }
 
+function formatActor(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "Sistema";
+  if (raw.length <= 10) return raw;
+  return `${raw.slice(0, 8)}...`;
+}
+
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -984,6 +991,7 @@ export default function FlujoCajaPage() {
                     <th className="py-2">Fecha</th>
                     <th className="py-2">Tipo</th>
                     <th className="py-2">Metodo</th>
+                    <th className="py-2">Usuario</th>
                     <th className="py-2">Descripcion</th>
                     <th className="py-2 text-right">Monto</th>
                     <th className="py-2 text-center">Acciones</th>
@@ -1000,6 +1008,7 @@ export default function FlujoCajaPage() {
                           {isIncome ? "Ingreso" : "Egreso"}
                         </td>
                         <td className="py-2">{methodLabel}</td>
+                        <td className="py-2" title={movement.user_id || "Sistema"}>{formatActor(movement.user_id)}</td>
                         <td className="py-2">{movement.description || "-"}</td>
                         <td className={`py-2 text-right font-bold ${isIncome ? "text-emerald-700" : "text-rose-700"}`}>
                           {isIncome ? "+" : "-"}{formatBs(movement.amount)}
@@ -1080,6 +1089,7 @@ export default function FlujoCajaPage() {
                     <th className="py-2">Creado</th>
                     <th className="py-2">Fecha operativa</th>
                     <th className="py-2">Origen</th>
+                    <th className="py-2">Usuario</th>
                     <th className="py-2">Tipo</th>
                     <th className="py-2">Metodo</th>
                     <th className="py-2">Descripcion</th>
@@ -1100,6 +1110,7 @@ export default function FlujoCajaPage() {
                         <td className="py-2">{movement.created_at ? new Date(movement.created_at).toLocaleString("es-BO") : "-"}</td>
                         <td className="py-2">{movement.date ? new Date(movement.date).toLocaleString("es-BO") : "-"}</td>
                         <td className="py-2">{sourceLabel}</td>
+                        <td className="py-2" title={movement.user_id || "Sistema"}>{formatActor(movement.user_id)}</td>
                         <td className={`py-2 font-semibold ${isIncome ? "text-emerald-700" : "text-rose-700"}`}>
                           {isIncome ? "Ingreso" : "Egreso"}
                         </td>
@@ -1134,6 +1145,7 @@ export default function FlujoCajaPage() {
                 <thead>
                   <tr className="border-b border-slate-200 text-left text-slate-500">
                     <th className="py-2">Rango</th>
+                    <th className="py-2">Usuario</th>
                     <th className="py-2">Apertura</th>
                     <th className="py-2">Esperado</th>
                     <th className="py-2">Real</th>
@@ -1145,6 +1157,7 @@ export default function FlujoCajaPage() {
                   {closures.map((closure) => (
                     <tr key={closure.id} className="border-b border-slate-100 text-slate-700">
                       <td className="py-2">{closure.start_date} - {closure.end_date}</td>
+                      <td className="py-2" title={closure.user_id || "Sistema"}>{formatActor(closure.user_id)}</td>
                       <td className="py-2">{formatBs(closure.opening_balance)}</td>
                       <td className="py-2">{formatBs(closure.expected_cash)}</td>
                       <td className="py-2">{formatBs(closure.real_cash)}</td>

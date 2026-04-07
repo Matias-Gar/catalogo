@@ -15,7 +15,6 @@ export async function GET(request) {
       start_date: searchParams.get("start_date"),
       end_date: searchParams.get("end_date"),
       limit: searchParams.get("limit"),
-      user_id: loggedUserId,
       cashbox_id: searchParams.get("cashbox_id") || "main",
     });
 

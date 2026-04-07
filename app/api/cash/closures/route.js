@@ -15,7 +15,6 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const closures = await listCashClosures(getSupabaseServerClientFromRequest(request), {
       limit: searchParams.get("limit"),
-      user_id: loggedUserId,
       cashbox_id: searchParams.get("cashbox_id") || "main",
     });
 
