@@ -492,16 +492,30 @@ export default function Home() {
               <div key={p.user_id} className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center">
                 <div className="w-full h-64 flex items-center justify-center mb-2 cursor-pointer relative group">
                   {imagenesProductos[p.user_id] && imagenesProductos[p.user_id].length > 0 ? (
-                    <img
-                      src={getOptimizedImageUrl(imagenesProductos[p.user_id][0], 800, { quality: 96, format: 'origin' })}
-                      srcSet={buildImageSrcSet(imagenesProductos[p.user_id][0], [400, 800, 1200], { quality: 96, format: 'origin' })}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
-                      loading="lazy"
-                      decoding="async"
-                      alt={p.nombre}
-                      className="w-full h-full object-contain rounded-xl bg-gray-50 group-hover:opacity-80 transition"
-                      onClick={() => openImageModal(imagenesProductos[p.user_id], 0, p.nombre)}
-                    />
+                    <>
+                      <img
+                        src={getOptimizedImageUrl(imagenesProductos[p.user_id][0], 800, { quality: 96, format: 'origin' })}
+                        srcSet={buildImageSrcSet(imagenesProductos[p.user_id][0], [400, 800, 1200], { quality: 96, format: 'origin' })}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+                        loading="lazy"
+                        decoding="async"
+                        alt={p.nombre}
+                        className="w-full h-full object-contain rounded-xl bg-gray-50 group-hover:opacity-80 transition"
+                        onClick={() => openImageModal(imagenesProductos[p.user_id], 0, p.nombre)}
+                      />
+                      {imagenesProductos[p.user_id].length > 1 && (
+                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                          {imagenesProductos[p.user_id].map((img, idx2) => (
+                            <button
+                              key={img + '-' + idx2}
+                              className={`w-2.5 h-2.5 rounded-full border-2 ${idx2 === 0 ? 'bg-green-600 border-green-700' : 'bg-white border-gray-400'} focus:outline-none`}
+                              title={`Ver imagen ${idx2 + 1}`}
+                              onClick={e => { e.stopPropagation(); openImageModal(imagenesProductos[p.user_id], idx2, p.nombre); }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <img
                       src="https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen"
