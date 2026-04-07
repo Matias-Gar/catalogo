@@ -490,7 +490,7 @@ export default function Home() {
           {productosFiltrados.map((p) => {
             return (
               <div key={p.user_id} className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center">
-                <div className="w-full h-32 sm:h-48 flex items-center justify-center mb-2 cursor-pointer relative group">
+                <div className="w-full h-48 flex items-center justify-center mb-2 cursor-pointer relative group">
                   {imagenesProductos[p.user_id] && imagenesProductos[p.user_id].length > 0 ? (
                     <img
                       src={getOptimizedImageUrl(imagenesProductos[p.user_id][0], 800, { quality: 96, format: 'origin' })}
