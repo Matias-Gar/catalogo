@@ -10,13 +10,15 @@ export default function FacebookPixel() {
   useEffect(() => {
     // Solo cargar si tenemos el píxel configurado
     const pixelId = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
-    if (!pixelId) return;
+    if (!pixelId || typeof pixelId !== 'string' || pixelId.trim() === '') return;
 
     // Función fbq global
     if (typeof window !== 'undefined') {
-      window.fbq = window.fbq || function() {
-        (window.fbq.q = window.fbq.q || []).push(arguments);
-      };
+      if (!window.fbq) {
+        window.fbq = function() {
+          (window.fbq.q = window.fbq.q || []).push(arguments);
+        };
+      }
 
       // Script del píxel
       if (!document.getElementById('facebook-pixel')) {
@@ -26,16 +28,24 @@ export default function FacebookPixel() {
         script.src = 'https://connect.facebook.net/en_US/fbevents.js';
         document.head.appendChild(script);
 
-        // Inicializar píxel
-        window.fbq('init', pixelId);
-        window.fbq('track', 'PageView');
+        // Inicializar píxel solo si pixelId es válido
+        if (pixelId && typeof window.fbq === 'function') {
+          window.fbq('init', pixelId);
+          window.fbq('track', 'PageView');
+        }
       }
     }
   }, []);
 
   // Track de cambios de página
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.fbq) {
+    const pixelId = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.fbq === 'function' &&
+      pixelId &&
+      pixelId.trim() !== ''
+    ) {
       window.fbq('track', 'PageView');
     }
   }, [pathname]);
@@ -45,13 +55,15 @@ export default function FacebookPixel() {
     <>
       {/* Facebook Pixel - No Script */}
       <noscript>
-        <img 
-          height="1" 
-          width="1" 
-          style={{ display: 'none' }}
-          src={`https://www.facebook.com/tr?id=${process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID}&ev=PageView&noscript=1`}
-          alt=""
-        />
+        {process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID ? (
+          <img
+            height="1"
+            width="1"
+            style={{ display: 'none' }}
+            src={`https://www.facebook.com/tr?id=${process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID}&ev=PageView&noscript=1`}
+            alt=""
+          />
+        ) : null}
       </noscript>
     </>
   );

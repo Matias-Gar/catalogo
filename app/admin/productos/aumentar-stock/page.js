@@ -39,14 +39,8 @@ export default function AumentarStockPage() {
         existing.addEventListener("error", () => reject(new Error("No se pudo cargar QZ Tray.")));
         return;
       }
-
-      const script = document.createElement("script");
-      script.id = "qz-tray-script";
-      script.src = "https://cdn.jsdelivr.net/npm/qz-tray@2.2.5/qz-tray.js";
-      script.async = true;
-      script.onload = () => resolve(window.qz);
-      script.onerror = () => reject(new Error("No se pudo cargar QZ Tray."));
-      document.head.appendChild(script);
+      // Ya no se carga por CDN, solo se usa window.qz global
+      reject(new Error("QZ Tray no está disponible"));
     });
 
   const ensureQzConnection = async () => {

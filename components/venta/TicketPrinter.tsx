@@ -1,5 +1,11 @@
 "use client";
-import React, { useImperativeHandle, forwardRef, useRef } from 'react';
+// TypeScript: Add qz to window
+declare global {
+  interface Window {
+    qz?: any;
+  }
+}
+import React, { useImperativeHandle, forwardRef, useRef, useState } from 'react';
 import jsPDF from 'jspdf';
 import { CONFIG } from '../../lib/config';
 import { fetchStoreSettings } from '../../lib/storeSettings';
@@ -48,21 +54,6 @@ interface TicketSnapshot {
   cambio?: number;
 }
 
-declare global {
-  interface Window {
-    qz?: {
-      api?: {
-        configs: {
-          create: (printerName: string) => unknown;
-        };
-      };
-      configs?: {
-        create: (printerName: string) => unknown;
-      };
-      print?: (config: unknown, data: string[] | unknown[]) => Promise<void>;
-    };
-  }
-}
 
 interface TicketPrinterProps {
   carrito: TicketItem[];
@@ -122,6 +113,12 @@ function calcularItem(item: TicketItem) {
 
 const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props, ref) => {
   const ticketRef = useRef<HTMLDivElement>(null);
+  // QZ Tray deshabilitado en esta vista
+  // const [qzStatus, setQzStatus] = useState<'checking'|'ok'|'fail'>('checking');
+  // const [printers, setPrinters] = useState<string[]>([]);
+
+
+  // QZ Tray deshabilitado completamente en esta vista
 
   async function getReceiptBranding() {
     const cfg = CONFIG as unknown as {
@@ -356,8 +353,9 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
   }
 
   async function printComprobanteThermal(ticketSnapshot: TicketSnapshot) {
-    if (!window.qz || !window.qz.api) {
-      console.warn('qz-tray no está disponible; se usará impresión estándar');
+    // Chequeo robusto de QZ Tray 2.2.6
+    if (!window.qz || !window.qz.websocket || !window.qz.configs || !window.qz.print) {
+      console.warn('qz-tray no está disponible o la API es incorrecta; se usará impresión estándar');
       return false;
     }
     try {
@@ -365,49 +363,86 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
       const lines: string[] = [];
       lines.push('\x1b@'); // init escpos
       lines.push('\x1b!\x00');
-      const append = (text: string) => { lines.push(text + '\n'); };
-      append('COMPROBANTE TIENDA');
-      append(String(branding.storeName || 'Tienda'));
-      if (branding.businessAddress) append(branding.businessAddress);
-      if (branding.whatsappDisplay) append(`WhatsApp: ${branding.whatsappDisplay}`);
-      if (branding.businessNit) append(`NIT: ${branding.businessNit}`);
-      append('');
-      append(`Fecha: ${ticketSnapshot?.fecha || new Date().toLocaleString()}`);
-      append(`Cliente: ${ticketSnapshot?.cliente_nombre || '-'}`);
-      if (ticketSnapshot?.cliente_nit) append(`NIT/CI: ${ticketSnapshot.cliente_nit}`);
-      append(`Método: ${ticketSnapshot?.modo_pago || '-'}`);
-      append('--------------------------------');
+      // Centrado
+      lines.push('\x1b\x61\x01');
+      lines.push('================================');
+      lines.push('      COMPROBANTE DE VENTA      ');
+      lines.push((branding.storeName || 'Tienda').toUpperCase());
+      if (branding.businessAddress) lines.push(branding.businessAddress);
+      if (branding.whatsappDisplay) lines.push(`WhatsApp: ${branding.whatsappDisplay}`);
+      if (branding.businessNit) lines.push(`NIT: ${branding.businessNit}`);
+      lines.push('================================');
+      lines.push('');
+      // Izquierda
+      lines.push('\x1b\x61\x00');
+      lines.push(`Fecha:    ${ticketSnapshot?.fecha || new Date().toLocaleString()}`);
+      lines.push(`Cliente:  ${ticketSnapshot?.cliente_nombre || '-'}`);
+      if (ticketSnapshot?.cliente_nit) lines.push(`NIT/CI:   ${ticketSnapshot.cliente_nit}`);
+      lines.push(`Método:   ${ticketSnapshot?.modo_pago || '-'}`);
+      lines.push('--------------------------------');
+      // Encabezado de productos
+      lines.push('Cant  Detalle                   Bs');
+      lines.push('--------------------------------');
       for (const item of ticketSnapshot?.items || []) {
         const cantidad = item.cantidad || item.cant || 1;
-        const nombre = item.nombre || item.producto_nombre || 'Producto';
+        let nombre = item.nombre || item.producto_nombre || 'Producto';
+        if (item.color) nombre += ` (${item.color})`;
         const itemCalc = calcularItem(item);
-
         const precioFinal = itemCalc.precioFinal.toFixed(2);
-        const precioOriginal = itemCalc.precioOriginal.toFixed(2);
-        const descuentoItem = itemCalc.descuento;
-        const promocion = item.promocion || item.promocion_aplicada;
-
-        append(`${cantidad}x ${nombre}${item.color ? ` (${item.color})` : ''}  Bs ${precioFinal}`);
-
-        if (descuentoItem > 0 || promocion) {
-          append(`   PROMO: ${promocion?.descripcion || 'Descuento'} - Bs ${descuentoItem.toFixed(2)}`);
-          append(`   ANTES: Bs ${precioOriginal}`);
+        // Ajusta el ancho para que no se corte el nombre
+        let detalle = `${cantidad}`.padEnd(5) + nombre.padEnd(25).substring(0,25) + precioFinal.padStart(7);
+        lines.push(detalle);
+        if (itemCalc.descuento > 0) {
+          lines.push(`  PROMO: ${(item.promocion?.descripcion || 'Descuento').substring(0,18)} -${itemCalc.descuento.toFixed(2)}`);
+          lines.push(`  ANTES: ${itemCalc.precioOriginal.toFixed(2)}`);
         }
       }
-      append('--------------------------------');
-      append(`SUBTOTAL: Bs ${Number(ticketSnapshot?.subtotal || ticketSnapshot?.total || 0).toFixed(2)}`);
-      if (ticketSnapshot?.descuento) append(`Descuento: Bs ${Number(ticketSnapshot.descuento).toFixed(2)}`);
-      if (Number(ticketSnapshot?.envio || 0) > 0) append(`Envio: +Bs ${Number(ticketSnapshot?.envio || 0).toFixed(2)}`);
-      if (Number(ticketSnapshot?.comision || 0) > 0) append(`Comision: +Bs ${Number(ticketSnapshot?.comision || 0).toFixed(2)}`);
-      if (Number(ticketSnapshot?.publicidad || 0) > 0) append(`Publicidad: -Bs ${Number(ticketSnapshot?.publicidad || 0).toFixed(2)}`);
-      if (Number(ticketSnapshot?.rebajas || 0) > 0) append(`Rebajas: -Bs ${Number(ticketSnapshot?.rebajas || 0).toFixed(2)}`);
-      if (Number(ticketSnapshot?.impuestos || 0) > 0) append(`IVA+IT (16%): +Bs ${Number(ticketSnapshot?.impuestos || 0).toFixed(2)}`);
-      append(`TOTAL: Bs ${Number(ticketSnapshot?.total || 0).toFixed(2)}`);
-      if (ticketSnapshot?.pago !== undefined) append(`Pago: Bs ${Number(ticketSnapshot.pago || 0).toFixed(2)}`);
-      append(`Cambio: Bs ${Number(ticketSnapshot?.cambio || 0).toFixed(2)}`);
-      append('');
-      append('¡Gracias por su compra!');
-      lines.push('\x1dV\x00'); // corte
+      if (!ticketSnapshot?.items || ticketSnapshot.items.length === 0) {
+        lines.push('Sin items para imprimir');
+      }
+      lines.push('--------------------------------');
+      // Totales alineados y destacados
+      const total = Number(ticketSnapshot?.total || 0);
+      const subtotal = Number(ticketSnapshot?.subtotal || total);
+      const descuento = Number(ticketSnapshot?.descuento || 0);
+      const envio = Number(ticketSnapshot?.envio || 0);
+      const comision = Number(ticketSnapshot?.comision || 0);
+      const publicidad = Number(ticketSnapshot?.publicidad || 0);
+      const rebajas = Number(ticketSnapshot?.rebajas || 0);
+      const impuestos = Number(ticketSnapshot?.impuestos || 0);
+      const pago = Number(ticketSnapshot?.pago || 0);
+      const cambio = Number(ticketSnapshot?.cambio || 0);
+      lines.push('');
+      lines.push('         RESUMEN DE PAGO        ');
+      lines.push('--------------------------------');
+      lines.push(`SUBTOTAL:           Bs ${subtotal.toFixed(2)}`);
+      if (descuento > 0) lines.push(`DESCUENTO:        -Bs ${descuento.toFixed(2)}`);
+      if (envio > 0) lines.push(`ENVÍO:            +Bs ${envio.toFixed(2)}`);
+      if (comision > 0) lines.push(`COMISIÓN:         +Bs ${comision.toFixed(2)}`);
+      if (publicidad > 0) lines.push(`PUBLICIDAD:       -Bs ${publicidad.toFixed(2)}`);
+      if (rebajas > 0) lines.push(`REBAJAS:          -Bs ${rebajas.toFixed(2)}`);
+      if (impuestos > 0) lines.push(`IVA+IT (16%):     +Bs ${impuestos.toFixed(2)}`);
+      lines.push('--------------------------------');
+      lines.push(`TOTAL:              Bs ${total.toFixed(2)}`);
+      lines.push(`PAGO:               Bs ${pago.toFixed(2)}`);
+      lines.push(`CAMBIO:             Bs ${cambio.toFixed(2)}`);
+      lines.push('');
+      // Centrado
+      lines.push('\x1b\x61\x01');
+      lines.push('¡GRACIAS POR SU COMPRA!');
+      lines.push('');
+      // Varias líneas en blanco antes del corte
+      lines.push('');
+      lines.push('');
+      lines.push('');
+      // Corte total y parcial (probar ambos)
+      lines.push('\x1dV\x00'); // corte total
+      lines.push('\x1dV\x01'); // corte parcial
+      // Comando apertura de caja (solo comprobante)
+      // \x1b\x70\x00\x19\xFA es el típico para la mayoría de térmicas
+      lines.push('\x1bp\x00\x19\xFA');
+      // Volver a izquierda
+      lines.push('\x1b\x61\x00');
       const qzApi = window.qz;
       const config = qzApi?.configs?.create('POS-80C');
       if (!config || !qzApi?.print) {
@@ -457,9 +492,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
         };
     props.setUltimoTicket(ticket);
     try {
-      const thermalOk = await printComprobanteThermal(ticket);
-      if (thermalOk) return;
-
+      // Solo imprimir usando HTML/PDF, sin QZ Tray térmica en esta opción
       const pdfOk = await printTicketAsPDF(ticket);
       if (pdfOk) return;
       // fallback: imprimir el HTML generado (sin PDF) usando iframe invisible
@@ -520,7 +553,12 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
 
   useImperativeHandle(ref, () => ({ printComprobante }));
 
-  return <div id="ticket-print" ref={ticketRef} className="hidden print:block" />;
+  return (
+    <>
+      {/* QZ Tray oculto/deshabilitado en esta vista */}
+      <div id="ticket-print" ref={ticketRef} className="hidden print:block" />
+    </>
+  );
 });
 
 TicketPrinter.displayName = 'TicketPrinter';

@@ -7,6 +7,20 @@ import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from "../../../../lib/stor
 import { Toast, showToast } from "../../../../components/ui/Toast";
 
 export default function StockPage() {
+    // --- Mover funciones dependientes arriba para evitar ReferenceError ---
+    const getStockMinimo = useCallback((prod) => {
+      return Number(prod?.stock_minimo ?? CONFIG.INVENTARIO.STOCK_MINIMO_ALERTA ?? 3);
+    }, []);
+
+    const getStockState = useCallback((prod) => {
+      const stock = Number(prod?.stock || 0);
+      const stockMinimo = getStockMinimo(prod);
+      if (stock <= 0) return "sin-stock";
+      if (stock <= Math.min(stockMinimo, 2)) return "critico";
+      if (stock <= stockMinimo) return "bajo";
+      return "normal";
+    }, [getStockMinimo]);
+
   const PAGE_SIZE = 30;
   const [productos, setProductos] = useState([]);
   const [variantesByProducto, setVariantesByProducto] = useState({});
@@ -521,18 +535,6 @@ export default function StockPage() {
     }
   }
 
-  const getStockMinimo = useCallback((prod) => {
-    return Number(prod?.stock_minimo ?? CONFIG.INVENTARIO.STOCK_MINIMO_ALERTA ?? 3);
-  }, []);
-
-  const getStockState = useCallback((prod) => {
-    const stock = Number(prod?.stock || 0);
-    const stockMinimo = getStockMinimo(prod);
-    if (stock <= 0) return "sin-stock";
-    if (stock <= Math.min(stockMinimo, 2)) return "critico";
-    if (stock <= stockMinimo) return "bajo";
-    return "normal";
-  }, [getStockMinimo]);
 
   function getStockColor(prod) {
     const state = getStockState(prod);

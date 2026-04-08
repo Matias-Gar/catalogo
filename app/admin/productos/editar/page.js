@@ -280,11 +280,18 @@ export default function EditarCatalogo() {
     const updatedList = (imagenes[prodId] || []).filter((i) => i.id !== imgObj.id);
     setImagenes((prev) => ({ ...prev, [prodId]: updatedList }));
 
+    // Si la imagen eliminada era la principal, seleccionar la siguiente como principal
     if (String(previousPrimaryId ?? "") === String(imgObj.id)) {
       const fallback = updatedList[0] || null;
       setEditDataField(prodId, "primaryImageId", fallback?.id ?? null);
       setEditDataField(prodId, "primaryImageUrl", fallback?.imagen_url ?? null);
     }
+  };
+
+  // Seleccionar imagen principal
+  const handleSetPrimaryImage = (prodId, imgObj) => {
+    setEditDataField(prodId, "primaryImageId", imgObj.id);
+    setEditDataField(prodId, "primaryImageUrl", imgObj.imagen_url);
   };
 
   // Reemplazar imagen seleccionada
@@ -527,22 +534,47 @@ export default function EditarCatalogo() {
       const selectedByUrl = (finalImages || []).find(
         (img) => String(img.imagen_url || "") === String(cambios.primaryImageUrl || "")
       );
-      const finalPrimaryImage = selectedById || selectedByUrl || (finalImages || [])[0] || null;
 
-      if (finalPrimaryImage) {
-        let principalQuery = supabase
+      // Toma exactamente la imagen seleccionada como principal, sin fallback
+      let primaryImageUrlToPersist = null;
+      if (cambios.primaryImageId) {
+        const imgObj = (finalImages || []).find(img => String(img.id) === String(cambios.primaryImageId));
+        if (imgObj) primaryImageUrlToPersist = imgObj.imagen_url;
+      } else if (cambios.primaryImageUrl) {
+        primaryImageUrlToPersist = cambios.primaryImageUrl;
+      }
+      if (primaryImageUrlToPersist) {
+        // Actualiza el campo imagen_url del producto en la base de datos
+        const { error: updateImgError, data: updateImgData } = await supabase
           .from("productos")
-          .update({ imagen_url: finalPrimaryImage.imagen_url });
-        if (productoActual?.id !== undefined && productoActual?.id !== null) {
-          principalQuery = principalQuery.eq("id", productoActual.id);
-        } else {
-          principalQuery = principalQuery.eq("user_id", prodId);
+          .update({ imagen_url: primaryImageUrlToPersist })
+          .eq("user_id", productoActual?.user_id ?? prodId)
+          .select();
+        if (updateImgError) {
+          showToast(`Error actualizando imagen principal: ${updateImgError.message}`, "error");
+          throw updateImgError;
         }
-        const { error: principalError } = await principalQuery;
-        if (principalError) throw principalError;
+
+        // Asegura que la imagen principal esté en producto_imagenes
+        const exists = (finalImages || []).some(img => img.imagen_url === primaryImageUrlToPersist);
+        if (!exists) {
+          const { error: insertImgError } = await supabase
+            .from("producto_imagenes")
+            .insert({ producto_id: prodId, imagen_url: primaryImageUrlToPersist });
+          if (insertImgError) {
+            showToast(`Error insertando imagen principal: ${insertImgError.message}`, "error");
+            throw insertImgError;
+          }
+        }
       }
 
       showToast("Producto actualizado con éxito!");
+      // Refresca la página actual de edición para mostrar los cambios, sin redirigir a la página de añadir
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.location.reload();
+        }, 900); // Da tiempo a mostrar el toast
+      }
 
       // Refrescar productos desde DB
       const { data: prods } = await supabase

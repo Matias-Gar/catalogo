@@ -27,8 +27,9 @@ export default function ProductCard({
   const imageFromProducto = imagesArr.find(
     (img) => String(img.imagen_url || "") === String(prod.imagen_url || "")
   );
-  const fallbackPrimaryImageId = imageFromProducto?.id ?? imagesArr[0]?.id ?? null;
-  const selectedPrimaryImageId = editData.primaryImageId ?? fallbackPrimaryImageId;
+  // Siempre comparar ids como string para evitar problemas de tipo
+  const fallbackPrimaryImageId = imageFromProducto?.id ? String(imageFromProducto.id) : (imagesArr[0]?.id ? String(imagesArr[0].id) : null);
+  const selectedPrimaryImageId = editData.primaryImageId ? String(editData.primaryImageId) : fallbackPrimaryImageId;
   const selectedPrimaryImage =
     imagesArr.find((img) => String(img.id) === String(selectedPrimaryImageId)) ??
     imagesArr[0] ??

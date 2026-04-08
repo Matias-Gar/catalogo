@@ -13,68 +13,119 @@ import { getOptimizedImageUrl } from '../../lib/imageOptimization';
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from '../../lib/storeSettings';
 
 export default function CatalogoPage() {
-    // --- Estados ---
-    const [cart, setCart] = useState([]);
+    const [modalImg, setModalImg] = useState(null);
+    const [addToCartModal, setAddToCartModal] = useState(null);
     const [showCart, setShowCart] = useState(false);
-    const [showConfirmOrder, setShowConfirmOrder] = useState(false); // Nuevo estado para confirmación
-    const [productos, setProductos] = useState([]);
-    const [imagenesProductos, setImagenesProductos] = useState({});
-    const [categorias, setCategorias] = useState([]);
-    const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
-    const [customerData, setCustomerData] = useState({ nombre: '', nit_ci: '' }); // Datos del cliente
-    // Estado para modal de imagen
-    const [modalImg, setModalImg] = useState(null); // { urls: string[], index: number, nombre: string }
-    const [addToCartModal, setAddToCartModal] = useState(null); // { producto, variantes, selectedVarianteId, cantidad }
-    const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
-
-    // Usar el hook para promociones
+    const [showConfirmOrder, setShowConfirmOrder] = useState(false);
+    const [customerData, setCustomerData] = useState({ nombre: '', nit_ci: '' });
+    // --- Declarar promociones usando el hook personalizado ---
     const { promociones } = usePromociones();
-    
-    // Usar el hook para packs
-    const { packs, loading: loadingPacks } = usePacks();
-    
-    // 📊 Hook para Facebook Pixel tracking
-    const { trackAddToCart, trackPurchase } = useFacebookPixel();
+                                const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
+                                const [imagenesProductos, setImagenesProductos] = useState({});
+                            const [productos, setProductos] = useState([]);
+                        const { packs, loading: loadingPacks } = usePacks();
+                    const [categorias, setCategorias] = useState([]);
+                const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
+            const [cart, setCart] = useState([]);
+        const [usuario, setUsuario] = useState(null);
+    // --- Refactor: función de fetch fuera del useEffect para poder reutilizarla ---
+    const fetchProductosYCategoriasYImagenes = async () => {
+        // Traer productos directamente de la tabla productos
+        const { data: productosData, error: productosError } = await supabase
+            .from('productos')
+            .select('user_id, nombre, descripcion, precio, imagen_url, category_id, categoria, stock, codigo_barra');
+        if (productosError || !productosData) {
+            setProductos([]);
+            setImagenesProductos({});
+            return;
+        }
+        const normalizedProducts = productosData.map((p) => ({
+            ...p,
+            user_id: p.user_id,
+            precio: Number(p.precio || 0),
+            stock: Number(p.stock || 0),
+            variantes: [], // Si necesitas variantes, ajusta aquí
+            imagen_url: p.imagen_url || null
+        }));
+        setProductos(normalizedProducts);
 
-    // --- Efectos (Hooks) ---
-    // Detectar usuario logeado
-    const [usuario, setUsuario] = useState(null);
+        // Traer categorías
+        const { data: categoriasData, error: categoriasError } = await supabase
+            .from('categorias')
+            .select('*');
+        if (!categoriasError && categoriasData) {
+            setCategorias(categoriasData);
+        }
+
+        // Traer imágenes asociadas
+        const { data: imagenesData, error: imagenesError } = await supabase
+            .from('producto_imagenes')
+            .select('producto_id, imagen_url');
+        if (imagenesError || !imagenesData) {
+            setImagenesProductos({});
+            return;
+        }
+        // Agrupar imágenes por producto_id (usar tipo number para coincidir con producto.user_id)
+        const imgs = {};
+        imagenesData.forEach(img => {
+            const key = Number(img.producto_id);
+            if (!imgs[key]) imgs[key] = [];
+            imgs[key].push(img.imagen_url);
+        });
+        setImagenesProductos(imgs);
+    };
+
+    useEffect(() => {
+        fetchProductosYCategoriasYImagenes();
+    }, []);
+
+    // --- Recarga productos e imágenes al volver a la pestaña ---
+    useEffect(() => {
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') {
+                fetchProductosYCategoriasYImagenes();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibility);
+        };
+    }, []);
+
+    // Obtener usuario y perfil
     useEffect(() => {
         const getUser = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session && session.user) {
-                console.log('🔍 Usuario logueado:', session.user.email, 'ID:', session.user.id);
-                
-                // Buscar datos completos del perfil con mejor manejo de errores
-                let nombre = session.user.email;
-                let nit_ci = '';
-                
-                try {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session && session.user) {
+                    let nombre = session.user.email;
+                    let nit_ci = '';
                     const { data: perfil, error } = await supabase
-                      .from('perfiles')
-                      .select('nombre, nit_ci')
-                      .eq('id', session.user.id)
-                      .maybeSingle(); // Usar maybeSingle en lugar de single
-                    
-                    console.log('📋 Consulta perfil:', { perfil, error });
-                    
+                        .from('perfiles')
+                        .select('nombre, nit_ci')
+                        .eq('id', session.user.id)
+                        .maybeSingle();
+                    if (error) {
+                        console.error('❌ Error consultando perfil:', error);
+                    }
                     if (perfil) {
                         if (perfil.nombre) nombre = perfil.nombre;
                         if (perfil.nit_ci) nit_ci = perfil.nit_ci;
                     }
-                } catch (error) {
-                    console.error('❌ Error consultando perfil:', error);
+                    console.log('✅ Datos establecidos:', { nombre, nit_ci });
+                    setUsuario({ id: session.user.id, email: session.user.email, nombre, nit_ci });
+                } else {
+                    console.log('👤 No hay usuario logueado');
+                    setUsuario(null);
                 }
-                
-                console.log('✅ Datos establecidos:', { nombre, nit_ci });
-                setUsuario({ id: session.user.id, email: session.user.email, nombre, nit_ci });
-            } else {
-                console.log('👤 No hay usuario logueado');
+            } catch (error) {
+                console.error('❌ Error consultando perfil:', error);
                 setUsuario(null);
             }
         };
         getUser();
     }, []);
+
 
     useEffect(() => {
         let mounted = true;
@@ -87,6 +138,22 @@ export default function CatalogoPage() {
         loadStoreSettings();
         return () => {
             mounted = false;
+        };
+    }, []);
+
+    // --- Recarga productos e imágenes al volver a la pestaña ---
+    useEffect(() => {
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') {
+                // Re-ejecutar el fetch de productos e imágenes
+                if (typeof fetchProductosYCategoriasYImagenes === 'function') {
+                    fetchProductosYCategoriasYImagenes();
+                }
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibility);
         };
     }, []);
 
@@ -111,50 +178,6 @@ export default function CatalogoPage() {
 
     // 1. Cargar productos y sus imágenes desde Supabase
     useEffect(() => {
-        const fetchProductosYCategoriasYImagenes = async () => {
-            // Traer productos
-            const { data: productosData, error: productosError } = await supabase
-                .from('v_productos_catalogo')
-                .select('producto_id, nombre, descripcion, precio_base, imagen_base, category_id, categoria, stock_total, codigo_barra, variantes');
-            if (productosError || !productosData) {
-                setProductos([]);
-                setImagenesProductos({});
-                return;
-            }
-            const normalizedProducts = productosData.map((p) => ({
-                ...p,
-                user_id: p.producto_id,
-                precio: Number(p.precio_base || 0),
-                stock: Number(p.stock_total || 0),
-                variantes: Array.isArray(p.variantes) ? p.variantes : []
-            }));
-            setProductos(normalizedProducts);
-
-            // Traer categorías
-            const { data: categoriasData, error: categoriasError } = await supabase
-                .from('categorias')
-                .select('*');
-            if (!categoriasError && categoriasData) {
-                setCategorias(categoriasData);
-            }
-
-            // Traer imágenes asociadas
-            const { data: imagenesData, error: imagenesError } = await supabase
-                .from('producto_imagenes')
-                .select('producto_id, imagen_url');
-            if (imagenesError || !imagenesData) {
-                setImagenesProductos({});
-                return;
-            }
-            // Agrupar imágenes por producto_id (usar tipo number para coincidir con producto.user_id)
-            const imgs = {};
-            imagenesData.forEach(img => {
-                const key = Number(img.producto_id);
-                if (!imgs[key]) imgs[key] = [];
-                imgs[key].push(img.imagen_url);
-            });
-            setImagenesProductos(imgs);
-        };
         fetchProductosYCategoriasYImagenes();
     }, []);
 
@@ -700,7 +723,7 @@ export default function CatalogoPage() {
 
             {/* LISTA DE PRODUCTOS - OPTIMIZADA PARA MÓVIL */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
-                {productos.length > 0 ? (
+                {Array.isArray(productos) && productos.length > 0 ? (
                     (() => {
                         const productosFiltrados = productos.filter(producto => {
                             if (!categoriaSeleccionada) return true;
@@ -722,7 +745,25 @@ export default function CatalogoPage() {
                                 .reduce((acc, item) => acc + Number(item.cantidad || 0), 0);
                             const isInCart = quantityInCart > 0;
                             const agotado = isProductoAgotado(producto);
-                            const imagenes = imagenesProductos[producto.user_id] || [];
+                            const imagenes = (() => {
+                                const imgs = Array.isArray(imagenesProductos[producto.user_id]) ? imagenesProductos[producto.user_id] : [];
+                                // Unificar: siempre mostrar imagen_url primero si existe, aunque no esté en imgs
+                                if (producto.imagen_url) {
+                                    // Si la imagen principal está en la lista, la ponemos al inicio y el resto igual
+                                    const idx = imgs.indexOf(producto.imagen_url);
+                                    if (idx > -1) {
+                                        return [producto.imagen_url, ...imgs.slice(0, idx), ...imgs.slice(idx + 1)];
+                                    } else {
+                                        // Si no está, la agregamos al inicio
+                                        return [producto.imagen_url, ...imgs];
+                                    }
+                                } else if (imgs.length > 0) {
+                                    return imgs;
+                                } else {
+                                    // Si no hay ninguna imagen, retornar array vacío
+                                    return [];
+                                }
+                            })();
                             // Definir la variable categoria justo antes del return
                             const categoria = Array.isArray(categorias) ? categorias.find(c => c.id === producto.category_id) : null;
                             return (

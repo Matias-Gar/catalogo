@@ -151,7 +151,8 @@ export default function Home() {
         precio: Number(p.precio_base || 0),
         stock: Number(p.stock_total || 0),
         category_id: p.category_id,
-        variantes: Array.isArray(p.variantes) ? p.variantes : []
+        variantes: Array.isArray(p.variantes) ? p.variantes : [],
+        imagen_base: p.imagen_base || null
       }));
       
       setProductos(normalized);
@@ -488,29 +489,40 @@ export default function Home() {
         {/* Grid de productos */}
   <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
           {productosFiltrados.map((p) => {
+            // Unificar: siempre mostrar imagen_base primero si existe, aunque no esté en imagenesProductos
+            const imgs = Array.isArray(imagenesProductos[p.user_id]) ? imagenesProductos[p.user_id] : [];
+            let galeria = imgs;
+            if (p.imagen_base) {
+              const idx = imgs.indexOf(p.imagen_base);
+              if (idx > -1) {
+                galeria = [p.imagen_base, ...imgs.slice(0, idx), ...imgs.slice(idx + 1)];
+              } else {
+                galeria = [p.imagen_base, ...imgs];
+              }
+            }
             return (
               <div key={p.user_id} className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center">
                 <div className="w-full h-64 flex items-center justify-center mb-2 cursor-pointer relative group">
-                  {imagenesProductos[p.user_id] && imagenesProductos[p.user_id].length > 0 ? (
+                  {galeria.length > 0 ? (
                     <>
                       <img
-                        src={getOptimizedImageUrl(imagenesProductos[p.user_id][0], 800, { quality: 96, format: 'origin' })}
-                        srcSet={buildImageSrcSet(imagenesProductos[p.user_id][0], [400, 800, 1200], { quality: 96, format: 'origin' })}
+                        src={getOptimizedImageUrl(galeria[0], 800, { quality: 96, format: 'origin' })}
+                        srcSet={buildImageSrcSet(galeria[0], [400, 800, 1200], { quality: 96, format: 'origin' })}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
                         loading="lazy"
                         decoding="async"
                         alt={p.nombre}
                         className="w-full h-full object-contain rounded-xl bg-gray-50 group-hover:opacity-80 transition"
-                        onClick={() => openImageModal(imagenesProductos[p.user_id], 0, p.nombre)}
+                        onClick={() => openImageModal(galeria, 0, p.nombre)}
                       />
-                      {imagenesProductos[p.user_id].length > 1 && (
+                      {galeria.length > 1 && (
                         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                          {imagenesProductos[p.user_id].map((img, idx2) => (
+                          {galeria.map((img, idx2) => (
                             <button
                               key={img + '-' + idx2}
                               className={`w-2.5 h-2.5 rounded-full border-2 ${idx2 === 0 ? 'bg-green-600 border-green-700' : 'bg-white border-gray-400'} focus:outline-none`}
                               title={`Ver imagen ${idx2 + 1}`}
-                              onClick={e => { e.stopPropagation(); openImageModal(imagenesProductos[p.user_id], idx2, p.nombre); }}
+                              onClick={e => { e.stopPropagation(); openImageModal(galeria, idx2, p.nombre); }}
                             />
                           ))}
                         </div>
