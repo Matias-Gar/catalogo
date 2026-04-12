@@ -631,7 +631,7 @@ export default function NuevaVenta() {
           });
           if (detallePackError) throw detallePackError;
           // Descontar stock de cada producto del pack
-          await Promise.all((pack.pack_productos ?? []).map(async (item) => {
+          await Promise.all((pack.pack_productos ?? []).map(async (item: PackProduct) => {
             const cantidadTotal = item.cantidad * cantidad;
             const productoPack = item.productos;
             // Si el producto tiene variante, descontar stock de variante
