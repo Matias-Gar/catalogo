@@ -236,9 +236,15 @@ export default function NuevaVenta() {
         // Cargar datos de cliente si existen
         if (pedidoObj.cliente_nombre) cambiarCampo('nombre', pedidoObj.cliente_nombre);
         if (pedidoObj.cliente_email) cambiarCampo('email', pedidoObj.cliente_email);
-      } catch (e) {
+      } catch (e: unknown) {
         console.error('Error cargando pedido:', e);
-        showToast('Error cargando pedido: ' + (e?.message || e), 'error');
+        let errorMsg = '';
+        if (e && typeof e === 'object' && 'message' in e && typeof (e as any).message === 'string') {
+          errorMsg = (e as any).message;
+        } else {
+          errorMsg = String(e);
+        }
+        showToast('Error cargando pedido: ' + errorMsg, 'error');
         setCarrito([]);
       }
       sessionStorage.removeItem('pedido_a_efectivizar');
