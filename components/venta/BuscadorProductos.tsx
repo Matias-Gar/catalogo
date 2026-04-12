@@ -20,13 +20,7 @@ interface Producto {
   categorias?: { categori?: string };
 }
 
-interface Pack {
-  id: string | number;
-  nombre: string;
-  descripcion?: string;
-  precio_pack: number;
-  pack_productos: Array<{ cantidad: number; productos: Producto }>;
-}
+import type { Pack } from '../../../hooks/useCarrito';
 
 interface Props {
   busqueda: string;
