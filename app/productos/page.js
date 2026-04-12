@@ -197,12 +197,13 @@ export default function CatalogoPage() {
     
     // Función helper para obtener el precio final de un producto (con promoción si aplica)
     const getPrecioFinal = (producto) => {
-        const promocion = promociones.find(
-            promo => 
-                promo.producto_id === producto.user_id && 
+        const promocion = promociones.find(function(promo) {
+            return (
+                promo.producto_id === producto.user_id &&
                 promo.activa === true &&
                 (!promo.fecha_fin || new Date(promo.fecha_fin) >= new Date())
-        );
+            );
+        });
 
         if (!promocion) {
             return producto.precio;
