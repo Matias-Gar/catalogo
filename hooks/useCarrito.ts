@@ -34,6 +34,7 @@ export interface PackProduct {
   productos: {
     user_id: string;
     nombre: string;
+    precio: number;
   };
 }
 
