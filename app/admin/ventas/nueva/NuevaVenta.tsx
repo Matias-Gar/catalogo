@@ -654,7 +654,7 @@ export default function NuevaVenta() {
           if (!productoCompleto) throw new Error('Producto no encontrado en base de datos');
           let variante = null;
           if (p.variante_id) {
-            variante = (productoCompleto.producto_variantes || []).find(v => String(v.id) === String(p.variante_id));
+            variante = (productoCompleto.producto_variantes || []).find((v: { id?: string | number }) => String(v.id) === String(p.variante_id));
           }
           const precioUnitario = variante?.precio ?? productoCompleto.precio;
           const costoUnitario = productoCompleto.precio_compra || 0;
