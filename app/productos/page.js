@@ -614,10 +614,10 @@ export default function CatalogoPage() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-extrabold text-gray-900 text-center flex items-center gap-2">
                     {storeSettings?.store_logo_url ? (
-                        <img src={storeSettings.store_logo_url} alt="logo tienda" className="h-9 w-9 inline-block align-middle mr-2 rounded-full object-cover" />
-                    ) : (
-                        <Image src="/free-shopping-icons-vector.jpg" alt="icono pedido" width={36} height={36} className="inline-block align-middle mr-2 rounded" />
-                    )}
+                                <Image src={storeSettings.store_logo_url} alt="logo tienda" width={36} height={36} className="h-9 w-9 inline-block align-middle mr-2 rounded-full object-cover" />
+                            ) : (
+                                <Image src="/free-shopping-icons-vector.jpg" alt="icono pedido" width={36} height={36} className="inline-block align-middle mr-2 rounded" />
+                            )}
                     {storeSettings?.store_name ? `Pedido en ${storeSettings.store_name}` : 'Realiza tu pedido'}
                 </h1>
             </div>
