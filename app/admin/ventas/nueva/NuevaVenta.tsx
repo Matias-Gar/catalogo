@@ -360,6 +360,7 @@ export default function NuevaVenta() {
       if (window.confirm(`Este producto está en un pack: ${packsConEsteProducto.map(p=>p.nombre).join(', ')}.\n¿Agregar el pack (OK) o solo el producto individual (Cancelar)?`)) {
         // Agregar el primer pack encontrado
         agregar({
+          user_id: null,
           tipo: 'pack',
           pack_id: packsConEsteProducto[0].id,
           pack_data: packsConEsteProducto[0],
