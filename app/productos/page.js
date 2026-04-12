@@ -235,6 +235,7 @@ export default function CatalogoPage() {
 
         if (variantes.length > 0) {
             if (varianteId !== null && varianteId !== undefined) {
+                // Usar función tradicional para evitar error de tipado implícito en JS
                 const variante = variantes.find(function(v) { return String(v.variante_id ?? v.id) === String(varianteId); });
                 return Math.max(0, Number(variante?.stock || 0));
             }
