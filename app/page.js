@@ -207,12 +207,7 @@ export default function Home() {
   const productosFiltrados = productos.filter(p => {
     if (filtroCategoria === '') return true;
     const match = Number(p.category_id) === Number(filtroCategoria);
-    // console.log('🔍 Filtro categoria PRINCIPAL:', {
-      producto: p.nombre,
-      categoria_producto: p.category_id,
-      categoria_seleccionada: filtroCategoria,
-      match: match
-    });
+    // console.log('🔍 Filtro categoria PRINCIPAL:', { producto: p.nombre, categoria_producto: p.category_id, categoria_seleccionada: filtroCategoria, match });
     return match;
   });
 
