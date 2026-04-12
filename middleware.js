@@ -1,1 +1,0 @@
-// Archivo obsoleto. Lógica migrada a proxy.js según nueva convención Next.js 2026.
