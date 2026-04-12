@@ -2106,14 +2106,14 @@ export default function AdminProductosPage() {
                                 <div className="flex flex-wrap gap-2">
                                     {editImageList.map((url) => (
                                         <div key={url} className="relative group">
-                                            <img 
-                                                src={getOptimizedImageUrl(url, 300)} 
+                                            <Image
+                                                src={getOptimizedImageUrl(url, 300)}
                                                 srcSet={buildImageSrcSet(url, [200, 300, 600], { quality: 95, format: 'origin' })}
                                                 sizes="64px"
-                                                loading="lazy"
-                                                decoding="async"
-                                                alt="Imagen de producto" 
-                                                className="h-16 w-16 object-cover rounded-md border cursor-pointer" 
+                                                alt="Imagen de producto"
+                                                width={64}
+                                                height={64}
+                                                className="h-16 w-16 object-cover rounded-md border cursor-pointer"
                                                 onClick={() => handleRemoveEditImage(url)}
                                             />
                                             <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300 rounded-md cursor-pointer" onClick={() => handleRemoveEditImage(url)}>

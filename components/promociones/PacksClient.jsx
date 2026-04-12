@@ -349,7 +349,7 @@ export default function PacksClient({ initialPacks = [] }) {
                   <div className="mb-4">
                     <label className="block text-sm font-bold text-gray-700 mb-1">Imagen del pack</label>
                     {editPack.imagen_url && (
-                      <img src={editPack.imagen_url} alt="Imagen actual del pack" className="w-24 h-24 object-cover rounded mb-2 border" />
+                      <Image src={editPack.imagen_url} alt="Imagen actual del pack" width={96} height={96} className="w-24 h-24 object-cover rounded mb-2 border" />
                     )}
                     <input name="imagen" type="file" accept="image/*" className="w-full" />
                   </div>
