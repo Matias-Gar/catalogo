@@ -179,8 +179,8 @@ export default function NuevaVenta() {
               cantidad: p.cantidad || 1,
               precio: pack.precio_pack,
               precio_pack: pack.precio_pack,
-              precio_individual: pack.pack_productos.reduce((t: number, i) => t + (i.productos.precio * i.cantidad), 0),
-              descuento: (pack.pack_productos.reduce((t: number, i) => t + (i.productos.precio * i.cantidad), 0)) - pack.precio_pack,
+              precio_individual: pack.pack_productos.reduce((t: number, i: { productos: { precio: number }, cantidad: number }) => t + (i.productos.precio * i.cantidad), 0),
+              descuento: (pack.pack_productos.reduce((t: number, i: { productos: { precio: number }, cantidad: number }) => t + (i.productos.precio * i.cantidad), 0)) - pack.precio_pack,
               productos: pack.pack_productos,
               cart_key: `pack:${pack.id}`,
               imagen_url: pack.imagen_url || '/sin-imagen.png',
@@ -361,7 +361,7 @@ export default function NuevaVenta() {
           cantidad: 1,
           precio: packsConEsteProducto[0].precio_pack,
           precio_pack: packsConEsteProducto[0].precio_pack,
-          precio_individual: packsConEsteProducto[0].pack_productos.reduce((t, i) => t + (i.productos.precio * i.cantidad), 0),
+          precio_individual: packsConEsteProducto[0].pack_productos.reduce((t: number, i: { productos: { precio: number }, cantidad: number }) => t + (i.productos.precio * i.cantidad), 0),
           descuento: calcularDescuentoPack(packsConEsteProducto[0]).descuentoAbsoluto,
           productos: packsConEsteProducto[0].pack_productos,
           cart_key: `pack:${packsConEsteProducto[0].id}`
@@ -848,7 +848,7 @@ export default function NuevaVenta() {
                 cantidad: 1,
                 precio: pack.precio_pack,
                 precio_pack: pack.precio_pack,
-                precio_individual: pack.pack_productos.reduce((t, i) => t + (i.productos.precio * i.cantidad), 0),
+                precio_individual: pack.pack_productos.reduce((t: number, i: { productos: { precio: number }, cantidad: number }) => t + (i.productos.precio * i.cantidad), 0),
                 descuento: calcularDescuentoPack(pack).descuentoAbsoluto,
                 productos: pack.pack_productos,
                 cart_key: `pack:${pack.id}`
