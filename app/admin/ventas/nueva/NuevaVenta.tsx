@@ -169,7 +169,7 @@ export default function NuevaVenta() {
         // Reconstruir carrito solo con productos/packs válidos
         const carritoReconstruido = productosAgrupados.map((p) => {
           if (p.pack_id) {
-            const pack = packsDB.find(pk => String(pk.id) === String(p.pack_id));
+            const pack = packsDB.find((pk: { id: string | number }) => String(pk.id) === String(p.pack_id));
             if (!pack) return { ...p, error: 'Pack no encontrado en base de datos' };
             return {
               tipo: 'pack',
@@ -192,12 +192,12 @@ export default function NuevaVenta() {
           if (typeof prodId === 'string' && prodId.startsWith('pack-')) {
             return { ...p, error: 'ID inválido para producto (pack-xx)' };
           }
-          const productoCompleto = productosDB.find(prod => String(prod.producto_id) === String(prodId));
+          const productoCompleto = productosDB.find((prod: { producto_id: string | number }) => String(prod.producto_id) === String(prodId));
           if (!productoCompleto) return { ...p, error: 'Producto no encontrado en base de datos' };
           // Buscar imagen de variante si aplica
           let imagen_url = '/sin-imagen.png';
           if (productoCompleto.variantes && p.variante_id) {
-            const variante = productoCompleto.variantes.find(v => String(v.variante_id || v.id) === String(p.variante_id));
+            const variante = productoCompleto.variantes.find((v: { variante_id?: number|string; id?: number|string; imagen_url?: string }) => String(v.variante_id || v.id) === String(p.variante_id));
             if (variante && variante.imagen_url) imagen_url = variante.imagen_url;
           }
           // Si no hay imagen de variante, usar la primera imagen del producto
