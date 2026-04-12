@@ -33,10 +33,20 @@ export interface Producto {
 
 export interface PackProduct {
   cantidad: number;
+  variante_id?: string | number;
   productos: {
     user_id: string;
     nombre: string;
     precio: number;
+    producto_variantes?: Array<{
+      id?: string | number;
+      color?: string;
+      precio?: number;
+      stock?: number;
+      imagen_url?: string;
+      sku?: string;
+      codigo_barra?: string;
+    }>;
   };
 }
 
