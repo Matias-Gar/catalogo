@@ -235,7 +235,7 @@ export default function CatalogoPage() {
 
         if (variantes.length > 0) {
             if (varianteId !== null && varianteId !== undefined) {
-                const variante = variantes.find(v => String(v.variante_id ?? v.id) === String(varianteId));
+                const variante = variantes.find(function(v) { return String(v.variante_id ?? v.id) === String(varianteId); });
                 return Math.max(0, Number(variante?.stock || 0));
             }
             const totalDisponible = variantes.reduce((acc, v) => acc + Math.max(0, Number(v?.stock || 0)), 0);
