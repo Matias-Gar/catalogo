@@ -37,7 +37,7 @@ export default function NuevaVenta() {
   // hooks
   const { cliente, cambiarCampo, buscarPorCarnet, guardar, buscarEmailHistorico } = useCliente();
   const { promociones } = usePromociones();
-  const { packs } = usePacks();
+  const { packs } = usePacks() as { packs: Pack[] };
   const {
     carrito,
     agregar,
