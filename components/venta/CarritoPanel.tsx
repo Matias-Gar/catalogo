@@ -113,8 +113,8 @@ export default function CarritoPanel({
                   if (variante && variante.imagen_url) imagenUrl = variante.imagen_url;
                 }
                 if (!imagenUrl && item.imagen_url) imagenUrl = item.imagen_url;
-                if (!imagenUrl && imagenes[item.user_id]?.[1]) imagenUrl = imagenes[item.user_id][1];
-                if (!imagenUrl && imagenes[item.user_id]?.[0]) imagenUrl = imagenes[item.user_id][0];
+                if (!imagenUrl && imagenes[String(item.user_id)]?.[1]) imagenUrl = imagenes[String(item.user_id)][1];
+                if (!imagenUrl && imagenes[String(item.user_id)]?.[0]) imagenUrl = imagenes[String(item.user_id)][0];
                 return (
                   <tr key={itemKey}>
                     <td className="p-2 text-center align-middle">

@@ -14,6 +14,7 @@ export interface Producto {
     color?: string;
     stock?: number;
     precio?: number;
+    imagen_url?: string;
   }>;
   codigo_barra?: string;
   codigo?: string;
@@ -76,6 +77,7 @@ export interface CartItem extends Producto {
   descuento_pack?: number;
   stock?: number;
   categoria?: string;
+  imagen_url?: string;
 }
 
 const getAvailableStock = (item: { tipo?: 'pack' | 'producto'; stock?: number }) => {
@@ -85,7 +87,7 @@ const getAvailableStock = (item: { tipo?: 'pack' | 'producto'; stock?: number })
   return Math.max(0, parsedStock);
 };
 
-const getItemKey = (item: { tipo?: 'pack' | 'producto'; user_id?: string | number; variante_id?: string | number; cart_key?: string; pack_id?: string | number }) => {
+const getItemKey = (item: { tipo?: 'pack' | 'producto'; user_id?: string | number | null; variante_id?: string | number; cart_key?: string; pack_id?: string | number }) => {
   if (item.cart_key) return item.cart_key;
   if (item.tipo === 'pack') return `pack:${String(item.pack_id ?? item.user_id ?? '')}`;
   return `prod:${String(item.user_id ?? '')}:${String(item.variante_id ?? 'default')}`;

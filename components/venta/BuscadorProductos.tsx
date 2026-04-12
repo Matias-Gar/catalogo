@@ -20,7 +20,7 @@ interface Producto {
   categorias?: { categori?: string };
 }
 
-import type { Pack } from '../../../hooks/useCarrito';
+import type { Pack } from '@/hooks/useCarrito';
 
 interface Props {
   busqueda: string;
@@ -78,7 +78,7 @@ export default function BuscadorProductos({
                   <div className="w-10 h-10 bg-purple-100 rounded flex items-center justify-center text-2xl">📦</div>
                   <div className="truncate">
                     <div className="font-bold text-purple-800 text-sm truncate">{pack.nombre}</div>
-                    <div className="text-xs text-purple-700">Incluye: {pack.pack_productos.map(item => `${item.cantidad}x ${item.productos.nombre}`).join(', ')}</div>
+                    <div className="text-xs text-purple-700">Incluye: {(pack.pack_productos ?? []).map(item => `${item.cantidad}x ${item.productos.nombre}`).join(', ')}</div>
                     <div className="text-xs text-purple-600">Bs {Number(pack.precio_pack).toFixed(2)} <span className="ml-2 text-xs text-purple-500">Pack especial</span></div>
                   </div>
                 </div>

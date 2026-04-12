@@ -1,8 +1,16 @@
 "use client";
-// TypeScript: Add qz to window
+// Extiende el tipo Window para incluir qz
 declare global {
   interface Window {
-    qz?: unknown;
+    qz?: {
+      websocket?: unknown;
+      configs?: {
+        create?: (...args: any[]) => any;
+        [key: string]: unknown;
+      };
+      print?: unknown;
+      [key: string]: unknown;
+    };
   }
 }
 import React, { useImperativeHandle, forwardRef, useRef, useState } from 'react';
@@ -444,12 +452,14 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
       // Volver a izquierda
       lines.push('\x1b\x61\x00');
       const qzApi = window.qz;
-      const config = qzApi?.configs?.create('POS-80C');
+      const config = typeof qzApi?.configs?.create === 'function' ? qzApi.configs.create('POS-80C') : undefined;
       if (!config || !qzApi?.print) {
         // console.warn('qz-tray config o función print no disponible');
         return false;
       }
-      await qzApi.print(config, lines);
+      if (typeof qzApi.print === 'function') {
+        await qzApi.print(config, lines);
+      }
       return true;
     } catch (err) {
       // console.warn('printComprobanteThermal error', err);
