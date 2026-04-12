@@ -42,18 +42,22 @@ function replaceFileExtension(name: string, nextExt: string): string {
 
 function loadImageFromFile(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
-    const img = new Image()
-    const url = URL.createObjectURL(file)
+    if (typeof window === 'undefined') {
+      reject(new Error('Image loading only supported in browser'));
+      return;
+    }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
     img.onload = () => {
-      URL.revokeObjectURL(url)
-      resolve(img)
-    }
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
     img.onerror = () => {
-      URL.revokeObjectURL(url)
-      reject(new Error("No se pudo leer la imagen"))
-    }
-    img.src = url
-  })
+      URL.revokeObjectURL(url);
+      reject(new Error('No se pudo leer la imagen'));
+    };
+    img.src = url;
+  });
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number): Promise<Blob | null> {

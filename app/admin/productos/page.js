@@ -247,37 +247,39 @@ export default function AdminProductosPage() {
             const svg64 = window.btoa(unescape(encodeURIComponent(svgString)));
             const imageSrc = `data:image/svg+xml;base64,${svg64}`;
 
-            const image = new Image();
-            image.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = image.width;
-                canvas.height = image.height;
-                const ctx = canvas.getContext('2d');
-                if (!ctx) throw new Error('No canvas context');
+            if (typeof window !== 'undefined') {
+                const image = new Image();
+                image.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) throw new Error('No canvas context');
 
-                ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(image, 0, 0);
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(image, 0, 0);
 
-                const pngData = canvas.toDataURL('image/png');
-                const widthMm = 68;
-                const heightMm = Math.max(22, (canvas.height / canvas.width) * widthMm);
+                    const pngData = canvas.toDataURL('image/png');
+                    const widthMm = 68;
+                    const heightMm = Math.max(22, (canvas.height / canvas.width) * widthMm);
 
-                const pdf = new jsPDF({ unit: 'mm', format: [widthMm, Math.min(75, heightMm + 12)] });
-                pdf.addImage(pngData, 'PNG', 0, 0, widthMm, heightMm);
+                    const pdf = new jsPDF({ unit: 'mm', format: [widthMm, Math.min(75, heightMm + 12)] });
+                    pdf.addImage(pngData, 'PNG', 0, 0, widthMm, heightMm);
 
-                if (productoNombre) {
-                    pdf.setFontSize(11);
-                    pdf.text(productoNombre, widthMm / 2, heightMm + 8, { align: 'center' });
-                }
-                pdf.setFontSize(10);
-                pdf.text(codigo || '', widthMm / 2, heightMm + 14, { align: 'center' });
+                    if (productoNombre) {
+                        pdf.setFontSize(11);
+                        pdf.text(productoNombre, widthMm / 2, heightMm + 8, { align: 'center' });
+                    }
+                    pdf.setFontSize(10);
+                    pdf.text(codigo || '', widthMm / 2, heightMm + 14, { align: 'center' });
 
-                const blobUrl = pdf.output('bloburl');
-                printBlobUrlInIframe(blobUrl);
-            };
-            image.onerror = (err) => { throw err; };
-            image.src = imageSrc;
+                    const blobUrl = pdf.output('bloburl');
+                    printBlobUrlInIframe(blobUrl);
+                };
+                image.onerror = (err) => { throw err; };
+                image.src = imageSrc;
+            }
         } catch (error) {
             console.warn('PDF print fallback failed', error);
             const html = `
