@@ -158,9 +158,11 @@ export default function PerfilPage() {
               <div className="text-center">
                 <h3 className="text-sm font-medium text-gray-700 mb-3">Foto de Perfil</h3>
                 {perfil?.foto_perfil ? (
-                  <img 
-                    src={perfil.foto_perfil} 
-                    alt="Foto de perfil" 
+                  <Image
+                    src={perfil.foto_perfil}
+                    alt="Foto de perfil"
+                    width={128}
+                    height={128}
                     className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-blue-200 shadow-lg"
                   />
                 ) : (
