@@ -108,7 +108,7 @@ export default function NuevaVenta() {
         const pedidoObj = JSON.parse(pedido);
         if (!Array.isArray(pedidoObj.productos)) return;
         // Agrupar productos por producto_id, variante_id y color
-        const grouped = {};
+        const grouped: { [key: string]: any } = {};
         for (const p of pedidoObj.productos) {
           // Sanitizar: si es pack y user_id es 'pack-<id>', usar solo pack_id numérico
           let producto_id = p.producto_id || p.user_id || '';
