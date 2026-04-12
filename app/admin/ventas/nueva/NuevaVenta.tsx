@@ -848,6 +848,7 @@ export default function NuevaVenta() {
             onAddPack={pack => {
               // Estructura para agregar pack al carrito
               agregar({
+                user_id: null,
                 tipo: 'pack',
                 pack_id: pack.id,
                 pack_data: pack,
