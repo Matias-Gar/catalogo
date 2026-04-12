@@ -23,6 +23,7 @@ export interface Producto {
   precio_individual?: number;
   precio_original?: number;
   descuento?: number;
+  productos?: PackProduct[];
   cantidad?: number;
   tipo?: 'pack' | 'producto';
   pack_id?: string | number;
