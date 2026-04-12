@@ -9,6 +9,7 @@ import { calcularPrecioConPromocion } from '../../../../lib/promociones';
 import * as ventasService from '../../../../services/ventas.service';
 import ClienteForm from '../../../../components/venta/ClienteForm';
 import BuscadorProductos from '../../../../components/venta/BuscadorProductos';
+import { calcularDescuentoPack } from '../../../../lib/packs';
 import CarritoPanel from '../../../../components/venta/CarritoPanel';
 import TicketPrinter, { TicketPrinterHandle } from '../../../../components/venta/TicketPrinter';
 import { Pack, PackProduct, Producto } from '../../../../hooks/useCarrito';
@@ -61,6 +62,7 @@ export default function NuevaVenta() {
 
   const [busqueda, setBusqueda] = React.useState('');
   const [showSuggestions, setShowSuggestions] = React.useState(false);
+  const [packResults, setPackResults] = React.useState([]);
   const lastAutoAddRef = React.useRef({ code: '', timestamp: 0 });
 
   const scanBuffer = React.useRef('');
@@ -90,6 +92,160 @@ export default function NuevaVenta() {
 
   const printerRef = useRef<TicketPrinterHandle>(null);
   const efectivizarBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Cargar carrito desde pedidos si existe
+  // Dependencias fijas para evitar warning de React
+  const packsKey = Array.isArray(packs) ? packs.map(p => p.id).join(',') : '';
+  const productosKey = Array.isArray(productos) ? productos.map(p => p.user_id).join(',') : '';
+
+  // Carga robusta: siempre consulta productos y packs desde la base de datos
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const pedido = sessionStorage.getItem('pedido_a_efectivizar');
+    if (!pedido) return;
+    (async () => {
+      try {
+        const pedidoObj = JSON.parse(pedido);
+        if (!Array.isArray(pedidoObj.productos)) return;
+        // Agrupar productos por producto_id, variante_id y color
+        const grouped = {};
+        for (const p of pedidoObj.productos) {
+          // Sanitizar: si es pack y user_id es 'pack-<id>', usar solo pack_id numérico
+          let producto_id = p.producto_id || p.user_id || '';
+          if (p.pack_id && typeof producto_id === 'string' && producto_id.startsWith('pack-')) {
+            producto_id = '';
+          }
+          const variante_id = p.variante_id || 'default';
+          const color = p.color || '';
+          const key = `${producto_id}|${variante_id}|${color}|${p.pack_id || ''}`;
+          if (!grouped[key]) {
+            grouped[key] = { ...p };
+            grouped[key].cantidad = Number(p.cantidad) || 0;
+          } else {
+            grouped[key].cantidad += Number(p.cantidad) || 0;
+          }
+        }
+        const productosAgrupados = Object.values(grouped);
+
+        // Separar productos y packs
+        const productosIds = productosAgrupados.filter(p => !p.pack_id).map(p => p.producto_id || p.user_id).filter(Boolean);
+        const packsIds = productosAgrupados.filter(p => p.pack_id).map(p => p.pack_id).filter(Boolean);
+
+        // Consultar productos desde la base de datos, trayendo también la imagen principal
+        let productosDB = [];
+        let imagenesDB = {};
+        if (productosIds.length > 0) {
+          const { data: productosData, error: productosError } = await supabase
+            .from('v_productos_catalogo')
+            .select('*')
+            .in('producto_id', productosIds);
+          if (productosError) throw productosError;
+          productosDB = Array.isArray(productosData) ? productosData : [];
+
+          // Traer imágenes asociadas
+          const { data: imgs } = await supabase
+            .from('producto_imagenes')
+            .select('producto_id, imagen_url')
+            .in('producto_id', productosIds);
+          if (Array.isArray(imgs)) {
+            imgs.forEach(i => {
+              if (!imagenesDB[i.producto_id]) imagenesDB[i.producto_id] = [];
+              if (i.imagen_url) imagenesDB[i.producto_id].push(i.imagen_url);
+            });
+          }
+        }
+
+        // Consultar packs desde la base de datos
+        let packsDB = [];
+        if (packsIds.length > 0) {
+          const { data: packsData, error: packsError } = await supabase
+            .from('packs')
+            .select(`*, pack_productos ( cantidad, productos!pack_productos_producto_id_fkey ( user_id, nombre, precio, categoria, stock ) )`)
+            .in('id', packsIds);
+          if (packsError) throw packsError;
+          packsDB = Array.isArray(packsData) ? packsData : [];
+        }
+
+        // Reconstruir carrito solo con productos/packs válidos
+        const carritoReconstruido = productosAgrupados.map((p) => {
+          if (p.pack_id) {
+            const pack = packsDB.find(pk => String(pk.id) === String(p.pack_id));
+            if (!pack) return { ...p, error: 'Pack no encontrado en base de datos' };
+            return {
+              tipo: 'pack',
+              pack_id: pack.id,
+              pack_data: pack,
+              nombre: pack.nombre || 'Pack especial',
+              cantidad: p.cantidad || 1,
+              precio: pack.precio_pack,
+              precio_pack: pack.precio_pack,
+              precio_individual: pack.pack_productos.reduce((t, i) => t + (i.productos.precio * i.cantidad), 0),
+              descuento: (pack.pack_productos.reduce((t, i) => t + (i.productos.precio * i.cantidad), 0)) - pack.precio_pack,
+              productos: pack.pack_productos,
+              cart_key: `pack:${pack.id}`,
+              imagen_url: pack.imagen_url || '/sin-imagen.png',
+            };
+          }
+          // Producto normal
+          const prodId = p.producto_id || p.user_id;
+          // Si prodId es string tipo 'pack-<id>', ignorar este item
+          if (typeof prodId === 'string' && prodId.startsWith('pack-')) {
+            return { ...p, error: 'ID inválido para producto (pack-xx)' };
+          }
+          const productoCompleto = productosDB.find(prod => String(prod.producto_id) === String(prodId));
+          if (!productoCompleto) return { ...p, error: 'Producto no encontrado en base de datos' };
+          // Buscar imagen de variante si aplica
+          let imagen_url = '/sin-imagen.png';
+          if (productoCompleto.variantes && p.variante_id) {
+            const variante = productoCompleto.variantes.find(v => String(v.variante_id || v.id) === String(p.variante_id));
+            if (variante && variante.imagen_url) imagen_url = variante.imagen_url;
+          }
+          // Si no hay imagen de variante, usar la primera imagen del producto
+          if (imagen_url === '/sin-imagen.png' && imagenesDB[productoCompleto.producto_id] && imagenesDB[productoCompleto.producto_id].length > 0) {
+            imagen_url = imagenesDB[productoCompleto.producto_id][0];
+          }
+          return {
+            ...productoCompleto,
+            cantidad: p.cantidad || 1,
+            tipo: 'producto',
+            cart_key: `prod:${productoCompleto.producto_id}:${p.variante_id || 'default'}`,
+            variante_id: p.variante_id || productoCompleto.variante_id,
+            color: p.color || productoCompleto.color,
+            precio: p.precio_unitario || productoCompleto.precio,
+            nombre: productoCompleto.nombre || 'Producto sin nombre',
+            stock: productoCompleto.stock,
+            categoria: productoCompleto.categoria,
+            categorias: productoCompleto.categorias,
+            variantes: productoCompleto.variantes,
+            codigo_barra: productoCompleto.codigo_barra,
+            codigo: productoCompleto.codigo,
+            imagenes: productoCompleto.imagenes,
+            imagen_url,
+          };
+        });
+
+        // Si hay algún error, bloquear venta y mostrar error
+        const errores = carritoReconstruido.filter(i => i.error);
+        if (errores.length > 0) {
+          showToast('Error: Hay productos o packs que ya no existen en la base de datos. Corrige el pedido antes de continuar.', 'error');
+          setCarrito([]);
+        } else {
+          setCarrito(carritoReconstruido);
+        }
+
+        // Cargar datos de cliente si existen
+        if (pedidoObj.cliente_nombre) cambiarCampo('nombre', pedidoObj.cliente_nombre);
+        if (pedidoObj.cliente_email) cambiarCampo('email', pedidoObj.cliente_email);
+      } catch (e) {
+        console.error('Error cargando pedido:', e);
+        showToast('Error cargando pedido: ' + (e?.message || e), 'error');
+        setCarrito([]);
+      }
+      sessionStorage.removeItem('pedido_a_efectivizar');
+    })();
+    // Solo dependencias estables para evitar warning de React
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setCarrito, cambiarCampo]);
 
   // shortcuts
   useEffect(() => {
@@ -134,6 +290,7 @@ export default function NuevaVenta() {
     return () => clearTimeout(timeoutId);
   }, [stockWarning, clearStockWarning]);
 
+  // Escaneo: si el producto está en un pack, ofrecer opción de agregar pack o individual
   const procesarCodigo = useCallback(async (codigo: string) => {
     const normalizeCode = (value: unknown) => String(value ?? '').replace(/\D/g, '');
     const matchesBarcode = (input: string, stored: unknown) => {
@@ -186,25 +343,52 @@ export default function NuevaVenta() {
       return false;
     }
 
-    agregar(productoEncontrado);
+    // Buscar si el producto está en algún pack activo
+    const packsConEsteProducto = packs.filter(pack =>
+      Array.isArray(pack.pack_productos) &&
+      pack.pack_productos.some(item => item.productos.user_id === productoEncontrado.user_id)
+    );
 
-    // ðŸ”Š sonido
+    if (packsConEsteProducto.length > 0) {
+      // Mostrar confirmación al usuario
+      if (window.confirm(`Este producto está en un pack: ${packsConEsteProducto.map(p=>p.nombre).join(', ')}.\n¿Agregar el pack (OK) o solo el producto individual (Cancelar)?`)) {
+        // Agregar el primer pack encontrado
+        agregar({
+          tipo: 'pack',
+          pack_id: packsConEsteProducto[0].id,
+          pack_data: packsConEsteProducto[0],
+          nombre: packsConEsteProducto[0].nombre,
+          cantidad: 1,
+          precio: packsConEsteProducto[0].precio_pack,
+          precio_pack: packsConEsteProducto[0].precio_pack,
+          precio_individual: packsConEsteProducto[0].pack_productos.reduce((t, i) => t + (i.productos.precio * i.cantidad), 0),
+          descuento: calcularDescuentoPack(packsConEsteProducto[0]).descuentoAbsoluto,
+          productos: packsConEsteProducto[0].pack_productos,
+          cart_key: `pack:${packsConEsteProducto[0].id}`
+        });
+      } else {
+        // Agregar solo el producto individual con su precio original
+        agregar({ ...productoEncontrado, precio: productoEncontrado.precio, tipo: 'producto' });
+      }
+    } else {
+      agregar(productoEncontrado);
+    }
+
+    // Sonido y feedback
     beepRef.current?.play().catch(() => {});
-
-    // ðŸ“³ vibraciÃ³n (si soporta)
     if (navigator.vibrate) navigator.vibrate(80);
-
-    // ðŸ’¡ animaciÃ³n visual
     setScanFeedback(true);
     setTimeout(() => setScanFeedback(false), 200);
     return true;
-  }, [productos, agregar, searchProductos]);
+  }, [productos, agregar, searchProductos, packs]);
 
   const handleBuscadorSubmit = useCallback(async () => {
     const raw = busqueda.trim();
     if (!raw) {
       await searchProductos('');
       setShowSuggestions(true);
+      // Mostrar todos los packs activos si no hay búsqueda
+      setPackResults(packs);
       return;
     }
 
@@ -218,14 +402,26 @@ export default function NuevaVenta() {
           lastAutoAddRef.current = { code: codigoNumerico, timestamp: now };
           setBusqueda('');
           setShowSuggestions(false);
+          setPackResults([]);
           return;
         }
       }
     }
 
     await searchProductos(raw);
+    // Filtrar packs por nombre o productos incluidos
+    const lower = raw.toLowerCase();
+    const filteredPacks = packs.filter(pack => {
+      if (pack.nombre?.toLowerCase().includes(lower)) return true;
+      if (pack.descripcion?.toLowerCase().includes(lower)) return true;
+      if (Array.isArray(pack.pack_productos)) {
+        return pack.pack_productos.some(item => item.productos?.nombre?.toLowerCase().includes(lower));
+      }
+      return false;
+    });
+    setPackResults(filteredPacks);
     setShowSuggestions(true);
-  }, [busqueda, procesarCodigo, searchProductos]);
+  }, [busqueda, procesarCodigo, searchProductos, packs]);
 
   // detector de scanner real (teclado rÃ¡pido + ENTER)
   useEffect(() => {
@@ -343,33 +539,37 @@ export default function NuevaVenta() {
     if (cliente.requiereFactura && (!cliente.nombre.trim() || !cliente.nit.trim())) { showToast('Completa los datos de facturacion (nombre y NIT)', 'error'); return; }
     if (modoPago === 'efectivo' && pago < totalCobrar) { showToast('El pago recibido es insuficiente', 'error'); return; }
 
-    // lÃ³gica replicada del componente antiguo con service helpers
+
+    // --- FLUJO ROBUSTO: Consulta y migra todos los datos completos de productos y packs ---
     setEfectivizando(true);
     try {
-      const productIds = Array.from(
-        new Set(
-          carrito
-            .filter((item: Producto) => item.tipo !== 'pack' && item.user_id)
-            .map((item: Producto) => String(item.user_id))
-        )
-      );
-      const productCostMap = new Map<string, { user_id?: string | number; precio_compra?: number; nombre?: string }>();
+      // 1. Agrupar productos y packs del carrito
+      const productosIds = carrito.filter(p => p.tipo !== 'pack' && p.user_id).map(p => String(p.user_id));
+      const packsIds = carrito.filter(p => p.tipo === 'pack' && p.pack_id).map(p => String(p.pack_id));
 
-      if (productIds.length > 0) {
-        const { data: productCostsByUserId, error: productCostsByUserIdError } = await supabase
+      // 2. Consultar productos y variantes desde la base de datos
+      let productosDB = [];
+      if (productosIds.length > 0) {
+        const { data: productosData, error: productosError } = await supabase
           .from('productos')
-          .select('user_id, nombre, precio_compra')
-          .in('user_id', productIds);
-
-        if (productCostsByUserIdError) throw productCostsByUserIdError;
-
-        const foundByUserId = Array.isArray(productCostsByUserId) ? productCostsByUserId : [];
-        foundByUserId.forEach((product) => {
-          if (product?.user_id != null) productCostMap.set(String(product.user_id), product);
-        });
+          .select('user_id, nombre, precio, precio_compra, stock, categoria, codigo_barra, producto_variantes ( id, color, precio, stock, imagen_url, sku, codigo_barra )')
+          .in('user_id', productosIds);
+        if (productosError) throw productosError;
+        productosDB = Array.isArray(productosData) ? productosData : [];
       }
 
-      // armar objeto de costos extra
+      // 3. Consultar packs y sus productos desde la base de datos
+      let packsDB = [];
+      if (packsIds.length > 0) {
+        const { data: packsData, error: packsError } = await supabase
+          .from('packs')
+          .select('*, pack_productos ( cantidad, producto_id, variante_id, productos!pack_productos_producto_id_fkey ( user_id, nombre, precio, categoria, stock, producto_variantes ( id, color, precio, stock, imagen_url, sku, codigo_barra ) ) )')
+          .in('id', packsIds);
+        if (packsError) throw packsError;
+        packsDB = Array.isArray(packsData) ? packsData : [];
+      }
+
+      // 4. Armar objeto de costos extra
       const costos_extra = {
         envio: Number(envio) || 0,
         comision: Number(comision) || 0,
@@ -380,10 +580,12 @@ export default function NuevaVenta() {
         descuento: Number(totalDescuento) || 0
       };
 
+      // 5. Usuario actual
       const { data: sessionData } = await supabase.auth.getSession();
       const userId = sessionData?.session?.user?.id || null;
       const userEmail = sessionData?.session?.user?.email || null;
 
+      // 6. Crear venta
       const { data: venta, error: ventaError } = await ventasService.crearVenta({
         cliente_nombre: cliente.nombre,
         cliente_telefono: cliente.telefono,
@@ -401,52 +603,69 @@ export default function NuevaVenta() {
       });
       if (ventaError || !venta) throw ventaError || new Error('no venta');
 
-      await Promise.all(carrito.map(async (p: Producto) => {
+      // 7. Insertar detalles robustos
+      await Promise.all(carrito.map(async (p) => {
         const cantidad = p.cantidad ?? 1;
         if (p.tipo === 'pack') {
-          const pack = p.pack_data || packs.find((pk: Pack) => pk.id === p.pack_id);
-          if (pack) {
-            const { error: detallePackError } = await ventasService.insertarVentaDetalle({
-              venta_id: venta.id,
-              producto_id: null,
-              cantidad,
-              precio_unitario: pack.precio_pack,
-              costo_unitario: 0,
-              color: null,
-              descripcion: `ðŸ“¦ Pack: ${pack.nombre}`,
-              tipo: 'pack',
-              pack_id: pack.id
-            });
-
-            if (detallePackError) throw detallePackError;
-
-            await Promise.all((pack.pack_productos ?? []).map(async (item: PackProduct) => {
-              const cantidadTotal = item.cantidad * cantidad;
-              const { error: stockPackError } = await ventasService.descontarStock(item.productos.user_id, cantidadTotal);
+          // Buscar pack completo en DB
+          const pack = packsDB.find(pk => String(pk.id) === String(p.pack_id));
+          if (!pack) throw new Error('Pack no encontrado en base de datos');
+          // Insertar detalle de pack
+          const { error: detallePackError } = await ventasService.insertarVentaDetalle({
+            venta_id: venta.id,
+            producto_id: null, // always null for packs
+            cantidad,
+            precio_unitario: pack.precio_pack,
+            costo_unitario: 0,
+            color: null,
+            descripcion: `📦 Pack: ${pack.nombre}`,
+            tipo: 'pack',
+            pack_id: pack.id
+          });
+          if (detallePackError) throw detallePackError;
+          // Descontar stock de cada producto del pack
+          await Promise.all((pack.pack_productos ?? []).map(async (item) => {
+            const cantidadTotal = item.cantidad * cantidad;
+            const productoPack = item.productos;
+            // Si el producto tiene variante, descontar stock de variante
+            if (item.variante_id) {
+              const variante = productoPack.producto_variantes?.find(v => String(v.id) === String(item.variante_id));
+              if (variante) {
+                // Aquí podrías llamar a un servicio para descontar stock de variante si aplica
+                // await descontarStockVariante(variante.id, cantidadTotal);
+              }
+            } else {
+              const { error: stockPackError } = await ventasService.descontarStock(productoPack.user_id, cantidadTotal);
               if (stockPackError) throw stockPackError;
-            }));
-          }
+            }
+          }));
         } else {
-          const precioInfo = calcularPrecioConPromocion(p, []);
-          const productInfo = productCostMap.get(String(p.user_id));
-          const costoUnitario = Number(productInfo?.precio_compra || 0);
-          const descripcionItem = `${p.nombre}${p.color ? ` ${p.color}` : ''}`.trim();
-
+          // Buscar producto completo en DB
+          // Ignore items with user_id: null (should only be for packs)
+          if (p.user_id == null) return;
+          const productoCompleto = productosDB.find(prod => String(prod.user_id) === String(p.user_id));
+          if (!productoCompleto) throw new Error('Producto no encontrado en base de datos');
+          let variante = null;
+          if (p.variante_id) {
+            variante = (productoCompleto.producto_variantes || []).find(v => String(v.id) === String(p.variante_id));
+          }
+          const precioUnitario = variante?.precio ?? productoCompleto.precio;
+          const costoUnitario = productoCompleto.precio_compra || 0;
+          const descripcionItem = `${productoCompleto.nombre}${variante?.color ? ` ${variante.color}` : p.color ? ` ${p.color}` : ''}`.trim();
           const { error: detalleProductoError } = await ventasService.insertarVentaDetalle({
             venta_id: venta.id,
-            producto_id: p.user_id,
+            producto_id: productoCompleto.user_id,
             cantidad,
-            precio_unitario: precioInfo.precioFinal,
+            precio_unitario: precioUnitario,
             costo_unitario: costoUnitario,
-            variante_id: p.variante_id || null,
-            color: p.color || null,
+            variante_id: variante?.id || null,
+            color: variante?.color || p.color || null,
             descripcion: descripcionItem,
             tipo: 'producto',
           });
-
           if (detalleProductoError) throw detalleProductoError;
-
-          const { error: stockProductoError } = await ventasService.descontarStock(p.user_id, cantidad);
+          // Descontar stock
+          const { error: stockProductoError } = await ventasService.descontarStock(productoCompleto.user_id, cantidad);
           if (stockProductoError) throw stockProductoError;
         }
       }));
@@ -618,6 +837,26 @@ export default function NuevaVenta() {
             onAdd={agregar}
             showSuggestions={showSuggestions}
             setShowSuggestions={setShowSuggestions}
+            packResults={packResults}
+            onAddPack={pack => {
+              // Estructura para agregar pack al carrito
+              agregar({
+                tipo: 'pack',
+                pack_id: pack.id,
+                pack_data: pack,
+                nombre: pack.nombre,
+                cantidad: 1,
+                precio: pack.precio_pack,
+                precio_pack: pack.precio_pack,
+                precio_individual: pack.pack_productos.reduce((t, i) => t + (i.productos.precio * i.cantidad), 0),
+                descuento: calcularDescuentoPack(pack).descuentoAbsoluto,
+                productos: pack.pack_productos,
+                cart_key: `pack:${pack.id}`
+              });
+              setShowSuggestions(false);
+              setBusqueda('');
+              setPackResults([]);
+            }}
           />
 
           <CarritoPanel

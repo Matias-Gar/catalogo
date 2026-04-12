@@ -1,5 +1,6 @@
 "use client";
 import { useState } from 'react';
+import RecuperarContrasenaForm from './RecuperarContrasenaForm';
 import { supabase } from "../lib/SupabaseClient"; // Ajusta esta ruta si es necesario
 
 export default function AuthForm({ onLoginSuccess }) {
@@ -8,6 +9,7 @@ export default function AuthForm({ onLoginSuccess }) {
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [message, setMessage] = useState(''); // Para mostrar mensajes de éxito/error
+  const [showForgotPassword, setShowForgotPassword] = useState(false); // Estado para mostrar el formulario de recuperación
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,51 +56,74 @@ export default function AuthForm({ onLoginSuccess }) {
       <h2 className="text-3xl font-bold mb-6 text-gray-800">
         {isRegistering ? 'Crear Cuenta' : 'Acceso de Usuario'}
       </h2>
-      
+
       {/* Muestra el mensaje de error o éxito */}
       {message && (
         <div className={`p-3 mb-4 rounded-lg w-full text-center ${message.startsWith('Error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
           {message}
         </div>
       )}
-      
-      <form onSubmit={handleSubmit} className="space-y-4 w-full">
-        <input
-          type="email"
-          placeholder="Correo electrónico"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
-          required
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition duration-200 disabled:bg-gray-400"
-        >
-          {loading ? 'Cargando...' : (isRegistering ? 'Registrarse' : 'Iniciar Sesión')}
-        </button>
-      </form>
-      
-      <button 
-        onClick={() => {
-            setIsRegistering(!isRegistering);
-            setMessage(''); // Limpiar el mensaje al cambiar el modo
-            setEmail(''); // Limpiar campos
-            setPassword(''); 
-        }}
-        className="mt-6 text-sm text-indigo-700 hover:text-indigo-900 font-medium transition duration-200"
-      >
-        {isRegistering ? 'Ya tengo una cuenta' : '¿Necesitas una cuenta?'}
-      </button>
+
+      {!showForgotPassword ? (
+        <>
+          <form onSubmit={handleSubmit} className="space-y-4 w-full">
+            <input
+              type="email"
+              placeholder="Correo electrónico"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setMessage("");
+              }}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
+              required
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
+              required
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition duration-200 disabled:bg-gray-400"
+            >
+              {loading ? 'Cargando...' : (isRegistering ? 'Registrarse' : 'Iniciar Sesión')}
+            </button>
+          </form>
+          <button 
+            onClick={() => {
+                setIsRegistering(!isRegistering);
+                setMessage('');
+                setEmail('');
+                setPassword('');
+            }}
+            className="mt-6 text-sm text-indigo-700 hover:text-indigo-900 font-medium transition duration-200"
+          >
+            {isRegistering ? 'Ya tengo una cuenta' : '¿Necesitas una cuenta?'}
+          </button>
+          {/* Enlace Olvidé mi contraseña */}
+          {!isRegistering && (
+            <button
+              type="button"
+              onClick={() => {
+                setShowForgotPassword(true);
+                setMessage("");
+                setEmail("");
+                setPassword("");
+              }}
+              className="mt-2 text-xs text-indigo-600 hover:underline"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          )}
+        </>
+      ) : (
+        <RecuperarContrasenaForm setShowForgotPassword={setShowForgotPassword} />
+      )}
     </div>
   );
 }

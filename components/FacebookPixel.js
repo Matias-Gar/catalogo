@@ -26,13 +26,22 @@ export default function FacebookPixel() {
         script.id = 'facebook-pixel';
         script.async = true;
         script.src = 'https://connect.facebook.net/en_US/fbevents.js';
+        script.onerror = () => {
+          console.error('No se pudo cargar Facebook Pixel.');
+        };
         document.head.appendChild(script);
 
-        // Inicializar píxel solo si pixelId es válido
-        if (pixelId && typeof window.fbq === 'function') {
-          window.fbq('init', pixelId);
-          window.fbq('track', 'PageView');
-        }
+        // Inicializar píxel solo si pixelId es válido y fbq está definido
+        script.onload = () => {
+          if (pixelId && typeof window.fbq === 'function') {
+            try {
+              window.fbq('init', pixelId);
+              window.fbq('track', 'PageView');
+            } catch (e) {
+              console.error('Error inicializando Facebook Pixel:', e);
+            }
+          }
+        };
       }
     }
   }, []);

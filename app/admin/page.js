@@ -63,30 +63,12 @@ export default function AdminDashboard() {
         .slice(0, 8);
 
     return (
-        <div className="min-h-screen p-8 bg-gray-100">
-            {/* Botón para volver al Catálogo */}
-            <div className="mb-8">
-                <Link href="/">
-                    <button className="flex items-center bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition duration-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
-                        </svg>
-                        Ver Catálogo de Productos
-                    </button>
-                </Link>
-            </div>
-            
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">Panel de Administración 🛠️</h1>
-            <p className="mb-8 text-gray-600">Accesos disponibles para el rol: <span className="font-bold">{userRole}</span></p>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                {quickLinks.map((entry) => (
-                    <Link key={entry.path} href={entry.path} className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300">
-                        <h2 className="text-2xl font-semibold text-indigo-600">{entry.label}</h2>
-                        <p className="mt-2 text-gray-600">Abrir {entry.label.toLowerCase()}.</p>
-                    </Link>
-                ))}
-            </div>
-            
+        <div className="min-h-screen p-8 bg-gray-100 flex flex-col items-center justify-center">
+            <h1 className="text-4xl font-bold text-gray-800 mb-4">Panel de Administración 🛠️</h1>
+            <p className="mb-8 text-gray-600 text-lg text-center max-w-xl">
+                Bienvenido al panel de administración. Aquí puedes ver la información general de la tienda y acceder a las funciones administrativas desde el menú lateral.
+            </p>
+            {/* Aquí puedes agregar información/resumen de la tienda si lo deseas */}
             <button onClick={() => supabase.auth.signOut()} className="mt-10 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
                 Cerrar Sesión
             </button>

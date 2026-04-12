@@ -5,6 +5,7 @@ import { supabase } from '../lib/SupabaseClient';
 import { PrecioConPromocion } from '../lib/promociones';
 import { usePromociones } from '../lib/usePromociones';
 import { usePacks, calcularDescuentoPack } from '../lib/packs';
+import { PacksDisponibles } from '../lib/packs';
 import ExpandableDescription from '../components/ui/ExpandableDescription';
 import { getOptimizedImageUrl, buildImageSrcSet } from '../lib/imageOptimization';
 
@@ -81,9 +82,10 @@ function ImageGalleryModal({ isOpen, onClose, imageList, imageIndex, productName
 }
 
 export default function Home() {
+  // Estados para el modal de galería de imágenes
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedImageList, setSelectedImageList] = useState([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedImageName, setSelectedImageName] = useState('');
 
   const openImageModal = (imageList, index, name) => {
@@ -253,16 +255,10 @@ export default function Home() {
   // Devuelve estilos visuales para mostrar el color de forma fiel en el swatch.
   const getColorStyle = (colorName) => {
     const normalized = normalizeColorName(colorName);
-
     if (!normalized) return { backgroundColor: '#9CA3AF' };
-
     if (normalized.includes('animal print')) {
-      return {
-        backgroundColor: '#C7A06B',
-        backgroundImage:
-          'radial-gradient(circle at 25% 25%, #3A2515 14%, transparent 15%), radial-gradient(circle at 70% 55%, #4A2E1B 15%, transparent 16%), radial-gradient(circle at 45% 78%, #2E1C12 11%, transparent 12%)',
-        backgroundSize: '16px 16px',
-      };
+      // Solo color de fondo especial para animal print
+      return { backgroundImage: 'repeating-linear-gradient(135deg, #a78b5f 0 10px, #fffbe6 10px 20px, #a78b5f 20px 30px)' };
     }
 
     if (normalized.includes('multicolor') || normalized.includes('iridiscente') || normalized.includes('holografico') || normalized.includes('tie dye') || normalized.includes('degradado') || normalized.includes('ombre')) {
@@ -316,80 +312,69 @@ export default function Home() {
               📦 Packs Especiales - ¡Ofertas Exclusivas!
             </h2>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
               {packs.map((pack) => {
                 const { precioIndividual, descuentoAbsoluto, descuentoPorcentaje } = calcularDescuentoPack(pack);
-                
                 return (
-                  <div key={pack.id} className="bg-gradient-to-br from-purple-100 to-purple-200 border-2 border-purple-300 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                    {/* Header del pack */}
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xl font-bold text-purple-800">
-                        📦 {pack.nombre}
-                      </h3>
-                      <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                        -{descuentoPorcentaje.toFixed(0)}% OFF
-                      </span>
+                  <div key={pack.id} className="bg-white border border-purple-300 rounded-lg p-3 shadow-md hover:shadow-lg transition-all duration-200 flex flex-col gap-2 text-sm max-w-xs mx-auto">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-purple-800 truncate max-w-[140px]">📦 {pack.nombre}</span>
+                      <span className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold">-{descuentoPorcentaje.toFixed(0)}% OFF</span>
                     </div>
-
-                    {/* Descripción */}
                     {pack.descripcion && (
-                      <p className="text-purple-700 text-sm mb-4">
-                        {pack.descripcion}
-                      </p>
+                      <div className="text-purple-700 text-xs mb-1 truncate">{pack.descripcion}</div>
                     )}
-
-                    {/* Productos incluidos */}
-                    <div className="mb-4">
-                      <h4 className="font-bold text-purple-800 text-sm mb-2">
-                        📋 Incluye:
-                      </h4>
-                      <div className="space-y-1">
-                        {pack.pack_productos.map((item, index) => (
-                          <div key={index} className="flex justify-between items-center bg-white/60 rounded p-2 text-sm">
-                            <span className="text-purple-800 font-medium">
-                              {item.cantidad}x {item.productos.nombre}
-                            </span>
-                            <span className="text-gray-600">
-                              Bs {(item.productos.precio * item.cantidad).toFixed(2)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                    <div className="mb-1">
+                      <span className="font-semibold text-purple-700 text-xs">Incluye:</span>
+                      <ul className="ml-2 mt-1 space-y-0.5">
+                        {pack.pack_productos.map((item, index) => {
+                          const prod = item.productos;
+                          const imgUrl = prod?.imagen_base || (Array.isArray(imagenesProductos[prod?.user_id]) && imagenesProductos[prod.user_id][0]) || 'https://placehold.co/40x40/cccccc/333333?text=Sin+Imagen';
+                          return (
+                            <li key={index} className="flex items-center gap-2 bg-purple-50 rounded px-2 py-0.5">
+                              <button
+                                type="button"
+                                className="w-8 h-8 rounded border border-gray-300 bg-white flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-purple-400 transition"
+                                title={`Ver imagen de ${prod?.nombre}`}
+                                onClick={() => openImageModal([imgUrl], 0, prod?.nombre)}
+                              >
+                                <img
+                                  src={imgUrl}
+                                  alt={prod?.nombre}
+                                  width={32}
+                                  height={32}
+                                  className="object-cover w-8 h-8"
+                                  onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/cccccc/333333?text=Sin+Imagen'; }}
+                                />
+                              </button>
+                              <span className="font-semibold text-purple-900">{item.cantidad}x {prod?.nombre}</span>
+                              <span className="text-xs text-gray-500">Bs {Number(prod?.precio).toFixed(2)}</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
                     </div>
-
-                    {/* Precios */}
-                    <div className="bg-white/80 rounded-lg p-4 mb-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-gray-600 text-sm">Precio individual:</span>
-                        <span className="text-gray-500 line-through">
-                          Bs {precioIndividual.toFixed(2)}
-                        </span>
+                    <div className="flex flex-col gap-1 bg-purple-50 rounded p-2">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-gray-500">Precio individual:</span>
+                        <span className="line-through text-gray-400">Bs {precioIndividual.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="font-bold text-purple-800">Precio del pack:</span>
-                        <span className="text-2xl font-bold text-green-600">
-                          Bs {pack.precio_pack}
-                        </span>
+                        <span className="font-bold text-purple-800">Pack:</span>
+                        <span className="text-lg font-bold text-green-700">Bs {pack.precio_pack}</span>
                       </div>
-                      <div className="text-center mt-2 text-sm font-bold text-green-700">
-                        💰 Ahorras: Bs {descuentoAbsoluto.toFixed(2)}
-                      </div>
+                      <div className="text-center text-xs text-green-700 font-bold">Ahorras: Bs {descuentoAbsoluto.toFixed(2)}</div>
                     </div>
-
-                    {/* Vigencia */}
-                    <div className="text-xs text-purple-600 mb-4">
+                    <div className="text-xs text-purple-600">
                       {pack.fecha_fin ? (
-                        <div>⏰ Oferta válida hasta: {new Date(pack.fecha_fin).toLocaleDateString()}</div>
+                        <span>⏰ Hasta: {new Date(pack.fecha_fin).toLocaleDateString()}</span>
                       ) : (
-                        <div>♾️ Oferta por tiempo limitado</div>
+                        <span>♾️ Oferta limitada</span>
                       )}
                     </div>
-
-                    {/* Botón de acción */}
                     <a
                       href="/productos"
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-bold text-center block transition-colors duration-200"
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white py-1.5 px-2 rounded font-bold text-xs text-center mt-1 transition-colors duration-200"
                     >
                       🛒 Ver en Catálogo
                     </a>

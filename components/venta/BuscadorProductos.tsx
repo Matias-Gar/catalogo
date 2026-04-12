@@ -20,6 +20,14 @@ interface Producto {
   categorias?: { categori?: string };
 }
 
+interface Pack {
+  id: string | number;
+  nombre: string;
+  descripcion?: string;
+  precio_pack: number;
+  pack_productos: Array<{ cantidad: number; productos: Producto }>;
+}
+
 interface Props {
   busqueda: string;
   onChange: (v: string) => void;
@@ -30,6 +38,8 @@ interface Props {
   onAdd: (prod: Producto) => void;
   showSuggestions: boolean;
   setShowSuggestions: (b: boolean) => void;
+  packResults?: Pack[];
+  onAddPack?: (pack: Pack) => void;
 }
 
 export default function BuscadorProductos({
@@ -41,7 +51,9 @@ export default function BuscadorProductos({
   imagenes,
   onAdd,
   showSuggestions,
-  setShowSuggestions
+  setShowSuggestions,
+  packResults = [],
+  onAddPack
 }: Props) {
   return (
     <form onSubmit={e => { e.preventDefault(); onSubmit(); }} className="flex flex-col sm:flex-row gap-2 mb-4 mt-8">
@@ -62,9 +74,32 @@ export default function BuscadorProductos({
         />
 
         {showSuggestions && (
-          <ul className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded shadow max-h-72 overflow-auto">
+          <ul className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded shadow max-h-80 overflow-auto">
             {searchLoading && <li className="px-3 py-2 text-sm text-gray-500">Buscando...</li>}
 
+            {/* Mostrar packs primero */}
+            {!searchLoading && packResults && packResults.length > 0 && packResults.slice(0, 10).map(pack => (
+              <li key={`pack-${pack.id}`} className="px-3 py-2 hover:bg-purple-50 flex items-center justify-between gap-3 border-b border-purple-100">
+                <div className="flex items-center gap-3 truncate">
+                  <div className="w-10 h-10 bg-purple-100 rounded flex items-center justify-center text-2xl">📦</div>
+                  <div className="truncate">
+                    <div className="font-bold text-purple-800 text-sm truncate">{pack.nombre}</div>
+                    <div className="text-xs text-purple-700">Incluye: {pack.pack_productos.map(item => `${item.cantidad}x ${item.productos.nombre}`).join(', ')}</div>
+                    <div className="text-xs text-purple-600">Bs {Number(pack.precio_pack).toFixed(2)} <span className="ml-2 text-xs text-purple-500">Pack especial</span></div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onMouseDown={e => { e.preventDefault(); onAddPack && onAddPack(pack); }}
+                  className="bg-purple-700 hover:bg-purple-800 text-white px-2 py-1 rounded text-sm font-semibold"
+                  title="Agregar pack al carrito"
+                >
+                  ✓ Agregar pack
+                </button>
+              </li>
+            ))}
+
+            {/* Productos individuales */}
             {!searchLoading && searchResults.slice(0,20).map(p => (
               <li key={p.user_id} className="px-3 py-2 hover:bg-gray-100 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 truncate">
@@ -96,7 +131,6 @@ export default function BuscadorProductos({
                 <div className="flex flex-col items-end gap-1">
                   <div className="text-sm font-semibold text-gray-700">Bs {Number(p.precio).toFixed(2)}</div>
                   {p.variante_id ? (
-                    // Si la variante fue preseleccionada por código de barras, mostrar solo un botón "Agregar"
                     <button
                       type="button"
                       onMouseDown={e => {
@@ -154,7 +188,7 @@ export default function BuscadorProductos({
               </li>
             ))}
 
-            {!searchLoading && searchResults.length === 0 && <li className="px-3 py-2 text-sm text-gray-500">No hay coincidencias</li>}
+            {!searchLoading && searchResults.length === 0 && (!packResults || packResults.length === 0) && <li className="px-3 py-2 text-sm text-gray-500">No hay coincidencias</li>}
           </ul>
         )}
       </div>

@@ -106,19 +106,28 @@ export default function CarritoPanel({
                 }
                 const precioInfo = calcularPrecioConPromocion(item, promociones);
                 const itemKey = item.cart_key || `prod:${String(item.user_id)}:${String(item.variante_id ?? 'default')}`;
+                // Lógica para imagen: variante > item.imagen_url > imagenes[1] > imagenes[0]
+                let imagenUrl = null;
+                if (item.variante_id && item.variantes) {
+                  const variante = item.variantes.find(v => String(v.id || v.variante_id) === String(item.variante_id));
+                  if (variante && variante.imagen_url) imagenUrl = variante.imagen_url;
+                }
+                if (!imagenUrl && item.imagen_url) imagenUrl = item.imagen_url;
+                if (!imagenUrl && imagenes[item.user_id]?.[1]) imagenUrl = imagenes[item.user_id][1];
+                if (!imagenUrl && imagenes[item.user_id]?.[0]) imagenUrl = imagenes[item.user_id][0];
                 return (
                   <tr key={itemKey}>
                     <td className="p-2 text-center align-middle">
-                      {imagenes[item.user_id]?.[0] ? (
-                        <Image 
-                          src={getOptimizedImageUrl(imagenes[item.user_id][0], 120, { quality: 94, format: 'origin' })} 
-                          alt="img" 
+                      {imagenUrl ? (
+                        <Image
+                          src={getOptimizedImageUrl(imagenUrl, 120, { quality: 94, format: 'origin' })}
+                          alt="img"
                           width={56}
                           height={56}
                           quality={94}
                           sizes="56px"
-                          className="object-cover rounded-lg border mx-auto shadow-sm" 
-                          style={{maxWidth:'56px',maxHeight:'56px'}} 
+                          className="object-cover rounded-lg border mx-auto shadow-sm"
+                          style={{ maxWidth: '56px', maxHeight: '56px' }}
                         />
                       ) : (
                         <span className="text-gray-400">Sin imagen</span>

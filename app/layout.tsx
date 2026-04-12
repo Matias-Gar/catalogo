@@ -10,7 +10,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "../components/Header"; 
 import StoreFooter from "../components/StoreFooter";
-import FacebookPixel from "../components/FacebookPixel"; 
+// import FacebookPixel from "../components/FacebookPixel"; 
 import ToastProvider from "@/components/ui/ToastProvider";
 import QZTrayLoader from "../components/QZTrayLoader";
 
@@ -49,7 +49,7 @@ export default function RootLayout({
         {children}
         <StoreFooter />
         {/* 📊 Facebook Pixel para tracking */}
-        <FacebookPixel />
+        {/* <FacebookPixel /> */}
         <ToastProvider />
       </body>
     </html>

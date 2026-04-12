@@ -3,7 +3,7 @@ import { calcularPrecioConPromocion } from '../lib/promociones';
 import { usePacks, calcularDescuentoPack } from '../lib/packs';
 
 export interface Producto {
-  user_id: string;
+  user_id: string | number | null; // For packs, this should be null
   variante_id?: string | number;
   stock?: number;
   color?: string;
@@ -163,7 +163,7 @@ export function useCarrito(promociones: unknown[]) {
   const agregarPack = useCallback((pack: Pack) => {
     const { descuentoAbsoluto } = calcularDescuentoPack(pack);
     const itemPack: CartItem = {
-      user_id: `pack-${pack.id}`,
+      user_id: null, // never use 'pack-<id>' as user_id
       cart_key: `pack:${String(pack.id)}`,
       nombre: `📦 ${pack.nombre}`,
       precio: pack.precio_pack,

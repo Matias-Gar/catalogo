@@ -102,14 +102,16 @@ export async function PATCH(request) {
     }
 
     const supabase = getSupabaseServerClientFromRequest(request);
-    const { error } = await supabase.rpc("editar_movimiento_caja", {
-      pmovimiento_id: id,
-      pfecha: date || null,
-      ptipo: type || null,
-      pmetodo: payment_method || null,
-      pmonto: amount ? Number(amount) : null,
-      pdescripcion: description || null,
-    });
+    const { error } = await supabase
+      .from("cash_movements")
+      .update({
+        date: date || null,
+        type: type || null,
+        payment_method: payment_method || null,
+        amount: amount ? Number(amount) : null,
+        description: description || null,
+      })
+      .eq("id", id);
 
     if (error) {
       throw new Error(error.message || "Failed to update movement");
