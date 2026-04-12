@@ -555,7 +555,7 @@ export default function NuevaVenta() {
       const packsIds = carrito.filter(p => p.tipo === 'pack' && p.pack_id).map(p => String(p.pack_id));
 
       // 2. Consultar productos y variantes desde la base de datos
-      let productosDB = [];
+      let productosDB: any[] = [];
       if (productosIds.length > 0) {
         const { data: productosData, error: productosError } = await supabase
           .from('productos')
@@ -566,7 +566,7 @@ export default function NuevaVenta() {
       }
 
       // 3. Consultar packs y sus productos desde la base de datos
-      let packsDB = [];
+      let packsDB: any[] = [];
       if (packsIds.length > 0) {
         const { data: packsData, error: packsError } = await supabase
           .from('packs')
