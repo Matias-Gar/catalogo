@@ -22,11 +22,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'El código ha expirado' }, { status: 401 });
   }
   // Buscar el usuario por email para obtener su id
-  const { data: userData, error: userError } = await supabase.auth.admin.listUsers({ email: emailNorm });
+  const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
   if (userError || !userData || !userData.users || userData.users.length === 0) {
     return NextResponse.json({ error: 'No se pudo encontrar el usuario para cambiar la contraseña', details: userError }, { status: 500 });
   }
-  const userId = userData.users[0].id;
+  const user = userData.users.find((u: any) => u.email && u.email.toLowerCase() === emailNorm);
+  if (!user) {
+    return NextResponse.json({ error: 'No se pudo encontrar el usuario para cambiar la contraseña', details: 'Usuario no encontrado' }, { status: 500 });
+  }
+  const userId = user.id;
   // Cambiar la contraseña real en Supabase Auth
   const { error: updateError } = await supabase.auth.admin.updateUserById(userId, { password: nueva_contrasena });
   if (updateError) {
