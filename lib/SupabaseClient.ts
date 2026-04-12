@@ -13,4 +13,4 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 // Debug en consola
-console.log('🔗 Supabase conectado a:', supabaseUrl);
+// console.log('🔗 Supabase conectado a:', supabaseUrl);

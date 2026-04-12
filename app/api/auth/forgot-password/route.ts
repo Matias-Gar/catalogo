@@ -9,22 +9,22 @@ function generarCodigo(longitud = 6) {
 export async function POST(req: Request) {
   try {
     const { email, ci, newPassword } = await req.json();
-    console.log('[FORGOT] Email recibido:', email, 'CI:', ci);
+    // console.log('[FORGOT] Email recibido:', email, 'CI:', ci);
     if (!email) {
-      console.log('[FORGOT] Falta email');
+      // console.log('[FORGOT] Falta email');
       return NextResponse.json({ error: 'Email requerido' }, { status: 400 });
     }
     const emailNorm = email.trim().toLowerCase();
-    console.log('[FORGOT] Email normalizado:', emailNorm);
+    // console.log('[FORGOT] Email normalizado:', emailNorm);
     // Buscar usuario en perfiles usando filtro SQL exacto y campo limpio
     const { data: user, error } = await supabase
       .from('perfiles')
       .select('id, email, nit_ci')
       .eq('email', emailNorm)
       .maybeSingle();
-    console.log('USER:', user);
-    console.log('ERROR:', error);
-    console.log('[FORGOT] Resultado consulta user:', user, 'Error:', error, 'Email buscado:', emailNorm);
+    // console.log('USER:', user);
+    // console.log('ERROR:', error);
+    // console.log('[FORGOT] Resultado consulta user:', user, 'Error:', error, 'Email buscado:', emailNorm);
     if (error || !user) {
       // Si no está en perfiles, buscar en auth.users
       const { data: authUser, error: authError } = await supabase
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
       message: 'Identidad confirmada, ingresa tu nueva contraseña'
     });
   } catch (err) {
-    console.error('[FORGOT] Error inesperado:', err);
+    // console.error('[FORGOT] Error inesperado:', err);
     return NextResponse.json({ error: 'Error inesperado', details: String(err) }, { status: 500 });
   }
 }

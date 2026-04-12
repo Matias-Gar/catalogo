@@ -226,7 +226,7 @@ export function useProductos(_includeCost = false) {
       }
       return resultados;
     } catch (e) {
-      console.error('searchProductos error', e);
+      // console.error('searchProductos error', e);
       setSearchResults([]);
       return [] as Producto[];
     } finally {

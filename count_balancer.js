@@ -15,11 +15,11 @@ for (let lineNum = 0; lineNum < lines.length; lineNum++) {
     if (c === '}') brace--;
   }
   if (lineNum >= 560 && lineNum <= 580) {
-    console.log('line', lineNum+1, 'parensCount', parens, 'text', line.trim());
+    // console.log('line', lineNum+1, 'parensCount', parens, 'text', line.trim());
   }
   if (parens < 0 && !negativeReported) {
-    console.log('negative parens at line', lineNum+1, 'text', line.trim());
+    // console.log('negative parens at line', lineNum+1, 'text', line.trim());
     negativeReported=true;
   }
 }
-console.log('final parens', parens, 'final braces', brace);
+// console.log('final parens', parens, 'final braces', brace);

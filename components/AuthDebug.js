@@ -17,7 +17,7 @@ export default function AuthDebug() {
     // Escuchar cambios de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth State Change:', event, session);
+        // console.log('Auth State Change:', event, session);
         setAuthState(prev => ({
           ...prev,
           user: session?.user || null,
@@ -32,15 +32,15 @@ export default function AuthDebug() {
 
   async function checkAuth() {
     try {
-      console.log('Verificando autenticación...');
+      // console.log('Verificando autenticación...');
       
       // Verificar sesión
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log('Sesión:', session, 'Error:', sessionError);
+      // console.log('Sesión:', session, 'Error:', sessionError);
       
       // Verificar usuario
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      console.log('Usuario:', user, 'Error:', userError);
+      // console.log('Usuario:', user, 'Error:', userError);
       
       // Verificar perfil en tabla perfiles
       if (user) {
@@ -49,7 +49,7 @@ export default function AuthDebug() {
           .select('rol, nombre')
           .eq('id', user.id)
           .single();
-        console.log('Perfil en perfiles:', profile, 'Error:', profileError);
+        // console.log('Perfil en perfiles:', profile, 'Error:', profileError);
       }
       
       setAuthState({
@@ -60,7 +60,7 @@ export default function AuthDebug() {
       });
       
     } catch (error) {
-      console.error('Error verificando auth:', error);
+      // console.error('Error verificando auth:', error);
       setAuthState(prev => ({
         ...prev,
         loading: false,

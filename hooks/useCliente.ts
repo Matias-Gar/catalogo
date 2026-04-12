@@ -113,7 +113,7 @@ export function useCliente() {
       }
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : String(e);
-      console.warn('Error perfiles', errorMessage);
+      // console.warn('Error perfiles', errorMessage);
     }
 
     // 2) clientes legacy
@@ -139,7 +139,7 @@ export function useCliente() {
       }
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : String(e);
-      console.warn('Error clientes', errorMessage);
+      // console.warn('Error clientes', errorMessage);
     }
 
     // 3) ventas
@@ -164,7 +164,7 @@ export function useCliente() {
       }
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : String(e);
-      console.warn('Error ventas', errorMessage);
+      // console.warn('Error ventas', errorMessage);
     }
 
     setCliente((c: Cliente) => ({ ...c, guardado: false, existente: false, source: '' }));
@@ -209,7 +209,7 @@ export function useCliente() {
         setCliente((c: Cliente) => ({ ...c, guardado: true, existente: true, source: 'clientes' }));
         return showToast('Cliente anadido correctamente');
       } catch (e) {
-        console.error(e);
+        // console.error(e);
         return showToast('Error inesperado al anadir cliente', 'error');
       }
     }
@@ -240,7 +240,7 @@ export function useCliente() {
         }
       }
     } catch (e) {
-      console.warn('guardarCliente perfil', e);
+      // console.warn('guardarCliente perfil', e);
     }
 
     try {
@@ -276,7 +276,7 @@ export function useCliente() {
       setCliente((c: Cliente) => ({ ...c, guardado: true, existente: true, source }));
       showToast(`Cliente actualizado correctamente en ${source}`);
     } catch (e) {
-      console.error(e);
+      // console.error(e);
       showToast('Error inesperado al actualizar cliente', 'error');
     }
   }, [cliente]);
@@ -292,7 +292,7 @@ export function useCliente() {
       } else {
         showToast('No se encontro email historico', 'info');
       }
-    } catch (e) { console.warn(e); showToast('Error buscando email historico', 'error'); }
+    } catch (e) { /* console.warn(e); */ showToast('Error buscando email historico', 'error'); }
   }, [cliente.carnet, cliente.nit]);
 
   return { cliente, cambiarCampo, buscarPorCarnet, guardar, buscarEmailHistorico };

@@ -28,7 +28,7 @@ export default function AuthForm({ onLoginSuccess }) {
 
     if (error) {
       // Manejo de errores de Supabase
-      console.error(`Error de autenticación: ${error.message}`);
+      // console.error(`Error de autenticación: ${error.message}`);
       setMessage(`Error: ${error.message}`);
       
     } else if (isRegistering && data.user && !data.session) {
