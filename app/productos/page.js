@@ -240,7 +240,7 @@ export default function CatalogoPage() {
                 const variante = variantes.find(function(v) { return String(v.variante_id ?? v.id) === String(varianteId); });
                 return Math.max(0, Number(variante?.stock || 0));
             }
-            const totalDisponible = variantes.reduce((acc, v) => acc + Math.max(0, Number(v?.stock || 0)), 0);
+            const totalDisponible = variantes.reduce(function(acc, v) { return acc + Math.max(0, Number(v?.stock || 0)); }, 0);
             return Math.max(0, totalDisponible);
         }
 
@@ -252,7 +252,7 @@ export default function CatalogoPage() {
     const getStockDisponibleItem = (item) => {
         if (item?.tipo === 'pack') return 999;
 
-        const producto = productos.find(p => String(p.user_id) === String(item.user_id));
+        const producto = productos.find(function(p) { return String(p.user_id) === String(item.user_id); });
         if (!producto) return Math.max(0, Number(item.stock || 0));
 
         return getStockDisponibleProducto(producto, item.variante_id ?? null);
@@ -260,7 +260,7 @@ export default function CatalogoPage() {
 
     const openAddToCartModal = (producto) => {
         const variantes = getVariantes(producto);
-        const defaultVariante = variantes.find(v => Number(v?.stock || 0) > 0) || null;
+        const defaultVariante = variantes.find(function(v) { return Number(v?.stock || 0) > 0; }) || null;
         const defaultVarianteId = defaultVariante ? (defaultVariante.variante_id ?? defaultVariante.id) : null;
 
         setAddToCartModal({
@@ -315,7 +315,7 @@ export default function CatalogoPage() {
                 setModalWarning('Debes seleccionar un color para continuar.');
                 return;
             }
-            const selected = variantes.find(v => String(v.variante_id ?? v.id) === String(selectedVarianteId));
+            const selected = variantes.find(function(v) { return String(v.variante_id ?? v.id) === String(selectedVarianteId); });
             if (!selected || !varianteDB) {
                 setModalWarning('Selecciona un color válido para continuar.');
                 return;
