@@ -62,7 +62,7 @@ export default function NuevaVenta() {
 
   const [busqueda, setBusqueda] = React.useState('');
   const [showSuggestions, setShowSuggestions] = React.useState(false);
-  const [packResults, setPackResults] = React.useState([]);
+  const [packResults, setPackResults] = React.useState<Pack[]>([]);
   const lastAutoAddRef = React.useRef({ code: '', timestamp: 0 });
 
   const scanBuffer = React.useRef('');
