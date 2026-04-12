@@ -20,6 +20,7 @@ export interface Producto {
   nombre: string;
   precio: number;
   precio_pack?: number;
+  precio_individual?: number;
   precio_original?: number;
   cantidad?: number;
   tipo?: 'pack' | 'producto';
