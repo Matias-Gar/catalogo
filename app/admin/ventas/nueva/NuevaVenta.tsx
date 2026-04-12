@@ -133,7 +133,7 @@ export default function NuevaVenta() {
 
         // Consultar productos desde la base de datos, trayendo también la imagen principal
         let productosDB = [];
-        let imagenesDB = {};
+        let imagenesDB: { [key: string]: string[] } = {};
         if (productosIds.length > 0) {
           const { data: productosData, error: productosError } = await supabase
             .from('v_productos_catalogo')
