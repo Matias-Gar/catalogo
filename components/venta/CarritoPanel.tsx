@@ -18,7 +18,7 @@ interface Props {
   pago: number;
   cambio: number;
   packs: Pack[];
-  promociones: unknown[];
+  promociones: any[];
 }
 
 

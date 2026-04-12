@@ -29,7 +29,7 @@ export default function UserProfile() {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError || !session?.user) {
-          console.log('❌ No hay sesión válida, redirigiendo...');
+          // console.log('❌ No hay sesión válida, redirigiendo...');
           router.push('/login');
           return;
         }
@@ -45,7 +45,7 @@ export default function UserProfile() {
           .single();
         
         if (perfilError && perfilError.code !== 'PGRST116') {
-          console.error('❌ Error cargando perfil:', perfilError);
+          // console.error('❌ Error cargando perfil:', perfilError);
         }
 
         // 3. Establecer datos seguros
@@ -72,7 +72,7 @@ export default function UserProfile() {
         setAuthorized(true);
         
       } catch (error) {
-        console.error('❌ Error de autorización:', error);
+        // console.error('❌ Error de autorización:', error);
         router.push('/login');
       } finally {
         setLoading(false);

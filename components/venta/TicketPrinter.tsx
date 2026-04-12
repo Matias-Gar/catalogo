@@ -2,7 +2,7 @@
 // TypeScript: Add qz to window
 declare global {
   interface Window {
-    qz?: any;
+    qz?: unknown;
   }
 }
 import React, { useImperativeHandle, forwardRef, useRef, useState } from 'react';
@@ -163,16 +163,16 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
 
   // replicamos funciones desde Página original
   async function printTicketAsPDF(ticketSnapshot: TicketSnapshot) {
-    console.log('printTicketAsPDF init', { ticketSnapshot });
+    // console.log('printTicketAsPDF init', { ticketSnapshot });
 
     if (!ticketSnapshot || typeof ticketSnapshot !== 'object') {
-      console.warn('printTicketAsPDF: ticketSnapshot inválido');
+      // console.warn('printTicketAsPDF: ticketSnapshot inválido');
       return false;
     }
 
     const items = Array.isArray(ticketSnapshot.items) ? ticketSnapshot.items : [];
 
-    if (items.length === 0) console.warn('printTicketAsPDF: no hay items', items);
+    if (items.length === 0) {/* console.warn('printTicketAsPDF: no hay items', items); */}
 
     try {
       const branding = await getReceiptBranding();
@@ -308,7 +308,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
         doc.text('Comprobante digital', startX + qrSize + gap + qrSize / 2, y, { align: 'center' });
         y += 4;
       } catch (err) {
-        console.warn('qrcode no disponible, omitiendo QR', err);
+        // console.warn('qrcode no disponible, omitiendo QR', err);
       }
 
       doc.setFontSize(6);
@@ -338,7 +338,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
             iframe?.contentWindow?.focus();
             iframe?.contentWindow?.print();
           } catch (err) {
-            console.warn('Error al imprimir desde iframe interno', err);
+            // console.warn('Error al imprimir desde iframe interno', err);
           } finally {
             URL.revokeObjectURL(url);
           }
@@ -347,7 +347,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
 
       return true;
     } catch (err) {
-      console.error('printTicketAsPDF error', err);
+      // console.error('printTicketAsPDF error', err);
       return false;
     }
   }
@@ -355,7 +355,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
   async function printComprobanteThermal(ticketSnapshot: TicketSnapshot) {
     // Chequeo robusto de QZ Tray 2.2.6
     if (!window.qz || !window.qz.websocket || !window.qz.configs || !window.qz.print) {
-      console.warn('qz-tray no está disponible o la API es incorrecta; se usará impresión estándar');
+      // console.warn('qz-tray no está disponible o la API es incorrecta; se usará impresión estándar');
       return false;
     }
     try {
@@ -446,13 +446,13 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
       const qzApi = window.qz;
       const config = qzApi?.configs?.create('POS-80C');
       if (!config || !qzApi?.print) {
-        console.warn('qz-tray config o función print no disponible');
+        // console.warn('qz-tray config o función print no disponible');
         return false;
       }
       await qzApi.print(config, lines);
       return true;
     } catch (err) {
-      console.warn('printComprobanteThermal error', err);
+      // console.warn('printComprobanteThermal error', err);
       return false;
     }
   }
@@ -540,13 +540,13 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
               fallbackIframe?.contentWindow?.focus();
               fallbackIframe?.contentWindow?.print();
             } catch (err) {
-              console.warn('fallback print call failed', err);
+              // console.warn('fallback print call failed', err);
             }
           }, 500);
         }
       }
     } catch (err) {
-      console.warn('printComprobante error', err);
+      // console.warn('printComprobante error', err);
       alert('Error al intentar imprimir el comprobante');
     }
   }

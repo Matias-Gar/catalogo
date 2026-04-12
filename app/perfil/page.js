@@ -26,7 +26,7 @@ export default function ProfilePage() {
 
         setUser(user);
       } catch (error) {
-        console.error('Error verificando usuario:', error);
+        // console.error('Error verificando usuario:', error);
         router.push('/login');
       } finally {
         setLoading(false);

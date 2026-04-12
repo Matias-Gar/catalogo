@@ -26,7 +26,7 @@ export default function UserNavigation() {
 
       setProfile(data);
     } catch (error) {
-      console.error('Error cargando perfil:', error);
+      // console.error('Error cargando perfil:', error);
     }
   }, []);
 
@@ -40,7 +40,7 @@ export default function UserNavigation() {
         await loadProfile(user.id);
       }
     } catch (error) {
-      console.error('Error obteniendo usuario:', error);
+      // console.error('Error obteniendo usuario:', error);
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ export default function UserNavigation() {
       await supabase.auth.signOut();
       router.push('/');
     } catch (error) {
-      console.error('Error cerrando sesión:', error);
+        // console.error('Error cerrando sesión:', error);
     }
   }
 

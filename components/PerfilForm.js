@@ -31,13 +31,13 @@ export default function PerfilForm({ userId, perfilActual, onSave, isAdminEdit =
     const cargarPerfil = async () => {
       try {
         if (perfilActual) {
-          console.log('Usando perfil actual:', perfilActual);
+          // console.log('Usando perfil actual:', perfilActual);
           setNombre(perfilActual.nombre || "");
           setNitCi(perfilActual.nit_ci || "");
           setTelefono(perfilActual.telefono || "");
           setFotoPerfil(perfilActual.foto_perfil || "");
         } else {
-          console.log('Cargando perfil desde base de datos para userId:', userId);
+          // console.log('Cargando perfil desde base de datos para userId:', userId);
           
           // Intentar cargar perfil con manejo de errores mejorado
           const { data, error } = await supabase

@@ -22,7 +22,7 @@ export default function LoginPage() {
             .single();
 
             if (profileError) {
-                console.error("Error al obtener el perfil:", profileError.message);
+    // console.error("Error al obtener el perfil:", profileError.message);
                 router.push("/"); 
                 return;
             }
@@ -33,7 +33,7 @@ export default function LoginPage() {
                 router.push('/');
             }
         } catch (error) {
-            console.error("Error en la redirección por rol:", error.message);
+    // console.error("Error en la redirección por rol:", error.message);
             router.push('/');
         } finally {
             // Aseguramos que la carga termine si no se pudo redirigir por alguna razón.

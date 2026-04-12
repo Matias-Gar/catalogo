@@ -207,7 +207,7 @@ export default function Home() {
   const productosFiltrados = productos.filter(p => {
     if (filtroCategoria === '') return true;
     const match = Number(p.category_id) === Number(filtroCategoria);
-    console.log('🔍 Filtro categoria PRINCIPAL:', {
+    // console.log('🔍 Filtro categoria PRINCIPAL:', {
       producto: p.nombre,
       categoria_producto: p.category_id,
       categoria_seleccionada: filtroCategoria,
@@ -405,7 +405,7 @@ export default function Home() {
                         <select
                             value={filtroCategoria}
                             onChange={(e) => {
-                                console.log('🏷️ Categoría seleccionada PRINCIPAL:', e.target.value);
+                                // console.log('🏷️ Categoría seleccionada PRINCIPAL:', e.target.value);
                                 setFiltroCategoria(e.target.value);
                             }}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-gray-700 font-medium"
@@ -425,7 +425,7 @@ export default function Home() {
                     <button
                         className={`px-4 py-2 rounded-full font-bold border transition-all duration-200 ${!filtroCategoria ? 'bg-violet-600 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                         onClick={() => {
-                            console.log('🏷️ Categoría seleccionada PRINCIPAL: todas');
+                            // console.log('🏷️ Categoría seleccionada PRINCIPAL: todas');
                             setFiltroCategoria('');
                         }}
                     >
@@ -436,7 +436,7 @@ export default function Home() {
                             key={cat.id}
                             className={`px-4 py-2 rounded-full font-bold border transition-all duration-200 ${Number(filtroCategoria) === cat.id ? 'bg-violet-600 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                             onClick={() => {
-                                console.log('🏷️ Categoría seleccionada PRINCIPAL:', cat.id, cat.categori);
+                                // console.log('🏷️ Categoría seleccionada PRINCIPAL:', cat.id, cat.categori);
                                 setFiltroCategoria(cat.id.toString());
                             }}
                         >
