@@ -367,7 +367,7 @@ export default function NuevaVenta() {
           cantidad: 1,
           precio: packsConEsteProducto[0].precio_pack,
           precio_pack: packsConEsteProducto[0].precio_pack,
-          precio_individual: packsConEsteProducto[0].pack_productos.reduce((t: number, i: { productos: { precio: number }, cantidad: number }) => t + (i.productos.precio * i.cantidad), 0),
+          precio_individual: (packsConEsteProducto[0].pack_productos ?? []).reduce((t: number, i: { productos: { precio: number }, cantidad: number }) => t + (i.productos.precio * i.cantidad), 0),
           descuento: calcularDescuentoPack(packsConEsteProducto[0]).descuentoAbsoluto,
           productos: packsConEsteProducto[0].pack_productos,
           cart_key: `pack:${packsConEsteProducto[0].id}`
