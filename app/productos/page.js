@@ -107,20 +107,20 @@ export default function CatalogoPage() {
                         .eq('id', session.user.id)
                         .maybeSingle();
                     if (error) {
-                        console.error('❌ Error consultando perfil:', error);
+                        // ...existing code...
                     }
                     if (perfil) {
                         if (perfil.nombre) nombre = perfil.nombre;
                         if (perfil.nit_ci) nit_ci = perfil.nit_ci;
                     }
-                    console.log('✅ Datos establecidos:', { nombre, nit_ci });
+                    // ...existing code...
                     setUsuario({ id: session.user.id, email: session.user.email, nombre, nit_ci });
                 } else {
-                    console.log('👤 No hay usuario logueado');
+                    // ...existing code...
                     setUsuario(null);
                 }
             } catch (error) {
-                console.error('❌ Error consultando perfil:', error);
+                // ...existing code...
                 setUsuario(null);
             }
         };
@@ -161,17 +161,17 @@ export default function CatalogoPage() {
     // Auto-llenar datos del cliente cuando el usuario esté logueado
     useEffect(() => {
         if (usuario) {
-            console.log('🔄 Auto-llenando datos del usuario:', usuario);
+            // ...existing code...
             setCustomerData(prevData => {
                 const newData = {
                     nombre: usuario.nombre || prevData.nombre || '',
                     nit_ci: usuario.nit_ci || prevData.nit_ci || ''
                 };
-                console.log('📝 Datos del cliente actualizados:', newData);
+                // ...existing code...
                 return newData;
             });
         } else {
-            console.log('👤 No hay usuario logueado, limpiando datos');
+            // ...existing code...
             setCustomerData({ nombre: '', nit_ci: '' });
         }
     }, [usuario]);
@@ -412,7 +412,7 @@ export default function CatalogoPage() {
         
         // Auto-llenar datos si el usuario está logueado
         if (usuario) {
-            console.log('🔄 Auto-llenando en modal:', usuario);
+            // ...existing code...
             setCustomerData(prevData => ({
                 nombre: usuario.nombre || prevData.nombre || '',
                 nit_ci: usuario.nit_ci || prevData.nit_ci || ''
@@ -470,16 +470,6 @@ export default function CatalogoPage() {
         ]).select('id').single();
         
         if (error || !data) {
-            console.error('❌ Error al guardar carrito:', {
-                error: error,
-                usuario_autenticado: !!usuario,
-                usuario_id: usuario ? usuario.id : null,
-                datos_carrito: {
-                    cliente_nombre: nombreFinal,
-                    usuario_id: usuario ? usuario.id : null,
-                    productos_count: cart.length
-                }
-            });
             alert(`No se pudo guardar el pedido. Error: ${error?.message || 'Error desconocido'}. Por favor intenta de nuevo.`);
             return;
         }
@@ -768,16 +758,10 @@ export default function CatalogoPage() {
                         const productosFiltrados = productos.filter(producto => {
                             if (!categoriaSeleccionada) return true;
                             const match = Number(producto.category_id) === Number(categoriaSeleccionada);
-                            console.log('🔍 Filtro categoria:', {
-                                producto: producto.nombre,
-                                categoria_producto: producto.category_id,
-                                categoria_seleccionada: categoriaSeleccionada,
-                                match: match
-                            });
                             return match;
                         });
                         
-                        console.log('📦 Productos filtrados:', productosFiltrados.length, 'de', productos.length);
+                        // ...existing code...
                         
                         return productosFiltrados.map((producto, idx) => {
                             const quantityInCart = cart
