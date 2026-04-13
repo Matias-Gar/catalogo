@@ -1,5 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
+const SafeImage = dynamic(() => import("../../../components/SafeImage"), { ssr: false });
 const PerfilForm = dynamic(() => import("../../../components/PerfilForm.client"), { ssr: false });
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/SupabaseClient";
@@ -159,7 +160,7 @@ export default function PerfilPage() {
               <div className="text-center">
                 <h3 className="text-sm font-medium text-gray-700 mb-3">Foto de Perfil</h3>
                 {perfil?.foto_perfil ? (
-                  <Image
+                  <SafeImage
                     src={perfil.foto_perfil}
                     alt="Foto de perfil"
                     width={128}
