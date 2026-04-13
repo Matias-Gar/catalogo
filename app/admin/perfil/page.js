@@ -1,5 +1,6 @@
 "use client";
-import PerfilForm from "../../../components/PerfilForm";
+import dynamic from "next/dynamic";
+const PerfilForm = dynamic(() => import("../../../components/PerfilForm.client"), { ssr: false });
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/SupabaseClient";
 import { useRouter } from "next/navigation";
