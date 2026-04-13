@@ -9,11 +9,11 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } f
 function formatAmount(v) {
   const num = Number(v) || 0;
   return `Bs ${num.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
 
-
+export default function PagosQrPage() {
   const { loading, error, stats, rows, chartData, prevChartData, growth, insight, kpis, diasSinVentas } = useQrStats();
   const total = kpis?.total || 0;
-
 
   return (
     <div style={{ maxWidth: 950, margin: "0 auto", padding: 24 }}>
@@ -50,7 +50,7 @@ function formatAmount(v) {
 
       {/* Insight automático */}
       {!loading && !error && insight && (
-        <div style={{ marginBottom: 16, padding: 12, background: "#fef3c7", borderRadius: 8, fontWeight: 500, fontSize: 16 }}>
+        <div style={{ marginBottom: 16, padding: 12, background: "#fef3c7", borderRadius: 8, fontWeight: 500, fontSize: 16, color: "#222" }}>
           💡 Insight: {insight}
         </div>
       )}
@@ -96,22 +96,22 @@ function formatAmount(v) {
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 15 }}>
                 <thead>
                   <tr style={{ background: "#f3f4f6" }}>
-                    <th style={{ textAlign: "left", padding: 6 }}>Fecha</th>
-                    <th style={{ textAlign: "left", padding: 6 }}>Origen</th>
-                    <th style={{ textAlign: "left", padding: 6 }}>Descripción</th>
-                    <th style={{ textAlign: "right", padding: 6 }}>Monto</th>
+                    <th style={{ textAlign: "left", padding: 6, color: "#222", fontWeight: 700 }}>Fecha</th>
+                    <th style={{ textAlign: "left", padding: 6, color: "#222", fontWeight: 700 }}>Origen</th>
+                    <th style={{ textAlign: "left", padding: 6, color: "#222", fontWeight: 700 }}>Descripción</th>
+                    <th style={{ textAlign: "right", padding: 6, color: "#222", fontWeight: 700 }}>Monto</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map(r => (
                     <tr key={r.id} style={{ cursor: "pointer", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "#f3f4f6"} onMouseLeave={e => e.currentTarget.style.background = ""}>
-                      <td style={{ padding: 6 }}>{r.fecha ? String(r.fecha).slice(0, 10) : "-"}</td>
+                      <td style={{ padding: 6, color: "#222", fontWeight: 500 }}>{r.fecha ? String(r.fecha).slice(0, 10) : "-"}</td>
                       <td style={{ padding: 6 }}>
-                        <span style={{ background: r.tipo === "Sistema" ? "#dbeafe" : "#fee2e2", padding: "2px 6px", borderRadius: 6, color: r.tipo === "Sistema" ? "#004080" : "#b91c1c", fontWeight: 600 }}>
+                        <span style={{ background: r.tipo === "Sistema" ? "#dbeafe" : "#fee2e2", padding: "2px 6px", borderRadius: 6, color: r.tipo === "Sistema" ? "#004080" : "#b91c1c", fontWeight: 700, fontSize: 15 }}>
                           {r.tipo}
                         </span>
                       </td>
-                      <td style={{ padding: 6 }}>{r.descripcion}</td>
+                      <td style={{ padding: 6, color: "#222", fontWeight: 500 }}>{r.descripcion}</td>
                       <td style={{ padding: 6, textAlign: "right", fontWeight: "bold", color: r.monto > 80 ? "green" : "#111" }}>{formatAmount(r.monto)}</td>
                     </tr>
                   ))}

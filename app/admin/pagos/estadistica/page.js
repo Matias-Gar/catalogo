@@ -6,7 +6,6 @@ import { supabase } from "../../../../lib/SupabaseClient";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../../../../components/ui/card";
 import { PieChart, Pie, Cell, Tooltip as PieTooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as LineTooltip } from "recharts";
 
-
 function formatAmount(v) {
   const num = Number(v) || 0;
   return `Bs ${num.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -34,7 +33,6 @@ export default function PagosEstadisticaPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
 
   useEffect(() => {
     async function fetchStats() {
@@ -139,14 +137,14 @@ export default function PagosEstadisticaPage() {
     <div style={{ maxWidth: 900, margin: "0 auto", padding: 24 }}>
       {/* HEADER KPI PRINCIPAL */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 32, margin: 0 }}>{formatAmount(totalGeneral)}</h1>
-        <p style={{ color: "#666" }}>Ingresos totales (últimos 30 días)</p>
+        <h1 style={{ fontSize: 32, margin: 0, color: "#222" }}>{formatAmount(totalGeneral)}</h1>
+        <p style={{ color: "#222", fontWeight: 500 }}>Ingresos totales (últimos 30 días)</p>
       </div>
 
       <Card style={{ marginBottom: 32 }}>
         <CardHeader>
-          <CardTitle>Distribución por método</CardTitle>
-          <CardDescription>¿Cómo se distribuyen los ingresos?</CardDescription>
+          <CardTitle style={{ color: "#222" }}>Distribución por método</CardTitle>
+          <CardDescription style={{ color: "#444" }}>¿Cómo se distribuyen los ingresos?</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -178,8 +176,8 @@ export default function PagosEstadisticaPage() {
 
       <Card style={{ marginBottom: 32 }}>
         <CardHeader>
-          <CardTitle>Flujo de ingresos</CardTitle>
-          <CardDescription>¿Cómo evolucionaron los ingresos?</CardDescription>
+          <CardTitle style={{ color: "#222" }}>Flujo de ingresos</CardTitle>
+          <CardDescription style={{ color: "#444" }}>¿Cómo evolucionaron los ingresos?</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -190,8 +188,8 @@ export default function PagosEstadisticaPage() {
             <div style={{ width: "100%", height: 300 }}>
               <ResponsiveContainer>
                 <LineChart data={stats.lineData}>
-                  <XAxis dataKey="date" />
-                  <YAxis />
+                  <XAxis dataKey="date" tick={{ fill: "#222" }} />
+                  <YAxis tick={{ fill: "#222" }} />
                   <LineTooltip formatter={v => formatAmount(v)} />
                   <Line type="monotone" dataKey="total" stroke="#004080" strokeWidth={2} />
                 </LineChart>
@@ -203,8 +201,8 @@ export default function PagosEstadisticaPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Detalle por método</CardTitle>
-          <CardDescription>Desglose profesional por método de pago</CardDescription>
+          <CardTitle style={{ color: "#222" }}>Detalle por método</CardTitle>
+          <CardDescription style={{ color: "#444" }}>Desglose profesional por método de pago</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -220,8 +218,8 @@ export default function PagosEstadisticaPage() {
                   <div key={m.key} style={{ minWidth: 180, flex: 1, border: "1px solid #eee", borderRadius: 12, padding: 16, background: "#fff" }}>
                     <div style={{ fontWeight: 600, color: m.color, fontSize: 18 }}>{m.label}</div>
                     <div style={{ fontSize: 22, color: m.color, fontWeight: 700 }}>{formatAmount(metodoTotal)}</div>
-                    <div style={{ fontSize: 13, color: "#666" }}>Sistema: {formatAmount(stats.totales[m.key]?.sistema)} ({stats.totales[m.key]?.countSistema} pagos)</div>
-                    <div style={{ fontSize: 13, color: "#666" }}>Manual: {formatAmount(stats.totales[m.key]?.manual)} ({stats.totales[m.key]?.countManual} pagos)</div>
+                    <div style={{ fontSize: 13, color: "#222" }}>Sistema: {formatAmount(stats.totales[m.key]?.sistema)} ({stats.totales[m.key]?.countSistema} pagos)</div>
+                    <div style={{ fontSize: 13, color: "#222" }}>Manual: {formatAmount(stats.totales[m.key]?.manual)} ({stats.totales[m.key]?.countManual} pagos)</div>
                     <div style={{ fontSize: 12, color: "#888" }}>{porcentaje.toFixed(1)}% del total</div>
                   </div>
                 );
@@ -233,7 +231,7 @@ export default function PagosEstadisticaPage() {
 
       {/* INSIGHT AUTOMÁTICO */}
       {!loading && !error && topMetodo.key && (
-        <div style={{ marginTop: 20, padding: 12, background: "#f9fafb", borderRadius: 8 }}>
+        <div style={{ marginTop: 20, padding: 12, background: "#f9fafb", borderRadius: 8, color: "#222" }}>
           Método dominante: <strong>{topMetodo.key}</strong>
         </div>
       )}
