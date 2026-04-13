@@ -1,6 +1,13 @@
-
 "use client";
 
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../../../../components/ui/card";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { useMetodoStats } from "../../../../hooks/useMetodoStats";
+
+function formatAmount(v) {
+  const num = Number(v) || 0;
+  return `Bs ${num.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
 
 export default function PagosEfectivoPage() {
   const { loading, error, stats, rows, chartData, growth } = useMetodoStats("cash", "Efectivo", ["efectivo", "cash"]);
