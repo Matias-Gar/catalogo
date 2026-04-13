@@ -13,7 +13,7 @@ function formatAmount(v) {
 
 
 export default function PagosQrPage() {
-  const { loading, error, stats, rows, chartData, growth } = useQrStats();
+  const { loading, error, stats, rows, chartData, growth, insight } = useQrStats();
   const total = stats?.total || 0;
 
   return (
@@ -44,6 +44,12 @@ export default function PagosQrPage() {
           </ResponsiveContainer>
         )}
       </div>
+
+      {!loading && !error && insight && (
+        <div style={{ background: "#fef3c7", padding: 12, borderRadius: 8, marginBottom: 16 }}>
+          {insight}
+        </div>
+      )}
 
       <Card>
         <CardHeader>

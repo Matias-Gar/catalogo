@@ -8,6 +8,7 @@ export function useQrStats() {
   const [rows, setRows] = useState([]);
   const [chartData, setChartData] = useState([]);
   const [growth, setGrowth] = useState(null);
+  const [insight, setInsight] = useState("");
 
   useEffect(() => {
     async function fetchStats() {
@@ -64,6 +65,22 @@ export function useQrStats() {
         }
         setGrowth(growth);
         setStats({ totalSistema, totalManual, countSistema, countManual, total });
+
+        const totalPagos = countSistema + countManual;
+        const promedio = totalPagos > 0 ? total / totalPagos : 0;
+        let insightText = "Rendimiento estable";
+
+        if (growth < 0) {
+          insightText = "Tus ingresos por QR estan bajando";
+        } else if (totalManual > totalSistema) {
+          insightText = "Predominan pagos manuales por QR";
+        } else if (promedio < 50 && totalPagos > 0) {
+          insightText = "Ticket promedio QR bajo";
+        } else if (total > 500) {
+          insightText = "Buen rendimiento en QR";
+        }
+
+        setInsight(insightText);
         // Tabla
         const pagosRecientes = [
           ...pagosSistema.map(s => ({
@@ -104,6 +121,7 @@ export function useQrStats() {
       } catch (err) {
         console.error(err);
         setError(err.message || "Error cargando datos");
+        setInsight("");
       } finally {
         setLoading(false);
       }
@@ -111,5 +129,5 @@ export function useQrStats() {
     fetchStats();
   }, []);
 
-  return { loading, error, stats, rows, chartData, growth };
+  return { loading, error, stats, rows, chartData, growth, insight };
 }
