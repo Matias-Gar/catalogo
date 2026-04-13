@@ -508,10 +508,17 @@ export default function CatalogoPage() {
 
             {productosPorCategoria[categoria].map((p, idx) => (
               (() => {
-                const productImages = p.imagenPublicUrls.length > 0
-                  ? p.imagenPublicUrls
+                const uniqueImages = Array.from(
+                  new Set(
+                    (p.imagenPublicUrls || []).filter(
+                      (url) => typeof url === "string" && url.trim() !== ""
+                    )
+                  )
+                );
+                const productImages = uniqueImages.length > 0
+                  ? uniqueImages
                   : ["https://placehold.co/900x900/f3f4f6/6b7280?text=Sin+Imagen"];
-                const imageCount = productImages.length;
+                const imageCount = uniqueImages.length;
                 const useSplit8020 = imageCount >= 6;
                 const isSingleImage = productImages.length === 1;
                 const useVerticalCard = isCompactLayout || !useSplit8020;
