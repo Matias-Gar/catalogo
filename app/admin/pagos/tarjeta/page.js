@@ -1,82 +1,18 @@
 
 "use client";
-import React, { useEffect, useState } from "react";
-import { supabase } from "../../../../lib/SupabaseClient";
+
+import React from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../../../../components/ui/card";
-import { Button } from "../../../../components/ui/button";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { useMetodoStats } from "../../../../hooks/useMetodoStats";
 
 function formatAmount(v) {
   const num = Number(v) || 0;
   return `Bs ${num.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { useMetodoStats } from "../../../../hooks/useMetodoStats";
 
-export default function PagosTarjetaPage() {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [rows, setRows] = useState([]);
-
-  useEffect(() => {
-    async function fetchStats() {
-      setLoading(true);
-      setError(null);
-      try {
-        // Rango: últimos 30 días
-        const today = new Date();
-        const start = new Date(today);
-        start.setDate(today.getDate() - 29);
-        const startDate = start.toISOString().slice(0, 10);
-        const endDate = today.toISOString().slice(0, 10);
-
-        // Traer resumen de caja (incluye ventas y movimientos manuales)
-        const { getCashSummary } = await import("../../../../services/cash.service.js");
-        const summary = await getCashSummary(supabase, {
-          start_date: startDate,
-          end_date: endDate,
-        });
-
-        // Filtrar solo tarjeta
-        const pagosSistema = (summary.sales || []).filter(s => s.modo_pago && (s.modo_pago.toLowerCase() === "tarjeta" || s.modo_pago.toLowerCase() === "card"));
-        const pagosManual = (summary.movements || []).filter(m => m.payment_method === "card" && m.type === "income");
-
-        setStats({
-          totalSistema: pagosSistema.reduce((acc, s) => acc + Number(s.total || 0), 0),
-          totalManual: pagosManual.reduce((acc, m) => acc + Number(m.amount || 0), 0),
-          countSistema: pagosSistema.length,
-          countManual: pagosManual.length,
-        });
-        // Listado de los últimos 20 pagos tarjeta (sistema y manual)
-        const pagosRecientes = [
-          ...pagosSistema.map(s => ({
-            id: `venta-${s.id}`,
-            fecha: s.fecha,
-            tipo: "Sistema",
-            monto: s.total,
-            ref: s.id,
-            descripcion: `Venta #${s.id}`,
-          })),
-          ...pagosManual.map(m => ({
-            id: `manual-${m.id}`,
-            fecha: m.date,
-            tipo: "Manual",
-            monto: m.amount,
-            ref: m.id,
-            descripcion: m.description || "Ingreso manual tarjeta",
-          })),
-        ].sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).slice(0, 20);
-        setRows(pagosRecientes);
-      } catch (err) {
-        setError("Error cargando estadísticas de pagos tarjeta");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchStats();
-  }, []);
-
+export default function TarjetaPage() {
   const { loading, error, stats, rows, chartData, growth } = useMetodoStats("card", "Tarjeta", ["tarjeta"]);
   const total = stats?.total || 0;
 
