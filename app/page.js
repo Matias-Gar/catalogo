@@ -135,11 +135,11 @@ export default function Home() {
       const { data, error } = await supabase
         .from('v_productos_catalogo')
         .select('producto_id, nombre, descripcion, precio_base, imagen_base, category_id, categoria, stock_total, codigo_barra, variantes');
-        
+
       if (error) {
         throw new Error(`Error al cargar productos: ${error.message}`);
       }
-      
+
       if (!data) {
         setProductos([]);
         return;
@@ -156,7 +156,7 @@ export default function Home() {
         variantes: Array.isArray(p.variantes) ? p.variantes : [],
         imagen_base: p.imagen_base || null
       }));
-      
+
       setProductos(normalized);
       // Buscar imágenes
       const ids = normalized.map(p => p.user_id);

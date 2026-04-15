@@ -1,17 +1,17 @@
-"use client"; // <--- ESTA ES LA CLAVE
+"use client";
 
-// CÓDIGO CORREGIDO Y COMPLETO
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { supabase } from '../../lib/SupabaseClient';
-import { PrecioConPromocion } from '../../lib/promociones';
-import { usePromociones } from '../../lib/usePromociones';
-import { usePacks, calcularDescuentoPack } from '../../lib/packs';
-import { CONFIG } from '../../lib/config';
-import { useFacebookPixel } from '../../components/FacebookPixel';
-import { getOptimizedImageUrl } from '../../lib/imageOptimization';
-import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from '../../lib/storeSettings';
+// --- IMPORTS Y HOOKS NECESARIOS ---
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import { usePromociones } from "@/lib/usePromociones";
+import { usePacks } from "@/lib/packs";
+import { supabase } from "@/lib/SupabaseClient";
+import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from "@/lib/storeSettings";
+import { PrecioConPromocion } from "@/lib/promociones";
+import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 
+
+// --- INICIO DEL FLUJO AVANZADO DEL CATÁLOGO ---
 export default function CatalogoPage() {
         const [modalWarning, setModalWarning] = useState("");
     const [modalImg, setModalImg] = useState(null);
@@ -44,7 +44,9 @@ export default function CatalogoPage() {
             ...p,
             user_id: p.user_id,
             precio: Number(p.precio || 0),
-            stock: Number(p.stock || 0),
+            stock: Array.isArray(p.producto_variantes) && p.producto_variantes.length > 0
+                ? p.producto_variantes.reduce((acc, v) => acc + Number(v.stock || 0), 0)
+                : Number(p.stock || 0),
             variantes: Array.isArray(p.producto_variantes) ? p.producto_variantes : [],
             imagen_url: p.imagen_url || null
         }));

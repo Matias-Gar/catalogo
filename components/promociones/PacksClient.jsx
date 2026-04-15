@@ -227,8 +227,12 @@ export default function PacksClient({ initialPacks = [] }) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         {packs.map((p) => {
           // Collage de imágenes de productos del pack
+          // Collage de imágenes: solo usar imagen del producto principal, nunca de variante
           const collageImgs = Array.isArray(p.pack_productos)
-            ? p.pack_productos.map(item => item.productos?.imagen_url).filter(Boolean).slice(0, 4)
+            ? p.pack_productos.map(item => {
+                // Siempre usar la imagen del producto, nunca de variante
+                return item.productos?.imagen_url || null;
+              }).filter(Boolean).slice(0, 4)
             : [];
           return (
             <div key={p.id} className="bg-gradient-to-br from-purple-200 to-purple-100 border-2 border-purple-400 rounded-xl p-5 shadow-lg flex flex-col items-start hover:scale-105 transition-transform duration-200">

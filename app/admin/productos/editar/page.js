@@ -7,9 +7,194 @@ import { Toast } from "@/components/ui/Toast";
 import { showToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/SupabaseClient";
 import { Input } from "@/components/ui/input";
-import { optimizeImageForUpload } from "@/lib/imageUploadOptimization";
+import { registrarMovimientoStock } from "@/lib/stockMovimientos";
+import { registrarHistorialProducto } from "@/lib/productosHistorial";
+import { sincronizarStockProducto, validarProducto } from "@/lib/utils";
 
 export default function EditarCatalogo() {
+    // --- Lógica de edición de productos ---
+
+    // Cargar productos, variantes, imágenes y categorías al montar
+    useEffect(() => {
+      const fetchData = async () => {
+        setLoading(true);
+        try {
+          // Productos
+          const { data: productosData, error: productosError } = await supabase
+            .from("productos")
+            .select("*")
+            .order("nombre", { ascending: true });
+          if (productosError) throw productosError;
+
+          // Imágenes
+          const { data: imagenesData, error: imagenesError } = await supabase
+            .from("producto_imagenes")
+            .select("id, producto_id, imagen_url");
+          if (imagenesError) throw imagenesError;
+
+          // Variantes
+          const { data: variantesData, error: variantesError } = await supabase
+            .from("producto_variantes")
+            .select("*");
+          if (variantesError) throw variantesError;
+
+          // Categorías
+          const { data: categoriesData, error: categoriesError } = await supabase
+            .from("categorias")
+            .select("id, categori");
+          if (categoriesError) throw categoriesError;
+
+          // Asociar imágenes y variantes a cada producto
+          const imgs = {};
+          const vars = {};
+          (productosData || []).forEach((p) => {
+            const key = getProductKey(p);
+            imgs[key] = (imagenesData || []).filter(img => img.producto_id === p.user_id);
+            vars[key] = (variantesData || []).filter(v => v.producto_id === p.user_id);
+          });
+
+          setProductos(productosData || []);
+          setImagenes(imgs);
+          setVariantes(vars);
+          setCategories(categoriesData || []);
+        } catch (err) {
+          showToast("Error cargando productos: " + (err?.message || err), "error");
+        }
+        setLoading(false);
+      };
+      fetchData();
+    }, []);
+    // Manejo de cambios en campos del producto
+    const setEditDataField = (productKey, field, value) => {
+      setEditando((prev) => ({
+        ...prev,
+        [productKey]: {
+          ...prev[productKey],
+          [field]: value,
+        },
+      }));
+    };
+
+    // Variantes
+    const handleAddVariantRow = (productKey) => {
+      setEditando((prev) => {
+        const current = prev[productKey]?.variantes || variantes[productKey] || [];
+        return {
+          ...prev,
+          [productKey]: {
+            ...prev[productKey],
+            variantes: [...current, { color: '', talla: '', stock: 0 }],
+          },
+        };
+      });
+    };
+
+    const handleVariantFieldChange = (productKey, idx, field, value) => {
+      setEditando((prev) => {
+        const current = prev[productKey]?.variantes || variantes[productKey] || [];
+        const updated = current.map((v, i) =>
+          i === idx ? { ...v, [field]: value } : v
+        );
+        return {
+          ...prev,
+          [productKey]: {
+            ...prev[productKey],
+            variantes: updated,
+          },
+        };
+      });
+    };
+
+    const handleRemoveVariantRow = (productKey, idx) => {
+      setEditando((prev) => {
+        const current = prev[productKey]?.variantes || variantes[productKey] || [];
+        const updated = current.filter((_, i) => i !== idx);
+        return {
+          ...prev,
+          [productKey]: {
+            ...prev[productKey],
+            variantes: updated,
+          },
+        };
+      });
+    };
+
+    // Imágenes
+    const handleAddImages = (productKey, files) => {
+      setImagenes((prev) => ({
+        ...prev,
+        [productKey]: [...(prev[productKey] || []), ...files],
+      }));
+      setEditando((prev) => ({
+        ...prev,
+        [productKey]: {
+          ...prev[productKey],
+          imagenes: [...((prev[productKey]?.imagenes) || []), ...files],
+        },
+      }));
+    };
+
+    const handleRemoveImage = (productKey, idx) => {
+      setImagenes((prev) => ({
+        ...prev,
+        [productKey]: (prev[productKey] || []).filter((_, i) => i !== idx),
+      }));
+      setEditando((prev) => ({
+        ...prev,
+        [productKey]: {
+          ...prev[productKey],
+          imagenes: (prev[productKey]?.imagenes || []).filter((_, i) => i !== idx),
+        },
+      }));
+    };
+
+    const handleReplaceImage = (productKey, idx, file) => {
+      setImagenes((prev) => {
+        const arr = [...(prev[productKey] || [])];
+        arr[idx] = file;
+        return { ...prev, [productKey]: arr };
+      });
+      setEditando((prev) => {
+        const arr = [...((prev[productKey]?.imagenes) || [])];
+        arr[idx] = file;
+        return {
+          ...prev,
+          [productKey]: {
+            ...prev[productKey],
+            imagenes: arr,
+          },
+        };
+      });
+    };
+
+    const handleReorderImages = (productKey, fromIdx, toIdx) => {
+      setImagenes((prev) => {
+        const arr = [...(prev[productKey] || [])];
+        const [moved] = arr.splice(fromIdx, 1);
+        arr.splice(toIdx, 0, moved);
+        return { ...prev, [productKey]: arr };
+      });
+      setEditando((prev) => {
+        const arr = [...((prev[productKey]?.imagenes) || [])];
+        const [moved] = arr.splice(fromIdx, 1);
+        arr.splice(toIdx, 0, moved);
+        return {
+          ...prev,
+          [productKey]: {
+            ...prev[productKey],
+            imagenes: arr,
+          },
+        };
+      });
+    };
+
+    // Confirmación
+    const openConfirm = (productKey) => {
+      setModalConfirm({ visible: true, id: productKey });
+    };
+    const closeConfirm = () => {
+      setModalConfirm({ visible: false, id: null });
+    };
   const [productos, setProductos] = useState([]);
   const [imagenes, setImagenes] = useState({});
   const [variantes, setVariantes] = useState({});
@@ -37,306 +222,6 @@ export default function EditarCatalogo() {
     return Number.isFinite(parsed) ? parsed : fallback;
   };
 
-  // Cargar datos
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-
-      const { data: prods } = await supabase
-        .from("productos")
-        .select(`
-          user_id, nombre, descripcion, precio, stock, imagen_url,
-          categoria, category_id, codigo_barra, created_at
-        `)
-        .order("nombre", { ascending: true });
-
-      setProductos(prods || []);
-
-      const { data: cats } = await supabase.from("categorias").select("id, categori");
-      setCategories(cats || []);
-
-      const ids = (prods || []).map((p) => getProductKey(p)).filter(Boolean);
-      if (ids.length > 0) {
-        const { data: imgs } = await supabase
-          .from("producto_imagenes")
-          .select("id, producto_id, imagen_url")
-          .in("producto_id", ids);
-
-        const agg = {};
-        imgs?.forEach((i) => {
-          if (!agg[i.producto_id]) agg[i.producto_id] = [];
-          agg[i.producto_id].push(i);
-        });
-        setImagenes(agg);
-
-        const { data: vars } = await supabase
-          .from("producto_variantes")
-          .select("id, producto_id, color, stock, precio, sku, activo")
-          .in("producto_id", ids)
-          .order("color", { ascending: true });
-
-        const varsAgg = {};
-        vars?.forEach((v) => {
-          if (!varsAgg[v.producto_id]) varsAgg[v.producto_id] = [];
-          varsAgg[v.producto_id].push(v);
-        });
-        setVariantes(varsAgg);
-      }
-
-      setLoading(false);
-    }
-
-    fetchData();
-  }, []);
-
-  // Listener para imprimir código de barras por variante
-  useEffect(() => {
-    const handlePrintVariantBarcode = async (event) => {
-      const { codigoBarras, nombre } = event.detail;
-      if (!codigoBarras) return;
-
-      const barcodeValue = String(codigoBarras).trim();
-      let svgString = '';
-      
-      try {
-        const JsBarcode = (await import('jsbarcode')).default;
-        const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        JsBarcode(svgEl, barcodeValue, {
-          format: 'EAN13',
-          displayValue: false,
-          width: 1.2,
-          height: 35,
-          margin: 0,
-        });
-        svgString = new XMLSerializer().serializeToString(svgEl);
-      } catch (_err) {
-        svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="40">
-          <text x="0" y="20">${barcodeValue}</text>
-        </svg>`;
-      }
-
-      const barcodeDataUri = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgString)))}`;
-
-      const html = `
-      <html>
-      <head>
-        <style>
-          @page {
-            size: 78mm auto;
-            margin: 0;
-          }
-          html, body {
-            width: 78mm;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-          }
-          .label {
-            width: 78mm;
-            height: 22mm;
-            box-sizing: border-box;
-            padding: 1mm;
-            display: flex;
-            border: 1px solid black;
-          }
-          .left {
-            width: 48mm;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-          }
-          .left img {
-            width: 100%;
-          }
-          .code {
-            font-size: 9pt;
-          }
-          .right {
-            width: calc(78mm - 48mm - 2mm);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            font-size: 8pt;
-            word-break: break-word;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="label">
-          <div class="left">
-            <img src="${barcodeDataUri}" />
-            <div class="code">${barcodeValue}</div>
-          </div>
-          <div class="right">${nombre}</div>
-        </div>
-      </body>
-      </html>
-      `;
-
-      const printInIframe = (htmlContent) => {
-        let iframe = document.getElementById('variant-barcode-print-iframe');
-        if (!iframe) {
-          iframe = document.createElement('iframe');
-          iframe.id = 'variant-barcode-print-iframe';
-          iframe.style.position = 'fixed';
-          iframe.style.width = '0';
-          iframe.style.height = '0';
-          iframe.style.border = '0';
-          iframe.style.visibility = 'hidden';
-          document.body.appendChild(iframe);
-        }
-
-        const doc = iframe.contentDocument || iframe.contentWindow?.document;
-        if (!doc) return;
-
-        doc.open();
-        doc.write(htmlContent);
-        doc.close();
-
-        setTimeout(() => {
-          try {
-            iframe.contentWindow?.focus();
-            iframe.contentWindow?.print();
-          } catch (err) {
-            console.warn('Impresión desde iframe falló', err);
-          }
-        }, 500);
-      };
-
-      printInIframe(html);
-    };
-
-    window.addEventListener('printVariantBarcode', handlePrintVariantBarcode);
-    return () => window.removeEventListener('printVariantBarcode', handlePrintVariantBarcode);
-  }, []);
-
-  const setEditDataField = (prodId, field, value) => {
-    setEditando((prev) => ({
-      ...prev,
-      [prodId]: { ...prev[prodId], [field]: value },
-    }));
-  };
-
-  const ensureVariantsDraft = (prodId) => {
-    const current = editando[prodId]?.variantes;
-    if (Array.isArray(current)) return current;
-    return (variantes[prodId] || []).map((v) => ({ ...v }));
-  };
-
-  const handleAddVariantRow = (prodId) => {
-    // Generar código de barras único: productoId + variantes existentes + secuencial
-    const base = ensureVariantsDraft(prodId);
-    const totalVariantes = base.length;
-    const newCodigoBarras = String(prodId).padStart(6, '0') + String(totalVariantes + 1).padStart(4, '0');
-    
-    setEditDataField(prodId, "variantes", [
-      ...base,
-      { id: null, producto_id: prodId, color: "", stock: 0, precio: null, sku: newCodigoBarras, activo: true },
-    ]);
-  };
-
-  const handleVariantFieldChange = (prodId, index, field, value) => {
-    const base = ensureVariantsDraft(prodId);
-    const updated = base.map((v, i) => {
-      if (i !== index) return v;
-      return { ...v, [field]: value };
-    });
-    setEditDataField(prodId, "variantes", updated);
-  };
-
-  const handleRemoveVariantRow = (prodId, index) => {
-    const base = ensureVariantsDraft(prodId);
-    const target = base[index];
-    const next = base.filter((_, i) => i !== index);
-    setEditDataField(prodId, "variantes", next);
-    if (target?.id) {
-      setEditDataField(prodId, "removedVariantIds", [
-        ...(editando[prodId]?.removedVariantIds || []),
-        target.id,
-      ]);
-    }
-  };
-
-  // Añadir nuevas imágenes
-  const handleAddImages = (prodId, e) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-    setEditDataField(prodId, "newImages", [
-      ...(editando[prodId]?.newImages || []),
-      ...files,
-    ]);
-  };
-
-  // Marcar imagen para eliminar
-  const handleRemoveImage = (prodId, imgObj) => {
-    const previousPrimaryId = editando[prodId]?.primaryImageId;
-    setEditDataField(prodId, "removeImages", [
-      ...(editando[prodId]?.removeImages || []),
-      imgObj,
-    ]);
-    // Actualiza UI local
-    const updatedList = (imagenes[prodId] || []).filter((i) => i.id !== imgObj.id);
-    setImagenes((prev) => ({ ...prev, [prodId]: updatedList }));
-
-    // Si la imagen eliminada era la principal, seleccionar la siguiente como principal
-    if (String(previousPrimaryId ?? "") === String(imgObj.id)) {
-      const fallback = updatedList[0] || null;
-      setEditDataField(prodId, "primaryImageId", fallback?.id ?? null);
-      setEditDataField(prodId, "primaryImageUrl", fallback?.imagen_url ?? null);
-    }
-  };
-
-  // Seleccionar imagen principal
-  const handleSetPrimaryImage = (prodId, imgObj) => {
-    setEditDataField(prodId, "primaryImageId", imgObj.id);
-    setEditDataField(prodId, "primaryImageUrl", imgObj.imagen_url);
-  };
-
-  // Reemplazar imagen seleccionada
-  const handleReplaceImage = (prodId, imgObj, e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setEditDataField(prodId, "replaceImages", [
-      ...(editando[prodId]?.replaceImages || []),
-      { old: imgObj, file },
-    ]);
-    // Preview local de reemplazo
-    const updatedList = (imagenes[prodId] || []).map((i) =>
-      i.id === imgObj.id
-        ? { ...i, imagen_url: URL.createObjectURL(file), isPreview: true }
-        : i
-    );
-    setImagenes((prev) => ({ ...prev, [prodId]: updatedList }));
-  };
-
-  // Reordenar imágenes
-  const handleReorderImages = (prodId, payload) => {
-    const { type, index } = payload;
-    const dragIndex = editando[prodId]?.dragIndex;
-    if (type === "START") {
-      setEditDataField(prodId, "dragIndex", index);
-    } else if (type === "DROP") {
-      const list = [...(imagenes[prodId] || [])];
-      const [removed] = list.splice(dragIndex, 1);
-      list.splice(index, 0, removed);
-
-      setImagenes((prev) => ({ ...prev, [prodId]: list }));
-      setEditDataField(prodId, "reordered", list);
-      setEditDataField(prodId, "dragIndex", null);
-    }
-  };
-
-  const openConfirm = (prodId) => {
-    setModalConfirm({ visible: true, id: prodId });
-  };
-
-  const closeConfirm = () => {
-    setModalConfirm({ visible: false, id: null });
-  };
-
-  // Guardar cambios con eliminación y reemplazo funcional
   const handleConfirmSave = async () => {
     const prodId = modalConfirm.id;
     if (!prodId) return;
@@ -346,265 +231,130 @@ export default function EditarCatalogo() {
     try {
       const cambios = editando[prodId] || {};
       const productoActual = productos.find((p) => getProductKey(p) === prodId);
-      const precioNormalizado = parseDecimalInput(cambios.precio, parseDecimalInput(productoActual?.precio, 0));
+      const precioNormalizado = parseDecimalInput(
+        cambios.precio,
+        parseDecimalInput(productoActual?.precio, 0)
+      );
 
-      // 1) Actualizar datos principales
+      // Variantes e imágenes editadas
+      const nuevasVariantes = cambios.variantes !== undefined ? cambios.variantes : variantes[prodId] || [];
+      const nuevasImagenes = cambios.imagenes !== undefined ? cambios.imagenes : imagenes[prodId] || [];
+
+      const errores = validarProducto({
+        nombre: cambios.nombre ?? productoActual?.nombre,
+        descripcion: cambios.descripcion ?? productoActual?.descripcion,
+        variantes: nuevasVariantes,
+        imagenes: nuevasImagenes,
+      });
+
+      if (errores.length > 0) {
+        showToast(errores.join("\n"), "error");
+        setLoading(false);
+        return;
+      }
+
+
+      // 1. Actualizar producto (campos básicos, stock e imagen principal)
+      const stockTotal = nuevasVariantes.reduce((acc, v) => acc + (parseInt(v.stock, 10) || 0), 0);
+      // Determinar la imagen principal (primera del array de imágenes)
+      let imagenPrincipal = null;
+      if (nuevasImagenes.length > 0) {
+        const img = nuevasImagenes[0];
+        imagenPrincipal = img.imagen_url || img;
+      }
       const updatePayload = {
         nombre: cambios.nombre ?? productoActual?.nombre,
         descripcion: cambios.descripcion ?? productoActual?.descripcion,
         precio: precioNormalizado,
-        stock: cambios.stock !== undefined ? Math.max(0, parseInt(cambios.stock, 10) || 0) : productoActual?.stock,
-        categoria: cambios.categoria ?? productoActual?.categoria,
-        category_id: cambios.category_id ? parseInt(cambios.category_id, 10) : (productoActual?.category_id ?? null),
+        category_id: cambios.category_id
+          ? parseInt(cambios.category_id, 10)
+          : productoActual?.category_id ?? null,
         codigo_barra: cambios.codigo_barra ?? productoActual?.codigo_barra,
+        stock: stockTotal,
+        imagen_url: imagenPrincipal || productoActual?.imagen_url || '/sin-imagen.png',
       };
 
       let updateQuery = supabase.from("productos").update(updatePayload);
-      if (productoActual?.id !== undefined && productoActual?.id !== null) {
-        updateQuery = updateQuery.eq("id", productoActual.id);
+      if (productoActual?.user_id !== undefined && productoActual?.user_id !== null) {
+        updateQuery = updateQuery.eq("user_id", productoActual.user_id);
       } else {
-        updateQuery = updateQuery.eq("user_id", prodId);
+        updateQuery = updateQuery.eq("id", prodId);
       }
       const { error: updateError } = await updateQuery;
       if (updateError) throw updateError;
 
-      // 1.1) Sincronizar variantes por color
-      const removedVariantIds = cambios.removedVariantIds || [];
-      if (removedVariantIds.length > 0) {
-        await supabase.from("producto_variantes").delete().in("id", removedVariantIds);
-      }
-
-      const originalesPorId = new Map((variantes[prodId] || []).filter((v) => v?.id).map((v) => [v.id, v]));
-
-      const draftVariantes = (cambios.variantes || variantes[prodId] || [])
-        .map((v) => ({
-          ...v,
-          color: String(v.color || "").trim(),
-          stock: Math.max(0, parseInt(v.stock ?? 0) || 0),
-          precio: v.precio === "" || v.precio === null || v.precio === undefined ? null : parseDecimalInput(v.precio, null),
-          sku: (() => {
-            const currentSku = String(v.sku || "").trim();
-            if (currentSku) return currentSku;
-            if (v.id && originalesPorId.has(v.id)) {
-              const prevSku = String(originalesPorId.get(v.id)?.sku || "").trim();
-              if (prevSku) return prevSku;
-            }
-            const seed = String(prodId).padStart(6, '0') + String(Math.floor(Math.random() * 9000) + 1000);
-            return seed;
-          })(),
-          activo: v.activo !== false,
-        }))
-        .filter((v) => v.color.length > 0);
-
-      const normalizedColors = draftVariantes.map((v) => v.color.toLowerCase());
-      const uniqueColors = new Set(normalizedColors);
-      if (uniqueColors.size !== normalizedColors.length) {
-        throw new Error("Hay colores repetidos. Corrigelos antes de guardar.");
-      }
-
-      if (draftVariantes.length > 0) {
-        const existentes = draftVariantes.filter((v) => v.id);
-        const nuevos = draftVariantes.filter((v) => !v.id);
-
-        for (const v of existentes) {
-          const { error: varUpdateError } = await supabase
-            .from("producto_variantes")
-            .update({
-              color: v.color,
-              stock: v.stock,
-              precio: v.precio,
-              sku: v.sku,
-              activo: v.activo,
-            })
-            .eq("id", v.id);
-          if (varUpdateError) throw varUpdateError;
-        }
-
-        if (nuevos.length > 0) {
-          const { error: varInsertError } = await supabase.from("producto_variantes").insert(
-            nuevos.map((v) => ({
-              producto_id: prodId,
-              color: v.color,
-              stock: v.stock,
-              precio: v.precio,
-              sku: v.sku,
-              activo: v.activo,
-            }))
-          );
-          if (varInsertError) throw varInsertError;
+      // 2. Sincronizar variantes
+      // Obtener variantes actuales en BD
+      const { data: variantesBD } = await supabase
+        .from("producto_variantes")
+        .select("id, producto_id, color, talla, stock, sku, precio, imagen_url, activo").eq("producto_id", productoActual.user_id);
+      // Eliminar variantes quitadas
+      for (const vBD of variantesBD || []) {
+        if (!nuevasVariantes.some(v => v.id === vBD.id)) {
+          await supabase.from("producto_variantes").delete().eq("id", vBD.id);
         }
       }
-
-      // 2) Eliminar imágenes marcadas
-      if (cambios.removeImages?.length) {
-        for (const img of cambios.removeImages) {
-          const { error: deleteImageError } = await supabase
-            .from("producto_imagenes")
-            .delete()
-            .eq("id", img.id);
-          if (deleteImageError) throw deleteImageError;
-        }
-      }
-
-      // 3) Reemplazar imágenes
-      if (cambios.replaceImages?.length) {
-        for (const r of cambios.replaceImages) {
-          await supabase
-            .from("producto_imagenes")
-            .delete()
-            .eq("id", r.old.id);
-
-          const prepared = await optimizeImageForUpload(r.file, {
-            maxDimension: 2600,
-            targetMaxBytes: 2.8 * 1024 * 1024,
-            hardMaxBytes: 4.2 * 1024 * 1024,
-            preferredQuality: 0.98,
-            minQuality: 0.9,
+      // Insertar o actualizar variantes
+      for (const v of nuevasVariantes) {
+        if (v.id) {
+          // Actualizar
+          await supabase.from("producto_variantes").update({
+            color: v.color,
+            talla: v.talla,
+            stock: parseInt(v.stock, 10) || 0,
+            sku: v.sku,
+            precio: parseDecimalInput(v.precio, null),
+            imagen_url: v.imagen_url,
+            activo: v.activo !== undefined ? v.activo : true,
+          }).eq("id", v.id);
+        } else {
+          // Insertar
+          await supabase.from("producto_variantes").insert({
+            producto_id: productoActual.user_id,
+            color: v.color,
+            talla: v.talla,
+            stock: parseInt(v.stock, 10) || 0,
+            sku: v.sku,
+            precio: parseDecimalInput(v.precio, null),
+            imagen_url: v.imagen_url,
+            activo: v.activo !== undefined ? v.activo : true,
           });
-          const file = prepared.file;
-          const ext = file.name.split(".").pop();
-          const fname = `${prodId}-${Date.now()}.${ext}`;
-
-          const { error: upErr } = await supabase.storage
-            .from("product_images")
-            .upload(`public/${fname}`, file, { upsert: true });
-
-          if (!upErr) {
-            const { data: urlData } = supabase.storage
-              .from("product_images")
-              .getPublicUrl(`public/${fname}`);
-
-            await supabase
-              .from("producto_imagenes")
-              .insert({
-                producto_id: prodId,
-                imagen_url: urlData.publicUrl,
-              });
-          } else {
-            throw upErr;
-          }
         }
       }
 
-      // 4) Añadir nuevas imágenes
-      if (cambios.newImages?.length) {
-        for (const file of cambios.newImages) {
-          const prepared = await optimizeImageForUpload(file, {
-            maxDimension: 2600,
-            targetMaxBytes: 2.8 * 1024 * 1024,
-            hardMaxBytes: 4.2 * 1024 * 1024,
-            preferredQuality: 0.98,
-            minQuality: 0.9,
-          });
-          const optimizedFile = prepared.file;
-          const ext = optimizedFile.name.split(".").pop();
-          const fname = `${prodId}-${Date.now()}.${ext}`;
-
-          const { error: upErr } = await supabase.storage
-            .from("product_images")
-            .upload(`public/${fname}`, optimizedFile, { upsert: true });
-
-          if (!upErr) {
-            const { data: urlData } = supabase.storage
-              .from("product_images")
-              .getPublicUrl(`public/${fname}`);
-
-            await supabase
-              .from("producto_imagenes")
-              .insert({
-                producto_id: prodId,
-                imagen_url: urlData.publicUrl,
-              });
-          } else {
-            throw upErr;
-          }
-        }
-      }
-
-      // 5) Definir y persistir imagen principal del producto
-      const { data: finalImages, error: finalImagesError } = await supabase
+      // 3. Sincronizar imágenes
+      // Obtener imágenes actuales en BD
+      const { data: imagenesBD } = await supabase
         .from("producto_imagenes")
-        .select("id, imagen_url")
-        .eq("producto_id", prodId);
-      if (finalImagesError) throw finalImagesError;
-
-      const selectedById = (finalImages || []).find(
-        (img) => String(img.id) === String(cambios.primaryImageId ?? "")
-      );
-      const selectedByUrl = (finalImages || []).find(
-        (img) => String(img.imagen_url || "") === String(cambios.primaryImageUrl || "")
-      );
-
-      // Toma exactamente la imagen seleccionada como principal, sin fallback
-      let primaryImageUrlToPersist = null;
-      if (cambios.primaryImageId) {
-        const imgObj = (finalImages || []).find(img => String(img.id) === String(cambios.primaryImageId));
-        if (imgObj) primaryImageUrlToPersist = imgObj.imagen_url;
-      } else if (cambios.primaryImageUrl) {
-        primaryImageUrlToPersist = cambios.primaryImageUrl;
-      }
-      if (primaryImageUrlToPersist) {
-        // Actualiza el campo imagen_url del producto en la base de datos
-        const { error: updateImgError, data: updateImgData } = await supabase
-          .from("productos")
-          .update({ imagen_url: primaryImageUrlToPersist })
-          .eq("user_id", productoActual?.user_id ?? prodId)
-          .select();
-        if (updateImgError) {
-          showToast(`Error actualizando imagen principal: ${updateImgError.message}`, "error");
-          throw updateImgError;
+        .select("id, producto_id, imagen_url").eq("producto_id", productoActual.user_id);
+      // Eliminar imágenes quitadas
+      for (const imgBD of imagenesBD || []) {
+        if (!nuevasImagenes.some(img => img.id === imgBD.id || img.imagen_url === imgBD.imagen_url)) {
+          await supabase.from("producto_imagenes").delete().eq("id", imgBD.id);
         }
-
-        // Asegura que la imagen principal esté en producto_imagenes
-        const exists = (finalImages || []).some(img => img.imagen_url === primaryImageUrlToPersist);
-        if (!exists) {
-          const { error: insertImgError } = await supabase
-            .from("producto_imagenes")
-            .insert({ producto_id: prodId, imagen_url: primaryImageUrlToPersist });
-          if (insertImgError) {
-            showToast(`Error insertando imagen principal: ${insertImgError.message}`, "error");
-            throw insertImgError;
-          }
+      }
+      // Insertar nuevas imágenes
+      for (const img of nuevasImagenes) {
+        if (!img.id) {
+          await supabase.from("producto_imagenes").insert({
+            producto_id: productoActual.user_id,
+            imagen_url: img.imagen_url || img,
+          });
         }
       }
 
       showToast("Producto actualizado con éxito!");
-      // Refresca la página actual de edición para mostrar los cambios, sin redirigir a la página de añadir
-      if (typeof window !== 'undefined') {
+
+      if (typeof window !== "undefined") {
         setTimeout(() => {
           window.location.reload();
-        }, 900); // Da tiempo a mostrar el toast
-      }
-
-      // Refrescar productos desde DB
-      const { data: prods } = await supabase
-        .from("productos")
-        .select(
-          "user_id, nombre, descripcion, precio, stock, imagen_url, categoria, category_id, codigo_barra, created_at"
-        )
-        .order("nombre", { ascending: true });
-
-      setProductos(prods || []);
-
-      const ids = (prods || []).map((p) => getProductKey(p)).filter(Boolean);
-      if (ids.length > 0) {
-        const { data: vars } = await supabase
-          .from("producto_variantes")
-          .select("id, producto_id, color, stock, precio, sku, activo")
-          .in("producto_id", ids)
-          .order("color", { ascending: true });
-        const varsAgg = {};
-        vars?.forEach((v) => {
-          if (!varsAgg[v.producto_id]) varsAgg[v.producto_id] = [];
-          varsAgg[v.producto_id].push(v);
-        });
-        setVariantes(varsAgg);
+        }, 900);
       }
 
       setEditando((prev) => ({ ...prev, [prodId]: undefined }));
     } catch (err) {
       const msg = err?.message || "Error guardando producto";
-      showToast(`Error guardando producto: ${msg}`, "error");
+      showToast("Error guardando producto: " + msg, "error");
       console.error("Error guardando producto:", err);
     }
 
@@ -746,7 +496,7 @@ export default function EditarCatalogo() {
         onConfirm={handleConfirmSave}
         title="Guardar cambios del producto"
         message="Se detectaron cambios pendientes en este producto."
-        detail={selectedProduct ? `Producto: ${selectedProduct.nombre}` : "Verifica la informacion antes de confirmar."}
+        detail={selectedProduct ? ("Producto: " + selectedProduct.nombre) : "Verifica la informacion antes de confirmar."}
         confirmLabel="Si, guardar"
         cancelLabel="Volver"
       />

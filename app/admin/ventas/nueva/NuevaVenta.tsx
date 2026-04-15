@@ -7,6 +7,7 @@ import { usePromociones } from '../../../../lib/usePromociones';
 import { usePacks } from '../../../../lib/packs';
 import { calcularPrecioConPromocion } from '../../../../lib/promociones';
 import * as ventasService from '../../../../services/ventas.service';
+import { sincronizarStockProducto } from '../../../../lib/utils';
 import ClienteForm from '../../../../components/venta/ClienteForm';
 import BuscadorProductos from '../../../../components/venta/BuscadorProductos';
 import { calcularDescuentoPack } from '../../../../lib/packs';
@@ -196,16 +197,9 @@ export default function NuevaVenta() {
           }
           const productoCompleto = productosDB.find((prod: { producto_id: string | number }) => String(prod.producto_id) === String(prodId));
           if (!productoCompleto) return { ...p, error: 'Producto no encontrado en base de datos' };
-          // Buscar imagen de variante si aplica
-          let imagen_url = '/sin-imagen.png';
-          if (productoCompleto.variantes && p.variante_id) {
-            const variante = productoCompleto.variantes.find((v: { variante_id?: number|string; id?: number|string; imagen_url?: string }) => String(v.variante_id || v.id) === String(p.variante_id));
-            if (variante && variante.imagen_url) imagen_url = variante.imagen_url;
-          }
-          // Si no hay imagen de variante, usar la primera imagen del producto
-          if (imagen_url === '/sin-imagen.png' && imagenesDB[productoCompleto.producto_id] && imagenesDB[productoCompleto.producto_id].length > 0) {
-            imagen_url = imagenesDB[productoCompleto.producto_id][0];
-          }
+          // Siempre usar la imagen del producto
+          const imagenesProducto = imagenesDB[productoCompleto.producto_id] || [];
+          const imagen_url = imagenesProducto.length > 0 ? imagenesProducto[0] : '/sin-imagen.png';
           return {
             ...productoCompleto,
             cantidad: p.cantidad || 1,
@@ -561,7 +555,7 @@ export default function NuevaVenta() {
       if (productosIds.length > 0) {
         const { data: productosData, error: productosError } = await supabase
           .from('productos')
-          .select('user_id, nombre, precio, precio_compra, stock, categoria, codigo_barra, producto_variantes ( id, color, precio, stock, imagen_url, sku, codigo_barra )')
+          .select('user_id, nombre, precio, precio_compra, stock, categoria, codigo_barra, producto_variantes ( id, color, precio, stock, sku )')
           .in('user_id', productosIds);
         if (productosError) throw productosError;
         productosDB = Array.isArray(productosData) ? productosData : [];
@@ -572,7 +566,7 @@ export default function NuevaVenta() {
       if (packsIds.length > 0) {
         const { data: packsData, error: packsError } = await supabase
           .from('packs')
-          .select('*, pack_productos ( cantidad, producto_id, variante_id, productos!pack_productos_producto_id_fkey ( user_id, nombre, precio, categoria, stock, producto_variantes ( id, color, precio, stock, imagen_url, sku, codigo_barra ) ) )')
+          .select('*, pack_productos ( cantidad, producto_id, variante_id, productos!pack_productos_producto_id_fkey ( user_id, nombre, precio, categoria, stock, producto_variantes ( id, color, precio, stock, sku ) ) )')
           .in('id', packsIds);
         if (packsError) throw packsError;
         packsDB = Array.isArray(packsData) ? packsData : [];
@@ -629,7 +623,9 @@ export default function NuevaVenta() {
             color: null,
             descripcion: `📦 Pack: ${pack.nombre}`,
             tipo: 'pack',
-            pack_id: pack.id
+            pack_id: pack.id,
+            created_at: new Date().toISOString(),
+            usuario_email: userEmail
           });
           if (detallePackError) throw detallePackError;
           // Descontar stock de cada producto del pack
@@ -642,10 +638,16 @@ export default function NuevaVenta() {
               if (variante) {
                 // Aquí podrías llamar a un servicio para descontar stock de variante si aplica
                 // await descontarStockVariante(variante.id, cantidadTotal);
+                // Después de descontar stock de la variante, actualizar el stock total del producto
+                // 1. Descontar stock de la variante (debería implementarse en ventasService)
+                // 2. Recalcular y actualizar el stock total del producto
+                await actualizarStockTotalProducto(productoPack.user_id);
               }
             } else {
               const { error: stockPackError } = await ventasService.descontarStock(productoPack.user_id, cantidadTotal);
               if (stockPackError) throw stockPackError;
+              // Actualizar el stock total del producto
+              await actualizarStockTotalProducto(productoPack.user_id);
             }
           }));
         } else {
@@ -671,13 +673,22 @@ export default function NuevaVenta() {
             color: variante?.color || p.color || null,
             descripcion: descripcionItem,
             tipo: 'producto',
+            created_at: new Date().toISOString(),
+            usuario_email: userEmail
           });
           if (detalleProductoError) throw detalleProductoError;
           // Descontar stock
           const { error: stockProductoError } = await ventasService.descontarStock(productoCompleto.user_id, cantidad);
           if (stockProductoError) throw stockProductoError;
+          // Actualizar el stock total del producto
+          await actualizarStockTotalProducto(productoCompleto.user_id);
         }
       }));
+
+      // --- Función para recalcular y actualizar el stock total del producto ---
+      async function actualizarStockTotalProducto(productoId: string | number) {
+        await sincronizarStockProducto(productoId, supabase);
+      }
 
       // Sincroniza automáticamente ingresos de ventas con flujo de caja.
       await registrarIngresoEnCaja(venta);

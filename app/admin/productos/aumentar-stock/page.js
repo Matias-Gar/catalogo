@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/SupabaseClient";
-import { Toast, showToast } from "@/components/ui/Toast";
+
+import Toast, { showToast } from '../../../../components/ui/Toast';
+
+
+import { registrarMovimientoStock } from "@/lib/stockMovimientos";
+import { registrarHistorialProducto } from "@/lib/productosHistorial";
+import { sincronizarStockProducto } from "@/lib/utils";
 
 export default function AumentarStockPage() {
   const QZ_PRINTER_NAME = "POS-80C";
@@ -233,75 +239,61 @@ export default function AumentarStockPage() {
 
     const productIds = productosData.map((p) => p.user_id).filter(Boolean);
 
-    if (productIds.length > 0) {
-      const { data: imgs, error: imgsError } = await supabase
-        .from("producto_imagenes")
-        .select("id, producto_id, imagen_url")
-        .in("producto_id", productIds)
-        .order("id", { ascending: true });
+    // Filtrar y convertir a número solo IDs válidos antes de consultar variantes
+    const validProductIds = productIds
+      .map(id => Number(id))
+      .filter(id => Number.isFinite(id) && id > 0);
 
-      if (imgsError) {
-        console.error("Error cargando imagenes principales:", imgsError);
-        setImagenPrincipalByProducto({});
-      } else {
-        const map = {};
-        (imgs || []).forEach((img) => {
-          const pid = String(img.producto_id || "");
-          if (!pid || map[pid]) return;
-          map[pid] = img.imagen_url || "";
-        });
-        setImagenPrincipalByProducto(map);
-      }
-    } else {
-      setImagenPrincipalByProducto({});
-    }
-
-    if (productIds.length > 0) {
-      const withActive = await supabase
-        .from("producto_variantes")
-        .select("id, producto_id, color, stock, activo, codigo_barra, sku")
-        .in("producto_id", productIds)
-        .eq("activo", true)
-        .order("color", { ascending: true });
-
-      let vars = withActive.data;
-
-      if (withActive.error) {
-        const fallbackWithoutActive = await supabase
+    // Limitar la cantidad de IDs por petición para evitar error 400
+    const CHUNK_SIZE = 80;
+    let allVars = [];
+    if (validProductIds.length > 0) {
+      for (let i = 0; i < validProductIds.length; i += CHUNK_SIZE) {
+        const chunk = validProductIds.slice(i, i + CHUNK_SIZE);
+        let vars = [];
+        const withActive = await supabase
           .from("producto_variantes")
-          .select("id, producto_id, color, stock, codigo_barra, sku")
-          .in("producto_id", productIds)
+          .select("id, producto_id, color, stock, activo, codigo_barra, sku")
+          .in("producto_id", chunk)
+          .eq("activo", true)
           .order("color", { ascending: true });
-
-        if (fallbackWithoutActive.error) {
-          const minimalFallback = await supabase
+        if (withActive.error) {
+          const fallbackWithoutActive = await supabase
             .from("producto_variantes")
-            .select("id, producto_id, color, stock")
-            .in("producto_id", productIds)
+            .select("id, producto_id, color, stock, codigo_barra, sku")
+            .in("producto_id", chunk)
             .order("color", { ascending: true });
-
-          if (minimalFallback.error) {
-            console.warn("Variantes no disponibles en este esquema:", minimalFallback.error);
-            vars = [];
+          if (fallbackWithoutActive.error) {
+            const minimalFallback = await supabase
+              .from("producto_variantes")
+              .select("id, producto_id, color, stock")
+              .in("producto_id", chunk)
+              .order("color", { ascending: true });
+            if (minimalFallback.error) {
+              console.warn("Variantes no disponibles en este esquema:", minimalFallback.error);
+              vars = [];
+            } else {
+              vars = (minimalFallback.data || []).map((row) => ({
+                ...row,
+                codigo_barra: null,
+                sku: null,
+              }));
+            }
           } else {
-            vars = (minimalFallback.data || []).map((row) => ({
-              ...row,
-              codigo_barra: null,
-              sku: null,
-            }));
+            vars = fallbackWithoutActive.data;
           }
         } else {
-          vars = fallbackWithoutActive.data;
+          vars = withActive.data;
         }
+        allVars = allVars.concat(vars || []);
       }
-
+      // Agrupar resultados
       const grouped = {};
-      (vars || []).forEach((v) => {
+      (allVars || []).forEach((v) => {
         const pid = String(v.producto_id);
         if (!grouped[pid]) grouped[pid] = [];
         grouped[pid].push(v);
       });
-
       setVariantesByProducto(grouped);
     } else {
       setVariantesByProducto({});
@@ -343,10 +335,43 @@ export default function AumentarStockPage() {
 
       if (error) throw error;
 
+      // Sincroniza el stock del producto como suma de variantes
+      await sincronizarStockProducto(pid, supabase);
+
       setProductos((prev) =>
         prev.map((p) => (p.user_id === pid ? { ...p, stock: newStock } : p))
       );
       setIncrements((prev) => ({ ...prev, [key]: 0 }));
+
+      // Registrar movimiento e historial de aumento de stock
+      try {
+        const user = (await supabase.auth.getUser())?.data?.user;
+        // Obtener datos anteriores
+        const { data: actual } = await supabase
+          .from("productos")
+          .select("*")
+          .eq("user_id", pid)
+          .single();
+        const movimientoPayload = {
+          producto_id: Number(pid),
+          tipo: 'aumento',
+          cantidad: Number(increaseBy),
+          usuario_id: user?.id || null,
+          usuario_email: user?.email || '',
+          observaciones: 'Aumento de stock desde panel'
+        };
+        console.log('registrarMovimientoStock payload:', movimientoPayload);
+        await registrarMovimientoStock(movimientoPayload);
+        await registrarHistorialProducto({
+          producto_id: pid,
+          accion: "UPDATE",
+          datos_anteriores: actual,
+          datos_nuevos: { ...actual, stock: newStock },
+          usuario_email: user?.email || null
+        });
+      } catch (err) {
+        console.warn('No se pudo registrar movimiento/historial de aumento:', err);
+      }
 
       if (shouldPrint) {
         const barcode = String(prod.codigo_barra || "").trim();
@@ -379,8 +404,6 @@ export default function AumentarStockPage() {
 
     const currentVariantStock = Number(variante.stock || 0);
     const nextVariantStock = currentVariantStock + increaseBy;
-    const currentProductStock = Number(prod.stock || 0);
-    const nextProductStock = currentProductStock + increaseBy;
 
     try {
       setSavingKey(key);
@@ -392,12 +415,40 @@ export default function AumentarStockPage() {
 
       if (variantError) throw variantError;
 
-      const { error: productError } = await supabase
-        .from("productos")
-        .update({ stock: nextProductStock })
-        .eq("user_id", pid);
 
-      if (productError) throw productError;
+      // Sincroniza el stock del producto como suma de variantes
+      await sincronizarStockProducto(pid, supabase);
+
+      // Registrar movimiento e historial de aumento de stock para variante
+      try {
+        const user = (await supabase.auth.getUser())?.data?.user;
+        // Obtener datos anteriores
+        const { data: actual } = await supabase
+          .from("productos")
+          .select("*")
+          .eq("user_id", pid)
+          .single();
+        const movimientoPayload = {
+          producto_id: Number(pid),
+          variante_id: Number(variantId),
+          tipo: 'aumento',
+          cantidad: Number(increaseBy),
+          usuario_id: user?.id || null,
+          usuario_email: user?.email || '',
+          observaciones: `Aumento de stock en variante (${variante.color || 'Unico'}) desde panel`
+        };
+        console.log('registrarMovimientoStock payload:', movimientoPayload);
+        await registrarMovimientoStock(movimientoPayload);
+        await registrarHistorialProducto({
+          producto_id: pid,
+          accion: "UPDATE",
+          datos_anteriores: actual,
+          datos_nuevos: { ...actual, stock: totalStock },
+          usuario_email: user?.email || null
+        });
+      } catch (err) {
+        console.warn('No se pudo registrar movimiento/historial de aumento (variante):', err);
+      }
 
       setVariantesByProducto((prev) => ({
         ...prev,
@@ -407,7 +458,7 @@ export default function AumentarStockPage() {
       }));
 
       setProductos((prev) =>
-        prev.map((p) => (p.user_id === pid ? { ...p, stock: nextProductStock } : p))
+        prev.map((p) => (p.user_id === pid ? { ...p, stock: totalStock } : p))
       );
 
       setIncrements((prev) => ({ ...prev, [key]: 0 }));

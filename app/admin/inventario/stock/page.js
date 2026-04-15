@@ -12,8 +12,12 @@ export default function StockPage() {
       return Number(prod?.stock_minimo ?? CONFIG.INVENTARIO.STOCK_MINIMO_ALERTA ?? 3);
     }, []);
 
+    // Calcular el stock como la suma de los stocks de las variantes si existen
     const getStockState = useCallback((prod) => {
-      const stock = Number(prod?.stock || 0);
+      let stock = Number(prod?.stock || 0);
+      if (prod?.variantes && Array.isArray(prod.variantes) && prod.variantes.length > 0) {
+        stock = prod.variantes.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+      }
       const stockMinimo = getStockMinimo(prod);
       if (stock <= 0) return "sin-stock";
       if (stock <= Math.min(stockMinimo, 2)) return "critico";
@@ -143,6 +147,7 @@ export default function StockPage() {
 
     let data = null;
 
+    // Traer todas las variantes activas, incluidas las de stock 0
     const withActive = await supabase
       .from("producto_variantes")
       .select("producto_id, color, stock, activo")
@@ -152,7 +157,7 @@ export default function StockPage() {
     if (withActive.error) {
       const fallback = await supabase
         .from("producto_variantes")
-        .select("producto_id, color, stock")
+        .select("producto_id, color, stock, activo")
         .in("producto_id", ids);
 
       if (fallback.error) {
@@ -166,6 +171,7 @@ export default function StockPage() {
       data = withActive.data || [];
     }
 
+    // Mostrar todas las variantes activas, aunque tengan stock 0
     const grouped = {};
     for (const variant of data) {
       const productoId = String(variant?.producto_id ?? "");
@@ -183,7 +189,7 @@ export default function StockPage() {
     for (const [productoId, colorsMap] of Object.entries(grouped)) {
       normalized[productoId] = Object.entries(colorsMap)
         .map(([color, stock]) => ({ color, stock: Number(stock || 0) }))
-        .filter((item) => item.stock > 0)
+        // Ya no filtramos por stock > 0, mostramos todas
         .sort((a, b) => b.stock - a.stock || a.color.localeCompare(b.color, "es"));
     }
 

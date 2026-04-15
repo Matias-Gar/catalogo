@@ -17,9 +17,10 @@ export default function VentasEstadisticaPage() {
 
   useEffect(() => {
     async function fetchVentas() {
+
       const { data, error } = await supabase
         .from("ventas")
-        .select("id, total, fecha, costos_extra, descuentos, cliente_nombre");
+        .select("id, total, fecha, costos_extra, descuentos, cliente_nombre, modo_pago");
       if (!error && data) setVentas(data);
 
       const { data: dets } = await supabase
@@ -32,15 +33,31 @@ export default function VentasEstadisticaPage() {
     fetchVentas();
   }, []);
 
+
   useEffect(() => {
     if (ventas.length === 0) return;
+
+    // Agrupar detalles por venta para acceso O(1)
+    const detallesPorVenta = {};
+    detalles.forEach(d => {
+      const key = Number(d.venta_id);
+      if (!detallesPorVenta[key]) detallesPorVenta[key] = [];
+      detallesPorVenta[key].push(d);
+    });
+
     const lines = ventas.map(v => {
-      const detsThis = detalles.filter(d => d.venta_id === v.id);
+      const detsThis = detallesPorVenta[Number(v.id)] || [];
       const inversion = detsThis.reduce((acc, d) =>
         acc + ((Number(d.costo_unitario) || 0) * Number(d.cantidad || 0)), 0
       );
       const ventaPrice = Number(v.total) || 0;
-      const costosExtras = v.costos_extra || {};
+
+      // Manejo robusto de costos_extra
+      let costosExtras = v.costos_extra || {};
+      if (typeof costosExtras === "string") {
+        try { costosExtras = JSON.parse(costosExtras); } catch { costosExtras = {}; }
+      }
+
       const descuentos = Number(v.descuentos || 0);
       const costos = Object.values(costosExtras).reduce((a,b) => a + (Number(b) || 0), 0);
       const gananciaBruta = ventaPrice - inversion;
@@ -51,7 +68,6 @@ export default function VentasEstadisticaPage() {
         const precio = Number(d.precio_unitario) || 0;
         const costo = (Number(d.costo_unitario) || 0) * cantidad;
         const ingreso = precio * cantidad;
-
         return {
           producto_id: d.producto_id,
           cantidad,
@@ -61,10 +77,15 @@ export default function VentasEstadisticaPage() {
           ganancia: ingreso - costo,
         };
       });
-
       return { venta: v, inversion, ventaPrice, descuentos, costos, gananciaBruta, gananciaNeta, porcentajeUtilidad, items };
     });
     setReportLines(lines);
+  }, [ventas, detalles]);
+
+  // Diagnóstico rápido
+  useEffect(() => {
+    console.log("VENTAS:", ventas);
+    console.log("DETALLES:", detalles);
   }, [ventas, detalles]);
 
   const totalVentas = ventas.length;
@@ -133,13 +154,148 @@ export default function VentasEstadisticaPage() {
     }],
   };
 
+
+  // =========================
+  // 🧠 INTELIGENCIA AVANZADA
+  // =========================
+
+  // 💰 ingreso neto real
+  const ingresoNeto = reportLines.reduce((a, r) => a + r.gananciaNeta, 0);
+
+  // 📊 dependencia (riesgo)
+  const metodoConteo = {};
+  ventas.forEach(v => {
+    const m = v.modo_pago || "otros";
+    metodoConteo[m] = (metodoConteo[m] || 0) + Number(v.total || 0);
+  });
+
+  let metodoTop = null;
+  let metodoTopValor = 0;
+  Object.entries(metodoConteo).forEach(([k, v]) => {
+    if (v > metodoTopValor) {
+      metodoTop = k;
+      metodoTopValor = v;
+    }
+  });
+  const dependencia = metodoTopValor / (montoTotal || 1);
+
+  // 📉 volatilidad
+  const valores = sortedLines.map(r => r.gananciaNeta);
+  const promedio = ingresoNeto / (valores.length || 1);
+  const varianza = valores.reduce((acc, v) => acc + Math.pow(v - promedio, 2), 0) / (valores.length || 1);
+  const volatilidad = Math.sqrt(varianza);
+
+  // 📅 días sin ventas
+  const diasSinVentas = Object.values(ventasPorDia).filter(v => v === 0).length;
+
+  // 🔮 predicción simple
+  const ultimos7 = valores.slice(-7);
+  const prediccion = ultimos7.reduce((a,b)=>a+b,0) / (ultimos7.length || 1);
+
+  // 🧠 score de negocio
+  let score = 0;
+  if (margenPromedio > 20) score += 25;
+  if (ventasPerdida === 0) score += 25;
+  if (dependencia < 0.6) score += 25;
+  if (volatilidad < promedio * 0.5) score += 25;
+  let estado = "Crítico";
+  if (score > 75) estado = "Saludable";
+  else if (score > 50) estado = "Estable";
+
+  // =========================
+  // 💡 INSIGHTS AUTOMÁTICOS
+  // =========================
+  const insights = [];
+  if (ventasPerdida > 0) {
+    insights.push(`Tienes ${ventasPerdida} ventas con pérdida.`);
+  }
+  if (dependencia > 0.7) {
+    insights.push(`Dependes mucho de ${metodoTop}.`);
+  }
+  if (margenPromedio < 15) {
+    insights.push("Margen bajo, revisa costos o precios.");
+  }
+  if (volatilidad > promedio * 0.7) {
+    insights.push("Ingresos inestables.");
+  }
+  if (ticketPromedio < 50) {
+    insights.push("Ticket promedio bajo (estrategia de volumen).");
+  }
+
+  // =========================
+  // ⚠️ ALERTAS
+  // =========================
+  const alertasPro = [];
+  if (ventasPerdida > 0) {
+    alertasPro.push("Ventas con pérdida detectadas");
+  }
+  if (dependencia > 0.75) {
+    alertasPro.push("Riesgo: dependencia de un solo método");
+  }
+  if (volatilidad > promedio) {
+    alertasPro.push("Ingresos altamente variables");
+  }
+
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
+      {/* 🧠 SCORE + SALUD */}
+      <div className={`mb-6 p-4 rounded-xl shadow font-bold ${
+        score > 75 ? "bg-green-100 text-green-700" :
+        score > 50 ? "bg-yellow-100 text-yellow-700" :
+        "bg-red-100 text-red-700"
+      }`}>
+        🧠 Score del negocio: {score}/100 — {estado}
+      </div>
       <h1 className="text-2xl font-extrabold text-gray-900 mb-4">Estadísticas de Ventas</h1>
+
 
       {alertas.length > 0 && (
         <div className="mb-4 rounded-xl bg-red-100 p-4 font-semibold text-red-700 shadow-sm">
           ⚠️ {alertas.length} ventas con pérdida detectadas
+        </div>
+      )}
+
+      {/* 💰 KPIs AVANZADOS */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white p-4 rounded-xl shadow">
+          <div className="text-gray-500 text-sm">Ingreso neto real</div>
+          <div className="text-xl font-bold text-green-600">Bs {ingresoNeto.toFixed(2)}</div>
+        </div>
+        <div className="bg-white p-4 rounded-xl shadow">
+          <div className="text-gray-500 text-sm">Dependencia</div>
+          <div className="text-xl font-bold">{(dependencia * 100).toFixed(1)}%</div>
+        </div>
+        <div className="bg-white p-4 rounded-xl shadow">
+          <div className="text-gray-500 text-sm">Volatilidad</div>
+          <div className="text-xl font-bold text-purple-600">{volatilidad.toFixed(2)}</div>
+        </div>
+        <div className="bg-white p-4 rounded-xl shadow">
+          <div className="text-gray-500 text-sm">Predicción próxima</div>
+          <div className="text-xl font-bold text-blue-600">Bs {prediccion.toFixed(2)}</div>
+        </div>
+      </div>
+
+      {/* 💡 INSIGHTS AUTOMÁTICOS */}
+      {insights.length > 0 && (
+        <div className="mb-6 bg-yellow-50 p-4 rounded-xl shadow">
+          <h3 className="font-bold mb-2">💡 Insights inteligentes</h3>
+          <ul className="list-disc list-inside text-sm">
+            {insights.map((i, idx) => (
+              <li key={idx}>{i}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* ⚠️ ALERTAS PRO */}
+      {alertasPro.length > 0 && (
+        <div className="mb-6 bg-red-50 p-4 rounded-xl shadow">
+          <h3 className="font-bold text-red-700 mb-2">⚠️ Alertas críticas</h3>
+          <ul className="list-disc list-inside text-sm text-red-600">
+            {alertasPro.map((a, idx) => (
+              <li key={idx}>{a}</li>
+            ))}
+          </ul>
         </div>
       )}
 
@@ -159,6 +315,7 @@ export default function VentasEstadisticaPage() {
           {Object.keys(ventasPorDia).length > 0 && <Pie data={pieDataDia} />}
         </div>
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
           <span className="text-gray-900 font-bold mb-2 block">Ventas por producto</span>
@@ -177,6 +334,15 @@ export default function VentasEstadisticaPage() {
                 </span>
               </div>
             ))}
+          </div>
+          {/* 🏆 TOP INTELIGENTE */}
+          <div className="mt-6 bg-white rounded-xl shadow p-6">
+            <h3 className="font-bold mb-2">🏆 Producto más rentable</h3>
+            {topRentables.length > 0 && (
+              <div className="text-lg font-bold text-green-600">
+                Producto #{topRentables[0][0]} → Bs {Number(topRentables[0][1]).toFixed(2)}
+              </div>
+            )}
           </div>
         </div>
       </div>

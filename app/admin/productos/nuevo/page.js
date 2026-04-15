@@ -7,7 +7,12 @@ import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from 'uuid';
 import { getOptimizedImageUrl, buildImageSrcSet } from '../../../../lib/imageOptimization';
 import { optimizeImageForUpload } from '../../../../lib/imageUploadOptimization';
+
+import { registrarMovimientoStock } from '../../../../lib/stockMovimientos';
+import { registrarHistorialProducto } from '../../../../lib/productosHistorial';
 import { canAccessAdminPath } from '../../../../lib/adminPermissions';
+
+import { sincronizarStockProducto } from '../../../../lib/utils';
 
 // Desactivar SSR para el componente de código de barras si usa librerías de cliente como 'react-barcode'
 // Si la tabla usa react-barcode, este dynamic es necesario. Si solo usa la función handlePrintBarcode, se podría quitar.
@@ -462,6 +467,10 @@ export default function AdminProductosPage() {
     // HOOKS AL INICIO
     const router = useRouter(); 
     const [userRole, setUserRole] = useState(null); 
+    // Estado para el modal de colores repetidos
+    const [showColorRepeatModal, setShowColorRepeatModal] = useState(false);
+    // Estado para advertencia de nombre duplicado
+    const [showNameRepeatModal, setShowNameRepeatModal] = useState(false);
     const [productos, setProductos] = useState([]);
     const [imagenesProductos, setImagenesProductos] = useState({});
     const [variantesProductos, setVariantesProductos] = useState({});
@@ -1216,11 +1225,17 @@ export default function AdminProductosPage() {
                 .select('producto_id, imagen_url')
                 .in('producto_id', ids);
             if (!imgsError && imgs) {
-                // Agrupar por producto_id
+                // Agrupar por producto_id y filtrar URLs vacías/nulas/incorrectas
                 const agrupadas = {};
                 imgs.forEach(img => {
-                    if (!agrupadas[img.producto_id]) agrupadas[img.producto_id] = [];
-                    agrupadas[img.producto_id].push(img.imagen_url);
+                    if (
+                        typeof img.imagen_url === 'string' &&
+                        img.imagen_url.trim().length > 0 &&
+                        img.imagen_url.startsWith('http')
+                    ) {
+                        if (!agrupadas[img.producto_id]) agrupadas[img.producto_id] = [];
+                        agrupadas[img.producto_id].push(img.imagen_url);
+                    }
                 });
                 setImagenesProductos(agrupadas);
             }
@@ -1312,24 +1327,52 @@ export default function AdminProductosPage() {
     // Función para Añadir Producto
     const handleAñadirProducto = async (e) => {
         e.preventDefault();
-        setMessage('');
+        setMessage("");
 
         const canContinue = confirmMissingProductData({
             descripcion: newProduct?.descripcion,
             imageCount: imageFiles?.length || 0,
-            actionLabel: 'añadir el producto',
+            actionLabel: "añadir el producto",
         });
         if (!canContinue) {
-            setMessage('ℹ️ Operación cancelada. Completa descripción o fotos si deseas.');
+            setMessage("ℹ️ Operación cancelada. Completa descripción o fotos si deseas.");
             return;
         }
 
         setLoading(true);
+        // Validar nombre duplicado antes de guardar
+        const { data: productosConNombre, error: errorNombre } = await supabase
+            .from("productos")
+            .select("user_id")
+            .ilike("nombre", newProduct.nombre.trim());
+        if (!errorNombre && productosConNombre && productosConNombre.length > 0) {
+            setShowNameRepeatModal(true);
+            setLoading(false);
+            return;
+        }
+
         let imagenUrls = [];
         try {
+            // Modal de advertencia de nombre duplicado
+            if (showNameRepeatModal) {
+                return (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                        <div className="bg-white rounded-xl shadow-lg p-8 max-w-sm w-full text-center">
+                            <h2 className="text-xl font-bold mb-4 text-red-700">Nombre de producto repetido</h2>
+                            <p className="mb-6 text-gray-800">Ya existe un producto con el nombre "{newProduct.nombre}". Elige un nombre diferente antes de guardar.</p>
+                            <button
+                                className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
+                                onClick={() => setShowNameRepeatModal(false)}
+                            >Aceptar</button>
+                        </div>
+                    </div>
+                );
+            }
             // Subir imágenes ANTES de insertar en la tabla
             if (imageFiles && imageFiles.length > 0) {
                 imagenUrls = await uploadProductImages(imageFiles);
+                // Filtrar URLs vacías, nulas o inválidas
+                imagenUrls = imagenUrls.filter(url => typeof url === 'string' && url.trim().length > 0 && url.startsWith('http'));
             }
             const categoryIdValue = newProduct.category_id ? parseInt(newProduct.category_id) : null;
             const usedVariantCodes = new Set();
@@ -1349,10 +1392,27 @@ export default function AdminProductosPage() {
                     activo: v.activo !== false
                 };});
 
+
             const normalizedColors = variantsPayload.map(v => v.color.toLowerCase());
             if (new Set(normalizedColors).size !== normalizedColors.length) {
-                throw new Error('Hay colores repetidos. Corrigelos antes de guardar.');
+                setShowColorRepeatModal(true);
+                setMessage('⚠️ Hay colores repetidos en las variantes. Corrige antes de guardar.');
+                setLoading(false);
+                return;
             }
+            {/* Modal de advertencia de colores repetidos */}
+            {showColorRepeatModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                    <div className="bg-white rounded-xl shadow-lg p-8 max-w-sm w-full text-center">
+                        <h2 className="text-xl font-bold mb-4 text-red-700">Colores repetidos</h2>
+                        <p className="mb-6 text-gray-800">Parece que tienes dos o más colores repetidos en las variantes. Corrígelos antes de guardar el producto.</p>
+                        <button
+                            className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
+                            onClick={() => setShowColorRepeatModal(false)}
+                        >Aceptar</button>
+                    </div>
+                </div>
+            )}
 
             if (variantsPayload.length === 0) {
                 throw new Error('Debes agregar al menos una variante.');
@@ -1373,6 +1433,7 @@ export default function AdminProductosPage() {
                         stock: stockTotal,
                         category_id: categoryIdValue,
                         codigo_barra: codigoBarra,
+                        imagen_url: null, // Siempre null al crear
                         // Llenar created_at con la fecha actual (ISO)
                         created_at: new Date().toISOString()
                     }
@@ -1389,7 +1450,14 @@ export default function AdminProductosPage() {
                 const imagesToInsert = imagenUrls.map(url => ({ producto_id: productoId, imagen_url: url }));
                 const { error: imgInsertError } = await supabase.from('producto_imagenes').insert(imagesToInsert);
                 if (imgInsertError) {
-                    // Nota: Idealmente, aquí también se debería intentar borrar los archivos subidos al storage.
+                    // Si falla la inserción, intentar borrar las imágenes subidas al storage
+                    for (const url of imagenUrls) {
+                        try {
+                            const path = url.split('/').slice(-2).join('/'); // public/uuid.jpg
+                            await supabase.storage.from('product_images').remove([path]);
+                        } catch {}
+                    }
+                    setImageFiles([]);
                     throw new Error(`Error al insertar imágenes: ${imgInsertError.message}`);
                 }
             }
@@ -1400,6 +1468,7 @@ export default function AdminProductosPage() {
                     producto_id: productoId,
                     color: v.color,
                     stock: v.stock,
+                    stock_inicial: v.stock, // Guardar stock_inicial igual al stock al crear
                     precio: v.precio,
                     sku: v.sku,
                     imagen_url: null,
@@ -1409,17 +1478,74 @@ export default function AdminProductosPage() {
                 if (variantsError) {
                     throw new Error(`Error al insertar variantes: ${variantsError.message}`);
                 }
+
+                // --- Sincronizar stock del producto como suma de variantes ---
+                await sincronizarStockProducto(productoId, supabase);
             }
 
+            // Registrar movimiento de creación en stock_movimientos y historial
+                        try {
+                                const user = (await supabase.auth.getUser())?.data?.user;
+                                // Registrar un evento de stock_inicial por cada variante
+                                if (productoId && Array.isArray(variantsPayload)) {
+                                    for (const v of variantsPayload) {
+                                        // Buscar la variante insertada para obtener su id
+                                        const { data: varianteData } = await supabase
+                                            .from('producto_variantes')
+                                            .select('id')
+                                            .eq('producto_id', productoId)
+                                            .eq('color', v.color)
+                                            .eq('sku', v.sku)
+                                            .maybeSingle();
+                                        await registrarMovimientoStock({
+                                            producto_id: productoId,
+                                            variante_id: varianteData?.id || null,
+                                            tipo: 'stock_inicial',
+                                            cantidad: v.stock,
+                                            usuario_id: user?.id || null,
+                                            usuario_email: user?.email || '',
+                                            observaciones: `Stock inicial para variante ${v.color}`
+                                        });
+                                    }
+                                }
+                                // (Opcional) Registrar evento global de creación para legacy
+                                await registrarMovimientoStock({
+                                    producto_id: productoId,
+                                    tipo: 'creación',
+                                    cantidad: stockTotal,
+                                    usuario_id: user?.id || null,
+                                    usuario_email: user?.email || '',
+                                    observaciones: 'Alta de producto desde panel'
+                                });
+                                await registrarHistorialProducto({
+                                    producto_id: productoId,
+                                    accion: "CREATE",
+                                    datos_anteriores: null,
+                                    datos_nuevos: {
+                                        nombre: newProduct.nombre,
+                                        descripcion: newProduct.descripcion,
+                                        precio: parseFloat(newProduct.precio) || 0,
+                                        precio_compra: parseFloat(newProduct.precio_compra) || 0,
+                                        stock: stockTotal,
+                                        category_id: categoryIdValue,
+                                        codigo_barra: codigoBarra
+                                    },
+                                    usuario_email: user?.email || null
+                                });
+                        } catch (err) {
+                                console.warn('No se pudo registrar movimiento/historial de creación:', err);
+                        }
             setMessage('✅ Producto creado con éxito!');
-            // ya no imprimimos automáticamente al añadir, el usuario puede usar el botón manual
+            // Limpieza reforzada de todos los campos y sessionStorage
             setNewProduct({ nombre: '', descripcion: '', precio: '', precio_compra: '', category_id: '', codigo_barra: '' });
             setNewVariants([createVariantDraft([], { color: '' })]);
-            sessionStorage.removeItem('pendingProduct');
             setImageFiles([]);
-            if (newImageInputRef.current) {
-                newImageInputRef.current.value = '';
-            }
+            setTimeout(() => {
+                sessionStorage.removeItem('pendingProduct');
+                if (newImageInputRef.current) {
+                    newImageInputRef.current.value = '';
+                }
+            }, 100);
             fetchProductos();
         } catch (e) {
             console.error("Error crítico al crear producto:", e);
@@ -1435,33 +1561,46 @@ export default function AdminProductosPage() {
     }; 
 
     const confirmDelete = async () => { 
-        if (!productToDelete) return; 
+        if (!productToDelete) return;
 
-        setShowDeleteModal(false); 
-        setIsDeleting(true); 
-        setMessage(''); 
+        setShowDeleteModal(false);
+        setIsDeleting(true);
+        setMessage('');
 
-        try { 
-            // La eliminación en cascada debería manejar las imágenes relacionadas
-            const { error } = await supabase 
-                .from('productos') 
-                .delete() 
-                // Usamos user_id como ID único del producto para filtrar
-                .eq('user_id', productToDelete.user_id); 
+        try {
+            // 1. Eliminar movimientos de stock relacionados
+            const { error: movError } = await supabase
+                .from('stock_movimientos')
+                .delete()
+                .eq('producto_id', productToDelete.user_id);
+            if (movError) throw new Error('Error al eliminar movimientos de stock: ' + movError.message);
 
-            if (error) { 
-                throw new Error(error.message); 
-            } 
+            // 2. Eliminar historial de producto relacionado
+            const { error: histError } = await supabase
+                .from('productos_historial')
+                .delete()
+                .eq('producto_id', productToDelete.user_id);
+            if (histError) throw new Error('Error al eliminar historial: ' + histError.message);
 
-            setMessage(`✅ Producto "${productToDelete.nombre}" eliminado con éxito.`); 
-            fetchProductos(); 
-        } catch (e) { 
-            setMessage(`❌ Error al eliminar: ${e.message}`); 
-        } finally { 
-            setIsDeleting(false); 
-            setProductToDelete(null); 
-        } 
-    }; 
+            // 3. Eliminar el producto (la eliminación en cascada debería manejar imágenes y variantes)
+            const { error } = await supabase
+                .from('productos')
+                .delete()
+                .eq('user_id', productToDelete.user_id);
+
+            if (error) {
+                throw new Error(error.message);
+            }
+
+            setMessage(`✅ Producto "${productToDelete.nombre}" eliminado con éxito.`);
+            fetchProductos();
+        } catch (e) {
+            setMessage(`❌ Error al eliminar: ${e.message}`);
+        } finally {
+            setIsDeleting(false);
+            setProductToDelete(null);
+        }
+    };
     
     const handleGuardarEdicion = async (e) => {
         e.preventDefault();
@@ -1528,10 +1667,14 @@ export default function AdminProductosPage() {
 
             // 4. Insertar nuevas imágenes
             if (nuevasUrls.length > 0) {
-                const imagesToInsert = nuevasUrls.map(url => ({ producto_id: editingProduct.user_id, imagen_url: url }));
-                const { error: imgInsertError } = await supabase.from('producto_imagenes').insert(imagesToInsert);
-                if (imgInsertError) {
-                    throw new Error(imgInsertError.message);
+                // Filtrar URLs vacías, nulas o inválidas antes de insertar
+                const validUrls = nuevasUrls.filter(url => typeof url === 'string' && url.trim().length > 0 && url.startsWith('http'));
+                if (validUrls.length > 0) {
+                    const imagesToInsert = validUrls.map(url => ({ producto_id: editingProduct.user_id, imagen_url: url }));
+                    const { error: imgInsertError } = await supabase.from('producto_imagenes').insert(imagesToInsert);
+                    if (imgInsertError) {
+                        throw new Error(imgInsertError.message);
+                    }
                 }
             }
 

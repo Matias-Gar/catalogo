@@ -24,6 +24,7 @@ export default function ProductCard({
     (sum, v) => sum + (parseInt(v?.stock ?? 0) || 0),
     0
   );
+  // Siempre usar la imagen del producto, nunca de variante
   const imageFromProducto = imagesArr.find(
     (img) => String(img.imagen_url || "") === String(prod.imagen_url || "")
   );
@@ -34,7 +35,7 @@ export default function ProductCard({
     imagesArr.find((img) => String(img.id) === String(selectedPrimaryImageId)) ??
     imagesArr[0] ??
     null;
-  const firstImage = selectedPrimaryImage?.imagen_url || "";
+  const firstImage = selectedPrimaryImage?.imagen_url || ""; // Solo producto
 
   const normalizeColor = (value) => {
     const raw = String(value || "").trim().replace(/\s+/g, " ");

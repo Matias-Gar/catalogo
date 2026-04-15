@@ -123,8 +123,9 @@ export default function CatalogoPage() {
           const nombre = item.nombre || "Producto";
           const precio = item.precio ?? 0;
           const descripcion = item.descripcion || "";
-          const stock = item.stock ?? 0;
           const variantes = variantesMap[String(id)] || [];
+          // Calcular el stock como la suma de los stocks de las variantes
+          const stock = variantes.length > 0 ? variantes.reduce((sum, v) => sum + (Number(v.stock) || 0), 0) : (item.stock ?? 0);
 
           const catId = item.category_id;
           let categoriaNombre = "";
