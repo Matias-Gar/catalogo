@@ -1,13 +1,36 @@
 // --- SINCRONIZACIÓN GLOBAL DE STOCK DE PRODUCTO ---
-export async function sincronizarStockProducto(producto_id: string | number, supabase: any): Promise<number> {
-  // Suma el stock de todas las variantes activas y actualiza productos.stock
+
+interface Variante {
+  stock: number | string | null;
+  // Agrega aquí otras propiedades si las usas (ej: id, color, etc)
+}
+
+export async function sincronizarStockProducto(
+  producto_id: string | number,
+  supabase: any
+): Promise<number> {
+  // Consulta tipada
   const { data: variantes } = await supabase
     .from("producto_variantes")
     .select("stock")
     .eq("producto_id", producto_id)
     .eq("activo", true);
-  const stockTotal = (variantes || []).reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
-  await supabase.from("productos").update({ stock: stockTotal }).eq("user_id", producto_id);
+
+  // Tipar variantes como Variante[]
+  const variantesList: Variante[] = Array.isArray(variantes) ? variantes : [];
+
+  // Reduce tipado correctamente
+  const stockTotal = variantesList.reduce<number>(
+    (sum, v) => sum + (Number(v.stock) || 0),
+    0
+  );
+
+  // Actualiza el stock en productos
+  await supabase
+    .from("productos")
+    .update({ stock: stockTotal })
+    .eq("user_id", producto_id);
+
   return stockTotal;
 }
 
