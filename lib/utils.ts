@@ -1,32 +1,48 @@
-// --- SINCRONIZACIÓN GLOBAL DE STOCK DE PRODUCTO ---
 
-interface Variante {
-  stock: number | string | null;
-  // Agrega aquí otras propiedades si las usas (ej: id, color, etc)
+// --- TIPOS E INTERFACES ---
+
+export interface Imagen {
+  id?: string | number;
+  imagen_url: string;
+  [key: string]: unknown;
 }
 
+export interface Variante {
+  id?: string | number;
+  color: string;
+  stock: number | string | null;
+  [key: string]: unknown;
+}
+
+export interface ProductoInput {
+  nombre: string;
+  descripcion: string;
+  variantes: Variante[];
+  imagenes: Imagen[];
+  [key: string]: unknown;
+}
+
+// --- SINCRONIZACIÓN GLOBAL DE STOCK DE PRODUCTO ---
 export async function sincronizarStockProducto(
   producto_id: string | number,
-  supabase: any
+  supabase: unknown
 ): Promise<number> {
-  // Consulta tipada
-  const { data: variantes } = await supabase
+  const { data } = await (supabase as any)
     .from("producto_variantes")
     .select("stock")
     .eq("producto_id", producto_id)
     .eq("activo", true);
 
-  // Tipar variantes como Variante[]
-  const variantesList: Variante[] = Array.isArray(variantes) ? variantes : [];
+  const variantes: Variante[] = Array.isArray(data)
+    ? data.map((v) => ({ ...v, color: (v as any).color ?? "", id: (v as any).id ?? undefined }))
+    : [];
 
-  // Reduce tipado correctamente
-  const stockTotal = variantesList.reduce<number>(
-    (sum, v) => sum + (Number(v.stock) || 0),
+  const stockTotal = variantes.reduce<number>(
+    (sum: number, v: Variante) => sum + (Number(v.stock) || 0),
     0
   );
 
-  // Actualiza el stock en productos
-  await supabase
+  await (supabase as any)
     .from("productos")
     .update({ stock: stockTotal })
     .eq("user_id", producto_id);
@@ -35,13 +51,13 @@ export async function sincronizarStockProducto(
 }
 
 // --- VALIDACIÓN GLOBAL DE PRODUCTO Y VARIANTES ---
-export function validarProducto({ nombre, descripcion, variantes, imagenes }) {
-  const errores = [];
+export function validarProducto({ nombre, descripcion, variantes, imagenes }: ProductoInput): string[] {
+  const errores: string[] = [];
   if (!nombre || nombre.trim().length < 2) errores.push("El nombre es obligatorio.");
   if (!descripcion || descripcion.trim().length < 5) errores.push("La descripción es obligatoria.");
   if (!imagenes || imagenes.length === 0) errores.push("Debes subir al menos una imagen.");
   if (!variantes || variantes.length === 0) errores.push("Debes definir al menos una variante.");
-  const colores = new Set();
+  const colores = new Set<string>();
   for (const v of variantes) {
     if (!v.color || v.color.trim().length === 0) errores.push("Todas las variantes deben tener color.");
     if (colores.has(v.color.trim().toLowerCase())) errores.push("No puede haber variantes con el mismo color.");
@@ -50,9 +66,10 @@ export function validarProducto({ nombre, descripcion, variantes, imagenes }) {
   }
   return errores;
 }
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]): string {
+  return twMerge(clsx(inputs));
 }
