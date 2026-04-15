@@ -1,5 +1,5 @@
 // --- SINCRONIZACIÓN GLOBAL DE STOCK DE PRODUCTO ---
-export async function sincronizarStockProducto(producto_id, supabase) {
+export async function sincronizarStockProducto(producto_id: string | number, supabase: any): Promise<number> {
   // Suma el stock de todas las variantes activas y actualiza productos.stock
   const { data: variantes } = await supabase
     .from("producto_variantes")
