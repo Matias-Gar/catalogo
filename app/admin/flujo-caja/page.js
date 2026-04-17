@@ -34,7 +34,8 @@ const PIE_COLORS = ["#16a34a", "#0284c7", "#7c3aed", "#f59e0b"];
 function isAutoSaleIncomeMovement(row) {
   if (!row || row.type !== "income") return false;
   const description = String(row.description || "").toLowerCase();
-  return description.includes("ingreso automatico por venta #");
+  // Detect any movement related to a sale (automatic or manual insert)
+  return description.includes("ingreso por venta #") || description.includes("ingreso automatico por venta #");
 }
 
 function normalizeSaleMethodForCashFlow(value) {
@@ -305,6 +306,7 @@ export default function FlujoCajaPage() {
     }));
   }, [summary]);
 
+  // Only show sales as auto sales rows, grouped by payment method
   const autoSalesRows = useMemo(() => {
     const rows = Array.isArray(summary?.auto_sales_rows) ? summary.auto_sales_rows : [];
     if (rows.length > 0) return rows;
@@ -315,13 +317,19 @@ export default function FlujoCajaPage() {
       date: sale.fecha,
       type: "income",
       payment_method: normalizeSaleMethodForCashFlow(sale.modo_pago),
-      description: `Ingreso por venta #${sale.id}`,
+      description: `Ingreso por venta #${sale.id}${sale.modo_pago ? ` (${sale.modo_pago})` : ""}`,
       amount: Number(sale.total || 0),
     }));
   }, [summary?.auto_sales_rows, summary?.sales]);
 
+  // Only show truly manual movements: exclude any that look like sales
   const manualMovements = useMemo(
-    () => movements.filter((movement) => !isAutoSaleIncomeMovement(movement)),
+    () => movements.filter((movement) => {
+      const desc = String(movement.description || "").toLowerCase();
+      if (desc.includes("ingreso por venta #") || desc.includes("ingreso automatico por venta #")) return false;
+      if (movement.source === "sale") return false;
+      return true;
+    }),
     [movements]
   );
 
@@ -1001,16 +1009,19 @@ export default function FlujoCajaPage() {
                   {manualMovements.map((movement) => {
                     const isIncome = movement.type === "income";
                     const methodLabel = PAYMENT_OPTIONS.find((opt) => opt.value === movement.payment_method)?.label || movement.payment_method || "-";
+                    // Show 'Sistema' for sales (source === 'sale'), 'Manual' otherwise
+                    const sourceLabel = movement.source === "sale" ? "Sistema" : "Manual";
                     return (
                       <tr key={movement.id} className="border-b border-slate-100 text-slate-700">
                         <td className="py-2">{movement.date ? new Date(movement.date).toLocaleString("es-BO") : "-"}</td>
-                        <td className={`py-2 font-semibold ${isIncome ? "text-emerald-700" : "text-rose-700"}`}>
+                        <td className={`py-2 font-semibold ${isIncome ? "text-emerald-700" : "text-rose-700"}`}> 
                           {isIncome ? "Ingreso" : "Egreso"}
                         </td>
                         <td className="py-2">{methodLabel}</td>
+                        <td className="py-2">{sourceLabel}</td>
                         <td className="py-2" title={movement.user_id || "Sistema"}>{formatActor(movement.user_id)}</td>
                         <td className="py-2">{movement.description || "-"}</td>
-                        <td className={`py-2 text-right font-bold ${isIncome ? "text-emerald-700" : "text-rose-700"}`}>
+                        <td className={`py-2 text-right font-bold ${isIncome ? "text-emerald-700" : "text-rose-700"}`}> 
                           {isIncome ? "+" : "-"}{formatBs(movement.amount)}
                         </td>
                         <td className="py-2 text-center">
