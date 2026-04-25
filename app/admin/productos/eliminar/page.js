@@ -63,7 +63,6 @@ function EliminarProductos(props) {
         usuario_email: user?.email || '',
         observaciones: 'Eliminación de producto desde panel'
       };
-      console.log('registrarMovimientoStock payload (eliminar):', movimientoPayload);
       await registrarMovimientoStock(movimientoPayload);
       await registrarHistorialProducto({
         producto_id: Number(user_id),

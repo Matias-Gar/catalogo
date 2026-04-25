@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from "../../../../lib/SupabaseClient";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { v4 as uuidv4 } from 'uuid';
 import { getOptimizedImageUrl, buildImageSrcSet } from '../../../../lib/imageOptimization';
 import { optimizeImageForUpload } from '../../../../lib/imageUploadOptimization';
@@ -13,7 +13,11 @@ import { registrarHistorialProducto } from '../../../../lib/productosHistorial';
 import { canAccessAdminPath } from '../../../../lib/adminPermissions';
 
 import { sincronizarStockProducto } from '../../../../lib/utils';
+import { getProductViewMeta, normalizeProductView } from '../../../../lib/productViews';
 
+
+// Importar CantidadConUnidadInput correctamente
+import CantidadConUnidadInput from '../../../../components/CantidadConUnidadInput';
 // Desactivar SSR para el componente de código de barras si usa librerías de cliente como 'react-barcode'
 // Si la tabla usa react-barcode, este dynamic es necesario. Si solo usa la función handlePrintBarcode, se podría quitar.
 // Lo mantendremos por si acaso el componente de tabla lo usa internamente.
@@ -377,7 +381,7 @@ function PrintVariantesModal({
                         disabled={!anySelected}
                         className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
-                        🖨️ Imprimir Seleccionados
+                        Imprimir Seleccionados
                     </button>
                 </div>
             </div>
@@ -386,15 +390,15 @@ function PrintVariantesModal({
 }
 
 // --------------------------------------------------------------------------
-// COMPONENTE 2: Modal de Confirmación de Eliminación
+// COMPONENTE 2: Modal de Confirmaci?n de Eliminaci?n
 // --------------------------------------------------------------------------
 function DeleteConfirmationModal({ isOpen, onClose, onConfirm, productName }) {
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50">
             <div className="bg-white w-full max-w-sm p-6 rounded-xl shadow-2xl">
-                <h3 className="text-xl font-bold mb-4 text-red-700">Confirmar Eliminación</h3>
-                <p className="text-gray-700 mb-6">¿Estás seguro de que quieres eliminar el producto <b>{productName}</b>? Esta acción no se puede deshacer.</p>
+                <h3 className="text-xl font-bold mb-4 text-red-700">Confirmar Eliminaci?n</h3>
+                <p className="text-gray-700 mb-6">?Est?s seguro de que quieres eliminar el producto <b>{productName}</b>? Esta acci?n no se puede deshacer.</p>
                 <div className="flex justify-end space-x-4">
                     <button
                         type="button"
@@ -408,7 +412,7 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, productName }) {
                         onClick={onConfirm}
                         className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
                     >
-                        Sí, Eliminar
+                        S?, Eliminar
                     </button>
                 </div>
             </div>
@@ -466,6 +470,9 @@ const uploadProductImages = async (files) => {
 export default function AdminProductosPage() { 
     // HOOKS AL INICIO
     const router = useRouter(); 
+    const pathname = usePathname();
+    const currentProductView = normalizeProductView(pathname?.includes('/admin/insumos') ? 'insumos' : 'articulos');
+    const currentViewMeta = getProductViewMeta(currentProductView);
     const [userRole, setUserRole] = useState(null); 
     // Estado para el modal de colores repetidos
     const [showColorRepeatModal, setShowColorRepeatModal] = useState(false);
@@ -492,8 +499,38 @@ export default function AdminProductosPage() {
         precio: '', 
         precio_compra: '',
         category_id: '',
-        codigo_barra: ''
+        codigo_barra: '',
+        vista_producto: currentProductView,
+        unidad_base: 'unidad', // Ej: 'rollo', 'litro', 'unidad'
+        unidades_alternativas: [], // Ej: ['metro', 'ml', 'unidad']
+        factor_conversion: 1 // Ej: 50 (1 rollo = 50 metros)
     }); 
+        // Opciones de unidades típicas
+        const unidadOptions = [
+            'unidad', 'rollo', 'metro', 'litro', 'ml', 'kg', 'g', 'paquete', 'caja', 'par', 'docena', 'pieza', 'bulto', 'galón', 'cm', 'mm', 'm', 'l', 'cl', 'botella', 'frasco', 'tableta', 'otro'
+        ];
+        const conversionSuggestionsByBase = {
+            rollo: ['metro', 'cm', 'mm'],
+            metro: ['cm', 'mm', 'rollo'],
+            m: ['cm', 'mm'],
+            litro: ['ml', 'cl', 'galÒ³n', 'botella', 'frasco'],
+            l: ['ml', 'cl', 'botella', 'frasco'],
+            ml: ['litro', 'cl', 'frasco'],
+            cl: ['ml', 'litro'],
+            kg: ['g'],
+            g: ['kg'],
+            caja: ['unidad', 'paquete', 'pieza'],
+            paquete: ['unidad', 'pieza'],
+            docena: ['unidad'],
+            par: ['unidad'],
+            botella: ['ml', 'litro'],
+            frasco: ['ml', 'litro'],
+            bulto: ['paquete', 'unidad'],
+            unidad: ['caja', 'paquete', 'par', 'docena'],
+        };
+        const smartAlternativeOptions = (conversionSuggestionsByBase[newProduct.unidad_base] || [])
+            .filter((u, idx, arr) => u !== newProduct.unidad_base && arr.indexOf(u) === idx);
+
     const [newVariants, setNewVariants] = useState(() => [
         createVariantDraft([], { color: '' })
     ]);
@@ -773,7 +810,7 @@ export default function AdminProductosPage() {
                 : false;
 
             if (qzPrinted) {
-                setMessage('✅ Etiquetas enviadas por QZ Tray con corte por cada copia.');
+                setMessage('Etiquetas enviadas por QZ Tray con corte por cada copia.');
                 return;
             }
 
@@ -897,7 +934,7 @@ export default function AdminProductosPage() {
                 : false;
 
             if (qzHtmlPrinted) {
-                setMessage('✅ Etiquetas impresas por QZ Tray con corte por cada etiqueta.');
+                setMessage('Etiquetas impresas por QZ Tray con corte por cada etiqueta.');
                 return;
             }
 
@@ -1028,7 +1065,7 @@ export default function AdminProductosPage() {
       const selectedVariantes = variantes.filter(v => selectedColorsToPrint[v.id]);
 
             if (selectedVariantes.length === 0) {
-                setMessage('⚠️ Selecciona al menos un color para imprimir.');
+                setMessage('Selecciona al menos un color para imprimir.');
                 return;
             }
 
@@ -1104,6 +1141,29 @@ export default function AdminProductosPage() {
             router.push('/admin/categorias?return=productos_nuevo');
             return;
         }
+        if (name === 'unidad_base') {
+            const allowedAlternatives = conversionSuggestionsByBase[value] || [];
+            setNewProduct((prev) => {
+                if (value === 'unidad') {
+                    return {
+                        ...prev,
+                        unidad_base: value,
+                        unidades_alternativas: [],
+                        factor_conversion: ''
+                    };
+                }
+                const alternativasActuales = Array.isArray(prev.unidades_alternativas)
+                    ? prev.unidades_alternativas.filter((u) => allowedAlternatives.includes(u))
+                    : [];
+                return {
+                    ...prev,
+                    unidad_base: value,
+                    unidades_alternativas: alternativasActuales,
+                    factor_conversion: alternativasActuales.length > 0 ? prev.factor_conversion : ''
+                };
+            });
+            return;
+        }
         setNewProduct({ ...newProduct, [name]: value }); 
     }; 
 
@@ -1175,7 +1235,7 @@ export default function AdminProductosPage() {
             .order('categori', { ascending: true });
         if (error) {
             setCategories([]);
-            setMessage('❌ Error al cargar categorías.');
+            setMessage('Error al cargar categor?as.');
             return;
         }
         setCategories(data || []);
@@ -1187,8 +1247,9 @@ export default function AdminProductosPage() {
             return;
         }
         setLoading(true);
-        // 1. Traer productos
-        const { data, error } = await supabase
+        let data = null;
+        let error = null;
+        let response = await supabase
             .from('productos')
             .select(`
                 user_id,
@@ -1199,20 +1260,47 @@ export default function AdminProductosPage() {
                 stock,
                 imagen_url,
                 category_id,
+                vista_producto,
                 codigo_barra,
                 created_at,
                 categorias (categori)
             `)
             .order('created_at', { ascending: false });
 
+        data = response.data;
+        error = response.error;
+
+        if (error && String(error.message || '').includes('vista_producto')) {
+            response = await supabase
+                .from('productos')
+                .select(`
+                    user_id,
+                    nombre,
+                    descripcion,
+                    precio,
+                    precio_compra,
+                    stock,
+                    imagen_url,
+                    category_id,
+                    codigo_barra,
+                    created_at,
+                    categorias (categori)
+                `)
+                .order('created_at', { ascending: false });
+
+            data = response.data;
+            error = response.error;
+        }
+
         if (error) {
-            setMessage(`❌ Error al cargar productos: ${error.message || JSON.stringify(error)}.`);
+            setMessage(`Error al cargar productos: ${error.message || JSON.stringify(error)}.`);
             console.error("Error en fetchProductos:", error);
             setLoading(false);
             return;
         }
-        const formattedData = data.map(p => ({
+        const formattedData = (data || []).map(p => ({
             ...p,
+            vista_producto: normalizeProductView(p.vista_producto),
             category_name: p.categorias ? p.categorias.categori : 'Sin Categoría'
         }));
         setProductos(formattedData);
@@ -1282,7 +1370,7 @@ export default function AdminProductosPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [userRole]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [userRole, currentProductView]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // load saved form if returning from otra página
     const restoredRef = useRef(false);
@@ -1290,13 +1378,18 @@ export default function AdminProductosPage() {
         try {
             const saved = sessionStorage.getItem('pendingProduct');
             if (saved) {
-                setNewProduct(JSON.parse(saved));
+                const parsed = JSON.parse(saved);
+                setNewProduct((prev) => ({
+                    ...prev,
+                    ...parsed,
+                    vista_producto: normalizeProductView(parsed?.vista_producto || prev.vista_producto || currentProductView),
+                }));
             }
         } catch (e) {
             console.warn('no se pudo restaurar producto pendiente', e);
         }
         restoredRef.current = true;
-    }, []);
+    }, [currentProductView]);
 
     // store form in sessionStorage whenever cambia, but skip initial render
     useEffect(() => {
@@ -1320,22 +1413,22 @@ export default function AdminProductosPage() {
             ? `Te falta ${missing[0]}`
             : `Te faltan ${missing.join(' y ')}`;
 
-        return window.confirm(`⚠️ ${detail}. ¿Estás seguro de ${actionLabel} sin estos datos?`);
+        return window.confirm(`${detail}. ?Est?s seguro de ${actionLabel} sin estos datos?`);
     };
 
     
-    // Función para Añadir Producto
-    const handleAñadirProducto = async (e) => {
+    // Funcion para anadir producto
+    const handleAnadirProducto = async (e) => {
         e.preventDefault();
         setMessage("");
 
         const canContinue = confirmMissingProductData({
             descripcion: newProduct?.descripcion,
             imageCount: imageFiles?.length || 0,
-            actionLabel: "añadir el producto",
+            actionLabel: "a?adir el producto",
         });
         if (!canContinue) {
-            setMessage("ℹ️ Operación cancelada. Completa descripción o fotos si deseas.");
+            setMessage("Operaci?n cancelada. Completa descripci?n o fotos si deseas.");
             return;
         }
 
@@ -1353,21 +1446,6 @@ export default function AdminProductosPage() {
 
         let imagenUrls = [];
         try {
-            // Modal de advertencia de nombre duplicado
-            if (showNameRepeatModal) {
-                return (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                        <div className="bg-white rounded-xl shadow-lg p-8 max-w-sm w-full text-center">
-                            <h2 className="text-xl font-bold mb-4 text-red-700">Nombre de producto repetido</h2>
-                            <p className="mb-6 text-gray-800">Ya existe un producto con el nombre "{newProduct.nombre}". Elige un nombre diferente antes de guardar.</p>
-                            <button
-                                className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
-                                onClick={() => setShowNameRepeatModal(false)}
-                            >Aceptar</button>
-                        </div>
-                    </div>
-                );
-            }
             // Subir imágenes ANTES de insertar en la tabla
             if (imageFiles && imageFiles.length > 0) {
                 imagenUrls = await uploadProductImages(imageFiles);
@@ -1383,7 +1461,7 @@ export default function AdminProductosPage() {
                         finalSku = generateVariantBarcode(usedVariantCodes);
                     }
                     usedVariantCodes.add(finalSku);
-                    const normalizedColor = String(v.color || '').trim() || 'Único';
+                    const normalizedColor = String(v.color || '').trim() || '?nico';
                     return {
                     color: normalizedColor,
                     stock: parseInt(v.stock || 0) || 0,
@@ -1396,23 +1474,10 @@ export default function AdminProductosPage() {
             const normalizedColors = variantsPayload.map(v => v.color.toLowerCase());
             if (new Set(normalizedColors).size !== normalizedColors.length) {
                 setShowColorRepeatModal(true);
-                setMessage('⚠️ Hay colores repetidos en las variantes. Corrige antes de guardar.');
+                setMessage('Hay colores repetidos en las variantes. Corrige antes de guardar.');
                 setLoading(false);
                 return;
             }
-            {/* Modal de advertencia de colores repetidos */}
-            {showColorRepeatModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                    <div className="bg-white rounded-xl shadow-lg p-8 max-w-sm w-full text-center">
-                        <h2 className="text-xl font-bold mb-4 text-red-700">Colores repetidos</h2>
-                        <p className="mb-6 text-gray-800">Parece que tienes dos o más colores repetidos en las variantes. Corrígelos antes de guardar el producto.</p>
-                        <button
-                            className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
-                            onClick={() => setShowColorRepeatModal(false)}
-                        >Aceptar</button>
-                    </div>
-                </div>
-            )}
 
             if (variantsPayload.length === 0) {
                 throw new Error('Debes agregar al menos una variante.');
@@ -1421,26 +1486,73 @@ export default function AdminProductosPage() {
             const stockTotal = variantsPayload.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
             const codigoBarra = String(newProduct.codigo_barra || '').trim() || null;
 
-            // Usamos .select() para obtener el producto insertado y su user_id
-            const { data: productoInsertado, error: insertError } = await supabase
+            const unidadBaseNormalizada = String(newProduct.unidad_base || 'unidad').trim() || 'unidad';
+            const unidadesAlternativasNormalizadas = Array.isArray(newProduct.unidades_alternativas)
+                ? newProduct.unidades_alternativas.map((u) => String(u || '').trim()).filter(Boolean)
+                : [];
+            const factorConversionNormalizado = Number(newProduct.factor_conversion) > 0 ? Number(newProduct.factor_conversion) : null;
+            const vistaProductoNormalizada = normalizeProductView(newProduct.vista_producto);
+
+            const baseInsertPayload = {
+                nombre: newProduct.nombre,
+                descripcion: newProduct.descripcion,
+                precio: parseFloat(newProduct.precio) || 0,
+                precio_compra: parseFloat(newProduct.precio_compra) || 0,
+                stock: stockTotal,
+                category_id: categoryIdValue,
+                codigo_barra: codigoBarra,
+                imagen_url: null,
+                created_at: new Date().toISOString()
+            };
+
+            const extendedInsertPayload = {
+                ...baseInsertPayload,
+                vista_producto: vistaProductoNormalizada,
+                unidad_base: unidadBaseNormalizada,
+                unidades_alternativas: unidadesAlternativasNormalizadas,
+                factor_conversion: factorConversionNormalizado,
+            };
+
+            let productoInsertado = null;
+            let insertError = null;
+
+            ({ data: productoInsertado, error: insertError } = await supabase
                 .from('productos')
-                .insert([
-                    {
-                        nombre: newProduct.nombre,
-                        descripcion: newProduct.descripcion,
-                        precio: parseFloat(newProduct.precio) || 0,
-                        precio_compra: parseFloat(newProduct.precio_compra) || 0,
-                        stock: stockTotal,
-                        category_id: categoryIdValue,
-                        codigo_barra: codigoBarra,
-                        imagen_url: null, // Siempre null al crear
-                        // Llenar created_at con la fecha actual (ISO)
-                        created_at: new Date().toISOString()
-                    }
-                ]).select();
+                .insert([extendedInsertPayload])
+                .select());
 
             if (insertError) {
-                throw new Error(insertError.message);
+                const rawMessage = String(insertError.message || '');
+                const missingViewColumn = rawMessage.includes('vista_producto');
+                const missingUnitColumns =
+                    rawMessage.includes('factor_conversion') ||
+                    rawMessage.includes('unidad_base') ||
+                    rawMessage.includes('unidades_alternativas');
+
+                const needsViewColumn = vistaProductoNormalizada !== 'articulos';
+                const needsUnitColumns =
+                    unidadBaseNormalizada !== 'unidad' ||
+                    unidadesAlternativasNormalizadas.length > 0 ||
+                    Number(factorConversionNormalizado || 0) > 0;
+
+                if ((missingViewColumn && needsViewColumn) || (missingUnitColumns && needsUnitColumns)) {
+                    const missingScripts = [];
+                    if (missingUnitColumns) missingScripts.push('scripts/add_product_unit_columns.sql');
+                    if (missingViewColumn) missingScripts.push('scripts/add_product_view_column.sql');
+                    throw new Error(`Tu base de datos aun no tiene las columnas necesarias. Ejecuta ${missingScripts.join(' y ')} en Supabase y vuelve a intentar.`);
+                }
+
+                if (missingViewColumn || missingUnitColumns) {
+                    const fallbackPayload = { ...baseInsertPayload };
+                    ({ data: productoInsertado, error: insertError } = await supabase
+                        .from('productos')
+                        .insert([fallbackPayload])
+                        .select());
+                }
+            }
+
+            if (insertError) {
+                throw new Error(String(insertError.message || insertError));
             }
 
             const productoId = productoInsertado?.[0]?.id ?? productoInsertado?.[0]?.user_id;
@@ -1468,7 +1580,9 @@ export default function AdminProductosPage() {
                     producto_id: productoId,
                     color: v.color,
                     stock: v.stock,
+                    stock_decimal: Number(v.stock) || 0,
                     stock_inicial: v.stock, // Guardar stock_inicial igual al stock al crear
+                    stock_inicial_decimal: Number(v.stock) || 0,
                     precio: v.precio,
                     sku: v.sku,
                     imagen_url: null,
@@ -1502,6 +1616,8 @@ export default function AdminProductosPage() {
                                             variante_id: varianteData?.id || null,
                                             tipo: 'stock_inicial',
                                             cantidad: v.stock,
+                                            unidad: unidadBaseNormalizada,
+                                            cantidad_base: v.stock,
                                             usuario_id: user?.id || null,
                                             usuario_email: user?.email || '',
                                             observaciones: `Stock inicial para variante ${v.color}`
@@ -1513,6 +1629,8 @@ export default function AdminProductosPage() {
                                     producto_id: productoId,
                                     tipo: 'creación',
                                     cantidad: stockTotal,
+                                    unidad: unidadBaseNormalizada,
+                                    cantidad_base: stockTotal,
                                     usuario_id: user?.id || null,
                                     usuario_email: user?.email || '',
                                     observaciones: 'Alta de producto desde panel'
@@ -1533,11 +1651,11 @@ export default function AdminProductosPage() {
                                     usuario_email: user?.email || null
                                 });
                         } catch (err) {
-                                console.warn('No se pudo registrar movimiento/historial de creación:', err);
+                                console.warn('No se pudo registrar movimiento/historial de creaci?n:', err);
                         }
-            setMessage('✅ Producto creado con éxito!');
+            setMessage('Producto creado con ?xito!');
             // Limpieza reforzada de todos los campos y sessionStorage
-            setNewProduct({ nombre: '', descripcion: '', precio: '', precio_compra: '', category_id: '', codigo_barra: '' });
+            setNewProduct({ nombre: '', descripcion: '', precio: '', precio_compra: '', category_id: '', codigo_barra: '', vista_producto: currentProductView, unidad_base: 'unidad', unidades_alternativas: [], factor_conversion: 1 });
             setNewVariants([createVariantDraft([], { color: '' })]);
             setImageFiles([]);
             setTimeout(() => {
@@ -1548,8 +1666,8 @@ export default function AdminProductosPage() {
             }, 100);
             fetchProductos();
         } catch (e) {
-            console.error("Error crítico al crear producto:", e);
-            setMessage(`❌ Error crítico al crear: ${e.message}`);
+            console.error("Error cr?tico al crear producto:", e);
+            setMessage(`Error cr?tico al crear: ${e.message}`);
         } finally {
             setLoading(false);
         }
@@ -1582,7 +1700,7 @@ export default function AdminProductosPage() {
                 .eq('producto_id', productToDelete.user_id);
             if (histError) throw new Error('Error al eliminar historial: ' + histError.message);
 
-            // 3. Eliminar el producto (la eliminación en cascada debería manejar imágenes y variantes)
+            // 3. Eliminar el producto (la eliminaci?n en cascada deber?a manejar im?genes y variantes)
             const { error } = await supabase
                 .from('productos')
                 .delete()
@@ -1592,10 +1710,10 @@ export default function AdminProductosPage() {
                 throw new Error(error.message);
             }
 
-            setMessage(`✅ Producto "${productToDelete.nombre}" eliminado con éxito.`);
+            setMessage(`Producto "${productToDelete.nombre}" eliminado con ?xito.`);
             fetchProductos();
         } catch (e) {
-            setMessage(`❌ Error al eliminar: ${e.message}`);
+            setMessage(`Error al eliminar: ${e.message}`);
         } finally {
             setIsDeleting(false);
             setProductToDelete(null);
@@ -1615,7 +1733,7 @@ export default function AdminProductosPage() {
             actionLabel: 'guardar los cambios',
         });
         if (!canContinue) {
-            setMessage('ℹ️ Operación cancelada. Completa descripción o fotos si deseas.');
+            setMessage('Operaci?n cancelada. Completa descripci?n o fotos si deseas.');
             return;
         }
 
@@ -1638,6 +1756,7 @@ export default function AdminProductosPage() {
                     precio_compra: parseFloat(editingProduct.precio_compra) || 0,
                     stock: parseInt(editingProduct.stock) || 0,
                     category_id: categoryIdValue,
+                    vista_producto: normalizeProductView(editingProduct.vista_producto || currentProductView),
                     // Dejamos el codigo_barra para que no se re-genere si se guarda sin querer
                     codigo_barra: editingProduct.codigo_barra
                 })
@@ -1678,11 +1797,11 @@ export default function AdminProductosPage() {
                 }
             }
 
-            setMessage(`✅ Producto "${editingProduct.nombre}" actualizado con éxito.`);
+            setMessage(`Producto "${editingProduct.nombre}" actualizado con ?xito.`);
             closeEditModal();
             fetchProductos();
         } catch (e) {
-            setMessage(`❌ Error al actualizar: ${e.message}`);
+            setMessage(`Error al actualizar: ${e.message}`);
         } finally {
             setLoading(false);
         }
@@ -1774,7 +1893,7 @@ export default function AdminProductosPage() {
             <span style={{ fontWeight: 700, color: "#16a34a" }}>{formatPrice(finalPrice)}</span>
           </div>
           <div style={{ fontSize: 12, color: "#6b7280" }}>
-            {promo.tipo ? `Promoción: ${promo.tipo}` : "Promoción activa"} {valor ? ` • ${valor}` : ""}
+            {promo.tipo ? `Promoción: ${promo.tipo}` : "Promoción activa"} {valor ? ` ⬢ ${valor}` : ""}
           </div>
         </div>
       );
@@ -1783,72 +1902,141 @@ export default function AdminProductosPage() {
     // Retorno del JSX del componente
     return (
         <div className="p-4 sm:p-6 md:p-10 bg-gray-100 min-h-screen">
-            <h1 className="text-3xl font-extrabold mb-8 text-indigo-700">Panel de Administración de Productos</h1>
+            <h1 className="text-3xl font-extrabold mb-8 text-indigo-700">{currentViewMeta.adminTitle}</h1>
             
-            {/* Sección de Mensajes (Éxito/Error) */} 
+            {/* Secci?n de Mensajes (?xito/Error) */} 
             {message && ( 
-                <div className={`p-4 mb-6 rounded-lg font-medium shadow-md ${message.startsWith('❌') 
+                <div className={`p-4 mb-6 rounded-lg font-medium shadow-md ${message.startsWith('Error') 
                     ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}> 
                     {message} 
                 </div> 
             )} 
 
-            {/* 1. Formulario de Añadir Producto */} 
+            {/* 1. Formulario de A?adir Producto */} 
             <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-10 border-t-4 border-indigo-500"> 
-                <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">Añadir Nuevo Artículo</h2> 
-                <form onSubmit={handleAñadirProducto} className="space-y-6"> 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> 
-                        <input 
-                            type="text" 
-                            name="nombre" 
-                            placeholder="Nombre del Producto" 
-                            value={newProduct.nombre} 
-                            onChange={handleNewProductChange} 
-                            required 
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
-                        /> 
-                        <input 
-                            type="number" 
-                            name="precio_compra" 
-                            placeholder="Precio de Compra (Bs)" 
-                            value={newProduct.precio_compra} 
-                            onChange={handleNewProductChange} 
-                            required 
-                            step="0.01" 
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
-                        />
-                        <input 
-                            type="number" 
-                            name="precio" 
-                            placeholder="Precio de Venta (Bs)" 
-                            value={newProduct.precio} 
-                            onChange={handleNewProductChange} 
-                            required 
-                            step="0.01" 
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
-                        /> 
-                        <input
-                            type="number"
-                            value={(newVariants || []).reduce((sum, v) => sum + (parseInt(v.stock || 0) || 0), 0)}
-                            readOnly
-                            placeholder="Stock Total"
-                            className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-900 font-semibold"
-                        />
-                        
-                        {/* Selección de Categoría */} 
-                        <select
-                            name="category_id"
-                            value={newProduct.category_id}
-                            onChange={handleNewProductChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
-                        >
-                            <option value="">-- Seleccionar Categoría --</option>
-                            {categories && categories.length > 0 && categories.map(cat => (
-                                <option key={cat.id} value={cat.id}>{cat.categori}</option>
-                            ))}
-                            <option value="create" className="font-semibold text-blue-700">+ Agregar categoría</option>
-                        </select>
-                    </div> {/* cierre del grid principal */}
+                <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">{currentViewMeta.createTitle}</h2> 
+                <form onSubmit={handleAnadirProducto} className="space-y-6"> 
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> 
+                                <input 
+                                        type="text" 
+                                        name="nombre" 
+                                        placeholder="Nombre del Producto" 
+                                        value={newProduct.nombre} 
+                                        onChange={handleNewProductChange} 
+                                        required 
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
+                                /> 
+                                <input 
+                                        type="number" 
+                                        name="precio_compra" 
+                                        placeholder="Precio de Compra (Bs)" 
+                                        value={newProduct.precio_compra} 
+                                        onChange={handleNewProductChange} 
+                                        required 
+                                        step="0.01" 
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
+                                />
+                                <input 
+                                        type="number" 
+                                        name="precio" 
+                                        placeholder="Precio de Venta (Bs)" 
+                                        value={newProduct.precio} 
+                                        onChange={handleNewProductChange} 
+                                        required 
+                                        step="0.01" 
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
+                                /> 
+                                {/* NUEVO: Unidad base */}
+                                <div>
+                                    <label className="block text-gray-700 font-semibold mb-1">Unidad base</label>
+                                    <select
+                                        name="unidad_base"
+                                        value={newProduct.unidad_base}
+                                        onChange={handleNewProductChange}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
+                                    >
+                                        {unidadOptions.map(u => (
+                                            <option key={u} value={u}>{u}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {newProduct.unidad_base !== 'unidad' && (
+                                    <>
+                                        {/* NUEVO: Unidad alternativa */}
+                                        <div>
+                                            <label className="block text-gray-700 font-semibold mb-1">Unidad alternativa</label>
+                                            {smartAlternativeOptions.length > 0 ? (
+                                                <>
+                                                    <select
+                                                        name="unidad_alternativa_select"
+                                                        value={Array.isArray(newProduct.unidades_alternativas) ? (newProduct.unidades_alternativas[0] || '') : ''}
+                                                        onChange={(e) => setNewProduct((p) => ({
+                                                            ...p,
+                                                            unidades_alternativas: e.target.value ? [e.target.value] : [],
+                                                            factor_conversion: e.target.value ? p.factor_conversion : ''
+                                                        }))}
+                                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
+                                                    >
+                                                        <option value="">-- Sin unidad alternativa --</option>
+                                                        {smartAlternativeOptions.map((unidadAlternativa) => (
+                                                            <option key={unidadAlternativa} value={unidadAlternativa}>
+                                                                {unidadAlternativa}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <p className="mt-2 text-sm text-gray-600">
+                                                        Opciones compatibles para <span className="font-semibold">{newProduct.unidad_base}</span>.
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <div className="rounded-lg border border-dashed border-gray-300 bg-white px-3 py-3 text-sm text-gray-500">
+                                                    No hay conversiones sugeridas para esta unidad base.
+                                                </div>
+                                            )}
+                                        </div>
+                                        {/* NUEVO: Factor de conversión */}
+                                        <div>
+                                            <label className="block text-gray-700 font-semibold mb-1">
+                                                Factor de conversión (1 {newProduct.unidad_base} = ? {Array.isArray(newProduct.unidades_alternativas) && newProduct.unidades_alternativas.length > 0
+                                                    ? newProduct.unidades_alternativas[0]
+                                                    : 'unidad'})
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="factor_conversion"
+                                                value={newProduct.factor_conversion ?? ''}
+                                                min={0.0001}
+                                                step={0.0001}
+                                                onChange={e => setNewProduct(p => ({ ...p, factor_conversion: e.target.value === '' ? '' : parseFloat(e.target.value) }))}
+                                                placeholder="Ej: 50 (1 rollo = 50 metros)"
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                                {/* Selección de Categoría */} 
+                                <select
+                                        name="vista_producto"
+                                        value={newProduct.vista_producto}
+                                        onChange={handleNewProductChange}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
+                                >
+                                        <option value="articulos">Vista: Articulos</option>
+                                        <option value="insumos">Vista: Insumos</option>
+                                </select>
+                                <select
+                                        name="category_id"
+                                        value={newProduct.category_id}
+                                        onChange={handleNewProductChange}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
+                                >
+                                        <option value="">-- Seleccionar Categoría --</option>
+                                        {categories && categories.length > 0 && categories.map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.categori}</option>
+                                        ))}
+                                        <option value="create" className="font-semibold text-blue-700">+ Agregar categoría</option>
+                                </select>
+                        </div> {/* cierre del grid principal */}
 
                     <div className="border rounded-lg p-4 bg-gray-50 space-y-3">
                         <div className="flex items-center justify-between">
@@ -1864,116 +2052,179 @@ export default function AdminProductosPage() {
                         {newVariants.length === 0 ? (
                             <div className="text-sm text-gray-500">Sin colores. Agrega al menos uno.</div>
                         ) : (
-                            <div className="space-y-2">
-                                <div className="text-xs text-gray-600 mb-2 grid grid-cols-1 md:grid-cols-7 gap-2 px-2">
+                            <div className="space-y-3">
+                                <div className="hidden xl:grid xl:grid-cols-[minmax(180px,1.5fr)_110px_140px_160px_190px_90px_96px] gap-3 px-3 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
                                     <span>Color</span>
                                     <span>Stock</span>
+                                    <span>Unidad base</span>
+                                    <span>Unidad de conversion</span>
                                     <span>Precio</span>
-                                    <span>Código auto</span>
                                     <span>Activo</span>
-                                    <span></span>
-                                    <span></span>
+                                    <span>Acciones</span>
                                 </div>
                                 {newVariants.map((variant, idx) => (
-                                    <div key={`variant-${idx}`} className="grid grid-cols-1 md:grid-cols-7 gap-2 items-center">
-                                        <div className="relative">
-                                            <input
-                                                type="text"
-                                                value={variant.color}
-                                                onFocus={() => setActiveColorRow(idx)}
-                                                onBlur={() => setTimeout(() => setActiveColorRow((current) => (current === idx ? null : current)), 120)}
-                                                onChange={(e) => {
-                                                    handleVariantChange(idx, 'color', e.target.value);
-                                                    setActiveColorRow(idx);
-                                                }}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Escape') setActiveColorRow(null);
-                                                }}
-                                                placeholder="Color (ej: Rojo)"
-                                                autoComplete="off"
-                                                className="p-2 border border-gray-300 rounded bg-white text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 text-sm w-full"
-                                            />
-                                            {activeColorRow === idx && getColorSuggestions(variant.color).length > 0 && (
-                                                <div className="absolute z-20 mt-1 w-full max-h-36 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg">
-                                                    {getColorSuggestions(variant.color).map((color) => (
-                                                        <button
-                                                            key={`${idx}-${color}`}
-                                                            type="button"
-                                                            onMouseDown={(e) => {
-                                                                e.preventDefault();
-                                                                selectColorSuggestion(idx, color);
-                                                            }}
-                                                            className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50"
-                                                        >
-                                                            {color}
-                                                        </button>
-                                                    ))}
+                                    <div
+                                        key={`variant-${idx}`}
+                                        className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm xl:grid xl:grid-cols-[minmax(180px,1.5fr)_110px_140px_160px_190px_90px_96px] xl:items-center xl:gap-3"
+                                    >
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:contents gap-3">
+                                            <div className="relative">
+                                                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 xl:hidden">Color</label>
+                                                <input
+                                                    type="text"
+                                                    value={variant.color}
+                                                    onFocus={() => setActiveColorRow(idx)}
+                                                    onBlur={() => setTimeout(() => setActiveColorRow((current) => (current === idx ? null : current)), 120)}
+                                                    onChange={(e) => {
+                                                        handleVariantChange(idx, 'color', e.target.value);
+                                                        setActiveColorRow(idx);
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Escape') setActiveColorRow(null);
+                                                    }}
+                                                    placeholder="Color (ej: Rojo)"
+                                                    autoComplete="off"
+                                                    className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
+                                                />
+                                                {activeColorRow === idx && getColorSuggestions(variant.color).length > 0 && (
+                                                    <div className="absolute z-20 mt-1 w-full max-h-36 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg">
+                                                        {getColorSuggestions(variant.color).map((color) => (
+                                                            <button
+                                                                key={`${idx}-${color}`}
+                                                                type="button"
+                                                                onMouseDown={(e) => {
+                                                                    e.preventDefault();
+                                                                    selectColorSuggestion(idx, color);
+                                                                }}
+                                                                className="block w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-indigo-50"
+                                                            >
+                                                                {color}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 xl:hidden">Stock</label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    value={variant.stock}
+                                                    onChange={e => handleVariantChange(idx, 'stock', e.target.value)}
+                                                    placeholder="Stock"
+                                                    className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
+                                                    required
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 xl:hidden">Unidad base</label>
+                                                <div className="flex min-h-[42px] items-center rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm font-semibold text-gray-700">
+                                                    {newProduct.unidad_base || 'Unidad'}
                                                 </div>
-                                            )}
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 xl:hidden">Unidad de conversion</label>
+                                                <div className="flex min-h-[42px] items-center rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-700">
+                                                    {Array.isArray(newProduct.unidades_alternativas) && newProduct.unidades_alternativas.length > 0
+                                                        ? `${newProduct.unidades_alternativas[0]}${Number(newProduct.factor_conversion) > 0 ? ` · x${newProduct.factor_conversion}` : ''}`
+                                                        : 'Sin conversion'}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 xl:hidden">Precio</label>
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    value={variant.precio}
+                                                    onChange={(e) => handleVariantChange(idx, 'precio', e.target.value)}
+                                                    placeholder="Precio (opcional)"
+                                                    className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 xl:hidden">Activo</label>
+                                                <label className="flex min-h-[42px] items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-700">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={variant.activo !== false}
+                                                        onChange={(e) => handleVariantChange(idx, 'activo', e.target.checked)}
+                                                    />
+                                                    <span>Activo</span>
+                                                </label>
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 xl:hidden">Acciones</label>
+                                                <div className="flex min-h-[42px] items-center gap-2 xl:justify-start">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (variant.codigo_barra) {
+                                                                const event = new CustomEvent('printVariantBarcode', {
+                                                                    detail: {
+                                                                        codigoBarras: variant.codigo_barra,
+                                                                        nombre: `${newProduct.nombre || 'Producto'} (${variant.color})`,
+                                                                        copies: Math.max(1, Math.min(200, Number(variant.stock) || 1)),
+                                                                        printMode: 'qz-html',
+                                                                        etiquetas: true
+                                                                    }
+                                                                });
+                                                                window.dispatchEvent(event);
+                                                            }
+                                                        }}
+                                                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-green-600 text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        disabled={!variant.codigo_barra}
+                                                        title="Imprimir etiqueta"
+                                                    >
+                                                        <svg
+                                                            aria-hidden="true"
+                                                            viewBox="0 0 24 24"
+                                                            className="h-5 w-5"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                        >
+                                                            <path d="M6 9V4h12v5" />
+                                                            <rect x="6" y="13" width="12" height="7" rx="1" />
+                                                            <path d="M6 14H4a2 2 0 0 1-2-2v-1a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v1a2 2 0 0 1-2 2h-2" />
+                                                            <path d="M9 17h6" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeVariantRow(idx)}
+                                                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-red-600 text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        disabled={newVariants.length <= 1}
+                                                        title="Eliminar variante"
+                                                    >
+                                                        <svg
+                                                            aria-hidden="true"
+                                                            viewBox="0 0 24 24"
+                                                            className="h-5 w-5"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                        >
+                                                            <path d="M3 6h18" />
+                                                            <path d="M8 6V4h8v2" />
+                                                            <path d="M19 6l-1 14H6L5 6" />
+                                                            <path d="M10 11v6" />
+                                                            <path d="M14 11v6" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={variant.stock}
-                                            onChange={(e) => handleVariantChange(idx, 'stock', e.target.value)}
-                                            placeholder="Stock"
-                                            className="p-2 border border-gray-300 rounded bg-white text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                                            required
-                                        />
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            value={variant.precio}
-                                            onChange={(e) => handleVariantChange(idx, 'precio', e.target.value)}
-                                            placeholder="Precio (opcional)"
-                                            className="p-2 border border-gray-300 rounded bg-white text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={variant.codigo_barra || variant.sku || ''}
-                                            readOnly
-                                            className="p-2 border border-gray-300 rounded bg-gray-100 text-gray-900 text-sm"
-                                            title="Código de variante generado automáticamente al agregar el color"
-                                        />
-                                        <label className="flex items-center gap-2 text-xs text-gray-700 px-1">
-                                            <input
-                                                type="checkbox"
-                                                checked={variant.activo !== false}
-                                                onChange={(e) => handleVariantChange(idx, 'activo', e.target.checked)}
-                                            />
-                                            Activo
-                                        </label>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                              if (variant.codigo_barra) {
-                                                                                                const event = new CustomEvent('printVariantBarcode', {
-                                                                                                                                                                                                        detail: {
-                                                                                                                                                                                                                codigoBarras: variant.codigo_barra,
-                                                                                                                                                                                                                nombre: `${newProduct.nombre || 'Producto'} (${variant.color})`,
-                                                                                                                                                                                                            copies: Math.max(1, Math.min(200, Number(variant.stock) || 1)),
-                                                                                                                                                                                                            printMode: 'qz-html'
-                                                                                                                                                                                                        }
-                                                                                                });
-                                                window.dispatchEvent(event);
-                                              }
-                                            }}
-                                            className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 text-xs rounded transition"
-                                            disabled={!variant.codigo_barra}
-                                            title="Imprimir código de barras"
-                                        >
-                                            🖨️
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeVariantRow(idx)}
-                                            className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                                            disabled={newVariants.length <= 1}
-                                            title="Eliminar variante"
-                                        >
-                                            -
-                                        </button>
                                     </div>
                                 ))}
                             </div>
@@ -2019,19 +2270,19 @@ export default function AdminProductosPage() {
                             loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 shadow-lg' 
                         }`} 
                     > 
-                        {loading ? 'Añadiendo...' : '🛒 Añadir Producto'} 
+                        {loading ? 'A?adiendo...' : 'A?adir Producto'} 
                     </button> 
                 </form> 
             </div> 
             
-            {/* 2. Catálogo Actual (Tabla) */} 
-            <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">Catálogo Actual</h2>
+            {/* 2. Cat?logo Actual (Tabla) */} 
+            <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">Cat?logo Actual</h2>
 
             <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <div className="flex items-center gap-2">
                 <input 
                   type="text" 
-                  placeholder="Buscar por nombre, código o categoría" 
+                  placeholder="Buscar por nombre, c?digo o categor?a" 
                   value={filterText} 
                   onChange={(e) => setFilterText(e.target.value)} 
                   className="p-2 border rounded-lg w-full md:w-80 focus:ring-indigo-500 focus:border-indigo-500" 
@@ -2045,7 +2296,7 @@ export default function AdminProductosPage() {
                 </button>
               </div>
               <div className="flex items-center gap-3">
-                <label className="text-sm font-medium text-gray-700">Categoría:</label>
+                <label className="text-sm font-medium text-gray-700">Categor?a:</label>
                 <select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
@@ -2064,7 +2315,7 @@ export default function AdminProductosPage() {
                   type="button"
                   onClick={() => setFilterLatest(true)}
                 >
-                  Últimos ingresos
+                  ?ltimos ingresos
                 </button>
                 <button 
                   className={`px-3 py-1 rounded-lg border ${!filterLatest ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-gray-700'}`}
@@ -2147,15 +2398,15 @@ export default function AdminProductosPage() {
                                                     onClick={() => {
                                                         const variantes = getPrintableVariantes(producto);
                                                         if (variantes.length === 0) {
-                                                            setMessage(`⚠️ El producto "${producto.nombre}" no tiene colores cargados para seleccionar.`);
+                                                            setMessage(`El producto "${producto.nombre}" no tiene colores cargados para seleccionar.`);
                                                             return;
                                                         }
                                                         openPrintVariantesModal(producto);
                                                     }}
                                                     className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition text-base font-semibold"
-                                                    title="Imprimir Código de Barra"
+                                                    title="Imprimir C?digo de Barra"
                                                 >
-                                                    🖨️ Imprimir
+                                                    Imprimir
                                                 </button>
                                             </div>
                                         </td>
@@ -2224,6 +2475,15 @@ export default function AdminProductosPage() {
                                 <input type="number" name="precio" placeholder="Precio de Venta (Bs)" value={editingProduct.precio} onChange={handleEditProductChange} required step="0.01" className="w-full p-3 border rounded-lg"/>
                                 <input type="number" name="stock" placeholder="Stock" value={editingProduct.stock} onChange={handleEditProductChange} required className="w-full p-3 border rounded-lg"/>
                                 <select
+                                    name="vista_producto"
+                                    value={editingProduct.vista_producto ?? currentProductView}
+                                    onChange={handleEditProductChange}
+                                    className="w-full p-3 border rounded-lg bg-white"
+                                >
+                                    <option value="articulos">Vista: Articulos</option>
+                                    <option value="insumos">Vista: Insumos</option>
+                                </select>
+                                <select
                                     name="category_id"
                                     value={editingProduct.category_id ?? ''}
                                     onChange={handleEditProductChange}
@@ -2283,7 +2543,7 @@ export default function AdminProductosPage() {
                             <div className="flex justify-end space-x-4 pt-4">
                                 <button type="button" onClick={closeEditModal} className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Cancelar</button>
                                 <button type="submit" disabled={loading} className={`px-4 py-2 font-bold text-white rounded-lg transition ${loading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
-                                    {loading ? 'Guardando...' : '💾 Guardar Cambios'}
+                                    {loading ? 'Guardando...' : 'Guardar Cambios'}
                                 </button>
                             </div>
                         </form>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useCarrito } from '../../../../hooks/useCarrito';
 import { useCliente } from '../../../../hooks/useCliente';
@@ -25,6 +25,7 @@ type VariantMatch = {
   color?: string;
   precio?: number;
   stock?: number;
+  stock_decimal?: number;
   sku?: string;
   codigo_barra?: string;
 };
@@ -35,6 +36,23 @@ type VentaCajaPayload = {
   total?: number;
   modo_pago?: string;
 };
+
+function parseMoneyInput(value: string) {
+  const normalized = String(value || '').replace(',', '.').trim();
+  if (!normalized) return 0;
+  const parsed = Number(normalized);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function formatMoneyInput(value: number) {
+  if (!value) return '';
+  return String(value).replace('.', ',');
+}
+
+function parsePositiveNumber(value: string | number) {
+  const parsed = parseMoneyInput(String(value ?? ''));
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+}
 
 
 export default function NuevaVenta() {
@@ -47,6 +65,7 @@ export default function NuevaVenta() {
     agregar,
     quitar,
     cambiarCantidad,
+    cambiarUnidadYCantidad,
     subtotal,
     totalDescuento,
     total,
@@ -92,12 +111,12 @@ export default function NuevaVenta() {
   const [showInsufficientPaymentWarning, setShowInsufficientPaymentWarning] = React.useState(false);
 
   const totalBaseOperacion = Math.max(0, Number(total) + Number(envio) + Number(comision) - Number(publicidad) - Number(rebajas));
-  const totalConImpuestos = cobrarImpuestos ? (totalBaseOperacion / (1 - tasaImpuestos)) : totalBaseOperacion;
-  const impuestosCalculados = cobrarImpuestos ? (totalConImpuestos - totalBaseOperacion) : 0;
-  const totalCobrar = Number(totalConImpuestos.toFixed(2));
+  const impuestosCalculados = cobrarImpuestos ? Number((totalBaseOperacion * tasaImpuestos).toFixed(2)) : 0;
+  const totalCobrar = Number((totalBaseOperacion + impuestosCalculados).toFixed(2));
   const sumaPagos = pagos.reduce((acc, p) => acc + Number(p.monto || 0), 0);
-  const cambio = sumaPagos > 0 ? sumaPagos - totalCobrar : 0;
-  const pagoInsuficiente = sumaPagos > 0 && sumaPagos < totalCobrar;
+  const tienePagoEnEfectivo = pagos.some((p) => p.metodo === 'efectivo' && Number(p.monto || 0) > 0);
+  const cambio = tienePagoEnEfectivo && sumaPagos > totalCobrar ? Number((sumaPagos - totalCobrar).toFixed(2)) : 0;
+  const pagoInsuficiente = sumaPagos > 0 && (sumaPagos + 0.009) < totalCobrar;
 
   const printerRef = useRef<TicketPrinterHandle>(null);
   const efectivizarBtnRef = useRef<HTMLButtonElement>(null);
@@ -144,7 +163,8 @@ export default function NuevaVenta() {
         let productosDB = [];
         let imagenesDB: { [key: string]: string[] } = {};
         if (productosIds.length > 0) {
-          const { data: productosData, error: productosError } = await supabase
+          const supabaseClient = supabase;
+          const { data: productosData, error: productosError } = await supabaseClient
             .from('v_productos_catalogo')
             .select('*')
             .in('producto_id', productosIds);
@@ -152,7 +172,7 @@ export default function NuevaVenta() {
           productosDB = Array.isArray(productosData) ? productosData : [];
 
           // Traer imágenes asociadas
-          const { data: imgs } = await supabase
+          const { data: imgs } = await supabaseClient
             .from('producto_imagenes')
             .select('producto_id, imagen_url')
             .in('producto_id', productosIds);
@@ -258,7 +278,7 @@ export default function NuevaVenta() {
   // shortcuts
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key.toLowerCase() === 'b') { e.preventDefault(); document.querySelector<HTMLInputElement>('input[placeholder="Escanea o ingresa cÃ³digo de barra"]')?.focus(); }
+      if (e.ctrlKey && e.key.toLowerCase() === 'b') { e.preventDefault(); document.querySelector<HTMLInputElement>('input[placeholder="Escanea o ingresa código de barra"]')?.focus(); }
       if (e.ctrlKey && e.key.toLowerCase() === 'f') { e.preventDefault(); document.querySelector<HTMLInputElement>('input[placeholder*="Buscar producto"]')?.focus(); }
       if (e.ctrlKey && e.key.toLowerCase() === 'k') { e.preventDefault(); document.querySelector<HTMLInputElement>('input[placeholder*="Carnet"]')?.focus(); }
       if (e.ctrlKey && e.key.toLowerCase() === 'e') { e.preventDefault(); document.querySelector<HTMLButtonElement>('button[aria-label="efectivizar-venta"]')?.click(); }
@@ -327,7 +347,7 @@ export default function NuevaVenta() {
         variante_id: matchedVariant?.variante_id ?? matchedVariant?.id,
         color: matchedVariant?.color || 'Sin color',
         precio: Number(matchedVariant?.precio ?? p.precio ?? 0),
-        stock: Number(matchedVariant?.stock ?? 0),
+        stock: Number((matchedVariant as VariantMatch & { stock_decimal?: number })?.stock_decimal ?? matchedVariant?.stock ?? 0),
         codigo: String(matchedVariant?.sku || '')
       } as Producto;
     };
@@ -353,7 +373,6 @@ export default function NuevaVenta() {
     }
 
     if (!productoEncontrado) {
-      console.log("No encontrado:", codigo);
       return false;
     }
 
@@ -438,13 +457,13 @@ export default function NuevaVenta() {
     setShowSuggestions(true);
   }, [busqueda, procesarCodigo, searchProductos, packs]);
 
-  // detector de scanner real (teclado rÃ¡pido + ENTER)
+  // detector de scanner real (teclado rápido + ENTER)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key;
       const active = document.activeElement as HTMLElement | null;
       const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || active.isContentEditable);
-      const isBarcodeInput = isInput && active instanceof HTMLInputElement && active.placeholder?.includes('Escanea o ingresa cÃ³digo de barra');
+      const isBarcodeInput = isInput && active instanceof HTMLInputElement && active.placeholder?.includes('Escanea o ingresa código de barra');
 
       // ignorar teclas especiales
       if (key === 'Shift' || key === 'Control' || key === 'Alt' || key === 'Meta') return;
@@ -471,7 +490,7 @@ export default function NuevaVenta() {
         return;
       }
 
-      // solo nÃºmeros
+      // solo números
       if (/^[0-9]$/.test(key)) {
         if (isInput && !isBarcodeInput) return; // dejamos escribir cantidades y pagos normales
 
@@ -553,8 +572,8 @@ export default function NuevaVenta() {
     if (carrito.length === 0) { showToast('El carrito esta vacio', 'error'); return; }
     if (!pagos[0].metodo || pagos[0].monto <= 0) { showToast('Selecciona al menos un método de pago y monto', 'error'); return; }
     if (mostrarSegundoPago && (!pagos[1].metodo || pagos[1].monto <= 0)) { showToast('Completa el segundo método de pago y monto', 'error'); return; }
-    if (sumaPagos < totalCobrar) { showToast('La suma de los pagos es insuficiente', 'error'); return; }
-    if (sumaPagos > totalCobrar + 0.01) { showToast('La suma de los pagos supera el total', 'error'); return; }
+    if (sumaPagos + 0.009 < totalCobrar) { showToast('La suma de los pagos es insuficiente', 'error'); return; }
+    if (!tienePagoEnEfectivo && sumaPagos > totalCobrar + 0.01) { showToast('La suma de los pagos supera el total', 'error'); return; }
     if (cliente.requiereFactura && (!cliente.nombre.trim() || !cliente.nit.trim())) { showToast('Completa los datos de facturacion (nombre y NIT)', 'error'); return; }
 
     setEfectivizando(true);
@@ -573,7 +592,7 @@ export default function NuevaVenta() {
       if (productosIds.length > 0) {
         const { data: productosData, error: productosError } = await supabase
           .from('productos')
-          .select('user_id, nombre, precio, precio_compra, stock, categoria, codigo_barra, producto_variantes ( id, color, precio, stock, sku )')
+          .select('user_id, nombre, precio, precio_compra, stock, categoria, codigo_barra, producto_variantes ( id, color, precio, stock, stock_decimal, sku )')
           .in('user_id', productosIds);
         if (productosError) throw productosError;
         productosDB = Array.isArray(productosData) ? productosData : [];
@@ -584,7 +603,7 @@ export default function NuevaVenta() {
       if (packsIds.length > 0) {
         const { data: packsData, error: packsError } = await supabase
           .from('packs')
-          .select('*, pack_productos ( cantidad, producto_id, variante_id, productos!pack_productos_producto_id_fkey ( user_id, nombre, precio, categoria, stock, producto_variantes ( id, color, precio, stock, sku ) ) )')
+          .select('*, pack_productos ( cantidad, producto_id, variante_id, productos!pack_productos_producto_id_fkey ( user_id, nombre, precio, categoria, stock, producto_variantes ( id, color, precio, stock, stock_decimal, sku ) ) )')
           .in('id', packsIds);
         if (packsError) throw packsError;
         packsDB = Array.isArray(packsData) ? packsData : [];
@@ -645,7 +664,9 @@ export default function NuevaVenta() {
 
       // 7. Insertar detalles robustos
       await Promise.all(carrito.map(async (p) => {
-        const cantidad = p.cantidad ?? 1;
+        const cantidadBase = Number(p.cantidad_base ?? p.cantidad ?? 1);
+        const cantidadVisible = Number(p.cantidad_display ?? p.cantidad ?? 1);
+        const unidadVenta = String(p.unidad || p.unidad_base || 'unidad');
         if (p.tipo === 'pack') {
           // Buscar pack completo en DB
           const pack = packsDB.find(pk => String(pk.id) === String(p.pack_id));
@@ -654,7 +675,9 @@ export default function NuevaVenta() {
           const { error: detallePackError } = await ventasService.insertarVentaDetalle({
             venta_id: venta.id,
             producto_id: null, // always null for packs
-            cantidad,
+            cantidad: cantidadVisible,
+            cantidad_base: cantidadBase,
+            unidad: unidadVenta,
             precio_unitario: pack.precio_pack,
             costo_unitario: 0,
             color: null,
@@ -667,7 +690,7 @@ export default function NuevaVenta() {
           if (detallePackError) throw detallePackError;
           // Descontar stock de cada producto del pack
           await Promise.all((pack.pack_productos ?? []).map(async (item: PackProduct) => {
-            const cantidadTotal = item.cantidad * cantidad;
+            const cantidadTotal = item.cantidad * cantidadBase;
             const productoPack = item.productos;
             // Si el producto tiene variante, descontar stock de variante
             if (item.variante_id) {
@@ -703,7 +726,9 @@ export default function NuevaVenta() {
           const { error: detalleProductoError } = await ventasService.insertarVentaDetalle({
             venta_id: venta.id,
             producto_id: productoCompleto.user_id,
-            cantidad,
+            cantidad: cantidadVisible,
+            cantidad_base: cantidadBase,
+            unidad: unidadVenta,
             precio_unitario: precioUnitario,
             costo_unitario: costoUnitario,
             variante_id: variante?.id || null,
@@ -714,9 +739,13 @@ export default function NuevaVenta() {
             usuario_email: userEmail
           });
           if (detalleProductoError) throw detalleProductoError;
-          // Descontar stock
-          const { error: stockProductoError } = await ventasService.descontarStock(productoCompleto.user_id, cantidad);
-          if (stockProductoError) throw stockProductoError;
+          if (variante?.id) {
+            const { error: stockVarianteError } = await ventasService.descontarStockVariante(variante.id, cantidadBase);
+            if (stockVarianteError) throw stockVarianteError;
+          } else {
+            const { error: stockProductoError } = await ventasService.descontarStock(productoCompleto.user_id, cantidadBase);
+            if (stockProductoError) throw stockProductoError;
+          }
           // Actualizar el stock total del producto
           await actualizarStockTotalProducto(productoCompleto.user_id);
         }
@@ -783,7 +812,7 @@ export default function NuevaVenta() {
         cambio
       };
       printerRef.current?.printComprobante();
-      // limpieza de carrito y cliente despuÃ©s de impresiÃ³n
+      // limpieza de carrito y cliente después de impresión
       setCarrito([]);
       setPagos([{ metodo: '', monto: 0 }]);
       // reset costos
@@ -829,11 +858,11 @@ export default function NuevaVenta() {
             <div className="mt-4 grid grid-cols-2 gap-2">
               <div>
                 <label className="block text-gray-700">Envio</label>
-                <input type="number" step="0.01" min="0" value={envio} onChange={e=>setEnvio(Number(e.target.value))} className="w-full border p-2 rounded" />
+                <input type="number" step="0.01" min="0" value={envio} onChange={e=>setEnvio(parsePositiveNumber(e.target.value))} className="w-full border p-2 rounded" />
               </div>
               <div>
                 <label className="block text-gray-700">Comision</label>
-                <input type="number" step="0.01" min="0" value={comision} onChange={e=>setComision(Number(e.target.value))} className="w-full border p-2 rounded" />
+                <input type="number" step="0.01" min="0" value={comision} onChange={e=>setComision(parsePositiveNumber(e.target.value))} className="w-full border p-2 rounded" />
               </div>
               <div>
                 <label className="block text-gray-700">Impuestos</label>
@@ -841,11 +870,11 @@ export default function NuevaVenta() {
               </div>
               <div>
                 <label className="block text-gray-700">Publicidad</label>
-                <input type="number" step="0.01" min="0" value={publicidad} onChange={e=>setPublicidad(Number(e.target.value))} className="w-full border p-2 rounded" />
+                <input type="number" step="0.01" min="0" value={publicidad} onChange={e=>setPublicidad(parsePositiveNumber(e.target.value))} className="w-full border p-2 rounded" />
               </div>
               <div>
                 <label className="block text-gray-700">Rebajas</label>
-                <input type="number" step="0.01" min="0" value={rebajas} onChange={e=>setRebajas(Number(e.target.value))} className="w-full border p-2 rounded" />
+                <input type="number" step="0.01" min="0" value={rebajas} onChange={e=>setRebajas(parsePositiveNumber(e.target.value))} className="w-full border p-2 rounded" />
               </div>
             </div>
             <label className="inline-flex items-center gap-2 text-sm font-semibold text-gray-800">
@@ -890,7 +919,7 @@ export default function NuevaVenta() {
                   className="w-40 border border-gray-900 bg-white text-gray-900 rounded px-3 py-2 placeholder-gray-700 focus:border-gray-900 focus:ring focus:ring-gray-900/30"
                   placeholder="Monto"
                   value={pagos[idx]?.monto ?? ''}
-                  onChange={e => setPagos(p => p.map((pago, i) => i === idx ? { ...pago, monto: Number(e.target.value) } : pago))}
+                  onChange={e => setPagos(p => p.map((pago, i) => i === idx ? { ...pago, monto: parsePositiveNumber(e.target.value) } : pago))}
                 />
                 {idx === 0 && (
                   <span className="text-sm text-gray-700">Cambio: <span className={cambio < 0 ? 'text-red-700' : 'text-green-700'}>Bs {cambio.toFixed(2)}</span></span>
@@ -952,9 +981,16 @@ export default function NuevaVenta() {
             imagenes={imagenes}
             quitar={quitar}
             cambiarCantidad={cambiarCantidad}
+            cambiarUnidadYCantidad={cambiarUnidadYCantidad}
             subtotal={subtotal}
             totalDescuento={totalDescuento}
             total={total}
+            envio={envio}
+            comision={comision}
+            publicidad={publicidad}
+            rebajas={rebajas}
+            impuestos={impuestosCalculados}
+            totalCobrar={totalCobrar}
             modoPago={pagos.map(p=>p.metodo).join(' + ')}
             pago={sumaPagos}
             cambio={cambio}
@@ -997,7 +1033,7 @@ export default function NuevaVenta() {
         <>
           <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-50">
             <div className="bg-green-500/90 text-white px-6 py-3 rounded-xl text-xl font-bold shadow-2xl animate-pulse">
-              âœ” Producto agregado
+              ✔ Producto agregado
             </div>
           </div>
           <div className="fixed inset-0 bg-green-400/20 z-40 pointer-events-none" />
@@ -1028,5 +1064,3 @@ export default function NuevaVenta() {
     </div>
   );
 }
-
-

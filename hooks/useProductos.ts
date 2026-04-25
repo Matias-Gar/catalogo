@@ -12,6 +12,11 @@ interface Producto {
   codigo_barra?: string;
   codigo?: string;
   categoria?: string;
+  unidad?: string;
+  unidad_base?: string;
+  unidades_alternativas?: string[];
+  unidades_disponibles?: string[];
+  factor_conversion?: number;
   variante_id?: number | string;
   color?: string;
   variantes?: Array<{
@@ -19,6 +24,7 @@ interface Producto {
     id?: number;
     color?: string;
     stock?: number;
+    stock_decimal?: number;
     precio?: number;
     sku?: string;
     codigo_barra?: string;
@@ -33,6 +39,7 @@ interface VarianteBusqueda {
   id?: number;
   color?: string;
   stock?: number;
+  stock_decimal?: number;
   precio?: number;
   sku?: string;
 }
@@ -46,6 +53,49 @@ function agruparImagenes(imgs: Array<{ producto_id: string | number; imagen_url?
     if (i.imagen_url) out[id].push(i.imagen_url);
   });
   return out;
+}
+
+function buildUnidadesDisponibles(unidadBase?: string, unidadesAlternativas?: string[]) {
+  const base = String(unidadBase || '').trim();
+  const alternativas = Array.isArray(unidadesAlternativas)
+    ? unidadesAlternativas.map((u) => String(u || '').trim()).filter(Boolean)
+    : [];
+  if (!base) return alternativas;
+  return [base, ...alternativas.filter((u) => u !== base)];
+}
+
+async function enriquecerUnidades(productos: Producto[]) {
+  const ids = productos.map((p) => p.user_id).filter(Boolean);
+  if (ids.length === 0) return productos;
+
+  const { data } = await supabase
+    .from('productos')
+    .select('user_id, unidad_base, unidades_alternativas, factor_conversion')
+    .in('user_id', ids);
+
+  const byId = new Map(
+    (Array.isArray(data) ? data : []).map((row) => [
+      String(row.user_id),
+      {
+        unidad_base: String(row.unidad_base || '').trim() || 'unidad',
+        unidades_alternativas: Array.isArray(row.unidades_alternativas) ? row.unidades_alternativas : [],
+        factor_conversion: Number(row.factor_conversion || 0) || undefined
+      }
+    ])
+  );
+
+  return productos.map((producto) => {
+    const extra = byId.get(String(producto.user_id));
+    if (!extra) return producto;
+    return {
+      ...producto,
+      unidad_base: extra.unidad_base,
+      unidades_alternativas: extra.unidades_alternativas,
+      unidades_disponibles: buildUnidadesDisponibles(extra.unidad_base, extra.unidades_alternativas),
+      factor_conversion: extra.factor_conversion,
+      unidad: producto.unidad ?? extra.unidad_base
+    };
+  });
 }
 
 export function useProductos(_includeCost = false) {
@@ -62,7 +112,7 @@ export function useProductos(_includeCost = false) {
       .select(selectFields)
       .limit(1000);
     if (!error && data) {
-      const productosData = Array.isArray(data)
+      const productosBase = Array.isArray(data)
         ? (data as Array<Record<string, unknown>>).map((p) => {
             const variantes = Array.isArray(p.variantes)
               ? (p.variantes as Producto['variantes'])
@@ -83,6 +133,7 @@ export function useProductos(_includeCost = false) {
             } as Producto;
           })
         : [];
+      const productosData = await enriquecerUnidades(productosBase);
       setProductos(productosData);
       const ids = productosData.map(p => p.user_id).filter(Boolean);
       if (ids.length) {
@@ -115,7 +166,7 @@ export function useProductos(_includeCost = false) {
         const fallbackCode = term.length === 13 ? term.slice(0, -1) : '';
         let variantQuery = supabase
           .from('producto_variantes')
-          .select('producto_id, id, color, stock, precio, sku');
+          .select('producto_id, id, color, stock, stock_decimal, precio, sku');
 
         if (fallbackCode) {
           variantQuery = variantQuery.or(`sku.eq.${term},sku.eq.${fallbackCode}`);
@@ -138,7 +189,7 @@ export function useProductos(_includeCost = false) {
               .limit(50);
 
             if (Array.isArray(matchedProducts)) {
-              resultados = (matchedProducts as Array<Record<string, unknown>>).map((p) => {
+              const productosEncontrados = (matchedProducts as Array<Record<string, unknown>>).map((p) => {
                 const variantes = Array.isArray(p.variantes)
                   ? (p.variantes as Producto['variantes'])
                   : [];
@@ -150,7 +201,7 @@ export function useProductos(_includeCost = false) {
                   precio: precioBase,
                   precio_base: precioBase,
                   precio_compra: undefined,
-                  stock: Number(matchedVar?.stock ?? p.stock_total ?? 0),
+                  stock: Number((matchedVar as any)?.stock_decimal ?? matchedVar?.stock ?? p.stock_total ?? 0),
                   stock_total: Number(p.stock_total ?? 0),
                   codigo_barra: String(p.codigo_barra ?? ''),
                   categoria: String(p.categoria ?? ''),
@@ -162,6 +213,7 @@ export function useProductos(_includeCost = false) {
                   codigo: String(matchedVar?.sku || '')
                 } as Producto;
               });
+              resultados = await enriquecerUnidades(productosEncontrados);
             }
           }
         }
@@ -189,7 +241,7 @@ export function useProductos(_includeCost = false) {
         }
         const { data, error } = await query;
         if (error) throw error;
-        resultados = Array.isArray(data)
+        const productosEncontrados = Array.isArray(data)
           ? (data as Array<Record<string, unknown>>).map((p) => {
               const variantes = Array.isArray(p.variantes)
                 ? (p.variantes as Producto['variantes'])
@@ -210,6 +262,7 @@ export function useProductos(_includeCost = false) {
               } as Producto;
             })
           : [];
+        resultados = await enriquecerUnidades(productosEncontrados);
       }
 
       setSearchResults(resultados);

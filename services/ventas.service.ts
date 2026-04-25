@@ -55,6 +55,31 @@ export async function descontarStock(pid: ProductoId, cantidad: number) {
   return { data: null, error: updateError };
 }
 
+export async function descontarStockVariante(varianteId: ProductoId, cantidad: number) {
+  const { data: variant, error: fetchError } = await supabase
+    .from('producto_variantes')
+    .select('stock, stock_decimal')
+    .eq('id', varianteId)
+    .maybeSingle();
+
+  if (fetchError) return { data: null, error: fetchError };
+  if (!variant) return { data: null, error: { message: `Variante no encontrada: ${varianteId}` } as ServiceError };
+
+  const currentDecimal = Number((variant as GenericPayload).stock_decimal ?? (variant as GenericPayload).stock ?? 0);
+  const nextDecimal = Math.max(0, currentDecimal - Number(cantidad || 0));
+  const nextLegacyStock = nextDecimal > 0 ? Math.ceil(nextDecimal) : 0;
+
+  const { error: updateError } = await supabase
+    .from('producto_variantes')
+    .update({
+      stock_decimal: nextDecimal,
+      stock: nextLegacyStock,
+    })
+    .eq('id', varianteId);
+
+  return { data: null, error: updateError };
+}
+
 export async function guardarCarritoPendiente(payload: GenericPayload) {
   return supabase.from('carritos_pendientes').insert([payload]);
 }

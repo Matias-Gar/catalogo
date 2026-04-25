@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import ConfirmModal from "@/components/ConfirmModal";
 import ProductCard from "@/components/ProductCard";
 import { Toast } from "@/components/ui/Toast";
@@ -10,8 +11,12 @@ import { Input } from "@/components/ui/input";
 import { registrarMovimientoStock } from "@/lib/stockMovimientos";
 import { registrarHistorialProducto } from "@/lib/productosHistorial";
 import { sincronizarStockProducto, validarProducto } from "@/lib/utils";
+import { getProductViewMeta, normalizeProductView } from "@/lib/productViews";
 
 export default function EditarCatalogo() {
+    const pathname = usePathname();
+    const currentProductView = normalizeProductView(pathname?.includes('/admin/insumos') ? 'insumos' : 'articulos');
+    const currentViewMeta = getProductViewMeta(currentProductView);
     // --- Lógica de edición de productos ---
 
     // Cargar productos, variantes, imágenes y categorías al montar
@@ -266,6 +271,7 @@ export default function EditarCatalogo() {
         nombre: cambios.nombre ?? productoActual?.nombre,
         descripcion: cambios.descripcion ?? productoActual?.descripcion,
         precio: precioNormalizado,
+        vista_producto: normalizeProductView(cambios.vista_producto ?? productoActual?.vista_producto),
         category_id: cambios.category_id
           ? parseInt(cambios.category_id, 10)
           : productoActual?.category_id ?? null,
@@ -301,7 +307,8 @@ export default function EditarCatalogo() {
           await supabase.from("producto_variantes").update({
             color: v.color,
             talla: v.talla,
-            stock: parseInt(v.stock, 10) || 0,
+            stock: Math.max(0, Math.ceil(Number(v.stock) || 0)),
+            stock_decimal: Number(v.stock) || 0,
             sku: v.sku,
             precio: parseDecimalInput(v.precio, null),
             imagen_url: v.imagen_url,
@@ -313,7 +320,9 @@ export default function EditarCatalogo() {
             producto_id: productoActual.user_id,
             color: v.color,
             talla: v.talla,
-            stock: parseInt(v.stock, 10) || 0,
+            stock: Math.max(0, Math.ceil(Number(v.stock) || 0)),
+            stock_decimal: Number(v.stock) || 0,
+            stock_inicial_decimal: Number(v.stock) || 0,
             sku: v.sku,
             precio: parseDecimalInput(v.precio, null),
             imagen_url: v.imagen_url,

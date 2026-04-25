@@ -73,7 +73,7 @@ export default function PedidosPage() {
                 <ul className="list-disc pl-4">
                   {Array.isArray(c.productos) ? c.productos.map((p, i) => (
                     <li key={i} className="text-gray-900">
-                      {p.producto_id} {p.color ? `(${p.color})` : ''} x{p.cantidad} (Bs {Number(p.precio_unitario).toFixed(2)})
+                      {p.producto_id} {p.color ? `(${p.color})` : ''} {p.cantidad} {p.unidad || 'unidad'} (Bs {Number(p.precio_unitario).toFixed(2)})
                     </li>
                   )) : null}
                 </ul>

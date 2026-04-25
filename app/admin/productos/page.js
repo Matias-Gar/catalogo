@@ -10,6 +10,7 @@ import { usePromociones } from '../../../lib/usePromociones';
 import { getOptimizedImageUrl, buildImageSrcSet } from '../../../lib/imageOptimization';
 import { optimizeImageForUpload } from '../../../lib/imageUploadOptimization';
 import { canAccessAdminPath } from '../../../lib/adminPermissions';
+import { normalizeProductView } from '../../../lib/productViews';
 
 // Desactivar SSR para el componente de código de barras si usa librerías de cliente como 'react-barcode'
 // Si la tabla usa react-barcode, este dynamic es necesario. Si solo usa la función handlePrintBarcode, se podría quitar.
@@ -157,7 +158,8 @@ export default function AdminProductosPage() {
         precio: '', 
         stock: '', 
         category_id: '',
-        codigo_barra: ''
+        codigo_barra: '',
+        vista_producto: 'articulos'
     }); 
     const [editingProduct, setEditingProduct] = useState(null); 
     const [editImageFiles, setEditImageFiles] = useState([]); 
@@ -409,10 +411,23 @@ export default function AdminProductosPage() {
             return;
         }
         setLoading(true);
-        // 1. Traer productos
-        const { data, error } = await supabase
-            .from('productos')
-            .select(`
+        let vistaColumnAvailable = true;
+        let data = null;
+        let error = null;
+        const selectWithView = `
+                user_id,
+                nombre,
+                descripcion,
+                precio,
+                precio_compra,
+                stock,
+                imagen_url,
+                category_id,
+                codigo_barra,
+                vista_producto,
+                categorias (categori)
+            `;
+        const selectWithoutView = `
                 user_id,
                 nombre,
                 descripcion,
@@ -423,8 +438,25 @@ export default function AdminProductosPage() {
                 category_id,
                 codigo_barra,
                 categorias (categori)
-            `)
+            `;
+
+        let response = await supabase
+            .from('productos')
+            .select(selectWithView)
             .order('nombre', { ascending: true });
+
+        data = response.data;
+        error = response.error;
+
+        if (error && String(error.message || '').includes('vista_producto')) {
+            vistaColumnAvailable = false;
+            response = await supabase
+                .from('productos')
+                .select(selectWithoutView)
+                .order('nombre', { ascending: true });
+            data = response.data;
+            error = response.error;
+        }
 
         if (error) {
             setMessage(`❌ Error al cargar productos: ${error.message || JSON.stringify(error)}.`);
@@ -432,11 +464,15 @@ export default function AdminProductosPage() {
             setLoading(false);
             return;
         }
-        const formattedData = data.map(p => ({
+        const formattedData = (data || []).map(p => ({
             ...p,
+            vista_producto: normalizeProductView(p.vista_producto),
             category_name: p.categorias ? p.categorias.categori : 'Sin Categoría'
         }));
         setProductos(formattedData);
+        if (!vistaColumnAvailable) {
+            setMessage('Ejecuta scripts/add_product_view_column.sql en Supabase para separar articulos e insumos por vista.');
+        }
 
         // 2. Traer imágenes de todos los productos
         const ids = formattedData.map(p => p.user_id);
@@ -510,11 +546,15 @@ export default function AdminProductosPage() {
                         precio: parseFloat(newProduct.precio) || 0,
                         stock: parseInt(newProduct.stock) || 0,
                         category_id: categoryIdValue,
-                        codigo_barra: codigoBarra
+                        codigo_barra: codigoBarra,
+                        vista_producto: normalizeProductView(newProduct.vista_producto)
                     }
                 ]).select();
 
             if (insertError) {
+                if (String(insertError.message || '').includes('vista_producto')) {
+                    throw new Error('Tu base de datos aun no tiene la columna vista_producto. Ejecuta scripts/add_product_view_column.sql en Supabase.');
+                }
                 throw new Error(insertError.message);
             }
 
@@ -530,7 +570,7 @@ export default function AdminProductosPage() {
             }
 
             setMessage('✅ Producto creado con éxito!');
-            setNewProduct({ nombre: '', descripcion: '', precio: '', stock: '', category_id: '', codigo_barra: '' });
+            setNewProduct({ nombre: '', descripcion: '', precio: '', stock: '', category_id: '', codigo_barra: '', vista_producto: 'articulos' });
             setImageFiles([]);
             if (newImageInputRef.current) {
                 newImageInputRef.current.value = '';
@@ -602,6 +642,7 @@ export default function AdminProductosPage() {
                     precio_compra: parseFloat(editingProduct.precio_compra) || 0,
                     stock: parseInt(editingProduct.stock) || 0,
                     category_id: categoryIdValue,
+                    vista_producto: normalizeProductView(editingProduct.vista_producto),
                     // Dejamos el codigo_barra para que no se re-genere si se guarda sin querer
                     codigo_barra: editingProduct.codigo_barra
                 })
@@ -659,7 +700,7 @@ export default function AdminProductosPage() {
     // Retorno del JSX del componente
     return (
         <div className="p-4 sm:p-6 md:p-10 bg-gray-100 min-h-screen">
-            <h1 className="text-3xl font-extrabold mb-8 text-indigo-700">Panel de Administración de Productos</h1>
+            <h1 className="text-3xl font-extrabold mb-8 text-indigo-700">Panel de Catalogo General</h1>
             
             {/* Sección de Mensajes (Éxito/Error) */} 
             {message && ( 
@@ -704,6 +745,15 @@ export default function AdminProductosPage() {
                         /> 
                         
                         {/* Selección de Categoría */} 
+                        <select
+                            name="vista_producto"
+                            value={newProduct.vista_producto}
+                            onChange={handleNewProductChange}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
+                        >
+                            <option value="articulos">Vista: Articulos</option>
+                            <option value="insumos">Vista: Insumos</option>
+                        </select>
                         <select
                             name="category_id"
                             value={newProduct.category_id}
@@ -892,6 +942,15 @@ export default function AdminProductosPage() {
                                 <input type="number" name="precio_compra" placeholder="Precio de Compra (Bs)" value={editingProduct.precio_compra} onChange={handleEditProductChange} required step="0.01" className="w-full p-3 border rounded-lg"/>
                                 <input type="number" name="precio" placeholder="Precio de Venta (Bs)" value={editingProduct.precio} onChange={handleEditProductChange} required step="0.01" className="w-full p-3 border rounded-lg"/>
                                 <input type="number" name="stock" placeholder="Stock" value={editingProduct.stock} onChange={handleEditProductChange} required className="w-full p-3 border rounded-lg"/>
+                                <select
+                                    name="vista_producto"
+                                    value={editingProduct.vista_producto ?? 'articulos'}
+                                    onChange={handleEditProductChange}
+                                    className="w-full p-3 border rounded-lg bg-white"
+                                >
+                                    <option value="articulos">Vista: Articulos</option>
+                                    <option value="insumos">Vista: Insumos</option>
+                                </select>
                                 <select
                                     name="category_id"
                                     value={editingProduct.category_id}

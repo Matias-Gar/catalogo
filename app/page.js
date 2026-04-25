@@ -1,19 +1,43 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { supabase } from '../lib/SupabaseClient';
-import { PrecioConPromocion } from '../lib/promociones';
+import { PrecioConPromocion, calcularPrecioConPromocion } from '../lib/promociones';
 import { usePromociones } from '../lib/usePromociones';
 import { usePacks, calcularDescuentoPack } from '../lib/packs';
 import { PacksDisponibles } from '../lib/packs';
 import ExpandableDescription from '../components/ui/ExpandableDescription';
 import { getOptimizedImageUrl, buildImageSrcSet } from '../lib/imageOptimization';
+import { normalizeProductView } from '../lib/productViews';
 
 // Componente principal de la página (Tienda)
 // Utilidad para obtener nombre de categoría por id
 function getCategoriaNombre(id, categorias) {
   const cat = categorias.find(c => c.id === id);
   return cat ? cat.categori : 'Sin categoría';
+}
+
+function getConversionPriceInfo(producto, promociones) {
+  const unidadBase = String(producto?.unidad_base || 'unidad').trim() || 'unidad';
+  const alternativas = Array.isArray(producto?.unidades_alternativas)
+    ? producto.unidades_alternativas.map((u) => String(u || '').trim()).filter(Boolean)
+    : [];
+  const unidadAlternativa = alternativas.find((u) => u && u !== unidadBase);
+  const factor = Number(producto?.factor_conversion || 0);
+
+  if (!unidadAlternativa || !Number.isFinite(factor) || factor <= 0) {
+    return null;
+  }
+
+  const { precioFinal } = calcularPrecioConPromocion(producto, promociones);
+
+  return {
+    unidadBase,
+    unidadAlternativa,
+    precioBase: Number(precioFinal || 0),
+    precioAlternativo: Number(precioFinal || 0) / factor,
+  };
 }
 
 function ImageGalleryModal({ isOpen, onClose, imageList, imageIndex, productName, onPrev, onNext }) {
@@ -82,6 +106,9 @@ function ImageGalleryModal({ isOpen, onClose, imageList, imageIndex, productName
 }
 
 export default function Home() {
+  const pathname = usePathname();
+  const currentPublicView = pathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
+  const pedidosHref = currentPublicView === 'insumos' ? '/insumos/productos' : '/productos';
   // Estados para el modal de galería de imágenes
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImageList, setSelectedImageList] = useState([]);
@@ -109,6 +136,7 @@ export default function Home() {
   const [productos, setProductos] = useState([]);
   const [imagenesProductos, setImagenesProductos] = useState({});
   const [categorias, setCategorias] = useState([]);
+  const [productViewsById, setProductViewsById] = useState({});
   const [filtroCategoria, setFiltroCategoria] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -157,14 +185,45 @@ export default function Home() {
         imagen_base: p.imagen_base || null
       }));
 
-      setProductos(normalized);
-      // Buscar imágenes
-      const ids = normalized.map(p => p.user_id);
+      const ids = normalized.map(p => p.user_id).filter(Boolean);
+      let viewsById = {};
       if (ids.length > 0) {
+        const { data: viewRows } = await supabase
+          .from('productos')
+          .select('user_id, vista_producto, unidad_base, unidades_alternativas, factor_conversion')
+          .in('user_id', ids);
+        viewsById = Object.fromEntries(
+          (Array.isArray(viewRows) ? viewRows : []).map((row) => [
+            String(row.user_id),
+            {
+              vista_producto: normalizeProductView(row.vista_producto),
+              unidad_base: row.unidad_base || 'unidad',
+              unidades_alternativas: Array.isArray(row.unidades_alternativas) ? row.unidades_alternativas : [],
+              factor_conversion: Number(row.factor_conversion || 0) || undefined,
+            },
+          ])
+        );
+      }
+      setProductViewsById(viewsById);
+      const filteredProducts = normalized.filter(
+        (p) => normalizeProductView(viewsById[String(p.user_id)]?.vista_producto) === currentPublicView
+      ).map((p) => {
+        const extra = viewsById[String(p.user_id)] || {};
+        return {
+          ...p,
+          unidad_base: extra.unidad_base || 'unidad',
+          unidades_alternativas: extra.unidades_alternativas || [],
+          factor_conversion: extra.factor_conversion,
+        };
+      });
+      setProductos(filteredProducts);
+      // Buscar imágenes
+      const visibleIds = filteredProducts.map(p => p.user_id);
+      if (visibleIds.length > 0) {
         const { data: imgs, error: imgsError } = await supabase
           .from('producto_imagenes')
           .select('producto_id, imagen_url')
-          .in('producto_id', ids);
+          .in('producto_id', visibleIds);
         if (!imgsError && imgs) {
           const agrupadas = {};
           imgs.forEach(img => {
@@ -200,7 +259,7 @@ export default function Home() {
         supabase.removeChannel(channel);
       };
     }
-  }, []);
+  }, [currentPublicView]);
 
 
   // 2. Definición de la variable calculada: productosFiltrados
@@ -210,6 +269,18 @@ export default function Home() {
     // console.log('🔍 Filtro categoria PRINCIPAL:', { producto: p.nombre, categoria_producto: p.category_id, categoria_seleccionada: filtroCategoria, match });
     return match;
   });
+
+  const categoriasVisibles = categorias.filter((cat) =>
+    productos.some((p) => Number(p.category_id) === Number(cat.id))
+  );
+
+  const packsVisibles = packs.filter((pack) =>
+    Array.isArray(pack.pack_productos) &&
+    pack.pack_productos.length > 0 &&
+    pack.pack_productos.every((item) =>
+        normalizeProductView(productViewsById[String(item.productos?.user_id)]?.vista_producto) === currentPublicView
+      )
+  );
 
   const normalizeColorName = (colorName) =>
     String(colorName || '')
@@ -297,18 +368,18 @@ export default function Home() {
   <div className="min-h-screen bg-gray-100 p-2 sm:p-4">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-extrabold text-gray-900 mb-8 text-center">
-          Catálogo de Productos
+          {currentPublicView === 'insumos' ? 'Catalogo de Insumos' : 'Catalogo de Productos'}
         </h1>
 
         {/* Sección de Packs Especiales */}
-        {!loadingPacks && packs.length > 0 && (
+        {!loadingPacks && packsVisibles.length > 0 && (
           <div className="mb-12">
             <h2 className="text-3xl font-bold text-purple-800 mb-6 text-center">
-              📦 Packs Especiales - ¡Ofertas Exclusivas!
+              {currentPublicView === 'insumos' ? '📦 Packs Especiales de Insumos' : '📦 Packs Especiales - ¡Ofertas Exclusivas!'}
             </h2>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-              {packs.map((pack) => {
+              {packsVisibles.map((pack) => {
                 const { precioIndividual, descuentoAbsoluto, descuentoPorcentaje } = calcularDescuentoPack(pack);
                 return (
                   <div key={pack.id} className="bg-white border border-purple-300 rounded-lg p-3 shadow-md hover:shadow-lg transition-all duration-200 flex flex-col gap-2 text-sm max-w-xs mx-auto">
@@ -368,10 +439,10 @@ export default function Home() {
                       )}
                     </div>
                     <a
-                      href="/productos"
+                      href={pedidosHref}
                       className="w-full bg-purple-600 hover:bg-purple-700 text-white py-1.5 px-2 rounded font-bold text-xs text-center mt-1 transition-colors duration-200"
                     >
-                      🛒 Ver en Catálogo
+                      {currentPublicView === 'insumos' ? '🛒 Ver para pedir insumos' : '🛒 Ver en Catálogo'}
                     </a>
                   </div>
                 );
@@ -389,7 +460,7 @@ export default function Home() {
         {/* Enlace a la administración (opcional, solo si lo quieres aquí) */}
         {/* Si quieres eliminarlo por completo, borra este bloque */}
         {/* Sección de Filtros - VERSIÓN RESPONSIVA IDÉNTICA A PRODUCTOS */}
-        {categorias.length > 0 && (
+        {categoriasVisibles.length > 0 && (
             <div className="mb-6">
                 {/* Versión móvil - Selector desplegable compacto */}
                 <div className="block sm:hidden">
@@ -406,7 +477,7 @@ export default function Home() {
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-gray-700 font-medium"
                         >
                             <option value="">🌟 Todas las Categorías</option>
-                            {categorias.map(cat => (
+                            {categoriasVisibles.map(cat => (
                                 <option key={cat.id} value={cat.id}>
                                     🏷️ {cat.categori || cat.nombre || '-'}
                                 </option>
@@ -426,7 +497,7 @@ export default function Home() {
                     >
                         Todas las Categorías
                     </button>
-                    {categorias.map(cat => (
+                    {categoriasVisibles.map(cat => (
                         <button
                             key={cat.id}
                             className={`px-4 py-2 rounded-full font-bold border transition-all duration-200 ${Number(filtroCategoria) === cat.id ? 'bg-violet-600 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
@@ -534,6 +605,39 @@ export default function Home() {
                   />
                   
 
+                  {(() => {
+                    const conversionInfo = getConversionPriceInfo(p, promociones);
+                    if (!conversionInfo) return null;
+                    return (
+                      <div className="mb-3 rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-sky-50 px-3 py-3 text-left shadow-sm">
+                        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-blue-700">
+                          Precio por unidad
+                        </p>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
+                            <span className="text-xs font-semibold text-slate-600">
+                              Por {conversionInfo.unidadBase}
+                            </span>
+                            <span className="text-sm font-bold text-blue-800">
+                              Bs {conversionInfo.precioBase.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
+                            <span className="text-xs font-semibold text-slate-600">
+                              Por {conversionInfo.unidadAlternativa}
+                            </span>
+                            <span className="text-sm font-bold text-blue-700">
+                              Bs {conversionInfo.precioAlternativo.toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="mt-2 text-[11px] text-blue-700">
+                          1 {conversionInfo.unidadBase} = {Number(p.factor_conversion || 0).toFixed(2).replace(/\.00$/, '')} {conversionInfo.unidadAlternativa}
+                        </p>
+                      </div>
+                    );
+                  })()}
+
                   {/* Mostrar colores disponibles como paleta de círculos */}
                   {/* Mostrar colores disponibles como paleta de círculos */}
                   {(() => {
@@ -591,14 +695,14 @@ export default function Home() {
 
         {/* Botón flotante para invitar a hacer pedido */}
         <a
-          href="/productos"
+          href={pedidosHref}
           className="fixed bottom-6 right-4 sm:bottom-8 sm:right-8 z-50 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-full shadow-xl text-sm sm:text-lg font-bold flex items-center gap-2 animate-bounce transition-colors duration-200"
           title="Ir a hacer un pedido"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 sm:w-7 sm:h-7">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          ¿Quieres hacer tu pedido?
+          {currentPublicView === 'insumos' ? '¿Quieres pedir insumos?' : '¿Quieres hacer tu pedido?'}
         </a>
       </div>
     </div>

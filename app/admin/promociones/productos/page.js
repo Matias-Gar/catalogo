@@ -46,24 +46,17 @@ export default function PromocionesProductosPage() {
         `)
         .order('nombre');
 
-      console.log('Productos obtenidos:', productosData);
-      console.log('Error productos:', prodError);
-
       // Cargar promociones
       const { data: promosData, error: promoError } = await supabase
         .from("promociones")
         .select("*")
         .order('id', { ascending: false });
 
-      console.log('Promociones obtenidas:', promosData);
-      console.log('Error promociones:', promoError);
-
       if (prodError) {
         console.error("Error específico productos:", prodError);
         alert("Error al cargar productos: " + prodError.message);
       } else if (productosData) {
         setProductos(productosData);
-        console.log(`✅ ${productosData.length} productos cargados`);
       }
 
       if (promoError) {
@@ -71,7 +64,6 @@ export default function PromocionesProductosPage() {
         alert("Error al cargar promociones: " + promoError.message);
       } else if (promosData) {
         setPromociones(promosData);
-        console.log(`✅ ${promosData.length} promociones cargadas`);
       }
     } catch (error) {
       console.error("Error al cargar datos:", error);

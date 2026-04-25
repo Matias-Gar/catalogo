@@ -83,11 +83,6 @@ export default function VentasEstadisticaPage() {
   }, [ventas, detalles]);
 
   // Diagnóstico rápido
-  useEffect(() => {
-    console.log("VENTAS:", ventas);
-    console.log("DETALLES:", detalles);
-  }, [ventas, detalles]);
-
   const totalVentas = ventas.length;
   const montoTotal = ventas.reduce((acc, v) => acc + Number(v.total), 0);
   const ticketPromedio = totalVentas > 0 ? montoTotal / totalVentas : 0;

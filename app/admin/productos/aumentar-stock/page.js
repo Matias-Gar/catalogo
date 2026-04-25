@@ -360,7 +360,6 @@ export default function AumentarStockPage() {
           usuario_email: user?.email || '',
           observaciones: 'Aumento de stock desde panel'
         };
-        console.log('registrarMovimientoStock payload:', movimientoPayload);
         await registrarMovimientoStock(movimientoPayload);
         await registrarHistorialProducto({
           producto_id: pid,
@@ -402,7 +401,7 @@ export default function AumentarStockPage() {
       return;
     }
 
-    const currentVariantStock = Number(variante.stock || 0);
+    const currentVariantStock = Number((variante.stock_decimal ?? variante.stock) || 0);
     const nextVariantStock = currentVariantStock + increaseBy;
 
     try {
@@ -410,7 +409,10 @@ export default function AumentarStockPage() {
 
       const { error: variantError } = await supabase
         .from("producto_variantes")
-        .update({ stock: nextVariantStock })
+        .update({
+          stock_decimal: nextVariantStock,
+          stock: nextVariantStock > 0 ? Math.ceil(nextVariantStock) : 0,
+        })
         .eq("id", variantId);
 
       if (variantError) throw variantError;
@@ -433,11 +435,11 @@ export default function AumentarStockPage() {
           variante_id: Number(variantId),
           tipo: 'aumento',
           cantidad: Number(increaseBy),
+          cantidad_base: Number(increaseBy),
           usuario_id: user?.id || null,
           usuario_email: user?.email || '',
           observaciones: `Aumento de stock en variante (${variante.color || 'Unico'}) desde panel`
         };
-        console.log('registrarMovimientoStock payload:', movimientoPayload);
         await registrarMovimientoStock(movimientoPayload);
         await registrarHistorialProducto({
           producto_id: pid,

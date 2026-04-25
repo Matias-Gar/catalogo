@@ -29,7 +29,7 @@ export async function sincronizarStockProducto(
 ): Promise<number> {
   const { data } = await (supabase as any)
     .from("producto_variantes")
-    .select("stock")
+    .select("stock, stock_decimal")
     .eq("producto_id", producto_id)
     .eq("activo", true);
 
@@ -38,7 +38,7 @@ export async function sincronizarStockProducto(
     : [];
 
   const stockTotal = variantes.reduce<number>(
-    (sum: number, v: Variante) => sum + (Number(v.stock) || 0),
+    (sum: number, v: Variante) => sum + (Number((v as any).stock_decimal ?? v.stock) || 0),
     0
   );
 

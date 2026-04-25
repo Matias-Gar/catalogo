@@ -5,15 +5,23 @@ import { PrecioConPromocion, calcularPrecioConPromocion } from '../../lib/promoc
 import { calcularDescuentoPack } from '../../lib/packs';
 import { CartItem, Pack, PackProduct } from '../../hooks/useCarrito';
 import { getOptimizedImageUrl } from '../../lib/imageOptimization';
+import CantidadConUnidadInput from '../CantidadConUnidadInput';
 
 interface Props {
   carrito: CartItem[];
   imagenes: Record<string, string[]>;
   quitar: (user_id: string | number) => void;
   cambiarCantidad: (user_id: string | number, cant: number) => void;
+  cambiarUnidadYCantidad: (user_id: string | number, cantBase: number, unidad?: string, cantidadDisplay?: number) => void;
   subtotal: number;
   totalDescuento: number;
   total: number;
+  envio?: number;
+  comision?: number;
+  publicidad?: number;
+  rebajas?: number;
+  impuestos?: number;
+  totalCobrar?: number;
   modoPago: string;
   pago: number;
   cambio: number;
@@ -27,12 +35,22 @@ export default function CarritoPanel({
   imagenes,
   quitar,
   cambiarCantidad,
+  cambiarUnidadYCantidad,
   subtotal,
   totalDescuento,
   total,
+  envio = 0,
+  comision = 0,
+  publicidad = 0,
+  rebajas = 0,
+  impuestos = 0,
+  totalCobrar = total,
   packs,
   promociones
 }: Props) {
+  const getBaseQuantity = (item: CartItem) => Number(item.cantidad_base ?? item.cantidad ?? 0);
+  const getDisplayQuantity = (item: CartItem) => Number(item.cantidad_display ?? item.cantidad ?? 0);
+
   return (
     <div>
       {carrito.length === 0 ? (
@@ -138,14 +156,34 @@ export default function CarritoPanel({
                       {item.color && <div className="text-xs font-semibold text-blue-700">Color: {item.color}</div>}
                     </td>
                     <td className="p-2">
-                      <input
-                        type="number"
-                        min={1}
-                        max={Number.isFinite(Number(item.stock)) ? Math.max(1, Number(item.stock)) : undefined}
-                        value={item.cantidad}
-                        onChange={e => cambiarCantidad(itemKey, Number(e.target.value))}
-                        className="w-16 border border-gray-900 rounded px-2 py-1 text-gray-900"
-                      />
+                      {Array.isArray(item.unidades_disponibles) && item.unidades_disponibles.length > 1 && item.factor_conversion && Number(item.factor_conversion) > 0 ? (
+                        <CantidadConUnidadInput
+                          unidadBase={item.unidad_base}
+                          factorConversion={Number(item.factor_conversion) || 1}
+                          initialUnidad={item.unidad || item.unidad_base}
+                          initialCantidad={getDisplayQuantity(item)}
+                          unidadesDisponibles={Array.isArray(item.unidades_disponibles)
+                            ? item.unidades_disponibles
+                            : (item.unidad_base && item.unidades_alternativas)
+                              ? [item.unidad_base, ...(item.unidades_alternativas || []).filter((u) => u !== item.unidad_base)]
+                              : [item.unidad_base]}
+                          stockBase={Number(item.stock) || 0}
+                          onChange={(valorBase: number, unidad: string, cantidad: number) => {
+                            cambiarUnidadYCantidad(itemKey, valorBase, unidad, cantidad);
+                          }}
+                          min={0.01}
+                          precision={3}
+                        />
+                      ) : (
+                        <input
+                          type="number"
+                          min={1}
+                          max={Number.isFinite(Number(item.stock)) ? Math.max(1, Number(item.stock)) : undefined}
+                          value={getDisplayQuantity(item)}
+                          onChange={e => cambiarCantidad(itemKey, Number(e.target.value))}
+                          className="w-16 border border-gray-900 rounded px-2 py-1 text-gray-900"
+                        />
+                      )}
                     </td>
                     <td className="p-2">
                       <PrecioConPromocion 
@@ -158,7 +196,8 @@ export default function CarritoPanel({
                     <td className="p-2">
                       {precioInfo.tienePromocion ? (
                         <div className="text-center">
-                          <div className="text-red-600 font-bold">-Bs {((precioInfo?.descuento||0) * item.cantidad).toFixed(2)}</div>
+                          <div className="text-red-600 font-bold">-Bs {((precioInfo?.descuento||0) * getBaseQuantity(item)).toFixed(2)}</div>
+                          
                           <div className="text-red-600 text-sm">-{precioInfo.porcentajeDescuento}%</div>
                         </div>
                       ) : (
@@ -166,7 +205,7 @@ export default function CarritoPanel({
                       )}
                     </td>
                     <td className="p-2 text-gray-900 font-bold">
-                      Bs {(precioInfo.precioFinal * item.cantidad).toFixed(2)}
+                      Bs {(precioInfo.precioFinal * getBaseQuantity(item)).toFixed(2)}
                     </td>
                     <td className="p-2">
                       <button 
@@ -181,10 +220,15 @@ export default function CarritoPanel({
               })}
             </tbody>
           </table>
-          <div className="text-right mt-4 text-xl font-bold text-gray-900">
-            Subtotal: Bs {subtotal.toFixed(2)}<br />
-            {totalDescuento > 0 && <span className="text-green-700">Descuentos: -Bs {totalDescuento.toFixed(2)}</span>}<br />
-            <span className="text-2xl">Total: Bs {total.toFixed(2)}</span>
+          <div className="mt-4 text-right text-xl font-bold text-gray-900">
+            <div>Subtotal: Bs {subtotal.toFixed(2)}</div>
+            {totalDescuento > 0 && <div className="text-blue-700">Descuentos: -Bs {totalDescuento.toFixed(2)}</div>}
+            {Number(envio) > 0 && <div className="text-blue-700">Envio: +Bs {Number(envio).toFixed(2)}</div>}
+            {Number(comision) > 0 && <div className="text-blue-700">Comision: +Bs {Number(comision).toFixed(2)}</div>}
+            {Number(impuestos) > 0 && <div className="text-blue-700">Impuestos: +Bs {Number(impuestos).toFixed(2)}</div>}
+            {Number(publicidad) > 0 && <div className="text-blue-700">Publicidad: -Bs {Number(publicidad).toFixed(2)}</div>}
+            {Number(rebajas) > 0 && <div className="text-blue-700">Rebajas: -Bs {Number(rebajas).toFixed(2)}</div>}
+            <div className="text-2xl">Total a cobrar: Bs {Number(totalCobrar).toFixed(2)}</div>
           </div>
           {!carrito.length && null}
         </div>

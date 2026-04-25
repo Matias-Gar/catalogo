@@ -47,20 +47,17 @@ export default function PerfilForm({ userId, perfilActual, onSave, isAdminEdit =
             .maybeSingle(); // Usar maybeSingle en lugar de single
           
           if (error) {
-            console.log('Error cargando perfil (se creará uno nuevo):', error.message);
             // Si hay error, dejamos campos vacíos para crear nuevo perfil
             setNombre("");
             setNitCi("");
             setTelefono("");
             setFotoPerfil("");
           } else if (data) {
-            console.log('Perfil cargado:', data);
             setNombre(data.nombre || "");
             setNitCi(data.nit_ci || "");
             setTelefono(data.telefono || "");
             setFotoPerfil(data.foto_perfil || "");
           } else {
-            console.log('No se encontró perfil, se creará uno nuevo');
             setNombre("");
             setNitCi("");
             setTelefono("");
@@ -133,7 +130,6 @@ export default function PerfilForm({ userId, perfilActual, onSave, isAdminEdit =
       return;
     }
     
-    console.log('Intentando guardar perfil para userId:', userId);
     
     try {
       // Verificar sesión activa
@@ -158,7 +154,6 @@ export default function PerfilForm({ userId, perfilActual, onSave, isAdminEdit =
         .eq("id", userId)
         .maybeSingle();
       
-      console.log('Verificación de perfil existente:', { perfilExistente, errorCheck });
       
       let result;
       // 🔒 DATOS SEGUROS: Solo campos permitidos para usuarios normales
@@ -171,7 +166,6 @@ export default function PerfilForm({ userId, perfilActual, onSave, isAdminEdit =
       };
       
       if (perfilExistente) {
-        console.log('Actualizando perfil existente...');
         // ACTUALIZAR perfil existente
         result = await supabase
           .from("perfiles")
@@ -179,7 +173,6 @@ export default function PerfilForm({ userId, perfilActual, onSave, isAdminEdit =
           .eq("id", userId)
           .select();
       } else {
-        console.log('Creando nuevo perfil...');
         // CREAR nuevo perfil (rol por defecto: cliente)
         result = await supabase
           .from("perfiles")
@@ -191,13 +184,11 @@ export default function PerfilForm({ userId, perfilActual, onSave, isAdminEdit =
           .select();
       }
       
-      console.log('Resultado de la operación:', result);
       
       if (result.error) {
         console.error('Error de Supabase:', result.error);
         setMessage("❌ Error: " + (result.error.message || "Error desconocido"));
       } else {
-        console.log('Perfil guardado exitosamente');
         setMessage("✅ Perfil guardado correctamente");
         if (onSave) onSave();
         setTimeout(() => setMessage(""), 3000);

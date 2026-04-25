@@ -3,17 +3,22 @@
 // --- IMPORTS Y HOOKS NECESARIOS ---
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { usePromociones } from "@/lib/usePromociones";
 import { usePacks } from "@/lib/packs";
 import { supabase } from "@/lib/SupabaseClient";
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from "@/lib/storeSettings";
-import { PrecioConPromocion } from "@/lib/promociones";
+import { PrecioConPromocion, calcularPrecioConPromocion } from "@/lib/promociones";
 import { getOptimizedImageUrl } from "@/lib/imageOptimization";
+import { normalizeProductView } from "@/lib/productViews";
 
 
 // --- INICIO DEL FLUJO AVANZADO DEL CATÁLOGO ---
 export default function CatalogoPage() {
-        const [modalWarning, setModalWarning] = useState("");
+        const pathname = usePathname();
+        const currentPublicView = pathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
+        const cartStorageKey = currentPublicView === 'insumos' ? 'carrito_temporal_insumos' : 'carrito_temporal';
+    const [modalWarning, setModalWarning] = useState("");
     const [modalImg, setModalImg] = useState(null);
     const [addToCartModal, setAddToCartModal] = useState(null);
     const [showCart, setShowCart] = useState(false);
@@ -29,27 +34,129 @@ export default function CatalogoPage() {
                 const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
             const [cart, setCart] = useState([]);
         const [usuario, setUsuario] = useState(null);
+    const getAvailableUnits = (producto) => {
+        const unidadBase = String(producto?.unidad_base || 'unidad').trim() || 'unidad';
+        const alternativas = Array.isArray(producto?.unidades_alternativas)
+            ? producto.unidades_alternativas.map((u) => String(u || '').trim()).filter(Boolean)
+            : [];
+        return [unidadBase, ...alternativas.filter((u) => u !== unidadBase)];
+    };
+    const toBaseQuantity = (cantidad, unidad, producto) => {
+        const qty = Number(cantidad || 0);
+        const factor = Number(producto?.factor_conversion || 0);
+        const unidadBase = String(producto?.unidad_base || 'unidad').trim() || 'unidad';
+        if (!Number.isFinite(qty) || qty <= 0) return 0;
+        if (unidad === unidadBase || !factor || factor <= 0) return qty;
+        return qty / factor;
+    };
+    const fromBaseQuantity = (cantidadBase, unidad, producto) => {
+        const qty = Number(cantidadBase || 0);
+        const factor = Number(producto?.factor_conversion || 0);
+        const unidadBase = String(producto?.unidad_base || 'unidad').trim() || 'unidad';
+        if (!Number.isFinite(qty) || qty <= 0) return 0;
+        if (unidad === unidadBase || !factor || factor <= 0) return qty;
+        return qty * factor;
+    };
+    const getItemDisplayQuantity = (item) => Number(item?.cantidad_display ?? item?.cantidad ?? 0);
+    const getItemBaseQuantity = (item) => Number(item?.cantidad_base ?? item?.cantidad ?? 0);
+    const getItemSubtotal = (item) => Number(item?.precio || 0) * getItemBaseQuantity(item);
+    const getItemQuantityText = (item) => item?.tipo === 'pack'
+        ? `x${getItemDisplayQuantity(item)}`
+        : `${getItemDisplayQuantity(item)} ${item?.unidad || item?.unidad_base || 'unidad'}`;
+    const getConversionPriceInfo = (producto) => {
+        const unidadBase = String(producto?.unidad_base || 'unidad').trim() || 'unidad';
+        const alternativas = Array.isArray(producto?.unidades_alternativas)
+            ? producto.unidades_alternativas.map((u) => String(u || '').trim()).filter(Boolean)
+            : [];
+        const unidadAlternativa = alternativas.find((u) => u && u !== unidadBase);
+        const factor = Number(producto?.factor_conversion || 0);
+
+        if (!unidadAlternativa || !Number.isFinite(factor) || factor <= 0) {
+            return null;
+        }
+
+        const { precioFinal } = calcularPrecioConPromocion(producto, promociones);
+
+        return {
+            unidadBase,
+            unidadAlternativa,
+            precioBase: Number(precioFinal || 0),
+            precioAlternativo: Number(precioFinal || 0) / factor,
+        };
+    };
+    const mergeProductUnits = async (items) => {
+        const ids = items.map((item) => item.user_id).filter(Boolean);
+        if (ids.length === 0) return items;
+        try {
+            const { data, error } = await supabase
+                .from('productos')
+                .select('user_id, unidad_base, unidades_alternativas, factor_conversion, vista_producto')
+                .in('user_id', ids);
+            if (error || !Array.isArray(data)) return items;
+            const byId = new Map(data.map((row) => [String(row.user_id), row]));
+            return items.map((item) => {
+                const extra = byId.get(String(item.user_id));
+                if (!extra) return item;
+                return {
+                    ...item,
+                    unidad_base: extra.unidad_base || item.unidad_base || 'unidad',
+                    unidades_alternativas: Array.isArray(extra.unidades_alternativas) ? extra.unidades_alternativas : item.unidades_alternativas,
+                    factor_conversion: Number(extra.factor_conversion || 0) || item.factor_conversion,
+                    vista_producto: normalizeProductView(extra.vista_producto)
+                };
+            });
+        } catch {
+            return items;
+        }
+    };
+    const visiblePacks = packs.filter((pack) =>
+        Array.isArray(pack.pack_productos) &&
+        pack.pack_productos.length > 0 &&
+        pack.pack_productos.every((item) =>
+            normalizeProductView(item.productos?.vista_producto) === currentPublicView ||
+            !item.productos?.vista_producto && productos.some((p) => String(p.user_id) === String(item.productos?.user_id))
+        )
+    );
     // --- Refactor: función de fetch fuera del useEffect para poder reutilizarla ---
     const fetchProductosYCategoriasYImagenes = async () => {
-        // Traer productos junto con sus variantes desde la tabla productos
+        // Usar la misma vista pública que la home para evitar desajustes entre rutas.
         const { data: productosData, error: productosError } = await supabase
-            .from('productos')
-            .select('user_id, nombre, descripcion, precio, imagen_url, category_id, categoria, stock, codigo_barra, producto_variantes(id, color, stock, precio, imagen_url)');
+            .from('v_productos_catalogo')
+            .select('producto_id, nombre, descripcion, precio_base, imagen_base, category_id, categoria, stock_total, codigo_barra, variantes');
         if (productosError || !productosData) {
             setProductos([]);
             setImagenesProductos({});
             return;
         }
-        const normalizedProducts = productosData.map((p) => ({
-            ...p,
-            user_id: p.user_id,
-            precio: Number(p.precio || 0),
-            stock: Array.isArray(p.producto_variantes) && p.producto_variantes.length > 0
-                ? p.producto_variantes.reduce((acc, v) => acc + Number(v.stock || 0), 0)
-                : Number(p.stock || 0),
-            variantes: Array.isArray(p.producto_variantes) ? p.producto_variantes : [],
-            imagen_url: p.imagen_url || null
-        }));
+        const normalizedBase = productosData.map((p) => ({
+                        ...p,
+                        user_id: p.producto_id,
+                        precio: Number(p.precio_base || 0),
+                        variantes: Array.isArray(p.variantes) ? p.variantes : [],
+                        imagen_url: p.imagen_base || null,
+                        stock: (() => {
+                                // Si tiene variantes, sumar stock de variantes
+                                if (Array.isArray(p.variantes) && p.variantes.length > 0) {
+                                        return p.variantes.reduce((acc, v) => acc + Number((v.stock_decimal ?? v.stock) || 0), 0);
+                                }
+                                const stockBase = Number(p.stock_total || 0);
+                                // Si hay conversión y unidades alternativas, calcular stock alternativo
+                                if (
+                                    Array.isArray(p.unidades_alternativas) &&
+                                    p.unidades_alternativas.length > 0 &&
+                                    Number(p.factor_conversion) > 0 &&
+                                    p.unidad_base
+                                ) {
+                                    const stockAlternativo = stockBase * Number(p.factor_conversion);
+                                    if (stockBase === 0 && stockAlternativo > 0) {
+                                        return stockAlternativo;
+                                    }
+                                }
+                                return stockBase;
+                        })()
+                }));
+        const normalizedProducts = (await mergeProductUnits(normalizedBase))
+            .filter((p) => normalizeProductView(p.vista_producto) === currentPublicView);
         setProductos(normalizedProducts);
 
         // Traer categorías
@@ -80,7 +187,7 @@ export default function CatalogoPage() {
 
     useEffect(() => {
         fetchProductosYCategoriasYImagenes();
-    }, []);
+    }, [currentPublicView]);
 
     // --- Recarga productos e imágenes al volver a la pestaña ---
     useEffect(() => {
@@ -186,14 +293,14 @@ export default function CatalogoPage() {
 
     // 2. Cargar carrito desde localStorage al inicio
     useEffect(() => {
-        const stored = localStorage.getItem('carrito_temporal');
+        const stored = localStorage.getItem(cartStorageKey);
         if (stored) setCart(JSON.parse(stored));
-    }, []);
+    }, [cartStorageKey]);
 
     // 3. Guardar carrito en localStorage cada vez que cambia
     useEffect(() => {
-        localStorage.setItem('carrito_temporal', JSON.stringify(cart));
-    }, [cart]);
+        localStorage.setItem(cartStorageKey, JSON.stringify(cart));
+    }, [cart, cartStorageKey]);
 
     // --- Funciones del Carrito ---
     
@@ -234,22 +341,51 @@ export default function CatalogoPage() {
     const getVariantes = (producto) => (Array.isArray(producto.variantes) ? producto.variantes : []);
 
     const getStockDisponibleProducto = (producto, varianteId = null) => {
-        const variantes = getVariantes(producto);
+                const variantes = getVariantes(producto);
 
-        if (variantes.length > 0) {
-            if (varianteId !== null && varianteId !== undefined) {
-                // Usar función tradicional para evitar error de tipado implícito en JS
-                const variante = variantes.find(function(v) { return String(v.variante_id ?? v.id) === String(varianteId); });
-                return Math.max(0, Number(variante?.stock || 0));
-            }
-            const totalDisponible = variantes.reduce(function(acc, v) { return acc + Math.max(0, Number(v?.stock || 0)); }, 0);
-            return Math.max(0, totalDisponible);
-        }
+                if (variantes.length > 0) {
+                        if (varianteId !== null && varianteId !== undefined) {
+                                const variante = variantes.find(function(v) { return String(v.variante_id ?? v.id) === String(varianteId); });
+                                return Math.max(0, Number((variante?.stock_decimal ?? variante?.stock) || 0));
+                        }
+                        const totalDisponible = variantes.reduce(function(acc, v) { return acc + Math.max(0, Number((v?.stock_decimal ?? v?.stock) || 0)); }, 0);
+                        return Math.max(0, totalDisponible);
+                }
 
-        return Math.max(0, Number(producto?.stock || 0));
+                // Stock base
+                const stockBase = Math.max(0, Number(producto?.stock || 0));
+                // Si hay conversión y unidades alternativas, calcular stock alternativo
+                if (
+                    Array.isArray(producto.unidades_alternativas) &&
+                    producto.unidades_alternativas.length > 0 &&
+                    Number(producto.factor_conversion) > 0 &&
+                    producto.unidad_base
+                ) {
+                    // Si el stock base es 0, pero el alternativo es mayor a 0, devolver stock alternativo
+                    const stockAlternativo = stockBase * Number(producto.factor_conversion);
+                    if (stockBase === 0 && stockAlternativo > 0) {
+                        return stockAlternativo;
+                    }
+                }
+                return stockBase;
     };
 
-    const isProductoAgotado = (producto) => getStockDisponibleProducto(producto) <= 0;
+        const isProductoAgotado = (producto) => {
+            const stockBase = Math.max(0, Number(producto?.stock || 0));
+            // Si hay conversión y unidades alternativas, considerar stock alternativo
+            if (
+                Array.isArray(producto.unidades_alternativas) &&
+                producto.unidades_alternativas.length > 0 &&
+                Number(producto.factor_conversion) > 0 &&
+                producto.unidad_base
+            ) {
+                const stockAlternativo = stockBase * Number(producto.factor_conversion);
+                if (stockBase === 0 && stockAlternativo > 0) {
+                    return false; // No está agotado si hay stock alternativo
+                }
+            }
+            return getStockDisponibleProducto(producto) <= 0;
+        };
 
     const getStockDisponibleItem = (item) => {
         if (item?.tipo === 'pack') return 999;
@@ -262,22 +398,23 @@ export default function CatalogoPage() {
 
     const openAddToCartModal = (producto) => {
         const variantes = getVariantes(producto);
-        const defaultVariante = variantes.find(function(v) { return Number(v?.stock || 0) > 0; }) || null;
+        const defaultVariante = variantes.find(function(v) { return Number((v?.stock_decimal ?? v?.stock) || 0) > 0; }) || null;
         const defaultVarianteId = defaultVariante ? (defaultVariante.variante_id ?? defaultVariante.id) : null;
 
         setAddToCartModal({
             producto,
             variantes,
             selectedVarianteId: defaultVarianteId,
-            cantidad: 1
+            cantidad: 1,
+            unidad: getAvailableUnits(producto)[0]
         });
     };
 
     const confirmAddToCart = async () => {
         if (!addToCartModal?.producto) return;
         setModalWarning("");
-        const { producto, variantes, selectedVarianteId, cantidad } = addToCartModal;
-        const quantity = Math.max(1, Number(cantidad) || 1);
+        const { producto, variantes, selectedVarianteId, cantidad, unidad } = addToCartModal;
+        const quantity = Math.max(0.01, Number(cantidad) || 1);
         let varianteSeleccionada = {
             variante_id: null,
             color: null,
@@ -289,12 +426,21 @@ export default function CatalogoPage() {
         let productoDB = null;
         let varianteDB = null;
         try {
-            const { data: prod } = await supabase
+            const { data: prodWithUnits, error: prodWithUnitsError } = await supabase
                 .from('productos')
-                .select('user_id, nombre, precio, imagen_url, stock')
+                .select('user_id, nombre, precio, imagen_url, stock, unidad_base, unidades_alternativas, factor_conversion')
                 .eq('user_id', producto.user_id)
                 .maybeSingle();
-            productoDB = prod;
+            if (prodWithUnitsError) {
+                const { data: prodFallback } = await supabase
+                    .from('productos')
+                    .select('user_id, nombre, precio, imagen_url, stock')
+                    .eq('user_id', producto.user_id)
+                    .maybeSingle();
+                productoDB = prodFallback;
+            } else {
+                productoDB = prodWithUnits;
+            }
             if (variantes.length > 0) {
                 if (!selectedVarianteId) {
                     setModalWarning('Debes seleccionar un color para continuar.');
@@ -302,7 +448,7 @@ export default function CatalogoPage() {
                 }
                 const { data: varData } = await supabase
                     .from('producto_variantes')
-                    .select('id, color, stock, precio, imagen_url')
+                    .select('id, color, stock, stock_decimal, precio, imagen_url')
                     .eq('id', selectedVarianteId)
                     .maybeSingle();
                 varianteDB = varData;
@@ -322,7 +468,7 @@ export default function CatalogoPage() {
                 setModalWarning('Selecciona un color válido para continuar.');
                 return;
             }
-            if (Number(varianteDB.stock || 0) <= 0) {
+            if (Number((varianteDB.stock_decimal ?? varianteDB.stock) || 0) <= 0) {
                 setModalWarning('Esa opción está agotada. Elige otra disponible.');
                 return;
             }
@@ -331,7 +477,7 @@ export default function CatalogoPage() {
                 color: varianteDB.color || null,
                 precio: Number(varianteDB.precio ?? productoDB.precio ?? 0)
             };
-            stockDisponible = Math.max(0, Number(varianteDB.stock || 0));
+            stockDisponible = Math.max(0, Number((varianteDB.stock_decimal ?? varianteDB.stock) || 0));
         } else if (!productoDB || stockDisponible <= 0) {
             setModalWarning('Producto agotado por el momento.');
             return;
@@ -341,6 +487,9 @@ export default function CatalogoPage() {
 
         const productoConVariante = {
             ...producto,
+            unidad_base: productoDB?.unidad_base || producto.unidad_base,
+            unidades_alternativas: Array.isArray(productoDB?.unidades_alternativas) ? productoDB.unidades_alternativas : producto.unidades_alternativas,
+            factor_conversion: Number(productoDB?.factor_conversion || producto.factor_conversion || 0) || undefined,
             nombre: productoDB?.nombre || producto.nombre,
             imagen_url: varianteDB?.imagen_url || productoDB?.imagen_url || producto.imagen_url,
             variante_id: varianteSeleccionada.variante_id,
@@ -349,22 +498,24 @@ export default function CatalogoPage() {
         };
 
         const precioFinal = getPrecioFinal(productoConVariante);
-        const cartKey = getCartKey(productoConVariante);
+        const selectedUnit = String(unidad || productoConVariante.unidad_base || 'unidad');
+        const requestedBaseQuantity = toBaseQuantity(quantity, selectedUnit, productoConVariante);
+        const cartKey = `${getCartKey(productoConVariante)}:${selectedUnit}`;
 
         // Validar stock antes de modificar el carrito
         const idx = cart.findIndex(p => (p.cart_key || getCartKey(p)) === cartKey);
-        const cantidadActual = idx !== -1 ? Number(cart[idx].cantidad || 0) : 0;
+        const cantidadActual = idx !== -1 ? getItemBaseQuantity(cart[idx]) : 0;
         const disponibleParaAgregar = Math.max(0, stockDisponible - cantidadActual);
 
         if (disponibleParaAgregar <= 0) {
-            setModalWarning(`Lo sentimos, el stock actual que puede pedir es ${stockDisponible}.`);
+            setModalWarning(`Lo sentimos, el stock actual que puede pedir es ${fromBaseQuantity(stockDisponible, selectedUnit, productoConVariante)} ${selectedUnit}.`);
             return;
         }
 
-        if (quantity > disponibleParaAgregar) {
+        if (requestedBaseQuantity > disponibleParaAgregar) {
             const mensaje = cantidadActual > 0
                 ? `Lo sentimos, el stock actual que puede pedir es ${stockDisponible}. Ya tienes ${cantidadActual} en tu cesta, puedes agregar hasta ${disponibleParaAgregar} más.`
-                : `Lo sentimos, el stock actual que puede pedir es ${stockDisponible}.`;
+                : `Lo sentimos, el stock actual que puede pedir es ${fromBaseQuantity(stockDisponible, selectedUnit, productoConVariante)} ${selectedUnit}.`;
             setModalWarning(mensaje);
             return;
         }
@@ -374,10 +525,24 @@ export default function CatalogoPage() {
             const idxPrev = prev.findIndex(p => (p.cart_key || getCartKey(p)) === cartKey);
             if (idxPrev !== -1) {
                 const updated = [...prev];
-                updated[idxPrev] = { ...updated[idxPrev], cantidad: updated[idxPrev].cantidad + quantity };
+                updated[idxPrev] = {
+                    ...updated[idxPrev],
+                    unidad: selectedUnit,
+                    cantidad: getItemDisplayQuantity(updated[idxPrev]) + quantity,
+                    cantidad_display: getItemDisplayQuantity(updated[idxPrev]) + quantity,
+                    cantidad_base: getItemBaseQuantity(updated[idxPrev]) + requestedBaseQuantity
+                };
                 return updated;
             }
-            return [...prev, { ...productoConVariante, cart_key: cartKey, cantidad: quantity, precio: precioFinal }];
+            return [...prev, {
+                ...productoConVariante,
+                cart_key: cartKey,
+                unidad: selectedUnit,
+                cantidad: quantity,
+                cantidad_display: quantity,
+                cantidad_base: requestedBaseQuantity,
+                precio: precioFinal
+            }];
         });
         setAddToCartModal(null);
         setModalWarning("");
@@ -392,12 +557,14 @@ export default function CatalogoPage() {
                 const maxStock = getStockDisponibleItem(item);
                 if (maxStock <= 0) return [];
 
-                const requested = Math.max(1, Number(newQty) || 1);
-                if (requested > maxStock) {
-                    alert(`Lo sentimos, el stock actual que puede pedir es ${maxStock}.`);
+                const requested = Math.max(0.01, Number(newQty) || 1);
+                const requestedBase = toBaseQuantity(requested, item.unidad, item);
+                if (requestedBase > maxStock) {
+                    alert(`Lo sentimos, el stock actual que puede pedir es ${fromBaseQuantity(maxStock, item.unidad, item)} ${item.unidad || item.unidad_base || 'unidad'}.`);
                 }
-                const quantity = Math.max(1, Math.min(requested, maxStock));
-                return [{ ...item, cantidad: quantity }];
+                const quantityBase = Math.max(0.01, Math.min(requestedBase, maxStock));
+                const quantityDisplay = fromBaseQuantity(quantityBase, item.unidad, item);
+                return [{ ...item, cantidad: quantityDisplay, cantidad_display: quantityDisplay, cantidad_base: quantityBase }];
             })
         );
     };
@@ -438,7 +605,15 @@ export default function CatalogoPage() {
         let nombreFinal = customerData.nombre || (usuario && usuario.nombre) || null;
         let nitciLlenado = customerData.nit_ci || (usuario && usuario.nit_ci) || null;
         let emailFinal = usuario && usuario.email ? usuario.email : null;
-        
+
+        // Importar el token anónimo
+        let carritoToken = null;
+        if (typeof window !== 'undefined') {
+            try {
+                carritoToken = localStorage.getItem('carrito_token');
+            } catch {}
+        }
+
         // Insertar y obtener el número de pedido (id)
         const { data, error } = await supabase.from("carritos_pendientes").insert([
             {
@@ -466,18 +641,21 @@ export default function CatalogoPage() {
                         producto_id: p.user_id,
                         variante_id: p.variante_id || null,
                         color: p.color || null,
-                        cantidad: p.cantidad,
+                        unidad: p.unidad || p.unidad_base || 'unidad',
+                        cantidad: getItemDisplayQuantity(p),
+                        cantidad_base: getItemBaseQuantity(p),
                         precio_unitario: p.precio
                     };
                 }),
+                carrito_token: carritoToken || null,
             }
         ]).select('id').single();
-        
+
         if (error || !data) {
             alert(`No se pudo guardar el pedido. Error: ${error?.message || 'Error desconocido'}. Por favor intenta de nuevo.`);
             return;
         }
-        
+
         const pedidoId = data.id;
 
         // 📊 Track Facebook Pixel - Purchase
@@ -486,11 +664,12 @@ export default function CatalogoPage() {
 
         // 2. Preparar mensaje WhatsApp
         const itemsList = cart.map(item => {
-            const subtotal = (item.precio * item.cantidad).toFixed(2); 
-            return `*${item.cantidad}x* ${item.nombre} - (Bs ${subtotal})`;
+            const cantidadTexto = getItemQuantityText(item);
+            const subtotal = getItemSubtotal(item).toFixed(2); 
+            return `*${cantidadTexto}* ${item.nombre} - (Bs ${subtotal})`;
         }).join('\n');
         
-        const total = cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0).toFixed(2);
+        const total = cart.reduce((sum, item) => sum + getItemSubtotal(item), 0).toFixed(2);
         const nombreTexto = nombreFinal ? `Nombre: ${nombreFinal}\n` : '';
         const nitciTexto = nitciLlenado ? `NIT/CI: ${nitciLlenado}\n` : '';
         const pedidoTexto = `N° Pedido: ${pedidoId}`;
@@ -507,7 +686,7 @@ export default function CatalogoPage() {
         setShowConfirmOrder(false);
         setCart([]);
         setCustomerData({ nombre: '', nit_ci: '' });
-        localStorage.removeItem('carrito_temporal');
+        localStorage.removeItem(cartStorageKey);
         
         // Mensaje de éxito
         alert("¡Pedido enviado exitosamente! Se ha abierto WhatsApp para completar tu pedido.");
@@ -612,7 +791,9 @@ export default function CatalogoPage() {
                             ) : (
                                 <Image src="/free-shopping-icons-vector.jpg" alt="icono pedido" width={36} height={36} className="inline-block align-middle mr-2 rounded" />
                             )}
-                    {storeSettings?.store_name ? `Pedido en ${storeSettings.store_name}` : 'Realiza tu pedido'}
+                    {storeSettings?.store_name
+                        ? `${currentPublicView === 'insumos' ? 'Pedido de insumos en' : 'Pedido en'} ${storeSettings.store_name}`
+                        : currentPublicView === 'insumos' ? 'Realiza tu pedido de insumos' : 'Realiza tu pedido'}
                 </h1>
             </div>
 
@@ -641,14 +822,14 @@ export default function CatalogoPage() {
             )}
 
             {/* SECCIÓN DE PACKS ESPECIALES */}
-            {!loadingPacks && packs.length > 0 && (
+            {!loadingPacks && visiblePacks.length > 0 && (
                 <div className="mb-8">
                     <h2 className="text-2xl font-bold text-purple-800 mb-4 text-center">
                         📦 Packs Especiales - ¡Combos con Descuento!
                     </h2>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                        {packs.map((pack) => {
+                        {visiblePacks.map((pack) => {
                             const { precioIndividual, descuentoAbsoluto, descuentoPorcentaje } = calcularDescuentoPack(pack);
                             
                             return (
@@ -721,7 +902,7 @@ export default function CatalogoPage() {
                                             const productosConVariantes = (pack.pack_productos || []).map((item, idx) => {
                                                 // Buscar el producto real en la lista global para obtener variantes actualizadas
                                                 const productoReal = productos.find(p => String(p.user_id) === String(item.productos.user_id));
-                                                const variantes = Array.isArray(productoReal?.variantes) ? productoReal.variantes.filter(v => Number(v?.stock || 0) > 0) : [];
+                                                const variantes = Array.isArray(productoReal?.variantes) ? productoReal.variantes.filter(v => Number((v?.stock_decimal ?? v?.stock) || 0) > 0) : [];
                                                 return {
                                                     ...item,
                                                     productos: productoReal || item.productos,
@@ -835,6 +1016,38 @@ export default function CatalogoPage() {
                                             promociones={promociones}
                                             className="mb-1"
                                         />
+                                        {(() => {
+                                            const conversionInfo = getConversionPriceInfo(producto);
+                                            if (!conversionInfo) return null;
+                                            return (
+                                                <div className="mb-3 rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-sky-50 px-3 py-3 shadow-sm">
+                                                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-blue-700">
+                                                        Precio por unidad
+                                                    </p>
+                                                    <div className="space-y-1.5">
+                                                        <div className="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
+                                                            <span className="text-xs font-semibold text-slate-600">
+                                                                Por {conversionInfo.unidadBase}
+                                                            </span>
+                                                            <span className="text-sm font-bold text-blue-800">
+                                                                Bs {conversionInfo.precioBase.toFixed(2)}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
+                                                            <span className="text-xs font-semibold text-slate-600">
+                                                                Por {conversionInfo.unidadAlternativa}
+                                                            </span>
+                                                            <span className="text-sm font-bold text-blue-700">
+                                                                Bs {conversionInfo.precioAlternativo.toFixed(2)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <p className="mt-2 text-[11px] text-blue-700">
+                                                        1 {conversionInfo.unidadBase} = {Number(producto.factor_conversion || 0).toFixed(2).replace(/\.00$/, '')} {conversionInfo.unidadAlternativa}
+                                                    </p>
+                                                </div>
+                                            );
+                                        })()}
                                         {/* Mostrar colores disponibles como paleta de círculos */}
                                         {/* Mostrar colores disponibles como paleta de círculos */}
                                         {(() => {
@@ -845,7 +1058,7 @@ export default function CatalogoPage() {
                                                                                                         .replace(/[\u0300-\u036f]/g, '')
                                                                                                         .toLowerCase()
                                                                                                         .trim();
-                                                                                                    return Number(v?.stock || 0) > 0 && colorNormalizado && colorNormalizado !== 'unico';
+                                                                                                    return Number((v?.stock_decimal ?? v?.stock) || 0) > 0 && colorNormalizado && colorNormalizado !== 'unico';
                                                                                                 })
                                                                                             : [];
                                             if (coloresEnStock.length <= 1) return null;
@@ -874,11 +1087,15 @@ export default function CatalogoPage() {
                                               </div>
                                             );
                                         })()}
-                                        {agotado && (
-                                            <span className="mt-2 inline-flex self-start bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-md">
-                                                Agotado
-                                            </span>
-                                        )}
+                                                                                {agotado ? (
+                                                                                        <span className="mt-2 inline-flex self-start bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-md">
+                                                                                                Agotado
+                                                                                        </span>
+                                                                                ) : (
+                                                                                    <span className="mt-2 inline-flex self-start bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-md">
+                                                                                        Disponible
+                                                                                    </span>
+                                                                                )}
                                     </div>
                                     <button
                                         disabled={agotado}
@@ -979,7 +1196,7 @@ export default function CatalogoPage() {
                                     v => String(v.variante_id ?? v.id) === String(addToCartModal.selectedVarianteId)
                                 );
                                 const maxCantidad = addToCartModal.variantes.length > 0
-                                    ? Math.max(0, Number(selectedVariante?.stock || 0))
+                                    ? Math.max(0, Number((selectedVariante?.stock_decimal ?? selectedVariante?.stock) || 0))
                                     : Math.max(0, Number(addToCartModal.producto?.stock || 0));
                                 return (
                                     <>
@@ -1002,6 +1219,38 @@ export default function CatalogoPage() {
                                             <p className="text-sm text-gray-500">Producto</p>
                                             <p className="font-semibold text-gray-900">{addToCartModal.producto.nombre}</p>
                                         </div>
+                                        {(() => {
+                                            const conversionInfo = getConversionPriceInfo(addToCartModal.producto);
+                                            if (!conversionInfo) return null;
+                                            return (
+                                                <div className="mb-4 rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-sky-50 px-3 py-3 shadow-sm">
+                                                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-blue-700">
+                                                        Precio por unidad
+                                                    </p>
+                                                    <div className="space-y-1.5">
+                                                        <div className="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
+                                                            <span className="text-xs font-semibold text-slate-600">
+                                                                Por {conversionInfo.unidadBase}
+                                                            </span>
+                                                            <span className="text-sm font-bold text-blue-800">
+                                                                Bs {conversionInfo.precioBase.toFixed(2)}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
+                                                            <span className="text-xs font-semibold text-slate-600">
+                                                                Por {conversionInfo.unidadAlternativa}
+                                                            </span>
+                                                            <span className="text-sm font-bold text-blue-700">
+                                                                Bs {conversionInfo.precioAlternativo.toFixed(2)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <p className="mt-2 text-[11px] text-blue-700">
+                                                        1 {conversionInfo.unidadBase} = {Number(addToCartModal.producto.factor_conversion || 0).toFixed(2).replace(/\.00$/, '')} {conversionInfo.unidadAlternativa}
+                                                    </p>
+                                                </div>
+                                            );
+                                        })()}
                                         {addToCartModal.variantes.length > 0 && (
                                             <div className="mb-4">
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
@@ -1015,7 +1264,7 @@ export default function CatalogoPage() {
                                                 >
                                                     {addToCartModal.variantes.map((v, idx) => {
                                                         const optionValue = v.variante_id ?? v.id;
-                                                        const disponible = Number(v.stock || 0) > 0;
+                                                        const disponible = Number((v.stock_decimal ?? v.stock) || 0) > 0;
                                                         return (
                                                             <option key={optionValue + '-' + idx} value={optionValue} disabled={!disponible}>
                                                                 {v.color || 'Sin color'}{disponible ? '' : ' - Agotado'}
@@ -1025,19 +1274,44 @@ export default function CatalogoPage() {
                                                 </select>
                                             </div>
                                         )}
+                                        {getAvailableUnits(addToCartModal.producto).length > 1 && (
+                                            <div className="mb-4">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Unidad</label>
+                                                <select
+                                                    value={addToCartModal.unidad ?? getAvailableUnits(addToCartModal.producto)[0]}
+                                                    onChange={(e) => setAddToCartModal(prev => ({
+                                                        ...prev,
+                                                        unidad: e.target.value
+                                                    }))}
+                                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                >
+                                                    {getAvailableUnits(addToCartModal.producto).map((unidadDisponible) => (
+                                                        <option key={unidadDisponible} value={unidadDisponible}>
+                                                            {unidadDisponible}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        )}
                                         <div className="mb-6">
                                             <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
                                             <input
                                                 type="number"
-                                                min={1}
+                                                min={0.01}
+                                                step="0.01"
                                                 disabled={maxCantidad <= 0}
                                                 value={addToCartModal.cantidad}
                                                 onChange={(e) => setAddToCartModal(prev => ({
                                                     ...prev,
-                                                    cantidad: Math.max(1, Number(e.target.value) || 1)
+                                                    cantidad: Math.max(0.01, Number(e.target.value) || 1)
                                                 }))}
                                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
+                                            {getAvailableUnits(addToCartModal.producto).length > 1 && (
+                                                <p className="mt-2 text-xs text-gray-500">
+                                                    1 {addToCartModal.producto.unidad_base || 'unidad'} = {Number(addToCartModal.producto.factor_conversion || 0) || 0} {(addToCartModal.producto.unidades_alternativas || [])[0] || 'unidad'}
+                                                </p>
+                                            )}
                                             {maxCantidad <= 0 && (
                                                 <p className="mt-2 text-sm text-red-600 font-semibold">Agotado</p>
                                             )}
@@ -1081,10 +1355,10 @@ export default function CatalogoPage() {
                                         });
                                         return Object.entries(counts).every(([vid, count]) => {
                                             const variante = p.variantes.find(vv => String(vv.variante_id ?? vv.id) === String(vid));
-                                            return variante && Number(variante.stock || 0) >= count;
+                                            return variante && Number((variante.stock_decimal ?? variante.stock) || 0) >= count;
                                         });
                                     } else if (p.variantes.length === 1) {
-                                        return Number(p.variantes[0].stock || 0) >= totalUnidades;
+                                        return Number((p.variantes[0].stock_decimal ?? p.variantes[0].stock) || 0) >= totalUnidades;
                                     } else {
                                         return Number(p.productos.stock || 0) >= totalUnidades;
                                     }
@@ -1132,7 +1406,7 @@ export default function CatalogoPage() {
                                                                     <option value="">Selecciona color para unidad #{unidadIdx + 1}</option>
                                                                     {p.variantes.map((v, vIdx) => {
                                                                         const optionValue = v.variante_id ?? v.id;
-                                                                        const disponible = Number(v.stock || 0) > 0;
+                                                                        const disponible = Number((v.stock_decimal ?? v.stock) || 0) > 0;
                                                                         return (
                                                                             <option key={optionValue + '-' + vIdx} value={optionValue} disabled={!disponible}>
                                                                                 {v.color || 'Sin color'}{disponible ? '' : ' - Agotado'}
@@ -1301,23 +1575,23 @@ export default function CatalogoPage() {
                                                 <button
                                                     className="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full w-7 h-7 flex items-center justify-center font-bold text-lg"
                                                     title="Disminuir"
-                                                    onClick={() => updateCartQty(item.cart_key || getCartKey(item), Math.max(1, item.cantidad - 1))}
-                                                    disabled={item.cantidad <= 1}
+                                                    onClick={() => updateCartQty(item.cart_key || getCartKey(item), Math.max(0.01, getItemDisplayQuantity(item) - 1))}
+                                                    disabled={getItemDisplayQuantity(item) <= 1}
                                                 >
                                                     −
                                                 </button>
                                                 <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-semibold min-w-[2.5rem] text-center">
-                                                    x{item.cantidad}
+                                                    {getItemQuantityText(item)}
                                                 </span>
                                                 <button
                                                     className="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full w-7 h-7 flex items-center justify-center font-bold text-lg"
                                                     title="Aumentar"
-                                                    onClick={() => updateCartQty(item.cart_key || getCartKey(item), item.cantidad + 1)}
+                                                    onClick={() => updateCartQty(item.cart_key || getCartKey(item), getItemDisplayQuantity(item) + 1)}
                                                 >
                                                     +
                                                 </button>
                                                 <span className="font-bold text-green-600 ml-2">
-                                                    Bs {(item.precio * item.cantidad).toFixed(2)}
+                                                    Bs {getItemSubtotal(item).toFixed(2)}
                                                 </span>
                                                 <button
                                                     className="ml-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full w-7 h-7 flex items-center justify-center font-bold text-lg"
@@ -1333,7 +1607,7 @@ export default function CatalogoPage() {
                             </ul>
                             <div className="flex justify-between items-center mb-3 pt-2 border-t-2 border-green-600 font-extrabold">
                                 <span className="text-lg text-green-800">Total:</span>
-                                <span className="text-2xl text-blue-800 bg-yellow-200 px-3 py-1 rounded-lg shadow">Bs {cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0).toFixed(2)}</span>
+                                <span className="text-2xl text-blue-800 bg-yellow-200 px-3 py-1 rounded-lg shadow">Bs {cart.reduce((sum, item) => sum + getItemSubtotal(item), 0).toFixed(2)}</span>
                             </div>
                         </>
                     )}
@@ -1439,17 +1713,17 @@ export default function CatalogoPage() {
                                 <div className="bg-gray-50 rounded-lg p-4">
                                     <div className="space-y-3">
                                         {cart.map(item => (
-                                            <div key={item.user_id} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
+                                            <div key={item.cart_key || getCartKey(item)} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
                                                 <div className="flex-1">
                                                     <h4 className="font-semibold text-gray-800">{item.nombre}</h4>
                                                     <p className="text-sm text-gray-600">Bs {item.precio.toFixed(2)} c/u</p>
                                                 </div>
                                                 <div className="flex items-center gap-3">
                                                     <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-semibold">
-                                                        x{item.cantidad}
+                                                        {getItemQuantityText(item)}
                                                     </span>
                                                     <span className="font-bold text-green-600">
-                                                        Bs {(item.precio * item.cantidad).toFixed(2)}
+                                                        Bs {getItemSubtotal(item).toFixed(2)}
                                                     </span>
                                                 </div>
                                             </div>
@@ -1459,7 +1733,7 @@ export default function CatalogoPage() {
                                         <div className="flex justify-between items-center">
                                             <span className="text-xl font-bold text-gray-800">Total:</span>
                                             <span className="text-2xl font-bold text-green-600 bg-green-100 px-4 py-2 rounded-lg">
-                                                Bs {cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0).toFixed(2)}
+                                                Bs {cart.reduce((sum, item) => sum + getItemSubtotal(item), 0).toFixed(2)}
                                             </span>
                                         </div>
                                     </div>

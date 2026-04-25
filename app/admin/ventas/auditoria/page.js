@@ -28,25 +28,27 @@ export default function AuditoriaStockPage() {
       .sort((a, b) => String(a.color || '').localeCompare(String(b.color || ''), 'es', { sensitivity: 'base' }));
     const ventasProducto = detalles.filter(d => d.producto_id === producto.user_id);
     // Stock inicial por variante y total
-    const stockInicialTotal = vars.reduce((sum, v) => sum + (Number(v.stock_inicial) || 0), 0);
+    const stockInicialTotal = vars.reduce((sum, v) => sum + (Number(v.stock_inicial_decimal ?? v.stock_inicial) || 0), 0);
     // Stock actual por variante y total
-    const stockActualTotal = vars.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+    const stockActualTotal = vars.reduce((sum, v) => sum + (Number(v.stock_decimal ?? v.stock) || 0), 0);
     // Ventas por variante y total
     const ventasPorVariante = vars.map(v => {
-      const ventas = detalles.filter(d => d.variante_id === v.id).reduce((sum, d) => sum + Number(d.cantidad), 0);
+      const ventas = detalles
+        .filter(d => d.variante_id === v.id)
+        .reduce((sum, d) => sum + Number(d.cantidad_base ?? d.cantidad), 0);
       return { color: v.color, ventas, id: v.id };
     });
     const ventasTotal = ventasPorVariante.reduce((sum, v) => sum + v.ventas, 0);
     // Stock calculado por variante y total
     const stockCalculadoPorVariante = vars.map((v, i) => {
       const ventas = ventasPorVariante[i].ventas;
-      const inicial = Number(v.stock_inicial) || 0;
+      const inicial = Number(v.stock_inicial_decimal ?? v.stock_inicial) || 0;
       return { color: v.color, calculado: inicial - ventas, id: v.id };
     });
     const stockCalculadoTotal = stockInicialTotal - ventasTotal;
     // Diferencia por variante y total
     const diferenciaPorVariante = vars.map((v, i) => {
-      const actual = Number(v.stock) || 0;
+      const actual = Number(v.stock_decimal ?? v.stock) || 0;
       const calculado = stockCalculadoPorVariante[i].calculado;
       return { color: v.color, diferencia: actual - calculado, id: v.id };
     });
@@ -98,7 +100,9 @@ export default function AuditoriaStockPage() {
         fecha: d.created_at,
         usuario: d.usuario_email,
         variante: d.variante_id,
-        cantidad: d.cantidad
+        cantidad: d.cantidad,
+        cantidad_base: d.cantidad_base,
+        unidad: d.unidad
       });
     });
     // Ordenar cronológicamente ascendente
@@ -111,7 +115,7 @@ export default function AuditoriaStockPage() {
       // Traer productos con stock_inicial
       const { data: prods } = await supabase.from("productos").select("user_id, nombre, stock, stock_inicial");
       // Traer ventas detalle (incluyendo usuario_email)
-      const { data: dets } = await supabase.from("ventas_detalle").select("producto_id, cantidad, variante_id, created_at, usuario_email");
+      const { data: dets } = await supabase.from("ventas_detalle").select("producto_id, cantidad, cantidad_base, unidad, variante_id, created_at, usuario_email");
       // Traer variantes
       const { data: vars } = await supabase.from("producto_variantes").select("*");
       // Traer movimientos de stock
@@ -337,7 +341,11 @@ export default function AuditoriaStockPage() {
                     <span className="font-bold capitalize">{e.tipo}</span> <span className="text-xs text-gray-500">({new Date(e.fecha).toLocaleString()})</span>
                     {e.usuario && <span className="ml-2 text-xs text-blue-700">{e.usuario}</span>}
                     {e.variante && <span className="ml-2 text-xs text-purple-700">Variante: {e.variante}</span>}
-                    {e.cantidad !== undefined && <span className="ml-2 text-xs">Cantidad: {e.cantidad}</span>}
+                    {e.cantidad !== undefined && (
+                      <span className="ml-2 text-xs">
+                        Cantidad: {e.cantidad}{e.unidad ? ` ${e.unidad}` : ''}{e.cantidad_base !== undefined ? ` | Base: ${e.cantidad_base}` : ''}
+                      </span>
+                    )}
                     {e.observaciones && <span className="ml-2 text-xs italic text-gray-500">{e.observaciones}</span>}
                     {e.datos_anteriores && <span className="ml-2 text-xs text-orange-700">(Antes: {JSON.stringify(e.datos_anteriores)})</span>}
                     {e.datos_nuevos && <span className="ml-2 text-xs text-green-700">(Ahora: {JSON.stringify(e.datos_nuevos)})</span>}

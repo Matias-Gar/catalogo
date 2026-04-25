@@ -38,9 +38,6 @@ export default function PromocionesDescuentosPage() {
         .order('activa', { ascending: false }) // Primero las activas
         .order('id', { ascending: false });
 
-      console.log('Promociones con productos:', promocionesData);
-      console.log('Error:', promoError);
-
       if (promoError) {
         console.error("Error al cargar promociones:", promoError);
         alert("Error al cargar datos: " + promoError.message);
