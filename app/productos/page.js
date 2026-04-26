@@ -5,15 +5,69 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { usePromociones } from "@/lib/usePromociones";
-import { usePacks } from "@/lib/packs";
+import { usePacks, calcularDescuentoPack } from "@/lib/packs";
 import { supabase } from "@/lib/SupabaseClient";
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from "@/lib/storeSettings";
 import { PrecioConPromocion, calcularPrecioConPromocion } from "@/lib/promociones";
 import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 import { normalizeProductView } from "@/lib/productViews";
 
+function UnitPricePanel({ conversionInfo, factor, className = "mb-3" }) {
+    if (!conversionInfo) return null;
+    const PriceValue = ({ original, final }) => (
+        <span className="flex shrink-0 flex-col items-end leading-tight">
+            {conversionInfo.tienePromocion && (
+                <span className="text-xs text-gray-800 line-through decoration-gray-800">
+                    Bs {original.toFixed(2)}
+                </span>
+            )}
+            <span className={`font-bold ${conversionInfo.tienePromocion ? 'text-green-600' : 'text-blue-700'}`}>
+                Bs {final.toFixed(2)}
+            </span>
+        </span>
+    );
+
+    return (
+        <div className={`${className} space-y-2 text-left`}>
+            <div className="space-y-1.5">
+                {conversionInfo.showBasePrice && (
+                    <div className="flex items-center justify-between gap-3">
+                        <span className="text-sm text-gray-600">Por {conversionInfo.unidadBase}</span>
+                        <PriceValue original={conversionInfo.precioBaseOriginal} final={conversionInfo.precioBase} />
+                    </div>
+                )}
+                <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-gray-600">Por {conversionInfo.unidadAlternativa}</span>
+                    <PriceValue original={conversionInfo.precioAlternativoOriginal} final={conversionInfo.precioAlternativo} />
+                </div>
+            </div>
+            <div className="text-xs text-gray-500">
+                1 {conversionInfo.unidadBase} = {Number(factor || 0).toFixed(2).replace(/\.00$/, '')} {conversionInfo.unidadAlternativa}
+            </div>
+            {conversionInfo.tienePromocion && (
+                <div className="flex w-full items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm">
+                    <span className="shrink-0 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold leading-none text-gray-950">
+                        -{conversionInfo.porcentajeDescuento}%
+                    </span>
+                    {conversionInfo.promocionDescripcion && (
+                        <span className="min-w-0 flex-1 font-semibold text-slate-800">
+                            🎯 {conversionInfo.promocionDescripcion}
+                        </span>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
 
 // --- INICIO DEL FLUJO AVANZADO DEL CATÁLOGO ---
+function getEffectiveVariantStock(variant) {
+    const decimal = Number(variant?.stock_decimal);
+    const legacy = Number(variant?.stock);
+    return Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
+}
+
 export default function CatalogoPage() {
         const pathname = usePathname();
         const currentPublicView = pathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
@@ -34,12 +88,21 @@ export default function CatalogoPage() {
                 const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
             const [cart, setCart] = useState([]);
         const [usuario, setUsuario] = useState(null);
-    const getAvailableUnits = (producto) => {
+    const getAvailableUnits = (producto, stockBaseInput = null) => {
         const unidadBase = String(producto?.unidad_base || 'unidad').trim() || 'unidad';
         const alternativas = Array.isArray(producto?.unidades_alternativas)
             ? producto.unidades_alternativas.map((u) => String(u || '').trim()).filter(Boolean)
             : [];
-        return [unidadBase, ...alternativas.filter((u) => u !== unidadBase)];
+        const factor = Number(producto?.factor_conversion || 0);
+        const unidadAlternativa = alternativas.find((u) => u && u !== unidadBase);
+        if (!unidadAlternativa || !Number.isFinite(factor) || factor <= 0 || stockBaseInput === null) {
+            return [unidadBase, ...alternativas.filter((u) => u !== unidadBase)];
+        }
+        const stockBase = Math.max(0, Number(stockBaseInput) || 0);
+        const units = [];
+        if (stockBase >= 1) units.push(unidadBase);
+        if (stockBase * factor > 0) units.push(unidadAlternativa);
+        return units.length > 0 ? units : [unidadBase];
     };
     const toBaseQuantity = (cantidad, unidad, producto) => {
         const qty = Number(cantidad || 0);
@@ -57,52 +120,134 @@ export default function CatalogoPage() {
         if (unidad === unidadBase || !factor || factor <= 0) return qty;
         return qty * factor;
     };
-    const getItemDisplayQuantity = (item) => Number(item?.cantidad_display ?? item?.cantidad ?? 0);
-    const getItemBaseQuantity = (item) => Number(item?.cantidad_base ?? item?.cantidad ?? 0);
-    const getItemSubtotal = (item) => Number(item?.precio || 0) * getItemBaseQuantity(item);
-    const getItemQuantityText = (item) => item?.tipo === 'pack'
-        ? `x${getItemDisplayQuantity(item)}`
-        : `${getItemDisplayQuantity(item)} ${item?.unidad || item?.unidad_base || 'unidad'}`;
-    const getConversionPriceInfo = (producto) => {
+    const formatQuantity = (value) => {
+        const parsed = Number(value || 0);
+        if (!Number.isFinite(parsed)) return '0';
+        return Number(parsed.toFixed(2)).toString();
+    };
+    const getProductStockBase = (producto, varianteId = null) => {
+        const variantes = Array.isArray(producto?.variantes) ? producto.variantes : [];
+        const productStock = Math.max(0, Number(producto?.stock ?? producto?.stock_total ?? 0));
+        if (variantes.length > 0) {
+            if (varianteId !== null && varianteId !== undefined) {
+                const variante = variantes.find((v) => String(v.variante_id ?? v.id) === String(varianteId));
+                return getEffectiveVariantStock(variante);
+            }
+            const variantStock = variantes.reduce((acc, variante) => acc + getEffectiveVariantStock(variante), 0);
+            return variantStock > 0 || productStock <= 0 ? variantStock : productStock;
+        }
+        return productStock;
+    };
+    const getStockBreakdown = (producto, stockBaseInput = null) => {
+        const stockBase = Math.max(0, Number(stockBaseInput ?? getProductStockBase(producto)) || 0);
         const unidadBase = String(producto?.unidad_base || 'unidad').trim() || 'unidad';
         const alternativas = Array.isArray(producto?.unidades_alternativas)
             ? producto.unidades_alternativas.map((u) => String(u || '').trim()).filter(Boolean)
             : [];
         const unidadAlternativa = alternativas.find((u) => u && u !== unidadBase);
         const factor = Number(producto?.factor_conversion || 0);
+        if (!unidadAlternativa || !Number.isFinite(factor) || factor <= 0) {
+            return {
+                agotado: stockBase <= 0,
+                principal: `${formatQuantity(stockBase)} ${unidadBase}`,
+                detalle: '',
+                fullBase: Math.floor(stockBase),
+                totalAlt: 0,
+            };
+        }
+        const fullBase = Math.floor(stockBase + 0.000001);
+        const remainingAlt = Math.max(0, (stockBase - fullBase) * factor);
+        const totalAlt = stockBase * factor;
+        let principal = `${formatQuantity(totalAlt)} ${unidadAlternativa}`;
+        let detalle = '';
+        if (fullBase > 0) {
+            principal = `${fullBase} ${unidadBase}${fullBase === 1 ? '' : 's'}`;
+            detalle = remainingAlt > 0
+                ? `+ ${formatQuantity(remainingAlt)} ${unidadAlternativa} sueltos`
+                : `${formatQuantity(totalAlt)} ${unidadAlternativa} en total`;
+        }
+        return { agotado: stockBase <= 0, principal, detalle, fullBase, totalAlt };
+    };
+    const getItemDisplayQuantity = (item) => Number(item?.cantidad_display ?? item?.cantidad ?? 0);
+    const getItemBaseQuantity = (item) => Number(item?.cantidad_base ?? item?.cantidad ?? 0);
+    const getItemSubtotal = (item) => Number(item?.precio || 0) * getItemBaseQuantity(item);
+    const getItemQuantityText = (item) => item?.tipo === 'pack'
+        ? `x${getItemDisplayQuantity(item)}`
+        : `${getItemDisplayQuantity(item)} ${item?.unidad || item?.unidad_base || 'unidad'}`;
+    const getConversionPriceInfo = (producto, stockBaseInput = null) => {
+        const unidadBase = String(producto?.unidad_base || 'unidad').trim() || 'unidad';
+        const alternativas = Array.isArray(producto?.unidades_alternativas)
+            ? producto.unidades_alternativas.map((u) => String(u || '').trim()).filter(Boolean)
+            : [];
+        const unidadAlternativa = alternativas.find((u) => u && u !== unidadBase);
+        const factor = Number(producto?.factor_conversion || 0);
+        const stockBase = Math.max(0, Number(stockBaseInput ?? getProductStockBase(producto)) || 0);
 
         if (!unidadAlternativa || !Number.isFinite(factor) || factor <= 0) {
             return null;
         }
 
-        const { precioFinal } = calcularPrecioConPromocion(producto, promociones);
+        const precioInfo = calcularPrecioConPromocion(producto, promociones);
 
         return {
             unidadBase,
             unidadAlternativa,
-            precioBase: Number(precioFinal || 0),
-            precioAlternativo: Number(precioFinal || 0) / factor,
+            precioBase: Number(precioInfo.precioFinal || 0),
+            precioBaseOriginal: Number(precioInfo.precioOriginal || 0),
+            precioAlternativo: Number(precioInfo.precioFinal || 0) / factor,
+            precioAlternativoOriginal: Number(precioInfo.precioOriginal || 0) / factor,
+            tienePromocion: precioInfo.tienePromocion,
+            porcentajeDescuento: precioInfo.porcentajeDescuento,
+            promocionDescripcion: precioInfo.promocion?.descripcion || '',
+            showBasePrice: stockBase >= 1,
         };
     };
     const mergeProductUnits = async (items) => {
         const ids = items.map((item) => item.user_id).filter(Boolean);
         if (ids.length === 0) return items;
         try {
-            const { data, error } = await supabase
-                .from('productos')
-                .select('user_id, unidad_base, unidades_alternativas, factor_conversion, vista_producto')
-                .in('user_id', ids);
+            const [{ data, error }, { data: variantRows }] = await Promise.all([
+                supabase
+                    .from('productos')
+                    .select('user_id, unidad_base, unidades_alternativas, factor_conversion, vista_producto, stock')
+                    .in('user_id', ids),
+                supabase
+                    .from('producto_variantes')
+                    .select('producto_id, id, color, stock, stock_decimal, precio, imagen_url, sku')
+                    .in('producto_id', ids),
+            ]);
             if (error || !Array.isArray(data)) return items;
             const byId = new Map(data.map((row) => [String(row.user_id), row]));
+            const variantsByProductId = (Array.isArray(variantRows) ? variantRows : []).reduce((acc, row) => {
+                const key = String(row.producto_id);
+                if (!acc[key]) acc[key] = [];
+                acc[key].push({
+                    ...row,
+                    variante_id: row.id,
+                    stock_decimal: getEffectiveVariantStock(row),
+                    stock: Number(row.stock ?? 0),
+                });
+                return acc;
+            }, {});
             return items.map((item) => {
                 const extra = byId.get(String(item.user_id));
+                const variantesReales = variantsByProductId[String(item.user_id)];
+                const variantes = Array.isArray(variantesReales) && variantesReales.length > 0
+                    ? variantesReales
+                    : item.variantes;
                 if (!extra) return item;
+                const variantStock = Array.isArray(variantes) && variantes.length > 0
+                    ? variantes.reduce((acc, v) => acc + getEffectiveVariantStock(v), 0)
+                    : 0;
+                const productStock = Number.isFinite(Number(extra.stock)) ? Math.max(0, Number(extra.stock)) : Math.max(0, Number(item.stock || 0));
                 return {
                     ...item,
+                    variantes,
                     unidad_base: extra.unidad_base || item.unidad_base || 'unidad',
                     unidades_alternativas: Array.isArray(extra.unidades_alternativas) ? extra.unidades_alternativas : item.unidades_alternativas,
                     factor_conversion: Number(extra.factor_conversion || 0) || item.factor_conversion,
-                    vista_producto: normalizeProductView(extra.vista_producto)
+                    vista_producto: normalizeProductView(extra.vista_producto),
+                    stock: variantStock > 0 || productStock <= 0 ? variantStock : productStock
                 };
             });
         } catch {
@@ -137,7 +282,9 @@ export default function CatalogoPage() {
                         stock: (() => {
                                 // Si tiene variantes, sumar stock de variantes
                                 if (Array.isArray(p.variantes) && p.variantes.length > 0) {
-                                        return p.variantes.reduce((acc, v) => acc + Number((v.stock_decimal ?? v.stock) || 0), 0);
+                                        const stockBase = Number(p.stock_total || 0);
+                                        const variantStock = p.variantes.reduce((acc, v) => acc + getEffectiveVariantStock(v), 0);
+                                        return variantStock > 0 || stockBase <= 0 ? variantStock : stockBase;
                                 }
                                 const stockBase = Number(p.stock_total || 0);
                                 // Si hay conversión y unidades alternativas, calcular stock alternativo
@@ -346,9 +493,9 @@ export default function CatalogoPage() {
                 if (variantes.length > 0) {
                         if (varianteId !== null && varianteId !== undefined) {
                                 const variante = variantes.find(function(v) { return String(v.variante_id ?? v.id) === String(varianteId); });
-                                return Math.max(0, Number((variante?.stock_decimal ?? variante?.stock) || 0));
+                                return getEffectiveVariantStock(variante);
                         }
-                        const totalDisponible = variantes.reduce(function(acc, v) { return acc + Math.max(0, Number((v?.stock_decimal ?? v?.stock) || 0)); }, 0);
+                        const totalDisponible = variantes.reduce(function(acc, v) { return acc + getEffectiveVariantStock(v); }, 0);
                         return Math.max(0, totalDisponible);
                 }
 
@@ -398,15 +545,19 @@ export default function CatalogoPage() {
 
     const openAddToCartModal = (producto) => {
         const variantes = getVariantes(producto);
-        const defaultVariante = variantes.find(function(v) { return Number((v?.stock_decimal ?? v?.stock) || 0) > 0; }) || null;
+        const defaultVariante = variantes.find(function(v) { return getEffectiveVariantStock(v) > 0; }) || null;
         const defaultVarianteId = defaultVariante ? (defaultVariante.variante_id ?? defaultVariante.id) : null;
+        const defaultStockBase = defaultVariante
+            ? getEffectiveVariantStock(defaultVariante)
+            : getProductStockBase(producto);
+        const unidades = getAvailableUnits(producto, defaultStockBase);
 
         setAddToCartModal({
             producto,
             variantes,
             selectedVarianteId: defaultVarianteId,
             cantidad: 1,
-            unidad: getAvailableUnits(producto)[0]
+            unidad: unidades[0]
         });
     };
 
@@ -468,7 +619,7 @@ export default function CatalogoPage() {
                 setModalWarning('Selecciona un color válido para continuar.');
                 return;
             }
-            if (Number((varianteDB.stock_decimal ?? varianteDB.stock) || 0) <= 0) {
+            if (getEffectiveVariantStock(varianteDB) <= 0) {
                 setModalWarning('Esa opción está agotada. Elige otra disponible.');
                 return;
             }
@@ -477,7 +628,7 @@ export default function CatalogoPage() {
                 color: varianteDB.color || null,
                 precio: Number(varianteDB.precio ?? productoDB.precio ?? 0)
             };
-            stockDisponible = Math.max(0, Number((varianteDB.stock_decimal ?? varianteDB.stock) || 0));
+            stockDisponible = getEffectiveVariantStock(varianteDB);
         } else if (!productoDB || stockDisponible <= 0) {
             setModalWarning('Producto agotado por el momento.');
             return;
@@ -499,6 +650,12 @@ export default function CatalogoPage() {
 
         const precioFinal = getPrecioFinal(productoConVariante);
         const selectedUnit = String(unidad || productoConVariante.unidad_base || 'unidad');
+        const unidadesVenta = getAvailableUnits(productoConVariante, stockDisponible);
+        if (!unidadesVenta.includes(selectedUnit)) {
+            setModalWarning(`Ya no queda ${productoConVariante.unidad_base || 'unidad'} completo. Selecciona ${(unidadesVenta[0] || 'otra unidad')}.`);
+            setAddToCartModal(prev => prev ? { ...prev, unidad: unidadesVenta[0] || selectedUnit } : prev);
+            return;
+        }
         const requestedBaseQuantity = toBaseQuantity(quantity, selectedUnit, productoConVariante);
         const cartKey = `${getCartKey(productoConVariante)}:${selectedUnit}`;
 
@@ -627,10 +784,12 @@ export default function CatalogoPage() {
                             tipo: 'pack',
                             pack_id: p.pack_id,
                             nombre: p.nombre,
-                            cantidad: p.cantidad,
+                            cantidad: getItemDisplayQuantity(p),
+                            cantidad_base: getItemBaseQuantity(p),
                             precio_unitario: p.precio,
                             productos: p.pack_data?.pack_productos?.map(pp => ({
                                 producto_id: pp.productos.user_id,
+                                variante_id: pp.variante_id || null,
                                 nombre: pp.productos.nombre,
                                 cantidad: pp.cantidad
                             })) || []
@@ -642,9 +801,15 @@ export default function CatalogoPage() {
                         variante_id: p.variante_id || null,
                         color: p.color || null,
                         unidad: p.unidad || p.unidad_base || 'unidad',
+                        unidad_base: p.unidad_base || p.unidad || 'unidad',
+                        unidades_alternativas: Array.isArray(p.unidades_alternativas) ? p.unidades_alternativas : [],
+                        factor_conversion: Number(p.factor_conversion || 0) || null,
                         cantidad: getItemDisplayQuantity(p),
                         cantidad_base: getItemBaseQuantity(p),
-                        precio_unitario: p.precio
+                        precio_unitario: p.precio,
+                        precio_original: p.precio_original ?? p.precio,
+                        promocion_aplicada: p.promocion_aplicada || null,
+                        nombre: p.nombre || null
                     };
                 }),
                 carrito_token: carritoToken || null,
@@ -902,7 +1067,7 @@ export default function CatalogoPage() {
                                             const productosConVariantes = (pack.pack_productos || []).map((item, idx) => {
                                                 // Buscar el producto real en la lista global para obtener variantes actualizadas
                                                 const productoReal = productos.find(p => String(p.user_id) === String(item.productos.user_id));
-                                                const variantes = Array.isArray(productoReal?.variantes) ? productoReal.variantes.filter(v => Number((v?.stock_decimal ?? v?.stock) || 0) > 0) : [];
+                                                const variantes = Array.isArray(productoReal?.variantes) ? productoReal.variantes.filter(v => getEffectiveVariantStock(v) > 0) : [];
                                                 return {
                                                     ...item,
                                                     productos: productoReal || item.productos,
@@ -954,6 +1119,7 @@ export default function CatalogoPage() {
                                 .reduce((acc, item) => acc + Number(item.cantidad || 0), 0);
                             const isInCart = quantityInCart > 0;
                             const agotado = isProductoAgotado(producto);
+                            const conversionInfo = !agotado ? getConversionPriceInfo(producto) : null;
                             const imagenes = (() => {
                                 const imgs = Array.isArray(imagenesProductos[producto.user_id]) ? imagenesProductos[producto.user_id] : [];
                                 // Si hay más de una imagen, la segunda es la principal (como miniatura portada)
@@ -970,7 +1136,7 @@ export default function CatalogoPage() {
                             return (
                                 <div
                                     key={producto.user_id ? producto.user_id : 'producto-' + idx}
-                                    className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-lg flex flex-col transition-shadow duration-300 hover:shadow-xl"
+                                    className={`relative overflow-hidden bg-white border rounded-xl p-3 sm:p-4 shadow-lg flex flex-col transition-shadow duration-300 hover:shadow-xl ${agotado ? 'border-gray-900' : 'border-gray-200'}`}
                                 >
                                     <div className="relative">
                                         {Array.isArray(imagenes) && imagenes.length > 0 && typeof imagenes[0] === 'string' ? (
@@ -982,7 +1148,7 @@ export default function CatalogoPage() {
                                                     height={200}
                                                     quality={96}
                                                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                                                    className="object-cover w-full h-full transition-transform duration-200 group-hover:scale-105"
+                                                    className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-105 ${agotado ? 'grayscale' : ''}`}
                                                     onClick={() => setModalImg({ urls: imagenes, index: 0, nombre: producto.nombre })}
                                                     onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen'; }}
                                                 />
@@ -1006,47 +1172,21 @@ export default function CatalogoPage() {
                                             </div>
                                         )}
                                     </div>
-                                    <div className="flex-1 flex flex-col">
+                                    <div className={`flex-1 flex flex-col ${agotado ? 'pb-24' : ''}`}>
                                         <div className="text-xs sm:text-sm text-gray-600 font-medium mb-1">{categoria ? (categoria.categori || categoria.nombre) : '-'}</div>
                                         <div className="text-sm sm:text-lg font-bold mb-2 line-clamp-2 text-gray-900">{producto.nombre}</div>
                                         
                                         {/* Usar el componente de precio con promoción */}
-                                        <PrecioConPromocion 
-                                            producto={producto} 
-                                            promociones={promociones}
-                                            className="mb-1"
-                                        />
+                                        {!agotado && !conversionInfo && (
+                                            <PrecioConPromocion
+                                                producto={producto}
+                                                promociones={promociones}
+                                                className="mb-1"
+                                            />
+                                        )}
                                         {(() => {
-                                            const conversionInfo = getConversionPriceInfo(producto);
                                             if (!conversionInfo) return null;
-                                            return (
-                                                <div className="mb-3 rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-sky-50 px-3 py-3 shadow-sm">
-                                                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-blue-700">
-                                                        Precio por unidad
-                                                    </p>
-                                                    <div className="space-y-1.5">
-                                                        <div className="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
-                                                            <span className="text-xs font-semibold text-slate-600">
-                                                                Por {conversionInfo.unidadBase}
-                                                            </span>
-                                                            <span className="text-sm font-bold text-blue-800">
-                                                                Bs {conversionInfo.precioBase.toFixed(2)}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
-                                                            <span className="text-xs font-semibold text-slate-600">
-                                                                Por {conversionInfo.unidadAlternativa}
-                                                            </span>
-                                                            <span className="text-sm font-bold text-blue-700">
-                                                                Bs {conversionInfo.precioAlternativo.toFixed(2)}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <p className="mt-2 text-[11px] text-blue-700">
-                                                        1 {conversionInfo.unidadBase} = {Number(producto.factor_conversion || 0).toFixed(2).replace(/\.00$/, '')} {conversionInfo.unidadAlternativa}
-                                                    </p>
-                                                </div>
-                                            );
+                                            return <UnitPricePanel conversionInfo={conversionInfo} factor={producto.factor_conversion} />;
                                         })()}
                                         {/* Mostrar colores disponibles como paleta de círculos */}
                                         {/* Mostrar colores disponibles como paleta de círculos */}
@@ -1058,7 +1198,7 @@ export default function CatalogoPage() {
                                                                                                         .replace(/[\u0300-\u036f]/g, '')
                                                                                                         .toLowerCase()
                                                                                                         .trim();
-                                                                                                    return Number((v?.stock_decimal ?? v?.stock) || 0) > 0 && colorNormalizado && colorNormalizado !== 'unico';
+                                                                                                    return getEffectiveVariantStock(v) > 0 && colorNormalizado && colorNormalizado !== 'unico';
                                                                                                 })
                                                                                             : [];
                                             if (coloresEnStock.length <= 1) return null;
@@ -1111,6 +1251,15 @@ export default function CatalogoPage() {
                                         </span>
                                         <span className="hidden sm:inline">{agotado ? '×' : '+'}</span>
                                     </button>
+                                    {agotado && (
+                                        <>
+                                            <div className="pointer-events-none absolute inset-0 bg-gray-950/55" />
+                                            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-4 bg-gray-950/90 px-5 py-5 text-left">
+                                                <span className="text-lg font-black uppercase tracking-wide text-red-500">Agotado</span>
+                                                <span className="text-sm leading-snug text-gray-100">Este producto no esta disponible</span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             );
                         });
@@ -1196,8 +1345,9 @@ export default function CatalogoPage() {
                                     v => String(v.variante_id ?? v.id) === String(addToCartModal.selectedVarianteId)
                                 );
                                 const maxCantidad = addToCartModal.variantes.length > 0
-                                    ? Math.max(0, Number((selectedVariante?.stock_decimal ?? selectedVariante?.stock) || 0))
+                                    ? getEffectiveVariantStock(selectedVariante)
                                     : Math.max(0, Number(addToCartModal.producto?.stock || 0));
+                                const unidadesDisponibles = getAvailableUnits(addToCartModal.producto, maxCantidad);
                                 return (
                                     <>
                                         {modalWarning && (
@@ -1220,51 +1370,36 @@ export default function CatalogoPage() {
                                             <p className="font-semibold text-gray-900">{addToCartModal.producto.nombre}</p>
                                         </div>
                                         {(() => {
-                                            const conversionInfo = getConversionPriceInfo(addToCartModal.producto);
+                                            if (maxCantidad <= 0) return null;
+                                            const conversionInfo = getConversionPriceInfo(addToCartModal.producto, maxCantidad);
                                             if (!conversionInfo) return null;
-                                            return (
-                                                <div className="mb-4 rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-sky-50 px-3 py-3 shadow-sm">
-                                                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-blue-700">
-                                                        Precio por unidad
-                                                    </p>
-                                                    <div className="space-y-1.5">
-                                                        <div className="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
-                                                            <span className="text-xs font-semibold text-slate-600">
-                                                                Por {conversionInfo.unidadBase}
-                                                            </span>
-                                                            <span className="text-sm font-bold text-blue-800">
-                                                                Bs {conversionInfo.precioBase.toFixed(2)}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
-                                                            <span className="text-xs font-semibold text-slate-600">
-                                                                Por {conversionInfo.unidadAlternativa}
-                                                            </span>
-                                                            <span className="text-sm font-bold text-blue-700">
-                                                                Bs {conversionInfo.precioAlternativo.toFixed(2)}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <p className="mt-2 text-[11px] text-blue-700">
-                                                        1 {conversionInfo.unidadBase} = {Number(addToCartModal.producto.factor_conversion || 0).toFixed(2).replace(/\.00$/, '')} {conversionInfo.unidadAlternativa}
-                                                    </p>
-                                                </div>
-                                            );
+                                            return <UnitPricePanel conversionInfo={conversionInfo} factor={addToCartModal.producto.factor_conversion} className="mb-4" />;
                                         })()}
+                                        {maxCantidad <= 0 && (
+                                            <span className="mb-4 inline-flex bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-md">
+                                                Agotado
+                                            </span>
+                                        )}
                                         {addToCartModal.variantes.length > 0 && (
                                             <div className="mb-4">
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
                                                 <select
                                                     value={addToCartModal.selectedVarianteId ?? ''}
-                                                    onChange={(e) => setAddToCartModal(prev => ({
-                                                        ...prev,
-                                                        selectedVarianteId: e.target.value
-                                                    }))}
+                                                    onChange={(e) => setAddToCartModal(prev => {
+                                                        const nextVariante = prev.variantes.find(v => String(v.variante_id ?? v.id) === String(e.target.value));
+                                                        const nextStock = getEffectiveVariantStock(nextVariante);
+                                                        const nextUnits = getAvailableUnits(prev.producto, nextStock);
+                                                        return {
+                                                            ...prev,
+                                                            selectedVarianteId: e.target.value,
+                                                            unidad: nextUnits.includes(prev.unidad) ? prev.unidad : nextUnits[0]
+                                                        };
+                                                    })}
                                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                 >
                                                     {addToCartModal.variantes.map((v, idx) => {
                                                         const optionValue = v.variante_id ?? v.id;
-                                                        const disponible = Number((v.stock_decimal ?? v.stock) || 0) > 0;
+                                                        const disponible = getEffectiveVariantStock(v) > 0;
                                                         return (
                                                             <option key={optionValue + '-' + idx} value={optionValue} disabled={!disponible}>
                                                                 {v.color || 'Sin color'}{disponible ? '' : ' - Agotado'}
@@ -1274,18 +1409,18 @@ export default function CatalogoPage() {
                                                 </select>
                                             </div>
                                         )}
-                                        {getAvailableUnits(addToCartModal.producto).length > 1 && (
+                                        {unidadesDisponibles.length > 1 && (
                                             <div className="mb-4">
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">Unidad</label>
                                                 <select
-                                                    value={addToCartModal.unidad ?? getAvailableUnits(addToCartModal.producto)[0]}
+                                                    value={addToCartModal.unidad ?? unidadesDisponibles[0]}
                                                     onChange={(e) => setAddToCartModal(prev => ({
                                                         ...prev,
                                                         unidad: e.target.value
                                                     }))}
                                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                 >
-                                                    {getAvailableUnits(addToCartModal.producto).map((unidadDisponible) => (
+                                                    {unidadesDisponibles.map((unidadDisponible) => (
                                                         <option key={unidadDisponible} value={unidadDisponible}>
                                                             {unidadDisponible}
                                                         </option>
@@ -1307,7 +1442,7 @@ export default function CatalogoPage() {
                                                 }))}
                                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
-                                            {getAvailableUnits(addToCartModal.producto).length > 1 && (
+                                            {unidadesDisponibles.length > 1 && (
                                                 <p className="mt-2 text-xs text-gray-500">
                                                     1 {addToCartModal.producto.unidad_base || 'unidad'} = {Number(addToCartModal.producto.factor_conversion || 0) || 0} {(addToCartModal.producto.unidades_alternativas || [])[0] || 'unidad'}
                                                 </p>
@@ -1355,10 +1490,10 @@ export default function CatalogoPage() {
                                         });
                                         return Object.entries(counts).every(([vid, count]) => {
                                             const variante = p.variantes.find(vv => String(vv.variante_id ?? vv.id) === String(vid));
-                                            return variante && Number((variante.stock_decimal ?? variante.stock) || 0) >= count;
+                                            return variante && getEffectiveVariantStock(variante) >= count;
                                         });
                                     } else if (p.variantes.length === 1) {
-                                        return Number((p.variantes[0].stock_decimal ?? p.variantes[0].stock) || 0) >= totalUnidades;
+                                        return getEffectiveVariantStock(p.variantes[0]) >= totalUnidades;
                                     } else {
                                         return Number(p.productos.stock || 0) >= totalUnidades;
                                     }
@@ -1406,7 +1541,7 @@ export default function CatalogoPage() {
                                                                     <option value="">Selecciona color para unidad #{unidadIdx + 1}</option>
                                                                     {p.variantes.map((v, vIdx) => {
                                                                         const optionValue = v.variante_id ?? v.id;
-                                                                        const disponible = Number((v.stock_decimal ?? v.stock) || 0) > 0;
+                                                                        const disponible = getEffectiveVariantStock(v) > 0;
                                                                         return (
                                                                             <option key={optionValue + '-' + vIdx} value={optionValue} disabled={!disponible}>
                                                                                 {v.color || 'Sin color'}{disponible ? '' : ' - Agotado'}

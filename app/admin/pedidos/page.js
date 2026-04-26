@@ -14,7 +14,7 @@ export default function PedidosPage() {
   async function fetchCarritos() {
     const { data, error } = await supabase
       .from("carritos_pendientes")
-      .select("id, cliente_nombre, usuario_email, productos, fecha, confirmado_pago")
+      .select("id, cliente_nombre, cliente_telefono, usuario_email, productos, fecha, confirmado_pago")
       .order("fecha", { ascending: false });
     
     if (!error && data) {
@@ -66,6 +66,7 @@ export default function PedidosPage() {
             <div key={c.id} className="bg-white rounded-xl shadow-xl border border-gray-900 p-4 flex flex-col gap-2">
               <div className="font-bold text-lg text-blue-900 mb-1">Pedido #{c.id}</div>
               <div className="text-gray-900 font-semibold">Cliente: {c.cliente_nombre || `Pedido #${c.id}`}</div>
+              <div className="text-gray-700 text-sm mb-1">NIT/CI: {c.cliente_telefono || '-'}</div>
               <div className="text-gray-700 text-sm mb-1">Email: {c.usuario_email || '-'}</div>
               <div className="text-gray-900 text-sm mb-1">Fecha: {new Date(c.fecha).toLocaleString()}</div>
               <div className="mb-2">
@@ -73,7 +74,7 @@ export default function PedidosPage() {
                 <ul className="list-disc pl-4">
                   {Array.isArray(c.productos) ? c.productos.map((p, i) => (
                     <li key={i} className="text-gray-900">
-                      {p.producto_id} {p.color ? `(${p.color})` : ''} {p.cantidad} {p.unidad || 'unidad'} (Bs {Number(p.precio_unitario).toFixed(2)})
+                      {p.nombre || p.producto_id} {p.color ? `(${p.color})` : ''} {p.cantidad} {p.unidad || 'unidad'} (Bs {Number(p.precio_unitario).toFixed(2)})
                     </li>
                   )) : null}
                 </ul>

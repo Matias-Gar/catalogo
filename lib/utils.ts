@@ -37,8 +37,23 @@ export async function sincronizarStockProducto(
     ? data.map((v) => ({ ...v, color: (v as any).color ?? "", id: (v as any).id ?? undefined }))
     : [];
 
+  if (variantes.length === 0) {
+    const { data: producto } = await (supabase as any)
+      .from("productos")
+      .select("stock")
+      .eq("user_id", producto_id)
+      .maybeSingle();
+
+    const stockActual = Number((producto as any)?.stock ?? 0);
+    return Number.isFinite(stockActual) ? Math.max(0, stockActual) : 0;
+  }
+
   const stockTotal = variantes.reduce<number>(
-    (sum: number, v: Variante) => sum + (Number((v as any).stock_decimal ?? v.stock) || 0),
+    (sum: number, v: Variante) => {
+      const decimal = Number((v as any).stock_decimal);
+      const legacy = Number(v.stock);
+      return sum + Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
+    },
     0
   );
 

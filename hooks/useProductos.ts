@@ -64,14 +64,26 @@ function buildUnidadesDisponibles(unidadBase?: string, unidadesAlternativas?: st
   return [base, ...alternativas.filter((u) => u !== base)];
 }
 
+function getEffectiveVariantStock(variant: { stock?: number | null; stock_decimal?: number | null }) {
+  const decimal = Number(variant?.stock_decimal);
+  const legacy = Number(variant?.stock);
+  return Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
+}
+
 async function enriquecerUnidades(productos: Producto[]) {
   const ids = productos.map((p) => p.user_id).filter(Boolean);
   if (ids.length === 0) return productos;
 
-  const { data } = await supabase
-    .from('productos')
-    .select('user_id, unidad_base, unidades_alternativas, factor_conversion')
-    .in('user_id', ids);
+  const [{ data }, { data: variantRows }] = await Promise.all([
+    supabase
+      .from('productos')
+      .select('user_id, unidad_base, unidades_alternativas, factor_conversion, stock')
+      .in('user_id', ids),
+    supabase
+      .from('producto_variantes')
+      .select('producto_id, id, color, stock, stock_decimal, precio, sku, imagen_url')
+      .in('producto_id', ids),
+  ]);
 
   const byId = new Map(
     (Array.isArray(data) ? data : []).map((row) => [
@@ -79,21 +91,48 @@ async function enriquecerUnidades(productos: Producto[]) {
       {
         unidad_base: String(row.unidad_base || '').trim() || 'unidad',
         unidades_alternativas: Array.isArray(row.unidades_alternativas) ? row.unidades_alternativas : [],
-        factor_conversion: Number(row.factor_conversion || 0) || undefined
+        factor_conversion: Number(row.factor_conversion || 0) || undefined,
+        stock: Number(row.stock ?? 0)
       }
     ])
   );
+  const variantsByProductId = (Array.isArray(variantRows) ? variantRows : []).reduce<Record<string, Producto['variantes']>>((acc, row) => {
+    const key = String(row.producto_id);
+    if (!acc[key]) acc[key] = [];
+    const effectiveStock = getEffectiveVariantStock(row);
+    acc[key]?.push({
+      id: row.id,
+      variante_id: row.id,
+      color: row.color,
+      stock: Number(row.stock ?? 0),
+      stock_decimal: effectiveStock,
+      precio: Number(row.precio ?? 0) || undefined,
+      sku: row.sku,
+      imagen_url: row.imagen_url,
+    });
+    return acc;
+  }, {});
 
   return productos.map((producto) => {
     const extra = byId.get(String(producto.user_id));
     if (!extra) return producto;
+    const variantesReales = variantsByProductId[String(producto.user_id)];
+    const variantes = Array.isArray(variantesReales) && variantesReales.length > 0
+      ? variantesReales
+      : producto.variantes;
+    const variantStock = Array.isArray(variantes) && variantes.length > 0
+      ? variantes.reduce((acc, v) => acc + Math.max(0, Number(v.stock_decimal ?? v.stock ?? 0)), 0)
+      : 0;
+    const productStock = Number.isFinite(extra.stock) ? Math.max(0, extra.stock) : Math.max(0, Number(producto.stock || 0));
     return {
       ...producto,
+      variantes,
       unidad_base: extra.unidad_base,
       unidades_alternativas: extra.unidades_alternativas,
       unidades_disponibles: buildUnidadesDisponibles(extra.unidad_base, extra.unidades_alternativas),
       factor_conversion: extra.factor_conversion,
-      unidad: producto.unidad ?? extra.unidad_base
+      unidad: producto.unidad ?? extra.unidad_base,
+      stock: variantStock > 0 || productStock <= 0 ? variantStock : productStock
     };
   });
 }
@@ -201,7 +240,7 @@ export function useProductos(_includeCost = false) {
                   precio: precioBase,
                   precio_base: precioBase,
                   precio_compra: undefined,
-                  stock: Number((matchedVar as any)?.stock_decimal ?? matchedVar?.stock ?? p.stock_total ?? 0),
+                  stock: getEffectiveVariantStock(matchedVar as any) || Number(p.stock_total ?? 0),
                   stock_total: Number(p.stock_total ?? 0),
                   codigo_barra: String(p.codigo_barra ?? ''),
                   categoria: String(p.categoria ?? ''),

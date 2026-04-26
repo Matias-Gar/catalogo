@@ -15,7 +15,7 @@ import CarritoPanel from '../../../../components/venta/CarritoPanel';
 import dynamic from 'next/dynamic';
 const TicketPrinter = dynamic(() => import('../../../../components/venta/TicketPrinter'), { ssr: false });
 import type { TicketPrinterHandle } from '../../../../components/venta/TicketPrinter';
-import { Pack, PackProduct, Producto } from '../../../../hooks/useCarrito';
+import { Pack, Producto } from '../../../../hooks/useCarrito';
 import { supabase } from '../../../../lib/SupabaseClient';
 import { showToast } from '../../../../components/ui/Toast';
 
@@ -37,6 +37,51 @@ type VentaCajaPayload = {
   modo_pago?: string;
 };
 
+type ProductoDB = {
+  user_id: string | number;
+  nombre?: string;
+  precio?: number;
+  precio_compra?: number;
+  stock?: number;
+  producto_variantes?: Array<{
+    id?: string | number;
+    color?: string;
+    precio?: number;
+    stock?: number;
+    stock_decimal?: number;
+  }>;
+};
+
+type StockRequest = {
+  nombre: string;
+  color?: string | null;
+  disponible: number;
+  solicitado: number;
+};
+
+type PackDB = {
+  id: string | number;
+  nombre?: string;
+  precio_pack?: number;
+  pack_productos?: Array<{
+    cantidad?: number;
+    variante_id?: string | number | null;
+    productos?: {
+      user_id?: string | number;
+      nombre?: string;
+      precio?: number;
+      stock?: number;
+      producto_variantes?: Array<{
+        id?: string | number;
+        color?: string;
+        precio?: number;
+        stock?: number;
+        stock_decimal?: number;
+      }>;
+    };
+  }>;
+};
+
 function parseMoneyInput(value: string) {
   const normalized = String(value || '').replace(',', '.').trim();
   if (!normalized) return 0;
@@ -52,6 +97,31 @@ function formatMoneyInput(value: number) {
 function parsePositiveNumber(value: string | number) {
   const parsed = parseMoneyInput(String(value ?? ''));
   return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+}
+
+function normalizeQuantity(value: unknown) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+}
+
+function getVariantStock(variant?: { stock?: number; stock_decimal?: number } | null) {
+  const decimal = Number(variant?.stock_decimal);
+  const legacy = Number(variant?.stock);
+  return normalizeQuantity(Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
+}
+
+function getProductStock(product?: { stock?: number } | null) {
+  return normalizeQuantity(product?.stock ?? 0);
+}
+
+function formatStockQuantity(value: number) {
+  return Number(value.toFixed(3)).toString();
+}
+
+function toIntegerDetailQuantity(cantidadBase: number) {
+  const parsed = Number(cantidadBase);
+  if (!Number.isFinite(parsed) || parsed <= 0) return 1;
+  return Math.max(1, Math.floor(parsed));
 }
 
 
@@ -145,12 +215,19 @@ export default function NuevaVenta() {
           }
           const variante_id = p.variante_id || 'default';
           const color = p.color || '';
-          const key = `${producto_id}|${variante_id}|${color}|${p.pack_id || ''}`;
+          const unidad = p.unidad || p.unidad_base || 'unidad';
+          const key = `${producto_id}|${variante_id}|${color}|${p.pack_id || ''}|${unidad}`;
+          const cantidadDisplay = normalizeQuantity(p.cantidad_display ?? p.cantidad ?? 1);
+          const cantidadBase = normalizeQuantity(p.cantidad_base ?? p.cantidad ?? 1);
           if (!grouped[key]) {
             grouped[key] = { ...p };
-            grouped[key].cantidad = Number(p.cantidad) || 0;
+            grouped[key].cantidad = cantidadDisplay;
+            grouped[key].cantidad_display = cantidadDisplay;
+            grouped[key].cantidad_base = cantidadBase;
           } else {
-            grouped[key].cantidad += Number(p.cantidad) || 0;
+            grouped[key].cantidad += cantidadDisplay;
+            grouped[key].cantidad_display = Number(grouped[key].cantidad_display || 0) + cantidadDisplay;
+            grouped[key].cantidad_base = Number(grouped[key].cantidad_base || 0) + cantidadBase;
           }
         }
         const productosAgrupados = Object.values(grouped);
@@ -162,6 +239,7 @@ export default function NuevaVenta() {
         // Consultar productos desde la base de datos, trayendo también la imagen principal
         let productosDB = [];
         let imagenesDB: { [key: string]: string[] } = {};
+        let unidadesByProducto: Record<string, any> = {};
         if (productosIds.length > 0) {
           const supabaseClient = supabase;
           const { data: productosData, error: productosError } = await supabaseClient
@@ -170,6 +248,12 @@ export default function NuevaVenta() {
             .in('producto_id', productosIds);
           if (productosError) throw productosError;
           productosDB = Array.isArray(productosData) ? productosData : [];
+
+          const { data: unidadesData } = await supabaseClient
+            .from('productos')
+            .select('user_id, stock, unidad_base, unidades_alternativas, factor_conversion')
+            .in('user_id', productosIds);
+          unidadesByProducto = Object.fromEntries((Array.isArray(unidadesData) ? unidadesData : []).map((row) => [String(row.user_id), row]));
 
           // Traer imágenes asociadas
           const { data: imgs } = await supabaseClient
@@ -189,7 +273,7 @@ export default function NuevaVenta() {
         if (packsIds.length > 0) {
           const { data: packsData, error: packsError } = await supabase
             .from('packs')
-            .select(`*, pack_productos ( cantidad, productos!pack_productos_producto_id_fkey ( user_id, nombre, precio, categoria, stock ) )`)
+            .select(`*, pack_productos ( cantidad, producto_id, variante_id, productos!pack_productos_producto_id_fkey ( user_id, nombre, precio, categoria, stock, producto_variantes ( id, color, precio, stock, stock_decimal, sku ) ) )`)
             .in('id', packsIds);
           if (packsError) throw packsError;
           packsDB = Array.isArray(packsData) ? packsData : [];
@@ -205,7 +289,9 @@ export default function NuevaVenta() {
               pack_id: pack.id,
               pack_data: pack,
               nombre: pack.nombre || 'Pack especial',
-              cantidad: p.cantidad || 1,
+              cantidad: normalizeQuantity(p.cantidad_base ?? p.cantidad ?? 1),
+              cantidad_base: normalizeQuantity(p.cantidad_base ?? p.cantidad ?? 1),
+              cantidad_display: normalizeQuantity(p.cantidad_display ?? p.cantidad ?? 1),
               precio: pack.precio_pack,
               precio_pack: pack.precio_pack,
               precio_individual: (pack.pack_productos ?? []).reduce((t: number, i: { productos: { precio: number }, cantidad: number }) => t + (i.productos.precio * i.cantidad), 0),
@@ -223,22 +309,45 @@ export default function NuevaVenta() {
           }
           const productoCompleto = productosDB.find((prod: { producto_id: string | number }) => String(prod.producto_id) === String(prodId));
           if (!productoCompleto) return { ...p, error: 'Producto no encontrado en base de datos' };
+          const unidadesProducto = unidadesByProducto[String(prodId)] || {};
+          const variantesProducto = Array.isArray(productoCompleto.variantes) ? productoCompleto.variantes : [];
+          const varianteSeleccionada = p.variante_id
+            ? variantesProducto.find((v: VariantMatch) => String(v.variante_id ?? v.id) === String(p.variante_id))
+            : null;
           // Siempre usar la imagen del producto
           const imagenesProducto = imagenesDB[productoCompleto.producto_id] || [];
           const imagen_url = imagenesProducto.length > 0 ? imagenesProducto[0] : '/sin-imagen.png';
+          const unidadBase = p.unidad_base || unidadesProducto.unidad_base || productoCompleto.unidad_base || p.unidad || 'unidad';
+          const unidadesAlternativas = Array.isArray(p.unidades_alternativas)
+            ? p.unidades_alternativas
+            : Array.isArray(unidadesProducto.unidades_alternativas)
+              ? unidadesProducto.unidades_alternativas
+              : [];
+          const factorConversion = Number(p.factor_conversion ?? unidadesProducto.factor_conversion ?? productoCompleto.factor_conversion ?? 0) || undefined;
+          const cantidadBase = normalizeQuantity(p.cantidad_base ?? p.cantidad ?? 1);
+          const cantidadDisplay = normalizeQuantity(p.cantidad_display ?? p.cantidad ?? 1);
           return {
             ...productoCompleto,
-            cantidad: p.cantidad || 1,
+            cantidad: cantidadBase,
+            cantidad_base: cantidadBase,
+            cantidad_display: cantidadDisplay,
+            unidad: p.unidad || unidadBase,
+            unidad_base: unidadBase,
+            unidades_alternativas: unidadesAlternativas,
+            unidades_disponibles: [unidadBase, ...unidadesAlternativas.filter((u: string) => u !== unidadBase)],
+            factor_conversion: factorConversion,
             tipo: 'producto',
-            cart_key: `prod:${productoCompleto.producto_id}:${p.variante_id || 'default'}`,
+            cart_key: `prod:${productoCompleto.producto_id}:${p.variante_id || 'default'}:${p.unidad || unidadBase}`,
             variante_id: p.variante_id || productoCompleto.variante_id,
             color: p.color || productoCompleto.color,
             precio: p.precio_unitario || productoCompleto.precio,
+            precio_original: p.precio_original ?? p.precio_unitario ?? productoCompleto.precio,
+            promocion_aplicada: p.promocion_aplicada || null,
             nombre: productoCompleto.nombre || 'Producto sin nombre',
-            stock: productoCompleto.stock,
+            stock: varianteSeleccionada ? getVariantStock(varianteSeleccionada) : Number(unidadesProducto.stock ?? productoCompleto.stock ?? 0),
             categoria: productoCompleto.categoria,
             categorias: productoCompleto.categorias,
-            variantes: productoCompleto.variantes,
+            variantes: variantesProducto,
             codigo_barra: productoCompleto.codigo_barra,
             codigo: productoCompleto.codigo,
             imagenes: productoCompleto.imagenes,
@@ -257,7 +366,9 @@ export default function NuevaVenta() {
 
         // Cargar datos de cliente si existen
         if (pedidoObj.cliente_nombre) cambiarCampo('nombre', pedidoObj.cliente_nombre);
-        if (pedidoObj.cliente_email) cambiarCampo('email', pedidoObj.cliente_email);
+        if (pedidoObj.usuario_email || pedidoObj.cliente_email) cambiarCampo('email', pedidoObj.usuario_email || pedidoObj.cliente_email);
+        if (pedidoObj.cliente_telefono) cambiarCampo('telefono', pedidoObj.cliente_telefono);
+        if (pedidoObj.cliente_nit) cambiarCampo('nit', pedidoObj.cliente_nit);
       } catch (e: unknown) {
         console.error('Error cargando pedido:', e);
         let errorMsg = '';
@@ -588,7 +699,7 @@ export default function NuevaVenta() {
       const packsIds = carrito.filter(p => p.tipo === 'pack' && p.pack_id).map(p => String(p.pack_id));
 
       // 2. Consultar productos y variantes desde la base de datos
-      let productosDB: any[] = [];
+      let productosDB: ProductoDB[] = [];
       if (productosIds.length > 0) {
         const { data: productosData, error: productosError } = await supabase
           .from('productos')
@@ -599,7 +710,7 @@ export default function NuevaVenta() {
       }
 
       // 3. Consultar packs y sus productos desde la base de datos
-      let packsDB: any[] = [];
+      let packsDB: PackDB[] = [];
       if (packsIds.length > 0) {
         const { data: packsData, error: packsError } = await supabase
           .from('packs')
@@ -607,6 +718,81 @@ export default function NuevaVenta() {
           .in('id', packsIds);
         if (packsError) throw packsError;
         packsDB = Array.isArray(packsData) ? packsData : [];
+      }
+
+      const stockRequests = new Map<string, StockRequest>();
+      const addStockRequest = (key: string, request: StockRequest) => {
+        const current = stockRequests.get(key);
+        if (current) {
+          current.solicitado += request.solicitado;
+          return;
+        }
+        stockRequests.set(key, request);
+      };
+
+      for (const p of carrito) {
+        const cantidadBase = normalizeQuantity(p.cantidad_base ?? p.cantidad ?? 1);
+        if (cantidadBase <= 0) throw new Error(`Cantidad invalida para ${p.nombre || 'producto'}`);
+
+        if (p.tipo === 'pack') {
+          const pack = packsDB.find(pk => String(pk.id) === String(p.pack_id));
+          if (!pack) throw new Error('Pack no encontrado en base de datos');
+
+          for (const item of pack.pack_productos ?? []) {
+            const productoPack = item.productos;
+            if (!productoPack?.user_id) throw new Error('Producto de pack no encontrado en base de datos');
+            const cantidadTotal = normalizeQuantity(item.cantidad) * cantidadBase;
+            if (item.variante_id) {
+              const variante = productoPack.producto_variantes?.find((v: { id?: string | number }) => String(v.id) === String(item.variante_id));
+              if (!variante) throw new Error(`Variante de pack no encontrada para ${productoPack.nombre || 'producto'}`);
+              addStockRequest(`var:${String(variante.id)}`, {
+                nombre: productoPack.nombre || 'Producto',
+                color: variante.color || null,
+                disponible: getVariantStock(variante),
+                solicitado: cantidadTotal
+              });
+            } else {
+              addStockRequest(`prod:${String(productoPack.user_id)}`, {
+                nombre: productoPack.nombre || 'Producto',
+                color: null,
+                disponible: getProductStock(productoPack),
+                solicitado: cantidadTotal
+              });
+            }
+          }
+          continue;
+        }
+
+        if (p.user_id == null) throw new Error('Producto invalido en carrito');
+        const productoCompleto = productosDB.find(prod => String(prod.user_id) === String(p.user_id));
+        if (!productoCompleto) throw new Error(`Producto no encontrado en base de datos: ${p.nombre || p.user_id}`);
+
+        if (p.variante_id) {
+          const variante = (productoCompleto.producto_variantes || []).find((v) => String(v.id) === String(p.variante_id));
+          if (!variante) throw new Error(`Color no encontrado para ${productoCompleto.nombre || p.nombre}`);
+          addStockRequest(`var:${String(variante.id)}`, {
+            nombre: productoCompleto.nombre || p.nombre || 'Producto',
+            color: variante.color || p.color || null,
+            disponible: getVariantStock(variante),
+            solicitado: cantidadBase
+          });
+        } else {
+          addStockRequest(`prod:${String(productoCompleto.user_id)}`, {
+            nombre: productoCompleto.nombre || p.nombre || 'Producto',
+            color: null,
+            disponible: getProductStock(productoCompleto),
+            solicitado: cantidadBase
+          });
+        }
+      }
+
+      for (const request of stockRequests.values()) {
+        if (request.solicitado > request.disponible + 0.0001) {
+          throw new Error(
+            `Stock insuficiente para ${request.nombre}${request.color ? ` color ${request.color}` : ''} ` +
+            `(stock=${formatStockQuantity(request.disponible)}, solicitado=${formatStockQuantity(request.solicitado)})`
+          );
+        }
       }
 
       // 4. Armar objeto de costos extra
@@ -663,10 +849,12 @@ export default function NuevaVenta() {
       }
 
       // 7. Insertar detalles robustos
-      await Promise.all(carrito.map(async (p) => {
+      for (const p of carrito) {
         const cantidadBase = Number(p.cantidad_base ?? p.cantidad ?? 1);
         const cantidadVisible = Number(p.cantidad_display ?? p.cantidad ?? 1);
         const unidadVenta = String(p.unidad || p.unidad_base || 'unidad');
+        const unidadBaseVenta = String(p.unidad_base || unidadVenta || 'unidad');
+        const cantidadDetalle = toIntegerDetailQuantity(cantidadBase);
         if (p.tipo === 'pack') {
           // Buscar pack completo en DB
           const pack = packsDB.find(pk => String(pk.id) === String(p.pack_id));
@@ -675,9 +863,9 @@ export default function NuevaVenta() {
           const { error: detallePackError } = await ventasService.insertarVentaDetalle({
             venta_id: venta.id,
             producto_id: null, // always null for packs
-            cantidad: cantidadVisible,
+            cantidad: cantidadDetalle,
             cantidad_base: cantidadBase,
-            unidad: unidadVenta,
+            unidad: unidadBaseVenta,
             precio_unitario: pack.precio_pack,
             costo_unitario: 0,
             color: null,
@@ -689,9 +877,10 @@ export default function NuevaVenta() {
           });
           if (detallePackError) throw detallePackError;
           // Descontar stock de cada producto del pack
-          await Promise.all((pack.pack_productos ?? []).map(async (item: PackProduct) => {
-            const cantidadTotal = item.cantidad * cantidadBase;
+          for (const item of pack.pack_productos ?? []) {
+            const cantidadTotal = normalizeQuantity(item.cantidad) * cantidadBase;
             const productoPack = item.productos;
+            if (!productoPack?.user_id) throw new Error('Producto de pack no encontrado en base de datos');
             // Si el producto tiene variante, descontar stock de variante
             if (item.variante_id) {
               const variante = productoPack.producto_variantes?.find(v => String(v.id) === String(item.variante_id));
@@ -701,19 +890,24 @@ export default function NuevaVenta() {
                 // Después de descontar stock de la variante, actualizar el stock total del producto
                 // 1. Descontar stock de la variante (debería implementarse en ventasService)
                 // 2. Recalcular y actualizar el stock total del producto
+                if (variante.id == null) throw new Error(`Variante de pack sin ID para ${productoPack.nombre || 'producto'}`);
+                const stockEsperado = getVariantStock(variante) - cantidadTotal;
+                const { error: stockPackVarianteError } = await ventasService.establecerStockVariante(variante.id, stockEsperado);
+                if (stockPackVarianteError) throw stockPackVarianteError;
                 await actualizarStockTotalProducto(productoPack.user_id);
               }
             } else {
-              const { error: stockPackError } = await ventasService.descontarStock(productoPack.user_id, cantidadTotal);
+              const stockEsperado = getProductStock(productoPack) - cantidadTotal;
+              const { error: stockPackError } = await ventasService.establecerStockProducto(productoPack.user_id, stockEsperado);
               if (stockPackError) throw stockPackError;
               // Actualizar el stock total del producto
               await actualizarStockTotalProducto(productoPack.user_id);
             }
-          }));
+          }
         } else {
           // Buscar producto completo en DB
           // Ignore items with user_id: null (should only be for packs)
-          if (p.user_id == null) return;
+          if (p.user_id == null) continue;
           const productoCompleto = productosDB.find(prod => String(prod.user_id) === String(p.user_id));
           if (!productoCompleto) throw new Error('Producto no encontrado en base de datos');
           let variante = null;
@@ -722,13 +916,13 @@ export default function NuevaVenta() {
           }
           const precioUnitario = variante?.precio ?? productoCompleto.precio;
           const costoUnitario = productoCompleto.precio_compra || 0;
-          const descripcionItem = `${productoCompleto.nombre}${variante?.color ? ` ${variante.color}` : p.color ? ` ${p.color}` : ''}`.trim();
+          const descripcionItem = `${productoCompleto.nombre}${variante?.color ? ` ${variante.color}` : p.color ? ` ${p.color}` : ''}${unidadVenta !== unidadBaseVenta ? ` (${cantidadVisible} ${unidadVenta} = ${formatStockQuantity(cantidadBase)} ${unidadBaseVenta})` : ''}`.trim();
           const { error: detalleProductoError } = await ventasService.insertarVentaDetalle({
             venta_id: venta.id,
             producto_id: productoCompleto.user_id,
-            cantidad: cantidadVisible,
+            cantidad: cantidadDetalle,
             cantidad_base: cantidadBase,
-            unidad: unidadVenta,
+            unidad: unidadBaseVenta,
             precio_unitario: precioUnitario,
             costo_unitario: costoUnitario,
             variante_id: variante?.id || null,
@@ -740,16 +934,18 @@ export default function NuevaVenta() {
           });
           if (detalleProductoError) throw detalleProductoError;
           if (variante?.id) {
-            const { error: stockVarianteError } = await ventasService.descontarStockVariante(variante.id, cantidadBase);
+            const stockEsperado = getVariantStock(variante) - cantidadBase;
+            const { error: stockVarianteError } = await ventasService.establecerStockVariante(variante.id, stockEsperado);
             if (stockVarianteError) throw stockVarianteError;
           } else {
-            const { error: stockProductoError } = await ventasService.descontarStock(productoCompleto.user_id, cantidadBase);
+            const stockEsperado = getProductStock(productoCompleto) - cantidadBase;
+            const { error: stockProductoError } = await ventasService.establecerStockProducto(productoCompleto.user_id, stockEsperado);
             if (stockProductoError) throw stockProductoError;
           }
           // Actualizar el stock total del producto
           await actualizarStockTotalProducto(productoCompleto.user_id);
         }
-      }));
+      }
 
       // --- Función para recalcular y actualizar el stock total del producto ---
       async function actualizarStockTotalProducto(productoId: string | number) {
@@ -974,6 +1170,7 @@ export default function NuevaVenta() {
               setBusqueda('');
               setPackResults([]);
             }}
+            promociones={promociones}
           />
 
           <CarritoPanel

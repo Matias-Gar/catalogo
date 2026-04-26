@@ -25,19 +25,142 @@ function getConversionPriceInfo(producto, promociones) {
     : [];
   const unidadAlternativa = alternativas.find((u) => u && u !== unidadBase);
   const factor = Number(producto?.factor_conversion || 0);
+  const stockBase = getProductStockBase(producto);
 
   if (!unidadAlternativa || !Number.isFinite(factor) || factor <= 0) {
     return null;
   }
 
-  const { precioFinal } = calcularPrecioConPromocion(producto, promociones);
+  const precioInfo = calcularPrecioConPromocion(producto, promociones);
 
   return {
     unidadBase,
     unidadAlternativa,
-    precioBase: Number(precioFinal || 0),
-    precioAlternativo: Number(precioFinal || 0) / factor,
+    precioBase: Number(precioInfo.precioFinal || 0),
+    precioBaseOriginal: Number(precioInfo.precioOriginal || 0),
+    precioAlternativo: Number(precioInfo.precioFinal || 0) / factor,
+    precioAlternativoOriginal: Number(precioInfo.precioOriginal || 0) / factor,
+    tienePromocion: precioInfo.tienePromocion,
+    porcentajeDescuento: precioInfo.porcentajeDescuento,
+    promocionDescripcion: precioInfo.promocion?.descripcion || '',
+    showBasePrice: stockBase >= 1,
   };
+}
+
+function formatQuantity(value) {
+  const parsed = Number(value || 0);
+  if (!Number.isFinite(parsed)) return '0';
+  return Number(parsed.toFixed(2)).toString();
+}
+
+function getEffectiveVariantStock(variant) {
+  const decimal = Number(variant?.stock_decimal);
+  const legacy = Number(variant?.stock);
+  return Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
+}
+
+function getProductStockBase(producto) {
+  const variantes = Array.isArray(producto?.variantes) ? producto.variantes : [];
+  const productStock = Math.max(0, Number(producto?.stock ?? producto?.stock_total ?? 0));
+  if (variantes.length > 0) {
+    const variantStock = variantes.reduce((acc, variante) => acc + getEffectiveVariantStock(variante), 0);
+    return variantStock > 0 || productStock <= 0 ? variantStock : productStock;
+  }
+  return productStock;
+}
+
+function getStockBreakdown(producto, stockBaseInput) {
+  const stockBase = Math.max(0, Number(stockBaseInput ?? getProductStockBase(producto)) || 0);
+  const unidadBase = String(producto?.unidad_base || 'unidad').trim() || 'unidad';
+  const alternativas = Array.isArray(producto?.unidades_alternativas)
+    ? producto.unidades_alternativas.map((u) => String(u || '').trim()).filter(Boolean)
+    : [];
+  const unidadAlternativa = alternativas.find((u) => u && u !== unidadBase);
+  const factor = Number(producto?.factor_conversion || 0);
+
+  if (!unidadAlternativa || !Number.isFinite(factor) || factor <= 0) {
+    return {
+      agotado: stockBase <= 0,
+      principal: `${formatQuantity(stockBase)} ${unidadBase}`,
+      detalle: '',
+      unidadBase,
+      unidadAlternativa: null,
+      fullBase: Math.floor(stockBase),
+      remainingAlt: 0,
+      totalAlt: 0,
+    };
+  }
+
+  const fullBase = Math.floor(stockBase + 0.000001);
+  const remainingAlt = Math.max(0, (stockBase - fullBase) * factor);
+  const totalAlt = stockBase * factor;
+  let principal = `${formatQuantity(totalAlt)} ${unidadAlternativa}`;
+  let detalle = '';
+  if (fullBase > 0) {
+    principal = `${fullBase} ${unidadBase}${fullBase === 1 ? '' : 's'}`;
+    detalle = remainingAlt > 0
+      ? `+ ${formatQuantity(remainingAlt)} ${unidadAlternativa} sueltos`
+      : `${formatQuantity(totalAlt)} ${unidadAlternativa} en total`;
+  }
+
+  return {
+    agotado: stockBase <= 0,
+    principal,
+    detalle,
+    unidadBase,
+    unidadAlternativa,
+    fullBase,
+    remainingAlt,
+    totalAlt,
+  };
+}
+
+function UnitPricePanel({ conversionInfo, factor }) {
+  if (!conversionInfo) return null;
+  const PriceValue = ({ original, final }) => (
+    <span className="flex shrink-0 flex-col items-end leading-tight">
+      {conversionInfo.tienePromocion && (
+        <span className="text-xs text-gray-800 line-through decoration-gray-800">
+          Bs {original.toFixed(2)}
+        </span>
+      )}
+      <span className={`font-bold ${conversionInfo.tienePromocion ? 'text-green-600' : 'text-blue-700'}`}>
+        Bs {final.toFixed(2)}
+      </span>
+    </span>
+  );
+
+  return (
+    <div className="mb-3 space-y-2 text-left">
+      <div className="space-y-1.5">
+        {conversionInfo.showBasePrice && (
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm text-gray-600">Por {conversionInfo.unidadBase}</span>
+            <PriceValue original={conversionInfo.precioBaseOriginal} final={conversionInfo.precioBase} />
+          </div>
+        )}
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm text-gray-600">Por {conversionInfo.unidadAlternativa}</span>
+          <PriceValue original={conversionInfo.precioAlternativoOriginal} final={conversionInfo.precioAlternativo} />
+        </div>
+      </div>
+      <div className="text-xs text-gray-500">
+        1 {conversionInfo.unidadBase} = {Number(factor || 0).toFixed(2).replace(/\.00$/, '')} {conversionInfo.unidadAlternativa}
+      </div>
+      {conversionInfo.tienePromocion && (
+        <div className="flex w-full items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm">
+          <span className="shrink-0 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold leading-none text-gray-950">
+            -{conversionInfo.porcentajeDescuento}%
+          </span>
+          {conversionInfo.promocionDescripcion && (
+            <span className="min-w-0 flex-1 font-semibold text-slate-800">
+              🎯 {conversionInfo.promocionDescripcion}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function ImageGalleryModal({ isOpen, onClose, imageList, imageIndex, productName, onPrev, onNext }) {
@@ -179,7 +302,14 @@ export default function Home() {
         nombre: p.nombre,
         descripcion: p.descripcion,
         precio: Number(p.precio_base || 0),
-        stock: Number(p.stock_total || 0),
+        stock: (() => {
+          const productStock = Math.max(0, Number(p.stock_total || 0));
+          if (Array.isArray(p.variantes) && p.variantes.length > 0) {
+            const variantStock = p.variantes.reduce((acc, v) => acc + getEffectiveVariantStock(v), 0);
+            return variantStock > 0 || productStock <= 0 ? variantStock : productStock;
+          }
+          return productStock;
+        })(),
         category_id: p.category_id,
         variantes: Array.isArray(p.variantes) ? p.variantes : [],
         imagen_base: p.imagen_base || null
@@ -187,11 +317,18 @@ export default function Home() {
 
       const ids = normalized.map(p => p.user_id).filter(Boolean);
       let viewsById = {};
+      let variantsByProductId = {};
       if (ids.length > 0) {
-        const { data: viewRows } = await supabase
+        const [{ data: viewRows }, { data: variantRows }] = await Promise.all([
+          supabase
           .from('productos')
-          .select('user_id, vista_producto, unidad_base, unidades_alternativas, factor_conversion')
-          .in('user_id', ids);
+          .select('user_id, vista_producto, unidad_base, unidades_alternativas, factor_conversion, stock')
+            .in('user_id', ids),
+          supabase
+            .from('producto_variantes')
+            .select('producto_id, id, color, stock, stock_decimal, precio, imagen_url, sku')
+            .in('producto_id', ids),
+        ]);
         viewsById = Object.fromEntries(
           (Array.isArray(viewRows) ? viewRows : []).map((row) => [
             String(row.user_id),
@@ -200,20 +337,42 @@ export default function Home() {
               unidad_base: row.unidad_base || 'unidad',
               unidades_alternativas: Array.isArray(row.unidades_alternativas) ? row.unidades_alternativas : [],
               factor_conversion: Number(row.factor_conversion || 0) || undefined,
+              stock: Number(row.stock || 0),
             },
           ])
         );
+        variantsByProductId = (Array.isArray(variantRows) ? variantRows : []).reduce((acc, row) => {
+          const key = String(row.producto_id);
+          if (!acc[key]) acc[key] = [];
+          acc[key].push({
+            ...row,
+            variante_id: row.id,
+            stock_decimal: getEffectiveVariantStock(row),
+            stock: Number(row.stock ?? 0),
+          });
+          return acc;
+        }, {});
       }
       setProductViewsById(viewsById);
       const filteredProducts = normalized.filter(
         (p) => normalizeProductView(viewsById[String(p.user_id)]?.vista_producto) === currentPublicView
       ).map((p) => {
         const extra = viewsById[String(p.user_id)] || {};
+        const variantesReales = variantsByProductId[String(p.user_id)];
+        const variantes = Array.isArray(variantesReales) && variantesReales.length > 0
+          ? variantesReales
+          : p.variantes;
+        const variantStock = Array.isArray(variantes) && variantes.length > 0
+          ? variantes.reduce((acc, v) => acc + getEffectiveVariantStock(v), 0)
+          : 0;
+        const productStock = Number.isFinite(Number(extra.stock)) ? Math.max(0, Number(extra.stock)) : Math.max(0, Number(p.stock || 0));
         return {
           ...p,
+          variantes,
           unidad_base: extra.unidad_base || 'unidad',
           unidades_alternativas: extra.unidades_alternativas || [],
           factor_conversion: extra.factor_conversion,
+          stock: variantStock > 0 || productStock <= 0 ? variantStock : productStock,
         };
       });
       setProductos(filteredProducts);
@@ -540,6 +699,9 @@ export default function Home() {
         {/* Grid de productos */}
   <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
           {productosFiltrados.map((p) => {
+            const stockInfo = getStockBreakdown(p);
+            const agotado = stockInfo.agotado;
+            const conversionInfo = !agotado ? getConversionPriceInfo(p, promociones) : null;
             // Unificar: siempre mostrar imagen_base primero si existe, aunque no esté en imagenesProductos
             const imgs = Array.isArray(imagenesProductos[p.user_id]) ? imagenesProductos[p.user_id] : [];
             let galeria = imgs;
@@ -552,7 +714,7 @@ export default function Home() {
               }
             }
             return (
-              <div key={p.user_id} className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center">
+              <div key={p.user_id} className={`relative overflow-hidden rounded-xl border bg-white p-4 shadow-md flex flex-col items-center ${agotado ? 'border-gray-900' : 'border-transparent'}`}>
                 <div className="w-full h-64 flex items-center justify-center mb-2 cursor-pointer relative group">
                   {galeria.length > 0 ? (
                     <>
@@ -563,7 +725,7 @@ export default function Home() {
                         loading="lazy"
                         decoding="async"
                         alt={p.nombre}
-                        className="w-full h-full object-contain rounded-xl bg-gray-50 group-hover:opacity-80 transition"
+                        className={`w-full h-full object-contain rounded-xl bg-gray-50 group-hover:opacity-80 transition ${agotado ? 'grayscale' : ''}`}
                         onClick={() => openImageModal(galeria, 0, p.nombre)}
                       />
                       {galeria.length > 1 && (
@@ -587,7 +749,7 @@ export default function Home() {
                     />
                   )}
                 </div>
-                <div className="w-full text-center">
+                <div className={`w-full text-center ${agotado ? 'pb-24' : ''}`}>
                   <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-1">{p.nombre}</h2>
                   <ExpandableDescription
                     text={p.descripcion}
@@ -598,44 +760,18 @@ export default function Home() {
                   />
                   
                   {/* Usar el componente de precio con promoción */}
-                  <PrecioConPromocion 
-                    producto={p} 
-                    promociones={promociones}
-                    className="mb-2"
-                  />
+                  {!agotado && !conversionInfo && (
+                    <PrecioConPromocion
+                      producto={p}
+                      promociones={promociones}
+                      className="mb-2"
+                    />
+                  )}
                   
 
                   {(() => {
-                    const conversionInfo = getConversionPriceInfo(p, promociones);
                     if (!conversionInfo) return null;
-                    return (
-                      <div className="mb-3 rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-sky-50 px-3 py-3 text-left shadow-sm">
-                        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-blue-700">
-                          Precio por unidad
-                        </p>
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
-                            <span className="text-xs font-semibold text-slate-600">
-                              Por {conversionInfo.unidadBase}
-                            </span>
-                            <span className="text-sm font-bold text-blue-800">
-                              Bs {conversionInfo.precioBase.toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
-                            <span className="text-xs font-semibold text-slate-600">
-                              Por {conversionInfo.unidadAlternativa}
-                            </span>
-                            <span className="text-sm font-bold text-blue-700">
-                              Bs {conversionInfo.precioAlternativo.toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                        <p className="mt-2 text-[11px] text-blue-700">
-                          1 {conversionInfo.unidadBase} = {Number(p.factor_conversion || 0).toFixed(2).replace(/\.00$/, '')} {conversionInfo.unidadAlternativa}
-                        </p>
-                      </div>
-                    );
+                    return <UnitPricePanel conversionInfo={conversionInfo} factor={p.factor_conversion} />;
                   })()}
 
                   {/* Mostrar colores disponibles como paleta de círculos */}
@@ -648,7 +784,7 @@ export default function Home() {
                             .replace(/[\u0300-\u036f]/g, '')
                             .toLowerCase()
                             .trim();
-                          return Number(v?.stock || 0) > 0 && colorNormalizado && colorNormalizado !== 'unico';
+                          return getEffectiveVariantStock(v) > 0 && colorNormalizado && colorNormalizado !== 'unico';
                         })
                       : [];
                     if (coloresEnStock.length <= 1) return null;
@@ -678,6 +814,15 @@ export default function Home() {
                     );
                   })()}
                 </div>
+                {agotado && (
+                  <>
+                    <div className="pointer-events-none absolute inset-0 bg-gray-950/55" />
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-4 bg-gray-950/90 px-5 py-5 text-left">
+                      <span className="text-lg font-black uppercase tracking-wide text-red-500">Agotado</span>
+                      <span className="text-sm leading-snug text-gray-100">Este producto no esta disponible</span>
+                    </div>
+                  </>
+                )}
               </div>
             );
           })}

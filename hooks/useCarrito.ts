@@ -13,6 +13,7 @@ export interface Producto {
     id?: string | number;
     color?: string;
     stock?: number;
+    stock_decimal?: number;
     precio?: number;
     imagen_url?: string;
   }>;
@@ -51,6 +52,7 @@ export interface PackProduct {
       color?: string;
       precio?: number;
       stock?: number;
+      stock_decimal?: number;
       imagen_url?: string;
       sku?: string;
       codigo_barra?: string;

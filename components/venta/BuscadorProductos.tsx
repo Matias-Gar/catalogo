@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { getOptimizedImageUrl } from "@/lib/imageOptimization";
+import { calcularPrecioConPromocion } from "@/lib/promociones";
 import type { Pack, Producto } from "@/hooks/useCarrito";
 
 interface Props {
@@ -17,6 +18,7 @@ interface Props {
   setShowSuggestions: (b: boolean) => void;
   packResults?: Pack[];
   onAddPack?: (pack: Pack) => void;
+  promociones?: any[];
 }
 
 export default function BuscadorProductos({
@@ -31,28 +33,50 @@ export default function BuscadorProductos({
   setShowSuggestions,
   packResults = [],
   onAddPack,
+  promociones = [],
 }: Props) {
+  const getEffectiveVariantStock = (v: { stock?: number; stock_decimal?: number }) => {
+    const decimal = Number(v.stock_decimal);
+    const legacy = Number(v.stock);
+    return Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
+  };
+
   const handleAddClick = (p: Producto) => {
-    const unidades = Array.isArray((p as any).unidades_disponibles)
+    const stockBase = Math.max(0, Number((p as any).stock ?? 0));
+    const factor = Number((p as any).factor_conversion || 0);
+    const base = String((p as any).unidad_base || "unidad");
+    const alternativas = Array.isArray((p as any).unidades_alternativas)
+      ? (p as any).unidades_alternativas.filter((u: string) => u && u !== base)
+      : [];
+    const unidadAlternativa = alternativas[0];
+    const unidadesBase = Array.isArray((p as any).unidades_disponibles)
       ? (p as any).unidades_disponibles
       : (p as any).unidad_base && (p as any).unidades_alternativas
         ? [
             (p as any).unidad_base,
-            ...((p as any).unidades_alternativas || []).filter(
-              (u: string) => u !== (p as any).unidad_base,
-            ),
+            ...alternativas,
           ]
         : [(p as any).unidad_base || "unidad"];
+    const unidades =
+      unidadAlternativa && Number.isFinite(factor) && factor > 0
+        ? [
+            ...(stockBase >= 1 ? [base] : []),
+            ...(stockBase * factor > 0 ? [unidadAlternativa] : []),
+          ]
+        : unidadesBase;
 
-    const unidadBase = (p as any).unidad_base || unidades[0] || "unidad";
+    const unidadSeleccionada = unidades[0] || base;
+    const cantidadBase = unidadSeleccionada === base || !factor || factor <= 0
+      ? 1
+      : 1 / factor;
 
     onAdd({
       ...p,
       cantidad: 1,
-      cantidad_base: 1,
+      cantidad_base: cantidadBase,
       cantidad_display: 1,
-      unidad: unidadBase,
-      unidad_base: unidadBase,
+      unidad: unidadSeleccionada,
+      unidad_base: base,
       unidades_disponibles: unidades,
     });
     setShowSuggestions(false);
@@ -135,11 +159,13 @@ export default function BuscadorProductos({
               ))}
 
             {!searchLoading &&
-              searchResults.slice(0, 20).map((p) => (
-                <li
-                  key={String(p.user_id ?? `tmp-${p.nombre}`)}
-                  className="flex items-center justify-between gap-3 px-3 py-2 hover:bg-gray-100"
-                >
+              searchResults.slice(0, 20).map((p) => {
+                const precioInfo = calcularPrecioConPromocion(p, promociones);
+                return (
+                  <li
+                    key={String(p.user_id ?? `tmp-${p.nombre}`)}
+                    className="flex items-center justify-between gap-3 px-3 py-2 hover:bg-gray-100"
+                  >
                   <div className="flex items-center gap-3 truncate">
                     <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-gray-50">
                       {imagenes[String(p.user_id)]?.[0] ? (
@@ -199,7 +225,23 @@ export default function BuscadorProductos({
                   </div>
 
                   <div className="flex flex-col items-end gap-1">
-                    <div className="text-sm font-semibold text-gray-700">Bs {Number(p.precio).toFixed(2)}</div>
+                    <div className="text-right text-sm">
+                      {precioInfo.tienePromocion && (
+                        <div className="text-xs text-gray-800 line-through decoration-gray-800">
+                          Bs {precioInfo.precioOriginal.toFixed(2)}
+                        </div>
+                      )}
+                      <div className={`font-bold ${precioInfo.tienePromocion ? 'text-green-600' : 'text-blue-700'}`}>
+                        Bs {precioInfo.precioFinal.toFixed(2)}
+                      </div>
+                      {precioInfo.tienePromocion && (
+                        <div className="mt-1 flex items-center justify-end gap-1.5">
+                          <span className="rounded-full bg-red-500 px-2 py-1 text-[11px] font-bold leading-none text-gray-950">
+                            -{precioInfo.porcentajeDescuento}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
                     {p.variante_id ? (
                       <button
                         type="button"
@@ -221,10 +263,11 @@ export default function BuscadorProductos({
                     ) : Array.isArray(p.variantes) && p.variantes.length > 0 ? (
                       <div className="flex max-w-56 flex-wrap justify-end gap-1">
                         {p.variantes
-                          .filter((v) => Number(v.stock || 0) > 0)
+                          .filter((v) => getEffectiveVariantStock(v) > 0)
                           .slice(0, 6)
                           .map((v, idx) => {
                             const variantId = v.variante_id ?? v.id;
+                            const variantStock = getEffectiveVariantStock(v);
                             return (
                               <button
                                 key={`${p.user_id}-${String(variantId)}-${idx}`}
@@ -236,13 +279,13 @@ export default function BuscadorProductos({
                                     variante_id: variantId,
                                     color: v.color || "Sin color",
                                     precio: Number(v.precio ?? p.precio ?? 0),
-                                    stock: Number(v.stock || 0),
+                                    stock: variantStock,
                                   });
                                 }}
                                 className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
                                 title={`Agregar color ${v.color || "Sin color"}`}
                               >
-                                {v.color || "Color"} ({Number(v.stock || 0)})
+                                {v.color || "Color"} ({variantStock})
                               </button>
                             );
                           })}
@@ -261,7 +304,8 @@ export default function BuscadorProductos({
                     )}
                   </div>
                 </li>
-              ))}
+                );
+              })}
 
             {!searchLoading && searchResults.length === 0 && packResults.length === 0 && (
               <li className="px-3 py-2 text-sm text-gray-500">No hay coincidencias</li>

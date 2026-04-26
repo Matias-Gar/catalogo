@@ -55,6 +55,16 @@ export async function descontarStock(pid: ProductoId, cantidad: number) {
   return { data: null, error: updateError };
 }
 
+export async function establecerStockProducto(pid: ProductoId, stockDecimal: number) {
+  const nextStock = Math.max(0, Number(stockDecimal || 0));
+  const { error: updateError } = await supabase
+    .from('productos')
+    .update({ stock: nextStock })
+    .eq('user_id', pid);
+
+  return { data: null, error: updateError };
+}
+
 export async function descontarStockVariante(varianteId: ProductoId, cantidad: number) {
   const { data: variant, error: fetchError } = await supabase
     .from('producto_variantes')
@@ -67,6 +77,21 @@ export async function descontarStockVariante(varianteId: ProductoId, cantidad: n
 
   const currentDecimal = Number((variant as GenericPayload).stock_decimal ?? (variant as GenericPayload).stock ?? 0);
   const nextDecimal = Math.max(0, currentDecimal - Number(cantidad || 0));
+  const nextLegacyStock = nextDecimal > 0 ? Math.ceil(nextDecimal) : 0;
+
+  const { error: updateError } = await supabase
+    .from('producto_variantes')
+    .update({
+      stock_decimal: nextDecimal,
+      stock: nextLegacyStock,
+    })
+    .eq('id', varianteId);
+
+  return { data: null, error: updateError };
+}
+
+export async function establecerStockVariante(varianteId: ProductoId, stockDecimal: number) {
+  const nextDecimal = Math.max(0, Number(stockDecimal || 0));
   const nextLegacyStock = nextDecimal > 0 ? Math.ceil(nextDecimal) : 0;
 
   const { error: updateError } = await supabase
