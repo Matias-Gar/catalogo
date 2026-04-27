@@ -501,7 +501,7 @@ export default function AumentarStockPage() {
         .from("producto_variantes")
         .update({
           stock_decimal: nextVariantStock,
-          stock: nextVariantStock > 0 ? Math.ceil(nextVariantStock) : 0,
+          stock: Math.floor(nextVariantStock),
         })
         .eq("id", variantId);
 
@@ -546,7 +546,7 @@ export default function AumentarStockPage() {
       setVariantesByProducto((prev) => ({
         ...prev,
         [String(pid)]: (prev[String(pid)] || []).map((v) =>
-          v.id === variantId ? { ...v, stock: nextVariantStock > 0 ? Math.ceil(nextVariantStock) : 0, stock_decimal: nextVariantStock } : v
+          v.id === variantId ? { ...v, stock: Math.floor(nextVariantStock), stock_decimal: nextVariantStock } : v
         ),
       }));
 

@@ -307,7 +307,7 @@ export default function EditarCatalogo() {
           await supabase.from("producto_variantes").update({
             color: v.color,
             talla: v.talla,
-            stock: Math.max(0, Math.ceil(Number(v.stock) || 0)),
+            stock: Math.max(0, Math.floor(Number(v.stock) || 0)),
             stock_decimal: Number(v.stock) || 0,
             sku: v.sku,
             precio: parseDecimalInput(v.precio, null),
@@ -320,7 +320,7 @@ export default function EditarCatalogo() {
             producto_id: productoActual.user_id,
             color: v.color,
             talla: v.talla,
-            stock: Math.max(0, Math.ceil(Number(v.stock) || 0)),
+            stock: Math.max(0, Math.floor(Number(v.stock) || 0)),
             stock_decimal: Number(v.stock) || 0,
             stock_inicial_decimal: Number(v.stock) || 0,
             sku: v.sku,

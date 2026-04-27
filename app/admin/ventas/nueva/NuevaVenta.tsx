@@ -703,7 +703,7 @@ export default function NuevaVenta() {
       if (productosIds.length > 0) {
         const { data: productosData, error: productosError } = await supabase
           .from('productos')
-          .select('user_id, nombre, precio, precio_compra, stock, categoria, codigo_barra, producto_variantes ( id, color, precio, stock, stock_decimal, sku )')
+          .select('user_id, nombre, precio, precio_compra, stock, categoria, codigo_barra, unidad_base, unidades_alternativas, factor_conversion, producto_variantes ( id, color, precio, stock, stock_decimal, sku )')
           .in('user_id', productosIds);
         if (productosError) throw productosError;
         productosDB = Array.isArray(productosData) ? productosData : [];
@@ -914,15 +914,15 @@ export default function NuevaVenta() {
           if (p.variante_id) {
             variante = (productoCompleto.producto_variantes || []).find((v: { id?: string | number }) => String(v.id) === String(p.variante_id));
           }
-          const precioUnitario = variante?.precio ?? productoCompleto.precio;
+          const precioUnitario = Number(p.precio ?? variante?.precio ?? productoCompleto.precio ?? 0);
           const costoUnitario = productoCompleto.precio_compra || 0;
           const descripcionItem = `${productoCompleto.nombre}${variante?.color ? ` ${variante.color}` : p.color ? ` ${p.color}` : ''}${unidadVenta !== unidadBaseVenta ? ` (${cantidadVisible} ${unidadVenta} = ${formatStockQuantity(cantidadBase)} ${unidadBaseVenta})` : ''}`.trim();
           const { error: detalleProductoError } = await ventasService.insertarVentaDetalle({
             venta_id: venta.id,
             producto_id: productoCompleto.user_id,
-            cantidad: cantidadDetalle,
+            cantidad: cantidadVisible,
             cantidad_base: cantidadBase,
-            unidad: unidadBaseVenta,
+            unidad: unidadVenta,
             precio_unitario: precioUnitario,
             costo_unitario: costoUnitario,
             variante_id: variante?.id || null,
@@ -1082,6 +1082,14 @@ export default function NuevaVenta() {
               />
               Cobrar IVA + IT (16% sobre precio final)
             </label>
+            <button
+              type="button"
+              onClick={() => printerRef.current?.printCotizacion()}
+              className="mt-6 w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-lg text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={efectivizando || carrito.length === 0}
+            >
+              Imprimir cotización
+            </button>
           </div>
         </div>
         <div className="col-span-2 p-6">

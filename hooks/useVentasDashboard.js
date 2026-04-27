@@ -96,6 +96,8 @@ export function useVentasDashboard() {
           .select(`
             venta_id,
             cantidad,
+            cantidad_base,
+            unidad,
             precio_unitario,
             costo_unitario,
             color,
@@ -142,7 +144,7 @@ export function useVentasDashboard() {
           const ids = Array.from(productIds);
           const { data: productsData, error: productsError } = await supabase
             .from('productos')
-            .select('user_id, nombre, precio_compra')
+            .select('user_id, nombre, precio_compra, unidad_base, unidades_alternativas, factor_conversion')
             .in('user_id', ids);
 
           if (productsError) throw productsError;
@@ -184,9 +186,9 @@ export function useVentasDashboard() {
         let cantidadProductos = 0;
 
         details.forEach((item) => {
-          const qty = toNumber(item?.cantidad || 0);
+          const qtyDisplayRaw = toNumber(item?.cantidad || 0);
+          const qtyBase = toNumber(item?.cantidad_base || 0) || qtyDisplayRaw;
           const precioUnitario = toNumber(item?.precio_unitario || 0);
-          const ingreso = precioUnitario * qty;
 
           const productInfo = productMap[item?.producto_id] || null;
           const costoUnitarioDetalle = item?.costo_unitario;
@@ -196,7 +198,24 @@ export function useVentasDashboard() {
               ? 0
               : toNumber(productInfo?.precio_compra || 0);
 
-          const costo = costoUnitario * qty;
+          const factorConversion = toNumber(productInfo?.factor_conversion || 0);
+          const unidadBase = String(productInfo?.unidad_base || '').trim();
+          const unidadDetalle = String(item?.unidad || '').trim();
+          const unidadAlternativa = Array.isArray(productInfo?.unidades_alternativas)
+            ? String(productInfo.unidades_alternativas[0] || '').trim()
+            : '';
+          const displayFromBase = qtyBase > 0 && factorConversion > 0 && unidadAlternativa
+            ? qtyBase * factorConversion
+            : qtyBase;
+          const displayUnit = unidadDetalle && unidadDetalle !== unidadBase
+            ? unidadDetalle
+            : (factorConversion > 0 && unidadAlternativa ? unidadAlternativa : unidadDetalle || unidadBase || 'unidad');
+          const qtyDisplay = unidadDetalle && unidadDetalle !== unidadBase
+            ? qtyDisplayRaw || displayFromBase
+            : displayFromBase || qtyDisplayRaw;
+
+          const ingreso = precioUnitario * qtyBase;
+          const costo = costoUnitario * qtyBase;
           const gananciaItem = ingreso - costo;
 
           const itemName =
@@ -210,7 +229,9 @@ export function useVentasDashboard() {
 
           items.push({
             nombre: itemName,
-            cantidad: qty,
+            cantidad: qtyDisplay,
+            cantidadBase: qtyBase,
+            unidad: displayUnit,
             precio: precioUnitario,
             costo,
             costoUnitario,
@@ -223,7 +244,7 @@ export function useVentasDashboard() {
 
           ingresosItems += ingreso;
           costoItems += costo;
-          cantidadProductos += qty;
+          cantidadProductos += qtyDisplay;
         });
 
         const extraCosts = normalizeExtraCosts(venta?.costos_extra);
@@ -240,7 +261,8 @@ export function useVentasDashboard() {
           const cantidad = toNumber(item?.cantidad || 0);
           const nombre = String(item?.nombre || 'producto').trim();
           const color = String(item?.color || '').trim();
-          return `${cantidad} ${nombre}${color ? ` ${color}` : ''}`;
+          const unidad = String(item?.unidad || '').trim();
+          return `${cantidad} ${unidad ? `${unidad} de ` : ''}${nombre}${color ? ` ${color}` : ''}`;
         });
         const resumenCompra = resumenItems.length > 0
           ? `${cliente} compro ${joinWithY(resumenItems)}`

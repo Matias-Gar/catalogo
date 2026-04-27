@@ -77,7 +77,7 @@ export async function descontarStockVariante(varianteId: ProductoId, cantidad: n
 
   const currentDecimal = Number((variant as GenericPayload).stock_decimal ?? (variant as GenericPayload).stock ?? 0);
   const nextDecimal = Math.max(0, currentDecimal - Number(cantidad || 0));
-  const nextLegacyStock = nextDecimal > 0 ? Math.ceil(nextDecimal) : 0;
+  const nextLegacyStock = Math.floor(nextDecimal);
 
   const { error: updateError } = await supabase
     .from('producto_variantes')
@@ -92,7 +92,7 @@ export async function descontarStockVariante(varianteId: ProductoId, cantidad: n
 
 export async function establecerStockVariante(varianteId: ProductoId, stockDecimal: number) {
   const nextDecimal = Math.max(0, Number(stockDecimal || 0));
-  const nextLegacyStock = nextDecimal > 0 ? Math.ceil(nextDecimal) : 0;
+  const nextLegacyStock = Math.floor(nextDecimal);
 
   const { error: updateError } = await supabase
     .from('producto_variantes')

@@ -7,12 +7,18 @@ import { getOptimizedImageUrl, buildImageSrcSet } from "../../../../lib/imageOpt
 // Mover candidateBuckets al nivel de módulo (fuera del componente) para que su referencia sea estable
 const candidateBuckets = ["imagenes_del_producto", "productos", "images", "imagenes", "public", "uploads"];
 
+function getVariantStock(variant) {
+  const decimal = Number(variant?.stock_decimal);
+  return Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : Number(variant?.stock || 0));
+}
+
 export default function CatalogoPage() {
   const router = useRouter();
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todas");
+  const [vistaSeleccionada, setVistaSeleccionada] = useState("Todas");
   const [categoriasDisponibles, setCategoriasDisponibles] = useState([]);
   const [userRole, setUserRole] = useState("checking");
   const [isCompactLayout, setIsCompactLayout] = useState(false);
@@ -80,7 +86,7 @@ export default function CatalogoPage() {
 
         const { data: prodsData } = await supabase
           .from("productos")
-          .select("user_id, nombre, descripcion, precio, stock, imagen_url, category_id, codigo_barra, categorias (categori)")
+          .select("user_id, nombre, descripcion, precio, stock, imagen_url, category_id, codigo_barra, vista_producto, unidad_base, unidades_alternativas, factor_conversion, categorias (categori)")
           .order("created_at", { ascending: false })
           .limit(1000);
         const prods = Array.isArray(prodsData) ? prodsData : [];
@@ -106,7 +112,7 @@ export default function CatalogoPage() {
         if (productIds.length) {
           const { data: varsData } = await supabase
             .from("producto_variantes")
-            .select("id, producto_id, color, stock, precio, sku, activo")
+            .select("id, producto_id, color, stock, stock_decimal, precio, sku, activo")
             .in("producto_id", productIds)
             .order("color", { ascending: true });
           const vars = Array.isArray(varsData) ? varsData : [];
@@ -125,7 +131,12 @@ export default function CatalogoPage() {
           const descripcion = item.descripcion || "";
           const variantes = variantesMap[String(id)] || [];
           // Calcular el stock como la suma de los stocks de las variantes
-          const stock = variantes.length > 0 ? variantes.reduce((sum, v) => sum + (Number(v.stock) || 0), 0) : (item.stock ?? 0);
+          const hasConversion = Array.isArray(item.unidades_alternativas) && item.unidades_alternativas.length > 0 && Number(item.factor_conversion || 0) > 0;
+          const stock = hasConversion
+            ? (item.stock ?? 0)
+            : variantes.length > 0
+              ? variantes.reduce((sum, v) => sum + getVariantStock(v), 0)
+              : (item.stock ?? 0);
 
           const catId = item.category_id;
           let categoriaNombre = "";
@@ -161,6 +172,7 @@ export default function CatalogoPage() {
             stock,
             variantes,
             categoriaNombre: categoriaNombre || "Sin categoría",
+            vistaProducto: String(item.vista_producto || "articulos").trim().toLowerCase(),
             imagenPublicUrls
           };
         }));
@@ -241,9 +253,11 @@ export default function CatalogoPage() {
     return { backgroundColor: '#9CA3AF' };
   };
 
-  const productosFiltrados = categoriaSeleccionada === "Todas"
-    ? productos
-    : productos.filter(p => p.categoriaNombre === categoriaSeleccionada);
+  const productosFiltrados = productos.filter((p) => {
+    const matchCategoria = categoriaSeleccionada === "Todas" || p.categoriaNombre === categoriaSeleccionada;
+    const matchVista = vistaSeleccionada === "Todas" || p.vistaProducto === vistaSeleccionada;
+    return matchCategoria && matchVista;
+  });
 
   async function toBase64(url) {
     try {
@@ -322,7 +336,7 @@ export default function CatalogoPage() {
         const descripcion = String(producto.descripcion || "").replace(/\s+/g, " ").trim();
         const colores = Array.isArray(producto.variantes)
           ? producto.variantes
-              .filter((v) => Number(v?.stock || 0) > 0 && String(v?.color || "").trim())
+              .filter((v) => getVariantStock(v) > 0 && String(v?.color || "").trim())
               .map((v) => String(v.color).trim())
           : [];
         const coloresTexto = colores.length > 0 ? `Colores disponibles: ${Array.from(new Set(colores)).join(", ")}` : "";
@@ -485,6 +499,16 @@ export default function CatalogoPage() {
             {categoriasDisponibles.map(cat => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
+          </select>
+
+          <select
+            value={vistaSeleccionada}
+            onChange={e => setVistaSeleccionada(e.target.value)}
+            style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc", minWidth: 180, cursor: "pointer" }}
+          >
+            <option value="Todas">Productos e insumos</option>
+            <option value="articulos">Solo productos</option>
+            <option value="insumos">Solo insumos</option>
           </select>
         </div>
 
@@ -657,7 +681,7 @@ export default function CatalogoPage() {
                             .replace(/[\u0300-\u036f]/g, '')
                             .toLowerCase()
                             .trim();
-                          return Number(v?.stock || 0) > 0 && colorNormalizado && colorNormalizado !== 'unico';
+                          return getVariantStock(v) > 0 && colorNormalizado && colorNormalizado !== 'unico';
                         })
                       : [];
                     if (coloresEnStock.length <= 1) return null;
@@ -668,7 +692,7 @@ export default function CatalogoPage() {
                           {coloresEnStock.map((v, vIdx) => {
                               const colorStyle = getColorStyle(v.color);
                               return (
-                                <div key={`${p.id}-${vIdx}`} style={{ position: "relative", cursor: "pointer" }} title={`${v.color} (${Number(v.stock || 0)} disponibles)`}>
+                                <div key={`${p.id}-${vIdx}`} style={{ position: "relative", cursor: "pointer" }} title={`${v.color} (${getVariantStock(v)} disponibles)`}>
                                   <div
                                     style={{
                                       width: 20,

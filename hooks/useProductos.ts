@@ -132,7 +132,9 @@ async function enriquecerUnidades(productos: Producto[]) {
       unidades_disponibles: buildUnidadesDisponibles(extra.unidad_base, extra.unidades_alternativas),
       factor_conversion: extra.factor_conversion,
       unidad: producto.unidad ?? extra.unidad_base,
-      stock: variantStock > 0 || productStock <= 0 ? variantStock : productStock
+      stock: extra.factor_conversion && extra.factor_conversion > 0 && extra.unidades_alternativas.length > 0
+        ? productStock
+        : (variantStock > 0 || productStock <= 0 ? variantStock : productStock)
     };
   });
 }
@@ -240,7 +242,7 @@ export function useProductos(_includeCost = false) {
                   precio: precioBase,
                   precio_base: precioBase,
                   precio_compra: undefined,
-                  stock: getEffectiveVariantStock(matchedVar as any) || Number(p.stock_total ?? 0),
+                  stock: matchedVar ? getEffectiveVariantStock(matchedVar as any) : Number(p.stock_total ?? 0),
                   stock_total: Number(p.stock_total ?? 0),
                   codigo_barra: String(p.codigo_barra ?? ''),
                   categoria: String(p.categoria ?? ''),

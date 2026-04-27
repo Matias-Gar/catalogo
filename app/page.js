@@ -62,6 +62,13 @@ function getEffectiveVariantStock(variant) {
 function getProductStockBase(producto) {
   const variantes = Array.isArray(producto?.variantes) ? producto.variantes : [];
   const productStock = Math.max(0, Number(producto?.stock ?? producto?.stock_total ?? 0));
+  const hasUnitConversion =
+    Array.isArray(producto?.unidades_alternativas) &&
+    producto.unidades_alternativas.length > 0 &&
+    Number(producto?.factor_conversion || 0) > 0;
+  if (hasUnitConversion && Number.isFinite(productStock)) {
+    return productStock;
+  }
   if (variantes.length > 0) {
     const variantStock = variantes.reduce((acc, variante) => acc + getEffectiveVariantStock(variante), 0);
     return variantStock > 0 || productStock <= 0 ? variantStock : productStock;
@@ -261,6 +268,7 @@ export default function Home() {
   const [categorias, setCategorias] = useState([]);
   const [productViewsById, setProductViewsById] = useState({});
   const [filtroCategoria, setFiltroCategoria] = useState('');
+  const [busqueda, setBusqueda] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -366,13 +374,14 @@ export default function Home() {
           ? variantes.reduce((acc, v) => acc + getEffectiveVariantStock(v), 0)
           : 0;
         const productStock = Number.isFinite(Number(extra.stock)) ? Math.max(0, Number(extra.stock)) : Math.max(0, Number(p.stock || 0));
+        const hasUnitConversion = Array.isArray(extra.unidades_alternativas) && extra.unidades_alternativas.length > 0 && Number(extra.factor_conversion || 0) > 0;
         return {
           ...p,
           variantes,
           unidad_base: extra.unidad_base || 'unidad',
           unidades_alternativas: extra.unidades_alternativas || [],
           factor_conversion: extra.factor_conversion,
-          stock: variantStock > 0 || productStock <= 0 ? variantStock : productStock,
+          stock: hasUnitConversion ? productStock : (variantStock > 0 || productStock <= 0 ? variantStock : productStock),
         };
       });
       setProductos(filteredProducts);
@@ -423,6 +432,16 @@ export default function Home() {
 
   // 2. Definición de la variable calculada: productosFiltrados
   const productosFiltrados = productos.filter(p => {
+    const term = busqueda.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    const matchesBusqueda = !term || [
+      p.nombre,
+      p.descripcion,
+      p.categoria,
+      p.categorias?.categori,
+      p.codigo_barra,
+      ...(Array.isArray(p.variantes) ? p.variantes.map((v) => v?.color) : []),
+    ].some((value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(term));
+    if (!matchesBusqueda) return false;
     if (filtroCategoria === '') return true;
     const match = Number(p.category_id) === Number(filtroCategoria);
     // console.log('🔍 Filtro categoria PRINCIPAL:', { producto: p.nombre, categoria_producto: p.category_id, categoria_seleccionada: filtroCategoria, match });
@@ -619,6 +638,15 @@ export default function Home() {
         {/* Enlace a la administración (opcional, solo si lo quieres aquí) */}
         {/* Si quieres eliminarlo por completo, borra este bloque */}
         {/* Sección de Filtros - VERSIÓN RESPONSIVA IDÉNTICA A PRODUCTOS */}
+        <div className="mb-5 mx-auto w-full max-w-2xl px-2">
+          <input
+            type="search"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder={currentPublicView === 'insumos' ? 'Buscar insumo, color o categoria' : 'Buscar producto, color o categoria'}
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-800 shadow-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-200"
+          />
+        </div>
         {categoriasVisibles.length > 0 && (
             <div className="mb-6">
                 {/* Versión móvil - Selector desplegable compacto */}

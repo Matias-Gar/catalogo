@@ -81,6 +81,7 @@ export default function CatalogoPage() {
     // --- Declarar promociones usando el hook personalizado ---
     const { promociones } = usePromociones();
                                 const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
+                                const [busqueda, setBusqueda] = useState('');
                                 const [imagenesProductos, setImagenesProductos] = useState({});
                             const [productos, setProductos] = useState([]);
                         const { packs, loading: loadingPacks } = usePacks();
@@ -128,9 +129,26 @@ export default function CatalogoPage() {
     const getProductStockBase = (producto, varianteId = null) => {
         const variantes = Array.isArray(producto?.variantes) ? producto.variantes : [];
         const productStock = Math.max(0, Number(producto?.stock ?? producto?.stock_total ?? 0));
+        const hasUnitConversion =
+            Array.isArray(producto?.unidades_alternativas) &&
+            producto.unidades_alternativas.length > 0 &&
+            Number(producto?.factor_conversion || 0) > 0;
+        if (hasUnitConversion && varianteId === null && Number.isFinite(productStock)) {
+            return productStock;
+        }
         if (variantes.length > 0) {
             if (varianteId !== null && varianteId !== undefined) {
                 const variante = variantes.find((v) => String(v.variante_id ?? v.id) === String(varianteId));
+                const variantStock = getEffectiveVariantStock(variante);
+                if (
+                    hasUnitConversion &&
+                    variantes.length === 1 &&
+                    Number.isFinite(productStock) &&
+                    productStock > 0 &&
+                    productStock < variantStock
+                ) {
+                    return productStock;
+                }
                 return getEffectiveVariantStock(variante);
             }
             const variantStock = variantes.reduce((acc, variante) => acc + getEffectiveVariantStock(variante), 0);
@@ -240,6 +258,7 @@ export default function CatalogoPage() {
                     ? variantes.reduce((acc, v) => acc + getEffectiveVariantStock(v), 0)
                     : 0;
                 const productStock = Number.isFinite(Number(extra.stock)) ? Math.max(0, Number(extra.stock)) : Math.max(0, Number(item.stock || 0));
+                const hasUnitConversion = Array.isArray(extra.unidades_alternativas) && extra.unidades_alternativas.length > 0 && Number(extra.factor_conversion || 0) > 0;
                 return {
                     ...item,
                     variantes,
@@ -247,7 +266,7 @@ export default function CatalogoPage() {
                     unidades_alternativas: Array.isArray(extra.unidades_alternativas) ? extra.unidades_alternativas : item.unidades_alternativas,
                     factor_conversion: Number(extra.factor_conversion || 0) || item.factor_conversion,
                     vista_producto: normalizeProductView(extra.vista_producto),
-                    stock: variantStock > 0 || productStock <= 0 ? variantStock : productStock
+                    stock: hasUnitConversion ? productStock : (variantStock > 0 || productStock <= 0 ? variantStock : productStock)
                 };
             });
         } catch {
@@ -283,8 +302,9 @@ export default function CatalogoPage() {
                                 // Si tiene variantes, sumar stock de variantes
                                 if (Array.isArray(p.variantes) && p.variantes.length > 0) {
                                         const stockBase = Number(p.stock_total || 0);
-                                        const variantStock = p.variantes.reduce((acc, v) => acc + getEffectiveVariantStock(v), 0);
-                                        return variantStock > 0 || stockBase <= 0 ? variantStock : stockBase;
+                                const variantStock = p.variantes.reduce((acc, v) => acc + getEffectiveVariantStock(v), 0);
+                                const hasUnitConversion = Array.isArray(p.unidades_alternativas) && p.unidades_alternativas.length > 0 && Number(p.factor_conversion) > 0;
+                                return hasUnitConversion ? stockBase : (variantStock > 0 || stockBase <= 0 ? variantStock : stockBase);
                                 }
                                 const stockBase = Number(p.stock_total || 0);
                                 // Si hay conversión y unidades alternativas, calcular stock alternativo
@@ -489,18 +509,28 @@ export default function CatalogoPage() {
 
     const getStockDisponibleProducto = (producto, varianteId = null) => {
                 const variantes = getVariantes(producto);
+                const productStock = Math.max(0, Number(producto?.stock || 0));
+                const hasUnitConversion =
+                    Array.isArray(producto?.unidades_alternativas) &&
+                    producto.unidades_alternativas.length > 0 &&
+                    Number(producto?.factor_conversion || 0) > 0;
 
                 if (variantes.length > 0) {
                         if (varianteId !== null && varianteId !== undefined) {
                                 const variante = variantes.find(function(v) { return String(v.variante_id ?? v.id) === String(varianteId); });
-                                return getEffectiveVariantStock(variante);
+                                const variantStock = getEffectiveVariantStock(variante);
+                                if (hasUnitConversion && variantes.length === 1 && Number.isFinite(productStock)) {
+                                    return productStock;
+                                }
+                                return variantStock;
                         }
+                        if (hasUnitConversion) return productStock;
                         const totalDisponible = variantes.reduce(function(acc, v) { return acc + getEffectiveVariantStock(v); }, 0);
                         return Math.max(0, totalDisponible);
                 }
 
                 // Stock base
-                const stockBase = Math.max(0, Number(producto?.stock || 0));
+                const stockBase = productStock;
                 // Si hay conversión y unidades alternativas, calcular stock alternativo
                 if (
                     Array.isArray(producto.unidades_alternativas) &&
@@ -619,7 +649,14 @@ export default function CatalogoPage() {
                 setModalWarning('Selecciona un color válido para continuar.');
                 return;
             }
-            if (getEffectiveVariantStock(varianteDB) <= 0) {
+            const hasUnitConversionForSale =
+                Array.isArray(productoDB?.unidades_alternativas) &&
+                productoDB.unidades_alternativas.length > 0 &&
+                Number(productoDB?.factor_conversion || producto.factor_conversion || 0) > 0;
+            const stockVarianteActual = hasUnitConversionForSale && variantes.length === 1
+                ? Math.max(0, Number(productoDB?.stock || 0))
+                : getEffectiveVariantStock(varianteDB);
+            if (stockVarianteActual <= 0) {
                 setModalWarning('Esa opción está agotada. Elige otra disponible.');
                 return;
             }
@@ -628,7 +665,7 @@ export default function CatalogoPage() {
                 color: varianteDB.color || null,
                 precio: Number(varianteDB.precio ?? productoDB.precio ?? 0)
             };
-            stockDisponible = getEffectiveVariantStock(varianteDB);
+            stockDisponible = stockVarianteActual;
         } else if (!productoDB || stockDisponible <= 0) {
             setModalWarning('Producto agotado por el momento.');
             return;
@@ -964,6 +1001,16 @@ export default function CatalogoPage() {
 
 
             {/* FILTRO POR CATEGORÍA - DESPLEGABLE COMPACTO PARA MÓVIL */}
+            <div className="mb-5 rounded-xl bg-white p-3 shadow-lg">
+                <input
+                    type="search"
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                    placeholder={currentPublicView === 'insumos' ? 'Buscar insumo, color o categoria' : 'Buscar producto, color o categoria'}
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-800 outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-200"
+                />
+            </div>
+
             {categorias.length > 0 && (
                 <div className="mb-6">
                     {/* Versión móvil - Selector desplegable compacto */}
@@ -1106,9 +1153,18 @@ export default function CatalogoPage() {
                 {Array.isArray(productos) && productos.length > 0 ? (
                     (() => {
                         const productosFiltrados = productos.filter(producto => {
+                            const term = busqueda.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+                            const matchesBusqueda = !term || [
+                                producto.nombre,
+                                producto.descripcion,
+                                producto.categoria,
+                                producto.categorias?.categori,
+                                producto.codigo_barra,
+                                ...(Array.isArray(producto.variantes) ? producto.variantes.map((v) => v?.color) : []),
+                            ].some((value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(term));
+                            if (!matchesBusqueda) return false;
                             if (!categoriaSeleccionada) return true;
-                            const match = Number(producto.category_id) === Number(categoriaSeleccionada);
-                            return match;
+                            return Number(producto.category_id) === Number(categoriaSeleccionada);
                         });
                         
                         // ...existing code...
