@@ -48,7 +48,7 @@ function normalizeSalePaymentMethod(value) {
 function isAutoSaleIncomeMovement(row) {
   if (!row || row.type !== "income") return false;
   const description = String(row.description || "").toLowerCase();
-  return description.includes("ingreso automatico por venta #");
+  return description.includes("ingreso por venta #") || description.includes("ingreso automatico por venta #");
 }
 
 function extractSaleIdFromAutoMovement(description) {
@@ -78,7 +78,53 @@ function previousDateISO(dateISO) {
   return d.toISOString().slice(0, 10);
 }
 
-async function calculateBankCarryFromHistory(supabase, params) {
+function chunkArray(values, size = 100) {
+  const chunks = [];
+  for (let i = 0; i < values.length; i += size) {
+    chunks.push(values.slice(i, i + size));
+  }
+  return chunks;
+}
+
+async function summarizeSalesIncomeByMethod(supabase, sales = []) {
+  const incomeByMethod = methodTemplate();
+  const normalizedSales = Array.isArray(sales) ? sales : [];
+  if (normalizedSales.length === 0) return incomeByMethod;
+
+  const saleIds = normalizedSales.map((sale) => sale?.id).filter(Boolean);
+  const paidSaleIds = new Set();
+
+  for (const ids of chunkArray(saleIds)) {
+    const { data: payments, error: paymentsError } = await supabase
+      .from("ventas_pagos")
+      .select("venta_id, monto, metodo_pago")
+      .in("venta_id", ids);
+
+    if (paymentsError) {
+      throw new Error(paymentsError.message || "Failed to fetch sale payments for cash summary");
+    }
+
+    for (const payment of payments || []) {
+      const method = normalizeSalePaymentMethod(payment?.metodo_pago);
+      const amount = Number(payment?.monto || 0);
+      if (!Number.isFinite(amount) || amount <= 0) continue;
+      incomeByMethod[method] += amount;
+      paidSaleIds.add(String(payment.venta_id));
+    }
+  }
+
+  for (const sale of normalizedSales) {
+    if (paidSaleIds.has(String(sale?.id))) continue;
+    const method = normalizeSalePaymentMethod(sale?.modo_pago);
+    const amount = Number(sale?.total || 0);
+    if (!Number.isFinite(amount) || amount <= 0) continue;
+    incomeByMethod[method] += amount;
+  }
+
+  return incomeByMethod;
+}
+
+async function calculateBalanceCarryFromHistory(supabase, params) {
   const startDate = normalizeDateInput(params?.start_date, "start_date");
   const endDate = normalizeDateInput(params?.end_date, "end_date");
   const userId = params?.user_id ? String(params.user_id) : null;
@@ -113,28 +159,19 @@ async function calculateBankCarryFromHistory(supabase, params) {
 
   const { data: sales, error: salesError } = await salesQuery;
   if (salesError) {
-    throw new Error(salesError.message || "Failed to calculate bank carry from sales");
+    throw new Error(salesError.message || "Failed to calculate balance carry from sales");
   }
 
-  const salesIncomeByMethod = methodTemplate();
-  for (const sale of sales || []) {
-    const method = normalizeSalePaymentMethod(sale?.modo_pago);
-    const amount = Number(sale?.total || 0);
-    if (!Number.isFinite(amount) || amount <= 0) continue;
-    salesIncomeByMethod[method] += amount;
-  }
-
-  const autoSaleMovementIds = new Set((sales || []).map((sale) => String(sale.id)));
-  const fallbackAutoSales = (movements || []).filter((row) => {
-    if (!isAutoSaleIncomeMovement(row)) return false;
-    const saleId = extractSaleIdFromAutoMovement(row.description);
-    return saleId ? !autoSaleMovementIds.has(String(saleId)) : true;
-  });
-
+  const salesIncomeByMethod = await summarizeSalesIncomeByMethod(supabase, sales || []);
   const manualRows = (movements || []).filter((row) => !isAutoSaleIncomeMovement(row));
-  const movementSummary = summarizeMovements([...manualRows, ...fallbackAutoSales]);
+  const movementSummary = summarizeMovements(manualRows);
 
-  const incomeBank =
+  const cash =
+    salesIncomeByMethod.cash
+    + movementSummary.incomeByMethod.cash
+    - movementSummary.expenseByMethod.cash;
+
+  const bank =
     salesIncomeByMethod.qr
     + salesIncomeByMethod.card
     + salesIncomeByMethod.transfer
@@ -147,7 +184,10 @@ async function calculateBankCarryFromHistory(supabase, params) {
     + movementSummary.expenseByMethod.card
     + movementSummary.expenseByMethod.transfer;
 
-  return Number((incomeBank - expenseBank).toFixed(2));
+  return {
+    cash: Number(cash.toFixed(2)),
+    bank: Number((bank - expenseBank).toFixed(2)),
+  };
 }
 
 function summarizeMovements(rows = []) {
@@ -247,59 +287,21 @@ export async function getCashSummary(supabase, params) {
   let openingBalance = Number(manualOpening ?? NaN);
   let openingQr = Number(manualOpeningQr ?? NaN);
 
-  if (!Number.isFinite(openingBalance) || !Number.isFinite(openingQr)) {
-    let closureBeforeStartQuery = supabase
-      .from("cash_closures")
-      .select("*")
-      .eq("cashbox_id", cashboxId)
-      .lt("end_date", startDate)
-      .order("end_date", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(1);
-
-    if (userId) {
-      closureBeforeStartQuery = closureBeforeStartQuery.eq("user_id", userId);
-    }
-
-    const { data: beforeClosures, error: beforeClosureError } = await closureBeforeStartQuery;
-    if (beforeClosureError) {
-      throw new Error(beforeClosureError.message || "Failed to fetch previous closure");
-    }
-
-    const previousClosure = beforeClosures?.[0] || null;
-    const baseClosure = previousClosure;
-
-    if (!Number.isFinite(openingBalance)) {
-      openingBalance = Number(baseClosure?.real_cash ?? baseClosure?.expected_cash ?? 0);
-    }
-
-    if (!Number.isFinite(openingQr)) {
-      const closureBankCandidate = baseClosure?.real_qr ?? baseClosure?.expected_qr;
-      if (closureBankCandidate !== null && closureBankCandidate !== undefined) {
-        const parsedClosureBank = Number(closureBankCandidate);
-        if (Number.isFinite(parsedClosureBank)) {
-          openingQr = parsedClosureBank;
-        }
-      }
-    }
-
-  }
+  const carryEndDate = previousDateISO(startDate);
+  const historicalOpening = carryEndDate < startDate
+    ? await calculateBalanceCarryFromHistory(supabase, {
+      start_date: "1970-01-01",
+      end_date: carryEndDate,
+      user_id: userId,
+      cashbox_id: cashboxId,
+    })
+    : { cash: 0, bank: 0 };
 
   if (!Number.isFinite(openingBalance)) {
-    openingBalance = 0;
+    openingBalance = historicalOpening.cash;
   }
   if (!Number.isFinite(openingQr)) {
-    const carryEndDate = previousDateISO(startDate);
-    if (carryEndDate < startDate) {
-      openingQr = await calculateBankCarryFromHistory(supabase, {
-        start_date: "1970-01-01",
-        end_date: carryEndDate,
-        user_id: userId,
-        cashbox_id: cashboxId,
-      });
-    } else {
-      openingQr = 0;
-    }
+    openingQr = historicalOpening.bank;
   }
 
   const { startISO, endISO } = buildRange(startDate, endDate);
@@ -346,21 +348,15 @@ export async function getCashSummary(supabase, params) {
     flow_date: sale.fecha || null,
   }));
 
-  const salesIncomeByMethod = methodTemplate();
-  for (const sale of normalizedSales || []) {
-    const method = normalizeSalePaymentMethod(sale?.modo_pago);
-    const amount = Number(sale?.total || 0);
-    if (!Number.isFinite(amount) || amount <= 0) continue;
-    salesIncomeByMethod[method] += amount;
-  }
+  const salesIncomeByMethod = await summarizeSalesIncomeByMethod(supabase, normalizedSales || []);
 
   const saleIdsInSummary = new Set((normalizedSales || []).map((sale) => String(sale.id)));
-  const fallbackAutoSaleMovements = autoSaleMovements.filter((row) => {
+  const orphanAutoSaleMovements = autoSaleMovements.filter((row) => {
     const saleId = extractSaleIdFromAutoMovement(row.description);
     return saleId ? !saleIdsInSummary.has(String(saleId)) : true;
   });
 
-  const movementRowsForSummary = [...manualMovementRows, ...fallbackAutoSaleMovements];
+  const movementRowsForSummary = manualMovementRows;
   const movementSummary = summarizeMovements(movementRowsForSummary);
 
   const incomeByMethod = {
@@ -396,9 +392,9 @@ export async function getCashSummary(supabase, params) {
     description: row.description || "Movimiento manual",
   }));
 
-  const fallbackAutoSalesLedgerEntries = fallbackAutoSaleMovements.map((row) => ({
+  const orphanAutoSalesLedgerEntries = orphanAutoSaleMovements.map((row) => ({
     id: `auto-${row.id}`,
-    source: "sale-fallback",
+    source: "sale-orphan",
     source_ref: extractSaleIdFromAutoMovement(row.description) || row.id,
     date: row.date,
     created_at: row.created_at || row.date,
@@ -406,7 +402,7 @@ export async function getCashSummary(supabase, params) {
     payment_method: row.payment_method,
     amount: Number(row.amount || 0),
     user_id: row.user_id || null,
-    description: row.description || "Ingreso por venta (fallback)",
+    description: row.description || "Ingreso por venta eliminada",
   }));
 
   const salesLedgerEntries = (normalizedSales || []).map((sale) => {
@@ -425,7 +421,7 @@ export async function getCashSummary(supabase, params) {
     };
   });
 
-  const ledgerEntries = [...manualLedgerEntries, ...salesLedgerEntries, ...fallbackAutoSalesLedgerEntries]
+  const ledgerEntries = [...manualLedgerEntries, ...salesLedgerEntries]
     .sort((left, right) => {
       const byTime = movementTimestamp(left) - movementTimestamp(right);
       if (byTime !== 0) return byTime;
@@ -466,7 +462,14 @@ export async function getCashSummary(supabase, params) {
       }
     ).rows;
 
-  const autoSalesRows = [...salesLedgerEntries, ...fallbackAutoSalesLedgerEntries]
+  const autoSalesRows = [...salesLedgerEntries]
+    .sort((left, right) => {
+      const byTime = movementTimestamp(left) - movementTimestamp(right);
+      if (byTime !== 0) return byTime;
+      return String(left.id).localeCompare(String(right.id));
+    });
+
+  const orphan_sales_movements = orphanAutoSalesLedgerEntries
     .sort((left, right) => {
       const byTime = movementTimestamp(left) - movementTimestamp(right);
       if (byTime !== 0) return byTime;
@@ -511,6 +514,7 @@ export async function getCashSummary(supabase, params) {
     movements: manualMovementRows,
     sales: normalizedSales || [],
     auto_sales_rows: autoSalesRows,
+    orphan_sales_movements,
     ledger_entries: ledgerEntries,
   };
 }

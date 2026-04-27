@@ -22,7 +22,12 @@ interface TicketItem {
   nombre?: string;
   producto_nombre?: string;
   cantidad?: number;
+  cantidad_base?: number;
+  cantidad_display?: number;
   cant?: number;
+  unidad?: string;
+  unidad_base?: string;
+  factor_conversion?: number;
   precio_unitario?: number;
   precio?: number;
   precio_pack?: number;
@@ -99,6 +104,18 @@ function limpiarTexto(texto?: string) {
 }
 
 function calcularItem(item: TicketItem) {
+  const cantidadBase = Number(item.cantidad_base ?? item.cantidad ?? item.cant ?? 1);
+  const cantidadDisplay = Number(item.cantidad_display ?? item.cantidad ?? item.cant ?? 1);
+  const unidadVenta = String(item.unidad || item.unidad_base || '').trim();
+  const unidadBase = String(item.unidad_base || unidadVenta || '').trim();
+  const factorConversion = Number(item.factor_conversion || 0);
+  const usaUnidadAlternativa =
+    unidadVenta &&
+    unidadBase &&
+    unidadVenta !== unidadBase &&
+    Number.isFinite(factorConversion) &&
+    factorConversion > 0;
+
   const precioOriginal = Number(
     item.precio_original ??
     item.precio_unitario ??
@@ -109,14 +126,26 @@ function calcularItem(item: TicketItem) {
   const descuento = Number(item.descuento_item ?? 0);
 
   const precioFinal = Math.max(precioOriginal - descuento, 0);
-  const precioFinalRedondeado = Number(precioFinal.toFixed(2));
+  const divisorVisual = usaUnidadAlternativa ? factorConversion : 1;
+  const precioOriginalVisual = Number((precioOriginal / divisorVisual).toFixed(2));
+  const descuentoVisual = Number((descuento / divisorVisual).toFixed(2));
+  const precioFinalVisual = Number((precioFinal / divisorVisual).toFixed(2));
+  const cantidadParaTotal = Number.isFinite(cantidadDisplay) && cantidadDisplay > 0 ? cantidadDisplay : cantidadBase;
+  const totalLinea = Number((precioFinalVisual * cantidadParaTotal).toFixed(2));
   const tieneDescuento = descuento > 0;
 
   return {
     ...item,
+    cantidadBase,
+    cantidadDisplay: cantidadParaTotal,
+    unidadVenta,
     precioOriginal,
+    precioOriginalVisual,
     descuento,
-    precioFinal: precioFinalRedondeado,
+    descuentoVisual,
+    precioFinal,
+    precioFinalVisual,
+    totalLinea,
     tieneDescuento
   };
 }
@@ -233,18 +262,20 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
       for (const rawItem of items) {
         const item = calcularItem(rawItem);
         const nombre = limpiarTexto(item.nombre || item.producto_nombre) || 'Producto';
-        const qty = item.cantidad || item.cant || 1;
-        const descuentoItem = item.descuento;
-        const precioFinal = item.precioFinal;
+        const qty = item.cantidadDisplay || item.cantidad || item.cant || 1;
+        const unidad = item.unidadVenta ? ` ${limpiarTexto(item.unidadVenta)}` : '';
+        const descuentoItem = item.descuentoVisual;
+        const precioFinal = item.precioFinalVisual;
+        const totalLinea = item.totalLinea;
         const promocion = item.promocion || item.promocion_aplicada;
 
-        const itemLabel = `${qty}x ${nombre}${item.color ? ` (${item.color})` : ''}`;
+        const itemLabel = `${qty}${unidad} x ${nombre}${item.color ? ` (${item.color})` : ''}`;
         const itemLines = doc.splitTextToSize(itemLabel, CONTENT_WIDTH - 25);
 
         doc.setFont('courier', 'bold');
         const lineHeight = 2.8; // más compacto
         doc.text(itemLines[0], MARGIN, y);
-        doc.text(`Bs ${precioFinal.toFixed(2)}`, PAPER_WIDTH - MARGIN, y, { align: 'right' });
+        doc.text(`Bs ${totalLinea.toFixed(2)}`, PAPER_WIDTH - MARGIN, y, { align: 'right' });
         if (itemLines.length > 1) {
           doc.setFont('courier', 'normal');
           for (let i = 1; i < itemLines.length; i++) {
@@ -252,6 +283,10 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
           }
         }
         y += itemLines.length * lineHeight;
+
+        doc.setFont('courier', 'normal');
+        doc.text(`P/U Bs ${precioFinal.toFixed(2)}${unidad ? `/${unidad.trim()}` : ''}`, MARGIN + 2, y);
+        y += 3;
 
         if (item.tieneDescuento) {
           const promoLabel = limpiarTexto(promocion?.descripcion) || 'Promo';
@@ -405,17 +440,19 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
       lines.push('Cant  Detalle                   Bs');
       lines.push('--------------------------------');
       for (const item of ticketSnapshot?.items || []) {
-        const cantidad = item.cantidad || item.cant || 1;
+        const itemCalc = calcularItem(item);
+        const cantidad = itemCalc.cantidadDisplay || item.cantidad || item.cant || 1;
+        const unidad = itemCalc.unidadVenta ? ` ${limpiarTexto(itemCalc.unidadVenta)}` : '';
         let nombre = item.nombre || item.producto_nombre || 'Producto';
         if (item.color) nombre += ` (${item.color})`;
-        const itemCalc = calcularItem(item);
-        const precioFinal = itemCalc.precioFinal.toFixed(2);
+        const precioFinal = itemCalc.totalLinea.toFixed(2);
         // Ajusta el ancho para que no se corte el nombre
-        let detalle = `${cantidad}`.padEnd(5) + nombre.padEnd(25).substring(0,25) + precioFinal.padStart(7);
+        let detalle = `${cantidad}${unidad}`.padEnd(5) + nombre.padEnd(25).substring(0,25) + precioFinal.padStart(7);
         lines.push(detalle);
+        lines.push(`  P/U Bs ${itemCalc.precioFinalVisual.toFixed(2)}${unidad ? `/${unidad.trim()}` : ''}`);
         if (itemCalc.descuento > 0) {
-          lines.push(`  PROMO: ${(item.promocion?.descripcion || 'Descuento').substring(0,18)} -${itemCalc.descuento.toFixed(2)}`);
-          lines.push(`  ANTES: ${itemCalc.precioOriginal.toFixed(2)}`);
+          lines.push(`  PROMO: ${(item.promocion?.descripcion || 'Descuento').substring(0,18)} -${itemCalc.descuentoVisual.toFixed(2)}`);
+          lines.push(`  ANTES: ${itemCalc.precioOriginalVisual.toFixed(2)}`);
         }
       }
       if (!ticketSnapshot?.items || ticketSnapshot.items.length === 0) {

@@ -43,6 +43,9 @@ type ProductoDB = {
   precio?: number;
   precio_compra?: number;
   stock?: number;
+  unidad_base?: string;
+  unidades_alternativas?: string[];
+  factor_conversion?: number;
   producto_variantes?: Array<{
     id?: string | number;
     color?: string;
@@ -114,8 +117,45 @@ function getProductStock(product?: { stock?: number } | null) {
   return normalizeQuantity(product?.stock ?? 0);
 }
 
+function hasUnitConversion(product?: { unidades_alternativas?: string[]; factor_conversion?: number } | null) {
+  return Boolean(
+    Array.isArray(product?.unidades_alternativas) &&
+    product.unidades_alternativas.length > 0 &&
+    Number(product?.factor_conversion || 0) > 0
+  );
+}
+
+function shouldUseProductStockForVariant(product?: { unidades_alternativas?: string[]; factor_conversion?: number; producto_variantes?: unknown[] } | null) {
+  return hasUnitConversion(product);
+}
+
+function getStockForVariantSale(product: ProductoDB, variant?: { stock?: number; stock_decimal?: number } | null) {
+  return shouldUseProductStockForVariant(product) ? getProductStock(product) : getVariantStock(variant);
+}
+
 function formatStockQuantity(value: number) {
   return Number(value.toFixed(3)).toString();
+}
+
+function getSaleBaseQuantity(
+  item: {
+    cantidad?: number;
+    cantidad_base?: number;
+    cantidad_display?: number;
+    unidad?: string;
+    unidad_base?: string;
+    factor_conversion?: number;
+  },
+  product?: { unidad_base?: string; factor_conversion?: number } | null
+) {
+  const unidadBase = String(product?.unidad_base || item.unidad_base || item.unidad || 'unidad');
+  const unidadVenta = String(item.unidad || unidadBase);
+  const factor = Number(item.factor_conversion || product?.factor_conversion || 0);
+  const visible = normalizeQuantity(item.cantidad_display ?? item.cantidad ?? item.cantidad_base ?? 1);
+  if (unidadVenta !== unidadBase && Number.isFinite(factor) && factor > 0) {
+    return visible / factor;
+  }
+  return normalizeQuantity(item.cantidad_base ?? item.cantidad ?? visible);
 }
 
 function toIntegerDetailQuantity(cantidadBase: number) {
@@ -435,6 +475,65 @@ export default function NuevaVenta() {
     return () => clearTimeout(timeoutId);
   }, [stockWarning, clearStockWarning]);
 
+  useEffect(() => {
+    if (!Array.isArray(productos) || productos.length === 0 || carrito.length === 0) return;
+
+    setCarrito((prev) => {
+      let changed = false;
+      const next = prev.map((item) => {
+        if (item.tipo === 'pack' || item.user_id == null) return item;
+        const product = productos.find((p) => String(p.user_id) === String(item.user_id));
+        if (!product || !hasUnitConversion(product)) return item;
+
+        const unidadBase = String(product.unidad_base || item.unidad_base || 'unidad');
+        const alternativas = Array.isArray(product.unidades_alternativas)
+          ? product.unidades_alternativas.filter((u) => u && u !== unidadBase)
+          : [];
+        const unidadAlternativa = alternativas[0];
+        const factor = Number(product.factor_conversion || item.factor_conversion || 0);
+        const stockBase = getProductStock(product);
+        if (!unidadAlternativa || !Number.isFinite(factor) || factor <= 0) return item;
+
+        const unidadesDisponibles = [
+          ...(stockBase >= 1 ? [unidadBase] : []),
+          ...(stockBase * factor > 0 ? [unidadAlternativa] : []),
+        ];
+        const unidadActual = String(item.unidad || item.unidad_base || unidadBase);
+        const unidadVenta = unidadesDisponibles.includes(unidadActual)
+          ? unidadActual
+          : (unidadesDisponibles[0] || unidadAlternativa);
+        const cantidadDisplay = normalizeQuantity(item.cantidad_display ?? item.cantidad ?? 1) || 1;
+        const cantidadBase = unidadVenta === unidadBase ? cantidadDisplay : cantidadDisplay / factor;
+
+        const patched = {
+          ...item,
+          stock: stockBase,
+          unidad_base: unidadBase,
+          unidades_alternativas: alternativas,
+          unidades_disponibles: unidadesDisponibles,
+          factor_conversion: factor,
+          unidad: unidadVenta,
+          cantidad: cantidadBase,
+          cantidad_base: cantidadBase,
+          cantidad_display: cantidadDisplay,
+        };
+
+        const same =
+          Number(item.stock || 0) === stockBase &&
+          item.unidad_base === patched.unidad_base &&
+          item.unidad === patched.unidad &&
+          Number(item.factor_conversion || 0) === factor &&
+          Number(item.cantidad_base || 0) === cantidadBase &&
+          Number(item.cantidad_display || 0) === cantidadDisplay &&
+          JSON.stringify(item.unidades_disponibles || []) === JSON.stringify(unidadesDisponibles);
+
+        if (!same) changed = true;
+        return same ? item : patched;
+      });
+      return changed ? next : prev;
+    });
+  }, [productos, carrito, setCarrito]);
+
   // Escaneo: si el producto está en un pack, ofrecer opción de agregar pack o individual
   const procesarCodigo = useCallback(async (codigo: string) => {
     const normalizeCode = (value: unknown) => String(value ?? '').replace(/\D/g, '');
@@ -452,13 +551,19 @@ export default function NuevaVenta() {
         return matchesBarcode(codigo, currentVariant?.codigo_barra) || matchesBarcode(codigo, currentVariant?.sku);
       }) as VariantMatch | undefined;
       if (!matchedVariant) return null;
+      const productHasConversion = hasUnitConversion(p as {
+        unidades_alternativas?: string[];
+        factor_conversion?: number;
+      });
 
       return {
         ...p,
         variante_id: matchedVariant?.variante_id ?? matchedVariant?.id,
         color: matchedVariant?.color || 'Sin color',
         precio: Number(matchedVariant?.precio ?? p.precio ?? 0),
-        stock: Number((matchedVariant as VariantMatch & { stock_decimal?: number })?.stock_decimal ?? matchedVariant?.stock ?? 0),
+        stock: productHasConversion
+          ? Number((p as Producto & { stock?: number }).stock ?? 0)
+          : Number((matchedVariant as VariantMatch & { stock_decimal?: number })?.stock_decimal ?? matchedVariant?.stock ?? 0),
         codigo: String(matchedVariant?.sku || '')
       } as Producto;
     };
@@ -688,6 +793,48 @@ export default function NuevaVenta() {
     if (cliente.requiereFactura && (!cliente.nombre.trim() || !cliente.nit.trim())) { showToast('Completa los datos de facturacion (nombre y NIT)', 'error'); return; }
 
     setEfectivizando(true);
+    let ventaCreadaId: string | number | null = null;
+    const stockSnapshots: Array<
+      | { type: 'product'; productId: string | number; stock: number }
+      | { type: 'variant'; variantId: string | number; stock: number; productId?: string | number; productStock?: number }
+    > = [];
+
+    const rollbackVenta = async () => {
+      if (!ventaCreadaId) return;
+      const ventaId = ventaCreadaId;
+      const errors: string[] = [];
+
+      for (const snapshot of [...stockSnapshots].reverse()) {
+        if (snapshot.type === 'variant') {
+          const { error } = await ventasService.establecerStockVariante(snapshot.variantId, snapshot.stock);
+          if (error) errors.push(`stock variante ${snapshot.variantId}: ${error.message || String(error)}`);
+          if (snapshot.productId != null && snapshot.productStock != null) {
+            const { error: productError } = await ventasService.establecerStockProducto(snapshot.productId, snapshot.productStock);
+            if (productError) errors.push(`stock producto ${snapshot.productId}: ${productError.message || String(productError)}`);
+          }
+        } else {
+          const { error } = await ventasService.establecerStockProducto(snapshot.productId, snapshot.stock);
+          if (error) errors.push(`stock producto ${snapshot.productId}: ${error.message || String(error)}`);
+        }
+      }
+
+      const cleanupSteps = [
+        supabase.from('stock_movimientos').delete().ilike('observaciones', `%venta #${ventaId}%`),
+        supabase.from('ventas_pagos').delete().eq('venta_id', ventaId),
+        supabase.from('ventas_detalle').delete().eq('venta_id', ventaId),
+        supabase.from('ventas').delete().eq('id', ventaId),
+      ];
+      for (const step of cleanupSteps) {
+        const { error } = await step;
+        if (error) errors.push(error.message || String(error));
+      }
+
+      if (errors.length > 0) {
+        console.error('Rollback de venta incompleto:', errors);
+        showToast('La venta fallo y se intento revertir, pero revisa la base de datos.', 'error');
+      }
+    };
+
     try {
       // Obtener token y usuario solo una vez
       const { data: sessionData } = await supabase.auth.getSession();
@@ -766,6 +913,7 @@ export default function NuevaVenta() {
         if (p.user_id == null) throw new Error('Producto invalido en carrito');
         const productoCompleto = productosDB.find(prod => String(prod.user_id) === String(p.user_id));
         if (!productoCompleto) throw new Error(`Producto no encontrado en base de datos: ${p.nombre || p.user_id}`);
+        const cantidadBaseVenta = getSaleBaseQuantity(p, productoCompleto);
 
         if (p.variante_id) {
           const variante = (productoCompleto.producto_variantes || []).find((v) => String(v.id) === String(p.variante_id));
@@ -773,15 +921,15 @@ export default function NuevaVenta() {
           addStockRequest(`var:${String(variante.id)}`, {
             nombre: productoCompleto.nombre || p.nombre || 'Producto',
             color: variante.color || p.color || null,
-            disponible: getVariantStock(variante),
-            solicitado: cantidadBase
+            disponible: getStockForVariantSale(productoCompleto, variante),
+            solicitado: cantidadBaseVenta
           });
         } else {
           addStockRequest(`prod:${String(productoCompleto.user_id)}`, {
             nombre: productoCompleto.nombre || p.nombre || 'Producto',
             color: null,
             disponible: getProductStock(productoCompleto),
-            solicitado: cantidadBase
+            solicitado: cantidadBaseVenta
           });
         }
       }
@@ -828,6 +976,7 @@ export default function NuevaVenta() {
         costos_extra
       });
       if (ventaError || !venta) throw ventaError || new Error('no venta');
+      ventaCreadaId = venta.id as string | number;
 
       // Guardar pagos en ventas_pagos
       // Definir saleDate después de crear venta
@@ -850,12 +999,12 @@ export default function NuevaVenta() {
 
       // 7. Insertar detalles robustos
       for (const p of carrito) {
-        const cantidadBase = Number(p.cantidad_base ?? p.cantidad ?? 1);
         const cantidadVisible = Number(p.cantidad_display ?? p.cantidad ?? 1);
         const unidadVenta = String(p.unidad || p.unidad_base || 'unidad');
         const unidadBaseVenta = String(p.unidad_base || unidadVenta || 'unidad');
-        const cantidadDetalle = toIntegerDetailQuantity(cantidadBase);
         if (p.tipo === 'pack') {
+          const cantidadBase = Number(p.cantidad_base ?? p.cantidad ?? 1);
+          const cantidadDetalle = toIntegerDetailQuantity(cantidadBase);
           // Buscar pack completo en DB
           const pack = packsDB.find(pk => String(pk.id) === String(p.pack_id));
           if (!pack) throw new Error('Pack no encontrado en base de datos');
@@ -892,14 +1041,50 @@ export default function NuevaVenta() {
                 // 2. Recalcular y actualizar el stock total del producto
                 if (variante.id == null) throw new Error(`Variante de pack sin ID para ${productoPack.nombre || 'producto'}`);
                 const stockEsperado = getVariantStock(variante) - cantidadTotal;
+                stockSnapshots.push({
+                  type: 'variant',
+                  variantId: variante.id,
+                  stock: getVariantStock(variante),
+                  productId: productoPack.user_id,
+                  productStock: getProductStock(productoPack),
+                });
                 const { error: stockPackVarianteError } = await ventasService.establecerStockVariante(variante.id, stockEsperado);
                 if (stockPackVarianteError) throw stockPackVarianteError;
+                const { error: movPackVarianteError } = await supabase.from('stock_movimientos').insert([{
+                  producto_id: productoPack.user_id,
+                  variante_id: variante.id,
+                  tipo: 'venta',
+                  cantidad: cantidadTotal,
+                  unidad: 'unidad',
+                  cantidad_base: cantidadTotal,
+                  usuario_id: userId,
+                  usuario_email: userEmail,
+                  observaciones: `Salida automatica por venta #${venta.id}`
+                }]);
+                if (movPackVarianteError) throw movPackVarianteError;
                 await actualizarStockTotalProducto(productoPack.user_id);
               }
             } else {
               const stockEsperado = getProductStock(productoPack) - cantidadTotal;
+              stockSnapshots.push({
+                type: 'product',
+                productId: productoPack.user_id,
+                stock: getProductStock(productoPack),
+              });
               const { error: stockPackError } = await ventasService.establecerStockProducto(productoPack.user_id, stockEsperado);
               if (stockPackError) throw stockPackError;
+              const { error: movPackError } = await supabase.from('stock_movimientos').insert([{
+                producto_id: productoPack.user_id,
+                variante_id: null,
+                tipo: 'venta',
+                cantidad: cantidadTotal,
+                unidad: 'unidad',
+                cantidad_base: cantidadTotal,
+                usuario_id: userId,
+                usuario_email: userEmail,
+                observaciones: `Salida automatica por venta #${venta.id}`
+              }]);
+              if (movPackError) throw movPackError;
               // Actualizar el stock total del producto
               await actualizarStockTotalProducto(productoPack.user_id);
             }
@@ -910,6 +1095,8 @@ export default function NuevaVenta() {
           if (p.user_id == null) continue;
           const productoCompleto = productosDB.find(prod => String(prod.user_id) === String(p.user_id));
           if (!productoCompleto) throw new Error('Producto no encontrado en base de datos');
+          const cantidadBase = getSaleBaseQuantity(p, productoCompleto);
+          const cantidadDetalle = toIntegerDetailQuantity(cantidadBase);
           let variante = null;
           if (p.variante_id) {
             variante = (productoCompleto.producto_variantes || []).find((v: { id?: string | number }) => String(v.id) === String(p.variante_id));
@@ -917,6 +1104,23 @@ export default function NuevaVenta() {
           const precioUnitario = Number(p.precio ?? variante?.precio ?? productoCompleto.precio ?? 0);
           const costoUnitario = productoCompleto.precio_compra || 0;
           const descripcionItem = `${productoCompleto.nombre}${variante?.color ? ` ${variante.color}` : p.color ? ` ${p.color}` : ''}${unidadVenta !== unidadBaseVenta ? ` (${cantidadVisible} ${unidadVenta} = ${formatStockQuantity(cantidadBase)} ${unidadBaseVenta})` : ''}`.trim();
+          let stockSnapshotRegistrado = false;
+          if (variante?.id && shouldUseProductStockForVariant(productoCompleto)) {
+            stockSnapshots.push({
+              type: 'variant',
+              variantId: variante.id,
+              stock: getStockForVariantSale(productoCompleto, variante),
+              productId: productoCompleto.user_id,
+              productStock: getProductStock(productoCompleto),
+            });
+            stockSnapshotRegistrado = true;
+            const stockLegacyDisponible = Number(variante.stock || 0);
+            const stockLegacyNecesario = Math.ceil(Math.max(1, cantidadVisible));
+            if (stockLegacyDisponible < stockLegacyNecesario) {
+              const { error: legacyStockError } = await ventasService.establecerStockLegacyVariante(variante.id, stockLegacyNecesario);
+              if (legacyStockError) throw legacyStockError;
+            }
+          }
           const { error: detalleProductoError } = await ventasService.insertarVentaDetalle({
             venta_id: venta.id,
             producto_id: productoCompleto.user_id,
@@ -934,13 +1138,51 @@ export default function NuevaVenta() {
           });
           if (detalleProductoError) throw detalleProductoError;
           if (variante?.id) {
-            const stockEsperado = getVariantStock(variante) - cantidadBase;
+            const stockEsperado = getStockForVariantSale(productoCompleto, variante) - cantidadBase;
+            if (!stockSnapshotRegistrado) {
+              stockSnapshots.push({
+                type: 'variant',
+                variantId: variante.id,
+                stock: getStockForVariantSale(productoCompleto, variante),
+                productId: productoCompleto.user_id,
+                productStock: getProductStock(productoCompleto),
+              });
+            }
             const { error: stockVarianteError } = await ventasService.establecerStockVariante(variante.id, stockEsperado);
             if (stockVarianteError) throw stockVarianteError;
+            const { error: movVarianteError } = await supabase.from('stock_movimientos').insert([{
+              producto_id: productoCompleto.user_id,
+              variante_id: variante.id,
+              tipo: 'venta',
+              cantidad: cantidadVisible,
+              unidad: unidadVenta,
+              cantidad_base: cantidadBase,
+              usuario_id: userId,
+              usuario_email: userEmail,
+              observaciones: `Salida automatica por venta #${venta.id}`
+            }]);
+            if (movVarianteError) throw movVarianteError;
           } else {
             const stockEsperado = getProductStock(productoCompleto) - cantidadBase;
+            stockSnapshots.push({
+              type: 'product',
+              productId: productoCompleto.user_id,
+              stock: getProductStock(productoCompleto),
+            });
             const { error: stockProductoError } = await ventasService.establecerStockProducto(productoCompleto.user_id, stockEsperado);
             if (stockProductoError) throw stockProductoError;
+            const { error: movProductoError } = await supabase.from('stock_movimientos').insert([{
+              producto_id: productoCompleto.user_id,
+              variante_id: null,
+              tipo: 'venta',
+              cantidad: cantidadVisible,
+              unidad: unidadVenta,
+              cantidad_base: cantidadBase,
+              usuario_id: userId,
+              usuario_email: userEmail,
+              observaciones: `Salida automatica por venta #${venta.id}`
+            }]);
+            if (movProductoError) throw movProductoError;
           }
           // Actualizar el stock total del producto
           await actualizarStockTotalProducto(productoCompleto.user_id);
@@ -1017,6 +1259,7 @@ export default function NuevaVenta() {
       setEfectivizando(false);
       showToast('Venta efectivizada y stock actualizado');
     } catch (err) {
+      await rollbackVenta();
       const errorContext = err && typeof err === 'object'
         ? ['message', 'details', 'hint']
             .map((key) => {

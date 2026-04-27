@@ -390,15 +390,15 @@ function PrintVariantesModal({
 }
 
 // --------------------------------------------------------------------------
-// COMPONENTE 2: Modal de Confirmaci?n de Eliminaci?n
+// COMPONENTE 2: Modal de Confirmacion de Eliminacion
 // --------------------------------------------------------------------------
 function DeleteConfirmationModal({ isOpen, onClose, onConfirm, productName }) {
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50">
             <div className="bg-white w-full max-w-sm p-6 rounded-xl shadow-2xl">
-                <h3 className="text-xl font-bold mb-4 text-red-700">Confirmar Eliminaci?n</h3>
-                <p className="text-gray-700 mb-6">?Est?s seguro de que quieres eliminar el producto <b>{productName}</b>? Esta acci?n no se puede deshacer.</p>
+                <h3 className="text-xl font-bold mb-4 text-red-700">Confirmar eliminacion</h3>
+                <p className="text-gray-700 mb-6">Estas seguro de que quieres eliminar el producto <b>{productName}</b>? Esta accion no se puede deshacer.</p>
                 <div className="flex justify-end space-x-4">
                     <button
                         type="button"
@@ -1235,7 +1235,7 @@ export default function AdminProductosPage() {
             .order('categori', { ascending: true });
         if (error) {
             setCategories([]);
-            setMessage('Error al cargar categor?as.');
+            setMessage('Error al cargar categorias.');
             return;
         }
         setCategories(data || []);
@@ -1413,7 +1413,7 @@ export default function AdminProductosPage() {
             ? `Te falta ${missing[0]}`
             : `Te faltan ${missing.join(' y ')}`;
 
-        return window.confirm(`${detail}. ?Est?s seguro de ${actionLabel} sin estos datos?`);
+        return window.confirm(`${detail}. Estas seguro de ${actionLabel} sin estos datos?`);
     };
 
     
@@ -1425,10 +1425,10 @@ export default function AdminProductosPage() {
         const canContinue = confirmMissingProductData({
             descripcion: newProduct?.descripcion,
             imageCount: imageFiles?.length || 0,
-            actionLabel: "a?adir el producto",
+            actionLabel: "anadir el producto",
         });
         if (!canContinue) {
-            setMessage("Operaci?n cancelada. Completa descripci?n o fotos si deseas.");
+            setMessage("Operacion cancelada. Completa descripcion o fotos si deseas.");
             return;
         }
 
@@ -1461,7 +1461,7 @@ export default function AdminProductosPage() {
                         finalSku = generateVariantBarcode(usedVariantCodes);
                     }
                     usedVariantCodes.add(finalSku);
-                    const normalizedColor = String(v.color || '').trim() || '?nico';
+                    const normalizedColor = String(v.color || '').trim() || 'Unico';
                     return {
                     color: normalizedColor,
                     stock: parseInt(v.stock || 0) || 0,
@@ -1651,9 +1651,9 @@ export default function AdminProductosPage() {
                                     usuario_email: user?.email || null
                                 });
                         } catch (err) {
-                                console.warn('No se pudo registrar movimiento/historial de creaci?n:', err);
+                                console.warn('No se pudo registrar movimiento/historial de creacion:', err);
                         }
-            setMessage('Producto creado con ?xito!');
+            setMessage('Producto creado con exito!');
             // Limpieza reforzada de todos los campos y sessionStorage
             setNewProduct({ nombre: '', descripcion: '', precio: '', precio_compra: '', category_id: '', codigo_barra: '', vista_producto: currentProductView, unidad_base: 'unidad', unidades_alternativas: [], factor_conversion: 1 });
             setNewVariants([createVariantDraft([], { color: '' })]);
@@ -1666,8 +1666,8 @@ export default function AdminProductosPage() {
             }, 100);
             fetchProductos();
         } catch (e) {
-            console.error("Error cr?tico al crear producto:", e);
-            setMessage(`Error cr?tico al crear: ${e.message}`);
+            console.error("Error critico al crear producto:", e);
+            setMessage(`Error critico al crear: ${e.message}`);
         } finally {
             setLoading(false);
         }
@@ -1700,7 +1700,7 @@ export default function AdminProductosPage() {
                 .eq('producto_id', productToDelete.user_id);
             if (histError) throw new Error('Error al eliminar historial: ' + histError.message);
 
-            // 3. Eliminar el producto (la eliminaci?n en cascada deber?a manejar im?genes y variantes)
+            // 3. Eliminar el producto (la eliminacion en cascada deberia manejar imagenes y variantes)
             const { error } = await supabase
                 .from('productos')
                 .delete()
@@ -1710,7 +1710,7 @@ export default function AdminProductosPage() {
                 throw new Error(error.message);
             }
 
-            setMessage(`Producto "${productToDelete.nombre}" eliminado con ?xito.`);
+            setMessage(`Producto "${productToDelete.nombre}" eliminado con exito.`);
             fetchProductos();
         } catch (e) {
             setMessage(`Error al eliminar: ${e.message}`);
@@ -1733,7 +1733,7 @@ export default function AdminProductosPage() {
             actionLabel: 'guardar los cambios',
         });
         if (!canContinue) {
-            setMessage('Operaci?n cancelada. Completa descripci?n o fotos si deseas.');
+            setMessage('Operacion cancelada. Completa descripcion o fotos si deseas.');
             return;
         }
 
@@ -1797,7 +1797,7 @@ export default function AdminProductosPage() {
                 }
             }
 
-            setMessage(`Producto "${editingProduct.nombre}" actualizado con ?xito.`);
+            setMessage(`Producto "${editingProduct.nombre}" actualizado con exito.`);
             closeEditModal();
             fetchProductos();
         } catch (e) {
@@ -1904,7 +1904,7 @@ export default function AdminProductosPage() {
         <div className="p-4 sm:p-6 md:p-10 bg-gray-100 min-h-screen">
             <h1 className="text-3xl font-extrabold mb-8 text-indigo-700">{currentViewMeta.adminTitle}</h1>
             
-            {/* Secci?n de Mensajes (?xito/Error) */} 
+            {/* Seccion de Mensajes (exito/Error) */} 
             {message && ( 
                 <div className={`p-4 mb-6 rounded-lg font-medium shadow-md ${message.startsWith('Error') 
                     ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}> 
@@ -1912,7 +1912,7 @@ export default function AdminProductosPage() {
                 </div> 
             )} 
 
-            {/* 1. Formulario de A?adir Producto */} 
+            {/* 1. Formulario de Anadir Producto */} 
             <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-10 border-t-4 border-indigo-500"> 
                 <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">{currentViewMeta.createTitle}</h2> 
                 <form onSubmit={handleAnadirProducto} className="space-y-6"> 
@@ -2270,19 +2270,19 @@ export default function AdminProductosPage() {
                             loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 shadow-lg' 
                         }`} 
                     > 
-                        {loading ? 'A?adiendo...' : 'A?adir Producto'} 
+                        {loading ? 'Anadiendo...' : 'Anadir Producto'} 
                     </button> 
                 </form> 
             </div> 
             
-            {/* 2. Cat?logo Actual (Tabla) */} 
-            <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">Cat?logo Actual</h2>
+            {/* 2. Catalogo Actual (Tabla) */} 
+            <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">Catalogo Actual</h2>
 
             <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <div className="flex items-center gap-2">
                 <input 
                   type="text" 
-                  placeholder="Buscar por nombre, c?digo o categor?a" 
+                  placeholder="Buscar por nombre, codigo o categoria" 
                   value={filterText} 
                   onChange={(e) => setFilterText(e.target.value)} 
                   className="p-2 border rounded-lg w-full md:w-80 focus:ring-indigo-500 focus:border-indigo-500" 
@@ -2296,7 +2296,7 @@ export default function AdminProductosPage() {
                 </button>
               </div>
               <div className="flex items-center gap-3">
-                <label className="text-sm font-medium text-gray-700">Categor?a:</label>
+                <label className="text-sm font-medium text-gray-700">Categoria:</label>
                 <select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
@@ -2315,7 +2315,7 @@ export default function AdminProductosPage() {
                   type="button"
                   onClick={() => setFilterLatest(true)}
                 >
-                  ?ltimos ingresos
+                  Ultimos ingresos
                 </button>
                 <button 
                   className={`px-3 py-1 rounded-lg border ${!filterLatest ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-gray-700'}`}
@@ -2404,7 +2404,7 @@ export default function AdminProductosPage() {
                                                         openPrintVariantesModal(producto);
                                                     }}
                                                     className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition text-base font-semibold"
-                                                    title="Imprimir C?digo de Barra"
+                                                    title="Imprimir Codigo de Barra"
                                                 >
                                                     Imprimir
                                                 </button>

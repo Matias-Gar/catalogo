@@ -133,6 +133,12 @@ export default function CarritoPanel({
                 if (!imagenUrl && item.imagen_url) imagenUrl = item.imagen_url;
                 if (!imagenUrl && imagenes[String(item.user_id)]?.[1]) imagenUrl = imagenes[String(item.user_id)][1];
                 if (!imagenUrl && imagenes[String(item.user_id)]?.[0]) imagenUrl = imagenes[String(item.user_id)][0];
+                const unidadesDisponibles = Array.isArray(item.unidades_disponibles) && item.unidades_disponibles.length > 0
+                  ? item.unidades_disponibles
+                  : (item.unidad_base && item.unidades_alternativas)
+                    ? [item.unidad_base, ...(item.unidades_alternativas || []).filter((u) => u !== item.unidad_base)]
+                    : [item.unidad_base].filter(Boolean);
+                const hasUnitConversion = unidadesDisponibles.length > 0 && item.factor_conversion && Number(item.factor_conversion) > 0;
                 return (
                   <tr key={itemKey}>
                     <td className="p-2 text-center align-middle">
@@ -156,17 +162,13 @@ export default function CarritoPanel({
                       {item.color && <div className="text-xs font-semibold text-blue-700">Color: {item.color}</div>}
                     </td>
                     <td className="p-2">
-                      {Array.isArray(item.unidades_disponibles) && item.unidades_disponibles.length > 1 && item.factor_conversion && Number(item.factor_conversion) > 0 ? (
+                      {hasUnitConversion ? (
                         <CantidadConUnidadInput
                           unidadBase={item.unidad_base}
                           factorConversion={Number(item.factor_conversion) || 1}
                           initialUnidad={item.unidad || item.unidad_base}
                           initialCantidad={getDisplayQuantity(item)}
-                          unidadesDisponibles={Array.isArray(item.unidades_disponibles)
-                            ? item.unidades_disponibles
-                            : (item.unidad_base && item.unidades_alternativas)
-                              ? [item.unidad_base, ...(item.unidades_alternativas || []).filter((u) => u !== item.unidad_base)]
-                              : [item.unidad_base]}
+                          unidadesDisponibles={unidadesDisponibles}
                           stockBase={Number(item.stock) || 0}
                           onChange={(valorBase: number, unidad: string, cantidad: number) => {
                             cambiarUnidadYCantidad(itemKey, valorBase, unidad, cantidad);

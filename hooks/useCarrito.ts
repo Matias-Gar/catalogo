@@ -204,6 +204,10 @@ export function useCarrito(promociones: unknown[]) {
         }
         return prev.map(p => getItemKey(p) === cartKey ? {
           ...p,
+          unidad_base: prodBase.unidad_base ?? p.unidad_base,
+          unidades_alternativas: prodBase.unidades_alternativas ?? p.unidades_alternativas,
+          unidades_disponibles: prodBase.unidades_disponibles ?? p.unidades_disponibles,
+          factor_conversion: prodBase.factor_conversion ?? p.factor_conversion,
           cantidad: Math.min(getBaseQuantity(p) + requestedBaseQuantity, availableStock),
           cantidad_base: Math.min(getBaseQuantity(p) + requestedBaseQuantity, availableStock),
           cantidad_display: getDisplayQuantity(p) + requestedDisplayQuantity,

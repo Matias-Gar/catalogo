@@ -21,6 +21,38 @@ export async function crearVenta(data: GenericPayload) {
   return supabase.from('ventas').insert([payload]).select().single();
 }
 
+export async function crearVentaCompleta(payload: {
+  venta: GenericPayload;
+  items: GenericPayload[];
+  pagos?: GenericPayload[];
+  usuario_id?: string | null;
+  usuario_email?: string | null;
+  cashbox_id?: string;
+}) {
+  return supabase.rpc('crear_venta_completa', {
+    p_venta: payload.venta,
+    p_items: payload.items,
+    p_pagos: payload.pagos || [],
+    p_usuario_id: payload.usuario_id || null,
+    p_usuario_email: payload.usuario_email || null,
+    p_cashbox_id: payload.cashbox_id || 'main',
+  });
+}
+
+export async function eliminarVentaConRestock(payload: {
+  venta_id: ProductoId;
+  admin_id?: string | null;
+  admin_email?: string | null;
+  motivo?: string | null;
+}) {
+  return supabase.rpc('eliminar_venta_con_restock', {
+    p_venta_id: payload.venta_id,
+    p_admin_id: payload.admin_id || null,
+    p_admin_email: payload.admin_email || null,
+    p_motivo: payload.motivo || null,
+  });
+}
+
 export async function insertarVentaDetalle(item: GenericPayload) {
   // Limpiar claves undefined o null
   const cleanItem: GenericPayload = { ...item };
@@ -100,6 +132,17 @@ export async function establecerStockVariante(varianteId: ProductoId, stockDecim
       stock_decimal: nextDecimal,
       stock: nextLegacyStock,
     })
+    .eq('id', varianteId);
+
+  return { data: null, error: updateError };
+}
+
+export async function establecerStockLegacyVariante(varianteId: ProductoId, stockLegacy: number) {
+  const nextLegacyStock = Math.max(0, Math.floor(Number(stockLegacy || 0)));
+
+  const { error: updateError } = await supabase
+    .from('producto_variantes')
+    .update({ stock: nextLegacyStock })
     .eq('id', varianteId);
 
   return { data: null, error: updateError };

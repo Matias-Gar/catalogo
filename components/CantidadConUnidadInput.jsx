@@ -60,6 +60,12 @@ export default function CantidadConUnidadInput({
     return base * factorConv;
   }
 
+  function formatQuantity(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return "0";
+    return Number(num.toFixed(3)).toString();
+  }
+
   // Stock máximo permitido en unidad seleccionada (defensivo)
   const stockEnUnidad = convertirDesdeBase(
     stockBase,
@@ -103,7 +109,7 @@ export default function CantidadConUnidadInput({
       return { error: "Sin stock disponible" };
     if (base > stockBaseVal)
       return {
-        error: `Stock insuficiente (${stockEnUnidadVal} ${unidadSel})`,
+        error: `Stock insuficiente (${formatQuantity(stockEnUnidadVal)} ${unidadSel})`,
       };
     if (
       maxPermitidoVal !== undefined &&
@@ -111,7 +117,7 @@ export default function CantidadConUnidadInput({
       num > maxPermitidoVal
     )
       return {
-        error: `Stock insuficiente (${maxPermitidoVal} ${unidadSel})`,
+        error: `Stock insuficiente (${formatQuantity(maxPermitidoVal)} ${unidadSel})`,
       };
     return { error: "", base, num };
   }
@@ -216,8 +222,8 @@ export default function CantidadConUnidadInput({
 
   // UX: mostrar stock siempre debajo del input
   const stockTexto =
-    `${stockBase} ${unidadBase}` +
-    (unidad !== unidadBase ? ` (${stockEnUnidadSafe} ${unidad})` : "");
+    `${formatQuantity(stockBase)} ${unidadBase}` +
+    (unidad !== unidadBase ? ` (${formatQuantity(stockEnUnidadSafe)} ${unidad})` : "");
 
   return (
     <div className="flex flex-col gap-2 w-full max-w-xs">
@@ -253,7 +259,7 @@ export default function CantidadConUnidadInput({
       </div>
       {mostrarConversion && (
         <div className="text-xs text-gray-600">
-          Equivale a <b>{valorBase} {unidadBase}</b>
+          Equivale a <b>{formatQuantity(valorBase)} {unidadBase}</b>
         </div>
       )}
       <div className="text-xs text-gray-500">

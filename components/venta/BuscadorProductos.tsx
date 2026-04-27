@@ -41,14 +41,26 @@ export default function BuscadorProductos({
     return Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
   };
 
-  const handleAddClick = (p: Producto) => {
+  const formatQuantity = (value: number) => {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return "0";
+    return Number(num.toFixed(3)).toString();
+  };
+
+  const getConversionInfo = (p: Producto) => {
     const stockBase = Math.max(0, Number((p as any).stock ?? 0));
     const factor = Number((p as any).factor_conversion || 0);
     const base = String((p as any).unidad_base || "unidad");
     const alternativas = Array.isArray((p as any).unidades_alternativas)
       ? (p as any).unidades_alternativas.filter((u: string) => u && u !== base)
       : [];
-    const unidadAlternativa = alternativas[0];
+    const alt = alternativas[0];
+    const hasConversion = Boolean(alt && Number.isFinite(factor) && factor > 0);
+    return { stockBase, factor, base, alternativas, alt, hasConversion };
+  };
+
+  const handleAddClick = (p: Producto) => {
+    const { stockBase, factor, base, alternativas, alt: unidadAlternativa, hasConversion } = getConversionInfo(p);
     const unidadesBase = Array.isArray((p as any).unidades_disponibles)
       ? (p as any).unidades_disponibles
       : (p as any).unidad_base && (p as any).unidades_alternativas
@@ -58,7 +70,7 @@ export default function BuscadorProductos({
           ]
         : [(p as any).unidad_base || "unidad"];
     const unidades =
-      unidadAlternativa && Number.isFinite(factor) && factor > 0
+      hasConversion
         ? [
             ...(stockBase >= 1 ? [base] : []),
             ...(stockBase * factor > 0 ? [unidadAlternativa] : []),
@@ -202,18 +214,18 @@ export default function BuscadorProductos({
                             const alt = (p as any).unidades_alternativas[0];
                             const stockAlt = stockBase * Number((p as any).factor_conversion);
                             if (stockBase === 0 && stockAlt > 0) {
-                              return <span>Stock: {stockAlt} {alt}</span>;
+                              return <span>Stock: {formatQuantity(stockAlt)} {alt}</span>;
                             }
                             if (stockBase > 0) {
                               return (
                                 <span>
-                                  Stock: {stockBase} {(p as Producto).unidad_base} ({stockAlt} {alt})
+                                  Stock: {formatQuantity(stockBase)} {(p as Producto).unidad_base} ({formatQuantity(stockAlt)} {alt})
                                 </span>
                               );
                             }
                             return <span>Stock: 0</span>;
                           }
-                          return <span>Stock: {stockBase}</span>;
+                          return <span>Stock: {formatQuantity(stockBase)}</span>;
                         })()}
                       </div>
                       {p.color && (
@@ -263,11 +275,18 @@ export default function BuscadorProductos({
                     ) : Array.isArray(p.variantes) && p.variantes.length > 0 ? (
                       <div className="flex max-w-56 flex-wrap justify-end gap-1">
                         {p.variantes
-                          .filter((v) => getEffectiveVariantStock(v) > 0)
+                          .filter((v) => {
+                            const { stockBase, hasConversion } = getConversionInfo(p);
+                            return hasConversion ? stockBase > 0 : getEffectiveVariantStock(v) > 0;
+                          })
                           .slice(0, 6)
                           .map((v, idx) => {
                             const variantId = v.variante_id ?? v.id;
                             const variantStock = getEffectiveVariantStock(v);
+                            const { stockBase, factor, alt, hasConversion } = getConversionInfo(p);
+                            const displayStock = hasConversion
+                              ? `${formatQuantity(stockBase * factor)} ${alt}`
+                              : formatQuantity(variantStock);
                             return (
                               <button
                                 key={`${p.user_id}-${String(variantId)}-${idx}`}
@@ -279,13 +298,13 @@ export default function BuscadorProductos({
                                     variante_id: variantId,
                                     color: v.color || "Sin color",
                                     precio: Number(v.precio ?? p.precio ?? 0),
-                                    stock: variantStock,
+                                    stock: hasConversion ? stockBase : variantStock,
                                   });
                                 }}
                                 className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
                                 title={`Agregar color ${v.color || "Sin color"}`}
                               >
-                                {v.color || "Color"} ({variantStock})
+                                {v.color || "Color"} ({displayStock})
                               </button>
                             );
                           })}
