@@ -77,6 +77,29 @@ function getProductStockBase(producto) {
   return productStock;
 }
 
+function getCatalogIdentity(producto) {
+  const barcode = String(producto?.codigo_barra || '').trim();
+  if (barcode) return `barcode:${barcode}`;
+  return `name:${String(producto?.nombre || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()}`;
+}
+
+function dedupeCatalogProducts(productos) {
+  const byIdentity = new Map();
+
+  (productos || []).forEach((producto) => {
+    const key = getCatalogIdentity(producto);
+    const current = byIdentity.get(key);
+    const stock = getProductStockBase(producto);
+    const currentStock = current ? getProductStockBase(current) : -1;
+
+    if (!current || stock > currentStock || (stock === currentStock && Number(producto?.user_id || 0) < Number(current?.user_id || 0))) {
+      byIdentity.set(key, producto);
+    }
+  });
+
+  return Array.from(byIdentity.values());
+}
+
 function getStockBreakdown(producto, stockBaseInput) {
   const stockBase = Math.max(0, Number(stockBaseInput ?? getProductStockBase(producto)) || 0);
   const unidadBase = String(producto?.unidad_base || 'unidad').trim() || 'unidad';
@@ -380,9 +403,10 @@ export default function Home() {
           stock: hasUnitConversion ? productStock : (variantStock > 0 || productStock <= 0 ? variantStock : productStock),
         };
       });
-      setProductos(filteredProducts);
+      const visibleProducts = dedupeCatalogProducts(filteredProducts);
+      setProductos(visibleProducts);
       // Buscar imágenes
-      const visibleIds = filteredProducts.map(p => p.user_id);
+      const visibleIds = visibleProducts.map(p => p.user_id);
       if (visibleIds.length > 0) {
         const { data: imgs, error: imgsError } = await supabase
           .from('producto_imagenes')

@@ -151,6 +151,24 @@ export default function CatalogoPage() {
         }
         return productStock;
     };
+    const getCatalogIdentity = (producto) => {
+        const barcode = String(producto?.codigo_barra || '').trim();
+        if (barcode) return `barcode:${barcode}`;
+        return `name:${String(producto?.nombre || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()}`;
+    };
+    const dedupeCatalogProducts = (items) => {
+        const byIdentity = new Map();
+        (items || []).forEach((producto) => {
+            const key = getCatalogIdentity(producto);
+            const current = byIdentity.get(key);
+            const stock = getProductStockBase(producto);
+            const currentStock = current ? getProductStockBase(current) : -1;
+            if (!current || stock > currentStock || (stock === currentStock && Number(producto?.user_id || 0) < Number(current?.user_id || 0))) {
+                byIdentity.set(key, producto);
+            }
+        });
+        return Array.from(byIdentity.values());
+    };
     const getStockBreakdown = (producto, stockBaseInput = null) => {
         const stockBase = Math.max(0, Number(stockBaseInput ?? getProductStockBase(producto)) || 0);
         const unidadBase = String(producto?.unidad_base || 'unidad').trim() || 'unidad';
@@ -318,8 +336,8 @@ export default function CatalogoPage() {
                                 return stockBase;
                         })()
                 }));
-        const normalizedProducts = (await mergeProductUnits(normalizedBase))
-            .filter((p) => normalizeProductView(p.vista_producto) === currentPublicView);
+        const normalizedProducts = dedupeCatalogProducts((await mergeProductUnits(normalizedBase))
+            .filter((p) => normalizeProductView(p.vista_producto) === currentPublicView));
         setProductos(normalizedProducts);
 
         // Traer categorías
