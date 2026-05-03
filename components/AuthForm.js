@@ -41,6 +41,7 @@ export default function AuthForm({ onLoginSuccess }) {
       const cleanNombre = nombre.trim();
       const cleanTelefono = telefono.trim();
       const cleanNitCi = nitCi.trim();
+      const emailNorm = email.trim().toLowerCase();
 
       if (!cleanNombre || !cleanTelefono || !cleanNitCi) {
         setMessage("Error: Completa nombre, telefono y NIT/CI antes de registrarte.");
@@ -48,8 +49,33 @@ export default function AuthForm({ onLoginSuccess }) {
         return;
       }
 
+      try {
+        const response = await fetch("/api/auth/check-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: emailNorm }),
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+          setMessage(`Error: ${result.error || "No se pudo validar el correo"}`);
+          setLoading(false);
+          return;
+        }
+
+        if (result.exists) {
+          setMessage("Error: Usted ya cuenta con una cuenta. Inicie sesion o recupere su contrasena.");
+          setLoading(false);
+          return;
+        }
+      } catch (_error) {
+        setMessage("Error: No se pudo validar si el correo ya esta registrado.");
+        setLoading(false);
+        return;
+      }
+
       ({ data, error } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
+        email: emailNorm,
         password,
         options: {
           data: {
