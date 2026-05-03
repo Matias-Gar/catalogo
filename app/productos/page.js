@@ -121,6 +121,22 @@ export default function CatalogoPage() {
         if (!Number.isFinite(parsed)) return '0';
         return Number(parsed.toFixed(2)).toString();
     };
+    const normalizeUnitName = (unit) => String(unit || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+    const isDiscreteUnit = (unit) => {
+        const normalized = normalizeUnitName(unit);
+        return ['unidad', 'unidades', 'pieza', 'piezas', 'pza', 'pzas', 'par', 'pares', 'item', 'items', 'articulo', 'articulos'].includes(normalized);
+    };
+    const normalizeQuantityForUnit = (value, unit) => {
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed) || parsed <= 0) return isDiscreteUnit(unit) ? 1 : 0.01;
+        return isDiscreteUnit(unit) ? Math.max(1, Math.floor(parsed)) : Math.max(0.01, parsed);
+    };
+    const getQuantityStepForUnit = (unit) => isDiscreteUnit(unit) ? 1 : 0.01;
+    const getQuantityMinForUnit = (unit) => isDiscreteUnit(unit) ? 1 : 0.01;
     const getProductStockBase = (producto, varianteId = null) => {
         const variantes = Array.isArray(producto?.variantes) ? producto.variantes : [];
         const productStock = Math.max(0, Number(producto?.stock ?? producto?.stock_total ?? 0));
@@ -609,7 +625,6 @@ export default function CatalogoPage() {
         if (!addToCartModal?.producto) return;
         setModalWarning("");
         const { producto, variantes, selectedVarianteId, cantidad, unidad } = addToCartModal;
-        const quantity = Math.max(0.01, Number(cantidad) || 1);
         let varianteSeleccionada = {
             variante_id: null,
             color: null,
@@ -701,6 +716,7 @@ export default function CatalogoPage() {
 
         const precioFinal = getPrecioFinal(productoConVariante);
         const selectedUnit = String(unidad || productoConVariante.unidad_base || 'unidad');
+        const quantity = normalizeQuantityForUnit(cantidad, selectedUnit);
         const unidadesVenta = getAvailableUnits(productoConVariante, stockDisponible);
         if (!unidadesVenta.includes(selectedUnit)) {
             setModalWarning(`Ya no queda ${productoConVariante.unidad_base || 'unidad'} completo. Selecciona ${(unidadesVenta[0] || 'otra unidad')}.`);
@@ -1511,7 +1527,8 @@ export default function CatalogoPage() {
                                                     value={addToCartModal.unidad ?? unidadesDisponibles[0]}
                                                     onChange={(e) => setAddToCartModal(prev => ({
                                                         ...prev,
-                                                        unidad: e.target.value
+                                                        unidad: e.target.value,
+                                                        cantidad: normalizeQuantityForUnit(prev.cantidad, e.target.value)
                                                     }))}
                                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                 >
@@ -1525,18 +1542,23 @@ export default function CatalogoPage() {
                                         )}
                                         <div className="mb-6">
                                             <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+                                            {(() => {
+                                                const selectedUnit = addToCartModal.unidad ?? unidadesDisponibles[0] ?? addToCartModal.producto.unidad_base ?? 'unidad';
+                                                return (
                                             <input
                                                 type="number"
-                                                min={0.01}
-                                                step="0.01"
+                                                min={getQuantityMinForUnit(selectedUnit)}
+                                                step={getQuantityStepForUnit(selectedUnit)}
                                                 disabled={maxCantidad <= 0}
                                                 value={addToCartModal.cantidad}
                                                 onChange={(e) => setAddToCartModal(prev => ({
                                                     ...prev,
-                                                    cantidad: Math.max(0.01, Number(e.target.value) || 1)
+                                                    cantidad: normalizeQuantityForUnit(e.target.value, selectedUnit)
                                                 }))}
                                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
+                                                );
+                                            })()}
                                             {unidadesDisponibles.length > 1 && (
                                                 <p className="mt-2 text-xs text-gray-500">
                                                     1 {addToCartModal.producto.unidad_base || 'unidad'} = {Number(addToCartModal.producto.factor_conversion || 0) || 0} {(addToCartModal.producto.unidades_alternativas || [])[0] || 'unidad'}

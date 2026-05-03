@@ -44,6 +44,28 @@ function getSelectableUnits(product) {
   return hasConversion ? [unidadBase, unidadAlternativa] : [unidadBase];
 }
 
+function normalizeUnitName(unit) {
+  return String(unit || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function isDiscreteUnit(unit) {
+  return ["unidad", "unidades", "pieza", "piezas", "pza", "pzas", "par", "pares", "item", "items", "articulo", "articulos"].includes(normalizeUnitName(unit));
+}
+
+function normalizeQuantityForUnit(value, unit) {
+  const parsed = toNumber(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return "";
+  return isDiscreteUnit(unit) ? String(Math.floor(parsed)) : String(parsed);
+}
+
+function getQuantityStep(unit) {
+  return isDiscreteUnit(unit) ? 1 : 0.01;
+}
+
 function getBaseQuantity(product, amount, unit) {
   const { unidadBase, factor, hasConversion } = getUnitInfo(product);
   const parsed = toNumber(amount);
@@ -544,14 +566,17 @@ export default function TransferenciaSucursalPage() {
               <input
                 type="number"
                 min="0"
-                step="0.01"
+                step={getQuantityStep(unidad)}
                 value={cantidad}
-                onChange={(event) => setCantidad(event.target.value)}
+                onChange={(event) => setCantidad(normalizeQuantityForUnit(event.target.value, unidad))}
                 className="h-11 rounded-md border border-gray-300 px-3 text-right text-sm text-gray-800"
               />
               <select
                 value={unidad}
-                onChange={(event) => setUnidad(event.target.value)}
+                onChange={(event) => {
+                  setUnidad(event.target.value);
+                  setCantidad((current) => normalizeQuantityForUnit(current, event.target.value));
+                }}
                 className="h-11 rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-800"
               >
                 {selectedUnits.map((unit) => (

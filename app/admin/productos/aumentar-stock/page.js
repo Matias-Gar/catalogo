@@ -355,6 +355,29 @@ export default function AumentarStockPage() {
     return hasConversion ? [unidadBase, unidadAlternativa] : [unidadBase];
   }
 
+  function normalizeUnitName(unit) {
+    return String(unit || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  }
+
+  function isDiscreteUnit(unit) {
+    return ["unidad", "unidades", "pieza", "piezas", "pza", "pzas", "par", "pares", "item", "items", "articulo", "articulos"].includes(normalizeUnitName(unit));
+  }
+
+  function getQuantityStep(unit) {
+    return isDiscreteUnit(unit) ? 1 : 0.01;
+  }
+
+  function normalizeIncrementValue(rawValue, unit) {
+    const cleaned = String(rawValue || "").replace(",", ".").replace(/[^\d.]/g, "");
+    const parsed = Number(cleaned);
+    if (!Number.isFinite(parsed) || parsed <= 0) return 0;
+    return isDiscreteUnit(unit) ? Math.floor(parsed) : parsed;
+  }
+
   function getSelectedUnit(prod, key) {
     const units = getSelectableUnits(prod);
     const selected = incrementUnits[key];
@@ -396,15 +419,14 @@ export default function AumentarStockPage() {
     return rawAmount / factor;
   }
 
-  function setIncrementValue(key, rawValue) {
-    const cleaned = String(rawValue || "").replace(",", ".").replace(/[^\d.]/g, "");
-    const parsed = Number(cleaned);
-    const value = Number.isFinite(parsed) ? parsed : 0;
+  function setIncrementValue(key, rawValue, unit) {
+    const value = normalizeIncrementValue(rawValue, unit);
     setIncrements((prev) => ({ ...prev, [key]: value }));
   }
 
   function setIncrementUnit(key, unit) {
     setIncrementUnits((prev) => ({ ...prev, [key]: unit }));
+    setIncrements((prev) => ({ ...prev, [key]: normalizeIncrementValue(prev[key], unit) }));
   }
 
   async function aumentarStockProducto(prod, shouldPrint = false) {
@@ -743,9 +765,9 @@ export default function AumentarStockPage() {
                                       <input
                                         type="number"
                                         min="0"
-                                        step="0.01"
+                                        step={getQuantityStep(selectedUnit)}
                                         value={increment}
-                                        onChange={(e) => setIncrementValue(variantKey, e.target.value)}
+                                        onChange={(e) => setIncrementValue(variantKey, e.target.value, selectedUnit)}
                                         className="h-9 w-24 rounded-md border border-gray-200 px-2 text-right"
                                       />
                                       {units.length > 1 && (
@@ -803,9 +825,9 @@ export default function AumentarStockPage() {
                         <input
                           type="number"
                           min="0"
-                          step="0.01"
+                          step={getQuantityStep(productUnit)}
                           value={productIncrement}
-                          onChange={(e) => setIncrementValue(productKey, e.target.value)}
+                          onChange={(e) => setIncrementValue(productKey, e.target.value, productUnit)}
                           className="h-9 w-32 rounded-md border border-gray-200 px-2 text-right"
                         />
                         {units.length > 1 && (
