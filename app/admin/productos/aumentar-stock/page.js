@@ -9,8 +9,10 @@ import Toast, { showToast } from '../../../../components/ui/Toast';
 import { registrarMovimientoStock } from "@/lib/stockMovimientos";
 import { registrarHistorialProducto } from "@/lib/productosHistorial";
 import { sincronizarStockProducto } from "@/lib/utils";
+import { useSucursalActiva } from "@/components/admin/SucursalContext";
 
 export default function AumentarStockPage() {
+  const { activeSucursalId } = useSucursalActiva();
   const QZ_PRINTER_NAME = "POS-80C";
   const ENABLE_QZ_DIRECT_LABEL_PRINT = true;
 
@@ -25,8 +27,9 @@ export default function AumentarStockPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
 
   useEffect(() => {
+    if (!activeSucursalId) return;
     fetchData();
-  }, []);
+  }, [activeSucursalId]);
 
   const loadQzTray = () =>
     new Promise((resolve, reject) => {
@@ -215,7 +218,7 @@ export default function AumentarStockPage() {
   async function fetchData() {
     setLoading(true);
 
-    const { data: prods, error: prodsError } = await supabase
+    let productosQuery = supabase
       .from("productos")
       .select(`
         user_id,
@@ -230,6 +233,8 @@ export default function AumentarStockPage() {
       `)
       .order("nombre", { ascending: true })
       .limit(1200);
+    if (activeSucursalId) productosQuery = productosQuery.eq("sucursal_id", activeSucursalId);
+    const { data: prods, error: prodsError } = await productosQuery;
 
     if (prodsError) {
       console.error("Error cargando productos:", prodsError);
@@ -255,24 +260,30 @@ export default function AumentarStockPage() {
       for (let i = 0; i < validProductIds.length; i += CHUNK_SIZE) {
         const chunk = validProductIds.slice(i, i + CHUNK_SIZE);
         let vars = [];
-        const withActive = await supabase
+        let withActiveQuery = supabase
           .from("producto_variantes")
           .select("id, producto_id, color, stock, stock_decimal, activo, codigo_barra, sku")
           .in("producto_id", chunk)
           .eq("activo", true)
           .order("color", { ascending: true });
+        if (activeSucursalId) withActiveQuery = withActiveQuery.eq("sucursal_id", activeSucursalId);
+        const withActive = await withActiveQuery;
         if (withActive.error) {
-          const fallbackWithoutActive = await supabase
+          let fallbackWithoutActiveQuery = supabase
             .from("producto_variantes")
             .select("id, producto_id, color, stock, stock_decimal, codigo_barra, sku")
             .in("producto_id", chunk)
             .order("color", { ascending: true });
+          if (activeSucursalId) fallbackWithoutActiveQuery = fallbackWithoutActiveQuery.eq("sucursal_id", activeSucursalId);
+          const fallbackWithoutActive = await fallbackWithoutActiveQuery;
           if (fallbackWithoutActive.error) {
-            const minimalFallback = await supabase
+            let minimalFallbackQuery = supabase
               .from("producto_variantes")
               .select("id, producto_id, color, stock")
               .in("producto_id", chunk)
               .order("color", { ascending: true });
+            if (activeSucursalId) minimalFallbackQuery = minimalFallbackQuery.eq("sucursal_id", activeSucursalId);
+            const minimalFallback = await minimalFallbackQuery;
             if (minimalFallback.error) {
               console.warn("Variantes no disponibles en este esquema:", minimalFallback.error);
               vars = [];
@@ -446,6 +457,7 @@ export default function AumentarStockPage() {
           unidad: selectedUnit,
           usuario_id: user?.id || null,
           usuario_email: user?.email || '',
+          sucursal_id: activeSucursalId || null,
           observaciones: `Aumento de stock desde panel (${formatQuantity(displayIncrease)} ${selectedUnit})`
         };
         await registrarMovimientoStock(movimientoPayload);
@@ -454,6 +466,7 @@ export default function AumentarStockPage() {
           accion: "UPDATE",
           datos_anteriores: actual,
           datos_nuevos: { ...actual, stock: totalStock },
+          sucursal_id: activeSucursalId || null,
           usuario_email: user?.email || null
         });
       } catch (err) {
@@ -529,6 +542,7 @@ export default function AumentarStockPage() {
           unidad: selectedUnit,
           usuario_id: user?.id || null,
           usuario_email: user?.email || '',
+          sucursal_id: activeSucursalId || null,
           observaciones: `Aumento de stock en variante (${variante.color || 'Unico'}) desde panel (${formatQuantity(displayIncrease)} ${selectedUnit})`
         };
         await registrarMovimientoStock(movimientoPayload);
@@ -537,6 +551,7 @@ export default function AumentarStockPage() {
           accion: "UPDATE",
           datos_anteriores: actual,
           datos_nuevos: { ...actual, stock: totalStock },
+          sucursal_id: activeSucursalId || null,
           usuario_email: user?.email || null
         });
       } catch (err) {

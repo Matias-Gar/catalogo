@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '../lib/SupabaseClient';
-import { PrecioConPromocion, calcularPrecioConPromocion } from '../lib/promociones';
+import { PrecioConPromocion, calcularPrecioConPromocion, PromoCompactBanner } from '../lib/promociones';
 import { usePromociones } from '../lib/usePromociones';
 import { usePacks, calcularDescuentoPack } from '../lib/packs';
 import { PacksDisponibles } from '../lib/packs';
@@ -43,6 +43,7 @@ function getConversionPriceInfo(producto, promociones) {
     tienePromocion: precioInfo.tienePromocion,
     porcentajeDescuento: precioInfo.porcentajeDescuento,
     promocionDescripcion: precioInfo.promocion?.descripcion || '',
+    promocionFechaFin: precioInfo.promocion?.fecha_fin || '',
     showBasePrice: stockBase >= 1,
   };
 }
@@ -155,16 +156,11 @@ function UnitPricePanel({ conversionInfo, factor }) {
         1 {conversionInfo.unidadBase} = {Number(factor || 0).toFixed(2).replace(/\.00$/, '')} {conversionInfo.unidadAlternativa}
       </div>
       {conversionInfo.tienePromocion && (
-        <div className="flex w-full items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm">
-          <span className="shrink-0 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold leading-none text-gray-950">
-            -{conversionInfo.porcentajeDescuento}%
-          </span>
-          {conversionInfo.promocionDescripcion && (
-            <span className="min-w-0 flex-1 font-semibold text-slate-800">
-              🎯 {conversionInfo.promocionDescripcion}
-            </span>
-          )}
-        </div>
+        <PromoCompactBanner
+          porcentaje={conversionInfo.porcentajeDescuento}
+          descripcion={conversionInfo.promocionDescripcion}
+          fechaFin={conversionInfo.promocionFechaFin}
+        />
       )}
     </div>
   );
@@ -648,7 +644,27 @@ export default function Home() {
           />
         </div>
         {categoriasVisibles.length > 0 && (
+          <>
             <div className="mb-6">
+              <div className="flex gap-2 overflow-x-auto px-2 pb-2 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0">
+                <button
+                  className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 ${!filtroCategoria ? 'bg-violet-600 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                  onClick={() => setFiltroCategoria('')}
+                >
+                  Todas las Categorias
+                </button>
+                {categoriasVisibles.map(cat => (
+                  <button
+                    key={cat.id}
+                    className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 ${Number(filtroCategoria) === Number(cat.id) ? 'bg-violet-600 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                    onClick={() => setFiltroCategoria(cat.id.toString())}
+                  >
+                    {cat.categori || cat.nombre || '-'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="hidden">
                 {/* Versión móvil - Selector desplegable compacto */}
                 <div className="block sm:hidden">
                     <div className="bg-white rounded-xl shadow-lg p-3 mx-2">
@@ -698,6 +714,7 @@ export default function Home() {
                     ))}
                 </div>
             </div>
+          </>
         )}
         {/* Mensajes de Estado */}
         {loading && (
@@ -725,7 +742,7 @@ export default function Home() {
           </div>
         )}
         {/* Grid de productos */}
-  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
+  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-8">
           {productosFiltrados.map((p) => {
             const stockInfo = getStockBreakdown(p);
             const agotado = stockInfo.agotado;
@@ -742,14 +759,14 @@ export default function Home() {
               }
             }
             return (
-              <div key={p.user_id} className={`relative overflow-hidden rounded-xl border bg-white p-4 shadow-md flex flex-col items-center ${agotado ? 'border-gray-900' : 'border-transparent'}`}>
-                <div className="w-full h-64 flex items-center justify-center mb-2 cursor-pointer relative group">
+              <div key={p.user_id} className={`relative overflow-hidden rounded-xl border bg-white p-2 sm:p-4 shadow-md flex flex-col items-center ${agotado ? 'border-gray-900' : 'border-transparent'}`}>
+                <div className="w-full h-40 sm:h-64 flex items-center justify-center mb-2 cursor-pointer relative group">
                   {galeria.length > 0 ? (
                     <>
                       <img
                         src={getOptimizedImageUrl(galeria[0], 800, { quality: 96, format: 'origin' })}
                         srcSet={buildImageSrcSet(galeria[0], [400, 800, 1200], { quality: 96, format: 'origin' })}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1200px) 33vw, 25vw"
                         loading="lazy"
                         decoding="async"
                         alt={p.nombre}
@@ -773,12 +790,12 @@ export default function Home() {
                     <img
                       src="https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen"
                       alt="Sin imagen"
-                      className="w-full h-48 object-contain rounded-xl bg-gray-50"
+                      className="w-full h-40 sm:h-48 object-contain rounded-xl bg-gray-50"
                     />
                   )}
                 </div>
                 <div className={`w-full text-center ${agotado ? 'pb-24' : ''}`}>
-                  <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-1">{p.nombre}</h2>
+                  <h2 className="text-sm sm:text-lg font-bold text-gray-900 mb-1">{p.nombre}</h2>
                   <ExpandableDescription
                     text={p.descripcion}
                     lines={3}

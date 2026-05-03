@@ -12,8 +12,10 @@ import { registrarMovimientoStock } from "@/lib/stockMovimientos";
 import { registrarHistorialProducto } from "@/lib/productosHistorial";
 import { sincronizarStockProducto, validarProducto } from "@/lib/utils";
 import { getProductViewMeta, normalizeProductView } from "@/lib/productViews";
+import { useSucursalActiva } from "@/components/admin/SucursalContext";
 
 export default function EditarCatalogo() {
+    const { activeSucursalId } = useSucursalActiva();
     const pathname = usePathname();
     const currentProductView = normalizeProductView(pathname?.includes('/admin/insumos') ? 'insumos' : 'articulos');
     const currentViewMeta = getProductViewMeta(currentProductView);
@@ -25,28 +27,36 @@ export default function EditarCatalogo() {
         setLoading(true);
         try {
           // Productos
-          const { data: productosData, error: productosError } = await supabase
+          let productosQuery = supabase
             .from("productos")
             .select("*")
             .order("nombre", { ascending: true });
+          if (activeSucursalId) productosQuery = productosQuery.eq("sucursal_id", activeSucursalId);
+          const { data: productosData, error: productosError } = await productosQuery;
           if (productosError) throw productosError;
 
           // Imágenes
-          const { data: imagenesData, error: imagenesError } = await supabase
+          let imagenesQuery = supabase
             .from("producto_imagenes")
             .select("id, producto_id, imagen_url");
+          if (activeSucursalId) imagenesQuery = imagenesQuery.eq("sucursal_id", activeSucursalId);
+          const { data: imagenesData, error: imagenesError } = await imagenesQuery;
           if (imagenesError) throw imagenesError;
 
           // Variantes
-          const { data: variantesData, error: variantesError } = await supabase
+          let variantesQuery = supabase
             .from("producto_variantes")
             .select("*");
+          if (activeSucursalId) variantesQuery = variantesQuery.eq("sucursal_id", activeSucursalId);
+          const { data: variantesData, error: variantesError } = await variantesQuery;
           if (variantesError) throw variantesError;
 
           // Categorías
-          const { data: categoriesData, error: categoriesError } = await supabase
+          let categoriesQuery = supabase
             .from("categorias")
             .select("id, categori");
+          if (activeSucursalId) categoriesQuery = categoriesQuery.eq("sucursal_id", activeSucursalId);
+          const { data: categoriesData, error: categoriesError } = await categoriesQuery;
           if (categoriesError) throw categoriesError;
 
           // Asociar imágenes y variantes a cada producto
@@ -68,7 +78,7 @@ export default function EditarCatalogo() {
         setLoading(false);
       };
       fetchData();
-    }, []);
+    }, [activeSucursalId]);
     // Manejo de cambios en campos del producto
     const setEditDataField = (productKey, field, value) => {
       setEditando((prev) => ({
@@ -286,6 +296,7 @@ export default function EditarCatalogo() {
       } else {
         updateQuery = updateQuery.eq("id", prodId);
       }
+      if (activeSucursalId) updateQuery = updateQuery.eq("sucursal_id", activeSucursalId);
       const { error: updateError } = await updateQuery;
       if (updateError) throw updateError;
 
@@ -318,6 +329,7 @@ export default function EditarCatalogo() {
           // Insertar
           await supabase.from("producto_variantes").insert({
             producto_id: productoActual.user_id,
+            sucursal_id: activeSucursalId || null,
             color: v.color,
             talla: v.talla,
             stock: Math.max(0, Math.floor(Number(v.stock) || 0)),
@@ -347,6 +359,7 @@ export default function EditarCatalogo() {
         if (!img.id) {
           await supabase.from("producto_imagenes").insert({
             producto_id: productoActual.user_id,
+            sucursal_id: activeSucursalId || null,
             imagen_url: img.imagen_url || img,
           });
         }

@@ -8,9 +8,11 @@ import { Button } from "../../../../components/ui/button";
 import { registrarMovimientoStock } from "../../../../lib/stockMovimientos";
 import { registrarHistorialProducto } from "../../../../lib/productosHistorial";
 import { getOptimizedImageUrl, buildImageSrcSet } from "../../../../lib/imageOptimization";
+import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
 
 
 function EliminarProductos(props) {
+  const { activeSucursalId } = useSucursalActiva();
   const [productos, setProductos] = useState([]);
   const [imagenes, setImagenes] = useState({});
   const [eliminando, setEliminando] = useState(null);
@@ -21,18 +23,22 @@ function EliminarProductos(props) {
 
   useEffect(() => {
     async function fetchProductos() {
-      const { data, error } = await supabase
+      let query = supabase
         .from("productos")
         .select("user_id, nombre, precio, stock, categoria, created_at");
+      if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
+      const { data, error } = await query;
       if (!error && data) {
         setProductos(data);
         // Obtener imágenes
         const ids = data.map(p => p.user_id);
         if (ids.length > 0) {
-          const { data: imgs } = await supabase
+          let imgsQuery = supabase
             .from("producto_imagenes")
             .select("producto_id, imagen_url")
             .in("producto_id", ids);
+          if (activeSucursalId) imgsQuery = imgsQuery.eq("sucursal_id", activeSucursalId);
+          const { data: imgs } = await imgsQuery;
           if (imgs) {
             const agrupadas = {};
             imgs.forEach(img => {
@@ -45,7 +51,7 @@ function EliminarProductos(props) {
       }
     }
     fetchProductos();
-  }, [eliminando]);
+  }, [eliminando, activeSucursalId]);
 
   const eliminarProducto = async (user_id) => {
     if (!window.confirm("¿Seguro que deseas eliminar este producto?")) return;
@@ -54,14 +60,17 @@ function EliminarProductos(props) {
     try {
       const user = (await supabase.auth.getUser())?.data?.user;
       // Buscar el producto para obtener los datos antes de eliminar
-      const { data: prodData } = await supabase.from("productos").select("*").eq("user_id", user_id).single();
+      let prodQuery = supabase.from("productos").select("*").eq("user_id", user_id);
+      if (activeSucursalId) prodQuery = prodQuery.eq("sucursal_id", activeSucursalId);
+      const { data: prodData } = await prodQuery.single();
       const movimientoPayload = {
         producto_id: Number(user_id),
         tipo: 'eliminación',
         cantidad: prodData?.stock || 0,
         usuario_id: user?.id || null,
         usuario_email: user?.email || '',
-        observaciones: 'Eliminación de producto desde panel'
+        observaciones: 'Eliminación de producto desde panel',
+        sucursal_id: activeSucursalId || null
       };
       await registrarMovimientoStock(movimientoPayload);
       await registrarHistorialProducto({
@@ -69,21 +78,23 @@ function EliminarProductos(props) {
         accion: "DELETE",
         datos_anteriores: prodData,
         datos_nuevos: null,
-        usuario_email: user?.email || null
+        usuario_email: user?.email || null,
+        sucursal_id: activeSucursalId || null
       });
     } catch (err) {
       console.warn('No se pudo registrar movimiento/historial de eliminación:', err);
     }
     // Eliminar primero dependencias para evitar errores 409
-    await supabase.from("stock_movimientos").delete().eq("producto_id", user_id);
-    await supabase.from("productos_historial").delete().eq("producto_id", user_id);
-    await supabase.from("producto_variantes").delete().eq("producto_id", user_id);
-    await supabase.from("producto_imagenes").delete().eq("producto_id", user_id);
-    await supabase.from("promociones").delete().eq("producto_id", user_id);
-    await supabase.from("pack_productos").delete().eq("producto_id", user_id);
-    await supabase.from("ventas_detalle").delete().eq("producto_id", user_id);
+    const scopeSucursal = (query) => activeSucursalId ? query.eq("sucursal_id", activeSucursalId) : query;
+    await scopeSucursal(supabase.from("stock_movimientos").delete().eq("producto_id", user_id));
+    await scopeSucursal(supabase.from("productos_historial").delete().eq("producto_id", user_id));
+    await scopeSucursal(supabase.from("producto_variantes").delete().eq("producto_id", user_id));
+    await scopeSucursal(supabase.from("producto_imagenes").delete().eq("producto_id", user_id));
+    await scopeSucursal(supabase.from("promociones").delete().eq("producto_id", user_id));
+    await scopeSucursal(supabase.from("pack_productos").delete().eq("producto_id", user_id));
+    await scopeSucursal(supabase.from("ventas_detalle").delete().eq("producto_id", user_id));
     // Finalmente, eliminar el producto
-    await supabase.from("productos").delete().eq("user_id", user_id);
+    await scopeSucursal(supabase.from("productos").delete().eq("user_id", user_id));
     setEliminando(null);
   };
 

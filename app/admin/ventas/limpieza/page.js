@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../../../../lib/SupabaseClient";
 import { showToast } from "../../../../components/ui/Toast";
 import * as ventasService from "../../../../services/ventas.service";
+import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
 
 function formatDate(value) {
   if (!value) return "-";
@@ -31,6 +32,7 @@ function isSuspiciousSale(sale) {
 
 export default function LimpiezaVentasPage() {
   const router = useRouter();
+  const { activeSucursalId } = useSucursalActiva();
   const [sessionUser, setSessionUser] = useState(null);
   const [role, setRole] = useState("");
   const [ventas, setVentas] = useState([]);
@@ -46,23 +48,26 @@ export default function LimpiezaVentasPage() {
   const loadVentas = useCallback(async () => {
     setLoading(true);
     try {
-      const { data: ventasData, error: ventasError } = await supabase
+      let ventasQuery = supabase
         .from("ventas")
         .select("id, cliente_nombre, cliente_telefono, total, fecha, estado, modo_pago, usuario_email, error_message, costos_extra")
         .order("fecha", { ascending: false })
         .limit(300);
+      if (activeSucursalId) ventasQuery = ventasQuery.eq("sucursal_id", activeSucursalId);
+      const { data: ventasData, error: ventasError } = await ventasQuery;
       if (ventasError) throw ventasError;
 
       const ids = (ventasData || []).map((v) => v.id);
+      const scopeSucursal = (query) => activeSucursalId ? query.eq("sucursal_id", activeSucursalId) : query;
       const [detallesRes, pagosRes, movimientosRes] = await Promise.all([
         ids.length
-          ? supabase.from("ventas_detalle").select("id, venta_id").in("venta_id", ids)
+          ? scopeSucursal(supabase.from("ventas_detalle").select("id, venta_id").in("venta_id", ids))
           : Promise.resolve({ data: [] }),
         ids.length
-          ? supabase.from("ventas_pagos").select("id, venta_id").in("venta_id", ids)
+          ? scopeSucursal(supabase.from("ventas_pagos").select("id, venta_id").in("venta_id", ids))
           : Promise.resolve({ data: [] }),
         ids.length
-          ? supabase.from("stock_movimientos").select("id, venta_id, observaciones").in("venta_id", ids)
+          ? scopeSucursal(supabase.from("stock_movimientos").select("id, venta_id, observaciones").in("venta_id", ids))
           : Promise.resolve({ data: [] }),
       ]);
       if (detallesRes.error) throw detallesRes.error;
@@ -91,7 +96,7 @@ export default function LimpiezaVentasPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeSucursalId]);
 
   useEffect(() => {
     async function init() {

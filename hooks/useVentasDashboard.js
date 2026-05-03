@@ -65,7 +65,7 @@ function isWithinDateRange(dateValue, from, to) {
   return true;
 }
 
-export function useVentasDashboard() {
+export function useVentasDashboard(sucursalId = null) {
   const [ventas, setVentas] = useState([]);
   const [detallesPorVenta, setDetallesPorVenta] = useState({});
   const [productMap, setProductMap] = useState({});
@@ -81,17 +81,19 @@ export function useVentasDashboard() {
       setLoading(true);
       setError('');
       try {
-        const { data: ventasData, error: ventasError } = await supabase
+        let ventasQuery = supabase
           .from('ventas')
           .select('id, cliente_nombre, total, fecha, descuentos, costos_extra, modo_pago')
           .order('fecha', { ascending: false });
+        if (sucursalId) ventasQuery = ventasQuery.eq('sucursal_id', sucursalId);
+        const { data: ventasData, error: ventasError } = await ventasQuery;
 
         if (ventasError) throw ventasError;
 
         const safeVentas = Array.isArray(ventasData) ? ventasData : [];
 
         let detallesData = [];
-        const detalleEnriquecido = await supabase
+        let detalleQuery = supabase
           .from('ventas_detalle')
           .select(`
             venta_id,
@@ -112,11 +114,15 @@ export function useVentasDashboard() {
               nombre
             )
           `);
+        if (sucursalId) detalleQuery = detalleQuery.eq('sucursal_id', sucursalId);
+        const detalleEnriquecido = await detalleQuery;
 
         if (detalleEnriquecido.error) {
-          const detalleFallback = await supabase
+          let fallbackQuery = supabase
             .from('ventas_detalle')
             .select('*');
+          if (sucursalId) fallbackQuery = fallbackQuery.eq('sucursal_id', sucursalId);
+          const detalleFallback = await fallbackQuery;
           if (detalleFallback.error) throw detalleEnriquecido.error;
           detallesData = detalleFallback.data || [];
         } else {
@@ -142,10 +148,12 @@ export function useVentasDashboard() {
         let products = [];
         if (productIds.size > 0) {
           const ids = Array.from(productIds);
-          const { data: productsData, error: productsError } = await supabase
+          let productsQuery = supabase
             .from('productos')
             .select('user_id, nombre, precio_compra, unidad_base, unidades_alternativas, factor_conversion')
             .in('user_id', ids);
+          if (sucursalId) productsQuery = productsQuery.eq('sucursal_id', sucursalId);
+          const { data: productsData, error: productsError } = await productsQuery;
 
           if (productsError) throw productsError;
           products = Array.isArray(productsData) ? productsData : [];
@@ -172,7 +180,7 @@ export function useVentasDashboard() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [sucursalId]);
 
   const salesRows = useMemo(() => {
     return ventas

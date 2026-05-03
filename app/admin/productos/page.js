@@ -11,6 +11,7 @@ import { getOptimizedImageUrl, buildImageSrcSet } from '../../../lib/imageOptimi
 import { optimizeImageForUpload } from '../../../lib/imageUploadOptimization';
 import { canAccessAdminPath } from '../../../lib/adminPermissions';
 import { normalizeProductView } from '../../../lib/productViews';
+import { useSucursalActiva } from '../../../components/admin/SucursalContext';
 
 // Desactivar SSR para el componente de código de barras si usa librerías de cliente como 'react-barcode'
 // Si la tabla usa react-barcode, este dynamic es necesario. Si solo usa la función handlePrintBarcode, se podría quitar.
@@ -137,6 +138,7 @@ const uploadProductImages = async (files) => {
 export default function AdminProductosPage() { 
     // HOOKS AL INICIO
     const router = useRouter(); 
+    const { activeSucursalId } = useSucursalActiva();
     const [userRole, setUserRole] = useState(null); 
     const [productos, setProductos] = useState([]);
     const [imagenesProductos, setImagenesProductos] = useState({});
@@ -150,7 +152,7 @@ export default function AdminProductosPage() {
     const [selectedImageName, setSelectedImageName] = useState('');
     
     // Hook para promociones
-    const { promociones } = usePromociones();
+    const { promociones } = usePromociones(activeSucursalId);
     
     const [newProduct, setNewProduct] = useState({ 
         nombre: '', 
@@ -393,10 +395,12 @@ export default function AdminProductosPage() {
 
     // Función para cargar categorías 
     const fetchCategories = async () => {
-        const { data, error } = await supabase
+        let query = supabase
             .from('categorias')
             .select('id, categori')
             .order('categori', { ascending: true });
+        if (activeSucursalId) query = query.eq('sucursal_id', activeSucursalId);
+        const { data, error } = await query;
         if (error) {
             setCategories([]);
             setMessage('❌ Error al cargar categorías.');
@@ -440,20 +444,24 @@ export default function AdminProductosPage() {
                 categorias (categori)
             `;
 
-        let response = await supabase
+        let query = supabase
             .from('productos')
             .select(selectWithView)
             .order('nombre', { ascending: true });
+        if (activeSucursalId) query = query.eq('sucursal_id', activeSucursalId);
+        let response = await query;
 
         data = response.data;
         error = response.error;
 
         if (error && String(error.message || '').includes('vista_producto')) {
             vistaColumnAvailable = false;
-            response = await supabase
+            let fallbackQuery = supabase
                 .from('productos')
                 .select(selectWithoutView)
                 .order('nombre', { ascending: true });
+            if (activeSucursalId) fallbackQuery = fallbackQuery.eq('sucursal_id', activeSucursalId);
+            response = await fallbackQuery;
             data = response.data;
             error = response.error;
         }
@@ -477,10 +485,12 @@ export default function AdminProductosPage() {
         // 2. Traer imágenes de todos los productos
         const ids = formattedData.map(p => p.user_id);
         if (ids.length > 0) {
-            const { data: imgs, error: imgsError } = await supabase
+            let imgsQuery = supabase
                 .from('producto_imagenes')
                 .select('producto_id, imagen_url')
                 .in('producto_id', ids);
+            if (activeSucursalId) imgsQuery = imgsQuery.eq('sucursal_id', activeSucursalId);
+            const { data: imgs, error: imgsError } = await imgsQuery;
             if (!imgsError && imgs) {
                 // Agrupar por producto_id
                 const agrupadas = {};
@@ -518,7 +528,7 @@ export default function AdminProductosPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [userRole]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [userRole, activeSucursalId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     
     // Función para Añadir Producto
@@ -547,7 +557,8 @@ export default function AdminProductosPage() {
                         stock: parseInt(newProduct.stock) || 0,
                         category_id: categoryIdValue,
                         codigo_barra: codigoBarra,
-                        vista_producto: normalizeProductView(newProduct.vista_producto)
+                        vista_producto: normalizeProductView(newProduct.vista_producto),
+                        sucursal_id: activeSucursalId || null
                     }
                 ]).select();
 
@@ -561,7 +572,11 @@ export default function AdminProductosPage() {
             // Insertar las imágenes en la tabla producto_imagenes
             if (productoInsertado && productoInsertado.length > 0 && imagenUrls.length > 0) {
                 const productoId = productoInsertado[0].user_id;
-                const imagesToInsert = imagenUrls.map(url => ({ producto_id: productoId, imagen_url: url }));
+                const imagesToInsert = imagenUrls.map(url => ({
+                    producto_id: productoId,
+                    imagen_url: url,
+                    sucursal_id: activeSucursalId || null
+                }));
                 const { error: imgInsertError } = await supabase.from('producto_imagenes').insert(imagesToInsert);
                 if (imgInsertError) {
                     // Nota: Idealmente, aquí también se debería intentar borrar los archivos subidos al storage.
@@ -598,11 +613,13 @@ export default function AdminProductosPage() {
 
         try { 
             // La eliminación en cascada debería manejar las imágenes relacionadas
-            const { error } = await supabase 
+            let deleteQuery = supabase 
                 .from('productos') 
                 .delete() 
                 // Usamos user_id como ID único del producto para filtrar
                 .eq('user_id', productToDelete.user_id); 
+            if (activeSucursalId) deleteQuery = deleteQuery.eq('sucursal_id', activeSucursalId);
+            const { error } = await deleteQuery;
 
             if (error) { 
                 throw new Error(error.message); 
@@ -633,7 +650,7 @@ export default function AdminProductosPage() {
             
             // 2. Actualizar producto (sin tocar imagen_url principal)
             const categoryIdValue = editingProduct.category_id ? parseInt(editingProduct.category_id) : null;
-            const { error: updateError } = await supabase
+            let updateQuery = supabase
                 .from('productos')
                 .update({
                     nombre: editingProduct.nombre,
@@ -647,6 +664,8 @@ export default function AdminProductosPage() {
                     codigo_barra: editingProduct.codigo_barra
                 })
                 .eq('user_id', editingProduct.user_id);
+            if (activeSucursalId) updateQuery = updateQuery.eq('sucursal_id', activeSucursalId);
+            const { error: updateError } = await updateQuery;
             if (updateError) {
                 throw new Error(updateError.message);
             }
@@ -658,10 +677,12 @@ export default function AdminProductosPage() {
 
             if (urlsAEliminar.length > 0) {
                 // Eliminamos las referencias de la tabla producto_imagenes
-                const { error: deleteImgError } = await supabase.from('producto_imagenes')
+                let deleteImgQuery = supabase.from('producto_imagenes')
                     .delete()
                     .in('imagen_url', urlsAEliminar)
                     .eq('producto_id', editingProduct.user_id);
+                if (activeSucursalId) deleteImgQuery = deleteImgQuery.eq('sucursal_id', activeSucursalId);
+                const { error: deleteImgError } = await deleteImgQuery;
                 
                 if(deleteImgError) console.error("Error al eliminar referencias de imágenes:", deleteImgError.message);
                 
@@ -672,7 +693,11 @@ export default function AdminProductosPage() {
 
             // 4. Insertar nuevas imágenes
             if (nuevasUrls.length > 0) {
-                const imagesToInsert = nuevasUrls.map(url => ({ producto_id: editingProduct.user_id, imagen_url: url }));
+                const imagesToInsert = nuevasUrls.map(url => ({
+                    producto_id: editingProduct.user_id,
+                    imagen_url: url,
+                    sucursal_id: activeSucursalId || null
+                }));
                 const { error: imgInsertError } = await supabase.from('producto_imagenes').insert(imagesToInsert);
                 if (imgInsertError) {
                     throw new Error(imgInsertError.message);

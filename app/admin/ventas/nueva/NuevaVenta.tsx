@@ -18,6 +18,7 @@ import type { TicketPrinterHandle } from '../../../../components/venta/TicketPri
 import { Pack, Producto } from '../../../../hooks/useCarrito';
 import { supabase } from '../../../../lib/SupabaseClient';
 import { showToast } from '../../../../components/ui/Toast';
+import { useSucursalActiva } from '../../../../components/admin/SucursalContext';
 
 type VariantMatch = {
   variante_id?: number | string;
@@ -167,9 +168,10 @@ function toIntegerDetailQuantity(cantidadBase: number) {
 
 export default function NuevaVenta() {
   // hooks
-  const { cliente, cambiarCampo, buscarPorCarnet, guardar, buscarEmailHistorico } = useCliente();
-  const { promociones } = usePromociones();
-  const { packs } = usePacks() as { packs: Pack[] };
+  const { activeSucursalId } = useSucursalActiva();
+  const { cliente, cambiarCampo, buscarPorCarnet, guardar, buscarEmailHistorico } = useCliente(activeSucursalId);
+  const { promociones } = usePromociones(activeSucursalId);
+  const { packs } = usePacks(activeSucursalId) as { packs: Pack[] };
   const {
     carrito,
     agregar,
@@ -191,7 +193,7 @@ export default function NuevaVenta() {
     searchLoading,
     fetchProductos,
     searchProductos
-  } = useProductos(false); // no incluir precio de compra para vendedores
+  } = useProductos(false, activeSucursalId); // no incluir precio de compra para vendedores
 
   const [busqueda, setBusqueda] = React.useState('');
   const [showSuggestions, setShowSuggestions] = React.useState(false);
@@ -282,24 +284,30 @@ export default function NuevaVenta() {
         let unidadesByProducto: Record<string, any> = {};
         if (productosIds.length > 0) {
           const supabaseClient = supabase;
-          const { data: productosData, error: productosError } = await supabaseClient
+          let productosQuery = supabaseClient
             .from('v_productos_catalogo')
             .select('*')
             .in('producto_id', productosIds);
+          if (activeSucursalId) productosQuery = productosQuery.eq('sucursal_id', activeSucursalId);
+          const { data: productosData, error: productosError } = await productosQuery;
           if (productosError) throw productosError;
           productosDB = Array.isArray(productosData) ? productosData : [];
 
-          const { data: unidadesData } = await supabaseClient
+          let unidadesQuery = supabaseClient
             .from('productos')
             .select('user_id, stock, unidad_base, unidades_alternativas, factor_conversion')
             .in('user_id', productosIds);
+          if (activeSucursalId) unidadesQuery = unidadesQuery.eq('sucursal_id', activeSucursalId);
+          const { data: unidadesData } = await unidadesQuery;
           unidadesByProducto = Object.fromEntries((Array.isArray(unidadesData) ? unidadesData : []).map((row) => [String(row.user_id), row]));
 
           // Traer imágenes asociadas
-          const { data: imgs } = await supabaseClient
+          let imgsQuery = supabaseClient
             .from('producto_imagenes')
             .select('producto_id, imagen_url')
             .in('producto_id', productosIds);
+          if (activeSucursalId) imgsQuery = imgsQuery.eq('sucursal_id', activeSucursalId);
+          const { data: imgs } = await imgsQuery;
           if (Array.isArray(imgs)) {
             imgs.forEach(i => {
               if (!imagenesDB[i.producto_id]) imagenesDB[i.producto_id] = [];
@@ -311,10 +319,12 @@ export default function NuevaVenta() {
         // Consultar packs desde la base de datos
         let packsDB = [];
         if (packsIds.length > 0) {
-          const { data: packsData, error: packsError } = await supabase
+          let packsQuery = supabase
             .from('packs')
             .select(`*, pack_productos ( cantidad, producto_id, variante_id, productos!pack_productos_producto_id_fkey ( user_id, nombre, precio, categoria, stock, producto_variantes ( id, color, precio, stock, stock_decimal, sku ) ) )`)
             .in('id', packsIds);
+          if (activeSucursalId) packsQuery = packsQuery.eq('sucursal_id', activeSucursalId);
+          const { data: packsData, error: packsError } = await packsQuery;
           if (packsError) throw packsError;
           packsDB = Array.isArray(packsData) ? packsData : [];
         }
@@ -848,10 +858,12 @@ export default function NuevaVenta() {
       // 2. Consultar productos y variantes desde la base de datos
       let productosDB: ProductoDB[] = [];
       if (productosIds.length > 0) {
-        const { data: productosData, error: productosError } = await supabase
+        let productosQuery = supabase
           .from('productos')
           .select('user_id, nombre, precio, precio_compra, stock, categoria, codigo_barra, unidad_base, unidades_alternativas, factor_conversion, producto_variantes ( id, color, precio, stock, stock_decimal, sku )')
           .in('user_id', productosIds);
+        if (activeSucursalId) productosQuery = productosQuery.eq('sucursal_id', activeSucursalId);
+        const { data: productosData, error: productosError } = await productosQuery;
         if (productosError) throw productosError;
         productosDB = Array.isArray(productosData) ? productosData : [];
       }
@@ -859,10 +871,12 @@ export default function NuevaVenta() {
       // 3. Consultar packs y sus productos desde la base de datos
       let packsDB: PackDB[] = [];
       if (packsIds.length > 0) {
-        const { data: packsData, error: packsError } = await supabase
+        let packsQuery = supabase
           .from('packs')
           .select('*, pack_productos ( cantidad, producto_id, variante_id, productos!pack_productos_producto_id_fkey ( user_id, nombre, precio, categoria, stock, producto_variantes ( id, color, precio, stock, stock_decimal, sku ) ) )')
           .in('id', packsIds);
+        if (activeSucursalId) packsQuery = packsQuery.eq('sucursal_id', activeSucursalId);
+        const { data: packsData, error: packsError } = await packsQuery;
         if (packsError) throw packsError;
         packsDB = Array.isArray(packsData) ? packsData : [];
       }
@@ -974,6 +988,8 @@ export default function NuevaVenta() {
         usuario_email: userEmail,
         descuentos: totalDescuento,
         costos_extra
+        ,
+        sucursal_id: activeSucursalId || undefined
       });
       if (ventaError || !venta) throw ventaError || new Error('no venta');
       ventaCreadaId = venta.id as string | number;
@@ -989,6 +1005,7 @@ export default function NuevaVenta() {
           monto: pagoObj.monto,
           metodo_pago: pagoObj.metodo,
           usuario_email: userEmail,
+          sucursal_id: activeSucursalId || undefined,
           created_at: new Date().toISOString(),
         };
         (Object.keys(pagoVenta) as Array<keyof typeof pagoVenta>).forEach(k => {
@@ -1022,6 +1039,7 @@ export default function NuevaVenta() {
             tipo: 'pack',
             pack_id: pack.id,
             created_at: new Date().toISOString(),
+            sucursal_id: activeSucursalId || undefined,
             usuario_email: userEmail
           });
           if (detallePackError) throw detallePackError;
@@ -1059,6 +1077,7 @@ export default function NuevaVenta() {
                   cantidad_base: cantidadTotal,
                   usuario_id: userId,
                   usuario_email: userEmail,
+                  sucursal_id: activeSucursalId || undefined,
                   observaciones: `Salida automatica por venta #${venta.id}`
                 }]);
                 if (movPackVarianteError) throw movPackVarianteError;
@@ -1082,6 +1101,7 @@ export default function NuevaVenta() {
                 cantidad_base: cantidadTotal,
                 usuario_id: userId,
                 usuario_email: userEmail,
+                sucursal_id: activeSucursalId || undefined,
                 observaciones: `Salida automatica por venta #${venta.id}`
               }]);
               if (movPackError) throw movPackError;
@@ -1134,6 +1154,7 @@ export default function NuevaVenta() {
             descripcion: descripcionItem,
             tipo: 'producto',
             created_at: new Date().toISOString(),
+            sucursal_id: activeSucursalId || undefined,
             usuario_email: userEmail
           });
           if (detalleProductoError) throw detalleProductoError;
@@ -1159,6 +1180,7 @@ export default function NuevaVenta() {
               cantidad_base: cantidadBase,
               usuario_id: userId,
               usuario_email: userEmail,
+              sucursal_id: activeSucursalId || undefined,
               observaciones: `Salida automatica por venta #${venta.id}`
             }]);
             if (movVarianteError) throw movVarianteError;
@@ -1180,6 +1202,7 @@ export default function NuevaVenta() {
               cantidad_base: cantidadBase,
               usuario_id: userId,
               usuario_email: userEmail,
+              sucursal_id: activeSucursalId || undefined,
               observaciones: `Salida automatica por venta #${venta.id}`
             }]);
             if (movProductoError) throw movProductoError;
@@ -1218,6 +1241,7 @@ export default function NuevaVenta() {
               amount: pagoObj.monto,
               description: `Ingreso por venta #${venta?.id} (${pagoObj.metodo})`,
               cashbox_id: 'main',
+              sucursal_id: activeSucursalId || undefined,
             }),
           });
           const payload = await response.json().catch(() => null);

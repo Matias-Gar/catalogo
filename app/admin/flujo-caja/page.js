@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { Toast, showToast } from "../../../components/ui/Toast";
 import { supabase } from "../../../lib/SupabaseClient";
+import { useSucursalActiva } from "../../../components/admin/SucursalContext";
 
 const PAYMENT_OPTIONS = [
   { value: "cash", label: "Efectivo" },
@@ -92,6 +93,7 @@ function monthRangeISO() {
 }
 
 export default function FlujoCajaPage() {
+  const { activeSucursalId } = useSucursalActiva();
   const [startDate, setStartDate] = useState(todayISO());
   const [endDate, setEndDate] = useState(todayISO());
   const [realCashInput, setRealCashInput] = useState("");
@@ -179,6 +181,7 @@ export default function FlujoCajaPage() {
         end_date: endDate,
         cashbox_id: cashboxId || "main",
       });
+      if (activeSucursalId) params.set("sucursal_id", activeSucursalId);
 
       const res = await fetch(`/api/cash/summary?${params.toString()}`, {
         cache: "no-store",
@@ -209,6 +212,7 @@ export default function FlujoCajaPage() {
         cashbox_id: cashboxId || "main",
         limit: "25",
       });
+      if (activeSucursalId) params.set("sucursal_id", activeSucursalId);
 
       const res = await fetch(`/api/cash/closures?${params.toString()}`, {
         cache: "no-store",
@@ -241,6 +245,7 @@ export default function FlujoCajaPage() {
         cashbox_id: cashboxId || "main",
         limit: "200",
       });
+      if (activeSucursalId) params.set("sucursal_id", activeSucursalId);
 
       const res = await fetch(`/api/cash/movements?${params.toString()}`, {
         cache: "no-store",
@@ -264,17 +269,19 @@ export default function FlujoCajaPage() {
   }
 
   useEffect(() => {
+    if (!activeSucursalId) return;
     fetchSummary();
     fetchClosures();
     fetchMovements();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [activeSucursalId]);
 
   useEffect(() => {
+    if (!activeSucursalId) return;
     fetchSummary();
     fetchMovements();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, endDate, cashboxId]);
+  }, [startDate, endDate, cashboxId, activeSucursalId]);
 
   const difference = useMemo(() => {
     const expectedCash = Number(summary?.expected_cash || 0);
@@ -439,6 +446,7 @@ export default function FlujoCajaPage() {
           amount: movementAmount,
           description: movementDescription,
           cashbox_id: cashboxId || "main",
+          sucursal_id: activeSucursalId || null,
         }),
       });
 
@@ -475,6 +483,7 @@ export default function FlujoCajaPage() {
           real_cash: Number(realCashInput),
           real_qr: realQrInput === "" ? null : Number(realQrInput),
           cashbox_id: cashboxId || "main",
+          sucursal_id: activeSucursalId || null,
         }),
       });
 
@@ -557,6 +566,7 @@ export default function FlujoCajaPage() {
           payment_method: editFormData.payment_method,
           amount: editFormData.amount,
           description: editFormData.description,
+          sucursal_id: activeSucursalId || null,
         }),
       });
 

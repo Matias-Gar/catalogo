@@ -129,6 +129,7 @@ async function calculateBalanceCarryFromHistory(supabase, params) {
   const endDate = normalizeDateInput(params?.end_date, "end_date");
   const userId = params?.user_id ? String(params.user_id) : null;
   const cashboxId = params?.cashbox_id ? String(params.cashbox_id) : "main";
+  const sucursalId = params?.sucursal_id ? String(params.sucursal_id) : null;
   const { startISO, endISO } = buildRange(startDate, endDate);
 
   let movementQuery = supabase
@@ -140,6 +141,9 @@ async function calculateBalanceCarryFromHistory(supabase, params) {
 
   if (userId) {
     movementQuery = movementQuery.eq("user_id", userId);
+  }
+  if (sucursalId) {
+    movementQuery = movementQuery.eq("sucursal_id", sucursalId);
   }
 
   const { data: movements, error: movementError } = await movementQuery;
@@ -155,6 +159,9 @@ async function calculateBalanceCarryFromHistory(supabase, params) {
 
   if (userId) {
     salesQuery = salesQuery.or(`usuario_id.eq.${userId},usuario_id.is.null`);
+  }
+  if (sucursalId) {
+    salesQuery = salesQuery.eq("sucursal_id", sucursalId);
   }
 
   const { data: sales, error: salesError } = await salesQuery;
@@ -227,6 +234,7 @@ export async function createCashMovement(supabase, payload) {
   const description = String(payload?.description || "").trim();
   const userId = payload?.user_id ? String(payload.user_id) : null;
   const cashboxId = payload?.cashbox_id ? String(payload.cashbox_id) : "main";
+  const sucursalId = payload?.sucursal_id ? String(payload.sucursal_id) : null;
 
   if (!ALLOWED_TYPES.has(type)) {
     throw new Error("Invalid type: must be income or expense");
@@ -243,12 +251,13 @@ export async function createCashMovement(supabase, payload) {
     description,
     user_id: userId,
     cashbox_id: cashboxId,
+    sucursal_id: sucursalId,
   };
 
   let { data, error } = await supabase
     .from("cash_movements")
     .insert(row)
-    .select("id, date, type, payment_method, amount, description, user_id, cashbox_id")
+    .select("id, date, type, payment_method, amount, description, user_id, cashbox_id, sucursal_id")
     .single();
 
   if (error && paymentMethod === "card") {
@@ -261,7 +270,7 @@ export async function createCashMovement(supabase, payload) {
       const fallback = await supabase
         .from("cash_movements")
         .insert({ ...row, payment_method: "other" })
-        .select("id, date, type, payment_method, amount, description, user_id, cashbox_id")
+        .select("id, date, type, payment_method, amount, description, user_id, cashbox_id, sucursal_id")
         .single();
 
       data = fallback.data;
@@ -281,6 +290,7 @@ export async function getCashSummary(supabase, params) {
   const endDate = normalizeDateInput(params?.end_date, "end_date");
   const userId = params?.user_id ? String(params.user_id) : null;
   const cashboxId = params?.cashbox_id ? String(params.cashbox_id) : "main";
+  const sucursalId = params?.sucursal_id ? String(params.sucursal_id) : null;
   const manualOpening = params?.opening_balance;
   const manualOpeningQr = params?.opening_qr;
 
@@ -294,6 +304,7 @@ export async function getCashSummary(supabase, params) {
       end_date: carryEndDate,
       user_id: userId,
       cashbox_id: cashboxId,
+      sucursal_id: sucursalId,
     })
     : { cash: 0, bank: 0 };
 
@@ -308,7 +319,7 @@ export async function getCashSummary(supabase, params) {
 
   let movementQuery = supabase
     .from("cash_movements")
-    .select("id, date, created_at, type, payment_method, amount, description, user_id, cashbox_id")
+    .select("id, date, created_at, type, payment_method, amount, description, user_id, cashbox_id, sucursal_id")
     .gte("date", startISO)
     .lte("date", endISO)
     .eq("cashbox_id", cashboxId)
@@ -316,6 +327,9 @@ export async function getCashSummary(supabase, params) {
 
   if (userId) {
     movementQuery = movementQuery.eq("user_id", userId);
+  }
+  if (sucursalId) {
+    movementQuery = movementQuery.eq("sucursal_id", sucursalId);
   }
 
   const { data: movements, error: movementError } = await movementQuery;
@@ -336,6 +350,9 @@ export async function getCashSummary(supabase, params) {
 
   if (userId) {
     salesQuery = salesQuery.or(`usuario_id.eq.${userId},usuario_id.is.null`);
+  }
+  if (sucursalId) {
+    salesQuery = salesQuery.eq("sucursal_id", sucursalId);
   }
 
   const { data: sales, error: salesError } = await salesQuery;
@@ -524,10 +541,11 @@ export async function listCashMovements(supabase, params = {}) {
   const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 500) : 200;
   const userId = params?.user_id ? String(params.user_id) : null;
   const cashboxId = params?.cashbox_id ? String(params.cashbox_id) : "main";
+  const sucursalId = params?.sucursal_id ? String(params.sucursal_id) : null;
 
   let query = supabase
     .from("cash_movements")
-    .select("id, date, type, payment_method, amount, description, user_id, cashbox_id, created_at")
+    .select("id, date, type, payment_method, amount, description, user_id, cashbox_id, sucursal_id, created_at")
     .eq("cashbox_id", cashboxId)
     .order("date", { ascending: false })
     .order("created_at", { ascending: false })
@@ -535,6 +553,9 @@ export async function listCashMovements(supabase, params = {}) {
 
   if (userId) {
     query = query.eq("user_id", userId);
+  }
+  if (sucursalId) {
+    query = query.eq("sucursal_id", sucursalId);
   }
 
   const hasStart = Boolean(params?.start_date);
@@ -576,11 +597,13 @@ export async function createCashClosure(supabase, payload) {
   const endDate = normalizeDateInput(payload?.end_date, "end_date");
   const userId = payload?.user_id ? String(payload.user_id) : null;
   const cashboxId = payload?.cashbox_id ? String(payload.cashbox_id) : "main";
+  const sucursalId = payload?.sucursal_id ? String(payload.sucursal_id) : null;
 
   const summary = await getCashSummary(supabase, {
     start_date: startDate,
     end_date: endDate,
     cashbox_id: cashboxId,
+    sucursal_id: sucursalId,
     opening_balance: payload?.opening_balance,
     opening_qr: payload?.opening_qr,
   });
@@ -605,6 +628,7 @@ export async function createCashClosure(supabase, payload) {
     .eq("end_date", endDate)
     .eq("cashbox_id", cashboxId)
     .limit(1);
+  if (sucursalId) existingQuery = existingQuery.eq("sucursal_id", sucursalId);
 
   const { data: existing, error: existingError } = await existingQuery;
   if (existingError) {
@@ -624,6 +648,7 @@ export async function createCashClosure(supabase, payload) {
     qr_difference: qrDifference,
     user_id: userId,
     cashbox_id: cashboxId,
+    sucursal_id: sucursalId,
   };
 
   if (existing?.length) {
@@ -672,6 +697,7 @@ export async function createCashClosure(supabase, payload) {
         difference,
         user_id: userId,
         cashbox_id: cashboxId,
+        sucursal_id: sucursalId,
       };
 
       const fallbackInsert = await supabase
@@ -705,6 +731,7 @@ export async function listCashClosures(supabase, params) {
   const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 200) : 50;
   const userId = params?.user_id ? String(params.user_id) : null;
   const cashboxId = params?.cashbox_id ? String(params.cashbox_id) : "main";
+  const sucursalId = params?.sucursal_id ? String(params.sucursal_id) : null;
 
   let query = supabase
     .from("cash_closures")
@@ -715,6 +742,9 @@ export async function listCashClosures(supabase, params) {
 
   if (userId) {
     query = query.eq("user_id", userId);
+  }
+  if (sucursalId) {
+    query = query.eq("sucursal_id", sucursalId);
   }
 
   const { data, error } = await query;

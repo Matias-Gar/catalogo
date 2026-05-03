@@ -8,7 +8,7 @@ import { usePromociones } from "@/lib/usePromociones";
 import { usePacks, calcularDescuentoPack } from "@/lib/packs";
 import { supabase } from "@/lib/SupabaseClient";
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from "@/lib/storeSettings";
-import { PrecioConPromocion, calcularPrecioConPromocion } from "@/lib/promociones";
+import { PrecioConPromocion, calcularPrecioConPromocion, PromoCompactBanner } from "@/lib/promociones";
 import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 import { normalizeProductView } from "@/lib/productViews";
 
@@ -45,16 +45,11 @@ function UnitPricePanel({ conversionInfo, factor, className = "mb-3" }) {
                 1 {conversionInfo.unidadBase} = {Number(factor || 0).toFixed(2).replace(/\.00$/, '')} {conversionInfo.unidadAlternativa}
             </div>
             {conversionInfo.tienePromocion && (
-                <div className="flex w-full items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm">
-                    <span className="shrink-0 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold leading-none text-gray-950">
-                        -{conversionInfo.porcentajeDescuento}%
-                    </span>
-                    {conversionInfo.promocionDescripcion && (
-                        <span className="min-w-0 flex-1 font-semibold text-slate-800">
-                            🎯 {conversionInfo.promocionDescripcion}
-                        </span>
-                    )}
-                </div>
+                <PromoCompactBanner
+                    porcentaje={conversionInfo.porcentajeDescuento}
+                    descripcion={conversionInfo.promocionDescripcion}
+                    fechaFin={conversionInfo.promocionFechaFin}
+                />
             )}
         </div>
     );
@@ -217,6 +212,7 @@ export default function CatalogoPage() {
             tienePromocion: precioInfo.tienePromocion,
             porcentajeDescuento: precioInfo.porcentajeDescuento,
             promocionDescripcion: precioInfo.promocion?.descripcion || '',
+            promocionFechaFin: precioInfo.promocion?.fecha_fin || '',
             showBasePrice: stockBase >= 1,
         };
     };
@@ -982,6 +978,10 @@ export default function CatalogoPage() {
         return { backgroundColor: '#9CA3AF' };
     };
 
+    const categoriasVisibles = Array.isArray(categorias)
+        ? categorias.filter((cat) => productos.some((producto) => Number(producto.category_id) === Number(cat.id)))
+        : [];
+
     // --- Renderizado ---
 
     return (
@@ -1011,8 +1011,28 @@ export default function CatalogoPage() {
                 />
             </div>
 
-            {categorias.length > 0 && (
+            {categoriasVisibles.length > 0 && (
+                <>
                 <div className="mb-6">
+                    <div className="flex gap-2 overflow-x-auto px-2 pb-2 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0">
+                        <button
+                            className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 ${!categoriaSeleccionada ? 'bg-violet-600 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                            onClick={() => setCategoriaSeleccionada('')}
+                        >
+                            Todas las Categorias
+                        </button>
+                        {categoriasVisibles.map(cat => (
+                            <button
+                                key={cat.id}
+                                className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 ${Number(categoriaSeleccionada) === Number(cat.id) ? 'bg-violet-600 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                                onClick={() => setCategoriaSeleccionada(cat.id.toString())}
+                            >
+                                {cat.categori || cat.nombre || '-'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                <div className="hidden">
                     {/* Versión móvil - Selector desplegable compacto */}
                     <div className="block sm:hidden">
                         <div className="bg-white rounded-xl shadow-lg p-3 mx-2">
@@ -1031,6 +1051,7 @@ export default function CatalogoPage() {
                         </div>
                     </div>
                 </div>
+                </>
             )}
 
             {/* SECCIÓN DE PACKS ESPECIALES */}
@@ -1149,7 +1170,7 @@ export default function CatalogoPage() {
             )}
 
             {/* LISTA DE PRODUCTOS - OPTIMIZADA PARA MÓVIL */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-6">
                 {Array.isArray(productos) && productos.length > 0 ? (
                     (() => {
                         const productosFiltrados = productos.filter(producto => {
@@ -1192,7 +1213,7 @@ export default function CatalogoPage() {
                             return (
                                 <div
                                     key={producto.user_id ? producto.user_id : 'producto-' + idx}
-                                    className={`relative overflow-hidden bg-white border rounded-xl p-3 sm:p-4 shadow-lg flex flex-col transition-shadow duration-300 hover:shadow-xl ${agotado ? 'border-gray-900' : 'border-gray-200'}`}
+                                    className={`relative overflow-hidden bg-white border rounded-xl p-2 sm:p-4 shadow-lg flex flex-col transition-shadow duration-300 hover:shadow-xl ${agotado ? 'border-gray-900' : 'border-gray-200'}`}
                                 >
                                     <div className="relative">
                                         {Array.isArray(imagenes) && imagenes.length > 0 && typeof imagenes[0] === 'string' ? (
@@ -1203,7 +1224,7 @@ export default function CatalogoPage() {
                                                     width={300}
                                                     height={200}
                                                     quality={96}
-                                                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                                                     className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-105 ${agotado ? 'grayscale' : ''}`}
                                                     onClick={() => setModalImg({ urls: imagenes, index: 0, nombre: producto.nombre })}
                                                     onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen'; }}

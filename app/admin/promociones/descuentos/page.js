@@ -5,8 +5,10 @@ import { supabase } from "../../../../lib/SupabaseClient";
 import { Card, CardHeader, CardTitle, CardContent } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
 import { PrecioConPromocion } from "../../../../lib/promociones";
+import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
 
 export default function PromocionesDescuentosPage() {
+  const { activeSucursalId } = useSucursalActiva();
   const [productosConPromociones, setProductosConPromociones] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editandoPromo, setEditandoPromo] = useState(null);
@@ -16,13 +18,13 @@ export default function PromocionesDescuentosPage() {
   // Cargar productos que tienen promociones activas
   useEffect(() => {
     fetchProductosConPromociones();
-  }, []);
+  }, [activeSucursalId]);
 
   const fetchProductosConPromociones = async () => {
     setLoading(true);
     try {
       // Consulta para obtener productos con TODAS sus promociones (activas e inactivas)
-      const { data: promocionesData, error: promoError } = await supabase
+      let query = supabase
         .from("promociones")
         .select(`
           *,
@@ -37,6 +39,8 @@ export default function PromocionesDescuentosPage() {
         `)
         .order('activa', { ascending: false }) // Primero las activas
         .order('id', { ascending: false });
+      if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
+      const { data: promocionesData, error: promoError } = await query;
 
       if (promoError) {
         console.error("Error al cargar promociones:", promoError);
@@ -76,7 +80,7 @@ export default function PromocionesDescuentosPage() {
 
     setLoading(true);
     try {
-      const { error } = await supabase
+      let query = supabase
         .from("promociones")
         .update({
           tipo: editandoPromo.tipo,
@@ -87,6 +91,8 @@ export default function PromocionesDescuentosPage() {
           activa: editandoPromo.activa
         })
         .eq("id", editandoPromo.id);
+      if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
+      const { error } = await query;
 
       if (error) throw error;
 
@@ -106,10 +112,12 @@ export default function PromocionesDescuentosPage() {
     try {
       const nuevoEstado = !estadoActual;
       
-      const { error } = await supabase
+      let query = supabase
         .from('promociones')
         .update({ activa: nuevoEstado })
         .eq('id', promocionId);
+      if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
+      const { error } = await query;
 
       if (error) {
         console.error('Error al cambiar estado de promoción:', error);
@@ -137,7 +145,9 @@ export default function PromocionesDescuentosPage() {
   const eliminarPromocion = async (promoId) => {
     setLoading(true);
     try {
-      const { error } = await supabase.from("promociones").delete().eq("id", promoId);
+      let query = supabase.from("promociones").delete().eq("id", promoId);
+      if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
+      const { error } = await query;
       if (error) throw error;
 
       await fetchProductosConPromociones();

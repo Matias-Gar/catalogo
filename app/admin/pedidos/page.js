@@ -2,20 +2,25 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/SupabaseClient";
+import { useSucursalActiva } from "../../../components/admin/SucursalContext";
 
 export default function PedidosPage() {
   const [carritos, setCarritos] = useState([]);
   const router = useRouter();
+  const { activeSucursalId } = useSucursalActiva();
 
   useEffect(() => {
+    if (!activeSucursalId) return;
     fetchCarritos();
-  }, []);
+  }, [activeSucursalId]);
 
   async function fetchCarritos() {
-    const { data, error } = await supabase
+    let query = supabase
       .from("carritos_pendientes")
       .select("id, cliente_nombre, cliente_telefono, usuario_email, productos, fecha, confirmado_pago")
       .order("fecha", { ascending: false });
+    if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
+    const { data, error } = await query;
     
     if (!error && data) {
       const currentDate = new Date();
@@ -38,14 +43,18 @@ export default function PedidosPage() {
 
       // Eliminar los carritos vencidos de la base de datos
       for (const carrito of carritosVencidos) {
-        await supabase.from("carritos_pendientes").delete().eq("id", carrito.id);
+        let deleteQuery = supabase.from("carritos_pendientes").delete().eq("id", carrito.id);
+        if (activeSucursalId) deleteQuery = deleteQuery.eq("sucursal_id", activeSucursalId);
+        await deleteQuery;
       }
     }
   }
 
   async function eliminarCarrito(id) {
     if (!window.confirm("¿Estás seguro de que deseas eliminar este pedido? Esta acción no se puede deshacer.")) return;
-    await supabase.from("carritos_pendientes").delete().eq("id", id);
+    let query = supabase.from("carritos_pendientes").delete().eq("id", id);
+    if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
+    await query;
     fetchCarritos();
   }
 

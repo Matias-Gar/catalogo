@@ -5,8 +5,10 @@ import { supabase } from "../../../../lib/SupabaseClient";
 import { Card, CardHeader, CardTitle, CardContent } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
 import { PrecioConPromocion } from "../../../../lib/promociones";
+import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
 
 export default function PromocionesProductosPage() {
+  const { activeSucursalId } = useSucursalActiva();
   const [productos, setProductos] = useState([]);
   const [promociones, setPromociones] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,14 +28,15 @@ export default function PromocionesProductosPage() {
 
   // Cargar datos iniciales
   useEffect(() => {
+    if (!activeSucursalId) return;
     fetchDatos();
-  }, []);
+  }, [activeSucursalId]);
 
   const fetchDatos = async () => {
     setLoading(true);
     try {
       // Cargar productos con categorías
-      const { data: productosData, error: prodError } = await supabase
+      let productosQuery = supabase
         .from("productos")
         .select(`
           user_id, 
@@ -45,12 +48,16 @@ export default function PromocionesProductosPage() {
           codigo_barra
         `)
         .order('nombre');
+      if (activeSucursalId) productosQuery = productosQuery.eq("sucursal_id", activeSucursalId);
+      const { data: productosData, error: prodError } = await productosQuery;
 
       // Cargar promociones
-      const { data: promosData, error: promoError } = await supabase
+      let promosQuery = supabase
         .from("promociones")
         .select("*")
         .order('id', { ascending: false });
+      if (activeSucursalId) promosQuery = promosQuery.eq("sucursal_id", activeSucursalId);
+      const { data: promosData, error: promoError } = await promosQuery;
 
       if (prodError) {
         console.error("Error específico productos:", prodError);
@@ -123,7 +130,8 @@ export default function PromocionesProductosPage() {
         descripcion: promoDraft.descripcion,
         fecha_inicio: promoDraft.fecha_inicio || new Date().toISOString().split('T')[0],
         fecha_fin: promoDraft.fecha_fin || null,
-        activa: promoDraft.activa
+        activa: promoDraft.activa,
+        sucursal_id: activeSucursalId || null
       }]);
 
       if (error) throw error;
@@ -164,7 +172,8 @@ export default function PromocionesProductosPage() {
           fecha_fin: editandoPromo.fecha_fin,
           activa: editandoPromo.activa
         })
-        .eq("id", editandoPromo.id);
+        .eq("id", editandoPromo.id)
+        .eq("sucursal_id", activeSucursalId);
 
       if (error) throw error;
 
@@ -185,7 +194,7 @@ export default function PromocionesProductosPage() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("promociones").delete().eq("id", promoId);
+      const { error } = await supabase.from("promociones").delete().eq("id", promoId).eq("sucursal_id", activeSucursalId);
       if (error) throw error;
 
       await fetchDatos();
@@ -205,7 +214,8 @@ export default function PromocionesProductosPage() {
       const { error } = await supabase
         .from("promociones")
         .update({ activa: !activa })
-        .eq("id", promoId);
+        .eq("id", promoId)
+        .eq("sucursal_id", activeSucursalId);
 
       if (error) throw error;
       await fetchDatos();

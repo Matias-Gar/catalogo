@@ -14,6 +14,7 @@ import { canAccessAdminPath } from '../../../../lib/adminPermissions';
 
 import { sincronizarStockProducto } from '../../../../lib/utils';
 import { getProductViewMeta, normalizeProductView } from '../../../../lib/productViews';
+import { useSucursalActiva } from '../../../../components/admin/SucursalContext';
 
 
 // Importar CantidadConUnidadInput correctamente
@@ -471,6 +472,7 @@ export default function AdminProductosPage() {
     // HOOKS AL INICIO
     const router = useRouter(); 
     const pathname = usePathname();
+    const { activeSucursalId } = useSucursalActiva();
     const currentProductView = normalizeProductView(pathname?.includes('/admin/insumos') ? 'insumos' : 'articulos');
     const currentViewMeta = getProductViewMeta(currentProductView);
     const [userRole, setUserRole] = useState(null); 
@@ -1229,10 +1231,12 @@ export default function AdminProductosPage() {
 
     // Función para cargar categorías 
     const fetchCategories = async () => {
-        const { data, error } = await supabase
+        let query = supabase
             .from('categorias')
             .select('id, categori')
             .order('categori', { ascending: true });
+        if (activeSucursalId) query = query.eq('sucursal_id', activeSucursalId);
+        const { data, error } = await query;
         if (error) {
             setCategories([]);
             setMessage('Error al cargar categorias.');
@@ -1249,7 +1253,7 @@ export default function AdminProductosPage() {
         setLoading(true);
         let data = null;
         let error = null;
-        let response = await supabase
+        let query = supabase
             .from('productos')
             .select(`
                 user_id,
@@ -1266,12 +1270,14 @@ export default function AdminProductosPage() {
                 categorias (categori)
             `)
             .order('created_at', { ascending: false });
+        if (activeSucursalId) query = query.eq('sucursal_id', activeSucursalId);
+        let response = await query;
 
         data = response.data;
         error = response.error;
 
         if (error && String(error.message || '').includes('vista_producto')) {
-            response = await supabase
+            let fallbackQuery = supabase
                 .from('productos')
                 .select(`
                     user_id,
@@ -1287,6 +1293,8 @@ export default function AdminProductosPage() {
                     categorias (categori)
                 `)
                 .order('created_at', { ascending: false });
+            if (activeSucursalId) fallbackQuery = fallbackQuery.eq('sucursal_id', activeSucursalId);
+            response = await fallbackQuery;
 
             data = response.data;
             error = response.error;
@@ -1370,7 +1378,7 @@ export default function AdminProductosPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [userRole, currentProductView]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [userRole, currentProductView, activeSucursalId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // load saved form if returning from otra página
     const restoredRef = useRef(false);
@@ -1434,10 +1442,12 @@ export default function AdminProductosPage() {
 
         setLoading(true);
         // Validar nombre duplicado antes de guardar
-        const { data: productosConNombre, error: errorNombre } = await supabase
+        let duplicateQuery = supabase
             .from("productos")
             .select("user_id")
             .ilike("nombre", newProduct.nombre.trim());
+        if (activeSucursalId) duplicateQuery = duplicateQuery.eq('sucursal_id', activeSucursalId);
+        const { data: productosConNombre, error: errorNombre } = await duplicateQuery;
         if (!errorNombre && productosConNombre && productosConNombre.length > 0) {
             setShowNameRepeatModal(true);
             setLoading(false);
@@ -1502,6 +1512,7 @@ export default function AdminProductosPage() {
                 category_id: categoryIdValue,
                 codigo_barra: codigoBarra,
                 imagen_url: null,
+                sucursal_id: activeSucursalId || null,
                 created_at: new Date().toISOString()
             };
 
@@ -1559,7 +1570,7 @@ export default function AdminProductosPage() {
 
             // Insertar las imágenes en la tabla producto_imagenes
             if (productoId && imagenUrls.length > 0) {
-                const imagesToInsert = imagenUrls.map(url => ({ producto_id: productoId, imagen_url: url }));
+                const imagesToInsert = imagenUrls.map(url => ({ producto_id: productoId, imagen_url: url, sucursal_id: activeSucursalId || null }));
                 const { error: imgInsertError } = await supabase.from('producto_imagenes').insert(imagesToInsert);
                 if (imgInsertError) {
                     // Si falla la inserción, intentar borrar las imágenes subidas al storage
@@ -1586,6 +1597,7 @@ export default function AdminProductosPage() {
                     precio: v.precio,
                     sku: v.sku,
                     imagen_url: null,
+                    sucursal_id: activeSucursalId || null,
                     activo: v.activo
                 }));
                 const { error: variantsError } = await supabase.from('producto_variantes').insert(finalVariants);
@@ -1620,6 +1632,7 @@ export default function AdminProductosPage() {
                                             cantidad_base: v.stock,
                                             usuario_id: user?.id || null,
                                             usuario_email: user?.email || '',
+                                            sucursal_id: activeSucursalId || null,
                                             observaciones: `Stock inicial para variante ${v.color}`
                                         });
                                     }
@@ -1633,11 +1646,13 @@ export default function AdminProductosPage() {
                                     cantidad_base: stockTotal,
                                     usuario_id: user?.id || null,
                                     usuario_email: user?.email || '',
+                                    sucursal_id: activeSucursalId || null,
                                     observaciones: 'Alta de producto desde panel'
                                 });
                                 await registrarHistorialProducto({
                                     producto_id: productoId,
                                     accion: "CREATE",
+                                    sucursal_id: activeSucursalId || null,
                                     datos_anteriores: null,
                                     datos_nuevos: {
                                         nombre: newProduct.nombre,

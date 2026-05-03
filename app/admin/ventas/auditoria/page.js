@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
+import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
 
 function cleanNumber(value, decimals = 2) {
   const numeric = Number(value || 0);
@@ -95,6 +96,7 @@ function statusForDifference(value) {
 }
 
 export default function AuditoriaStockPage() {
+  const { activeSucursalId } = useSucursalActiva();
   const [productos, setProductos] = useState([]);
   const [detalles, setDetalles] = useState([]);
   const [variantes, setVariantes] = useState([]);
@@ -219,11 +221,12 @@ export default function AuditoriaStockPage() {
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
+      const scopeSucursal = (query) => activeSucursalId ? query.eq("sucursal_id", activeSucursalId) : query;
       const [prodsRes, detsRes, varsRes, movsRes] = await Promise.all([
-        supabase.from("productos").select("user_id, nombre, stock, stock_inicial, unidad_base, unidades_alternativas, factor_conversion"),
-        supabase.from("ventas_detalle").select("producto_id, cantidad, cantidad_base, unidad, variante_id, created_at, usuario_email"),
-        supabase.from("producto_variantes").select("*"),
-        supabase.from("stock_movimientos").select("*"),
+        scopeSucursal(supabase.from("productos").select("user_id, nombre, stock, stock_inicial, unidad_base, unidades_alternativas, factor_conversion")),
+        scopeSucursal(supabase.from("ventas_detalle").select("producto_id, cantidad, cantidad_base, unidad, variante_id, created_at, usuario_email")),
+        scopeSucursal(supabase.from("producto_variantes").select("*")),
+        scopeSucursal(supabase.from("stock_movimientos").select("*")),
       ]);
 
       setProductos(prodsRes.data || []);
@@ -234,7 +237,7 @@ export default function AuditoriaStockPage() {
     }
 
     fetchData();
-  }, []);
+  }, [activeSucursalId]);
 
   useEffect(() => {
     if (!selected) {
@@ -243,16 +246,18 @@ export default function AuditoriaStockPage() {
     }
 
     async function fetchHistorial() {
-      const { data } = await supabase
+      let query = supabase
         .from("productos_historial")
         .select("id, accion, datos_anteriores, datos_nuevos, usuario_email, fecha, producto_id")
         .eq("producto_id", selected.user_id)
         .order("fecha", { ascending: false });
+      if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
+      const { data } = await query;
       setHistorial(data || []);
     }
 
     fetchHistorial();
-  }, [selected?.user_id]);
+  }, [selected?.user_id, activeSucursalId]);
 
   const auditoria = useMemo(() => {
     const query = busqueda.trim().toLowerCase();
