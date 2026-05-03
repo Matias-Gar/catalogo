@@ -155,6 +155,7 @@ alter table public.pack_productos add column if not exists sucursal_id uuid;
 alter table public.packs add column if not exists sucursal_id uuid;
 alter table public.producto_imagenes add column if not exists sucursal_id uuid;
 alter table public.producto_variantes add column if not exists sucursal_id uuid;
+alter table public.producto_variantes add column if not exists codigo_barra text;
 alter table public.productos add column if not exists sucursal_id uuid;
 alter table public.productos_historial add column if not exists sucursal_id uuid;
 alter table public.promociones add column if not exists sucursal_id uuid;

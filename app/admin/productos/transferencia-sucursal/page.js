@@ -89,6 +89,16 @@ function describeSupabaseError(error) {
   return "No se pudo transferir stock. Revisa la consola y el SQL de transferencia.";
 }
 
+function isMissingSchemaError(error, fields = []) {
+  const message = describeSupabaseError(error).toLowerCase();
+  return (
+    message.includes("schema cache") ||
+    message.includes("could not find") ||
+    message.includes("does not exist") ||
+    fields.some((field) => message.includes(field.toLowerCase()))
+  );
+}
+
 export default function TransferenciaSucursalPage() {
   const { activeSucursalId, activeSucursal, sucursales, loading: sucursalesLoading } = useSucursalActiva();
   const scanRef = useRef(null);
@@ -152,17 +162,40 @@ export default function TransferenciaSucursalPage() {
 
     for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
       const chunk = ids.slice(i, i + CHUNK_SIZE);
-      let variantsQuery = supabase
+      const variantsQuery = supabase
         .from("producto_variantes")
         .select("id, producto_id, color, stock, stock_decimal, activo, codigo_barra, sku")
         .in("producto_id", chunk)
         .eq("sucursal_id", activeSucursalId)
         .order("color", { ascending: true });
 
-      const { data, error } = await variantsQuery;
+      let { data, error } = await variantsQuery;
       if (error) {
-        console.warn("No se pudieron cargar variantes:", error);
-        continue;
+        if (isMissingSchemaError(error, ["codigo_barra", "activo", "stock_decimal"])) {
+          let fallbackQuery = supabase
+            .from("producto_variantes")
+            .select("id, producto_id, color, stock, sku")
+            .in("producto_id", chunk)
+            .order("color", { ascending: true });
+
+          if (!isMissingSchemaError(error, ["sucursal_id"])) {
+            fallbackQuery = fallbackQuery.eq("sucursal_id", activeSucursalId);
+          }
+
+          const fallback = await fallbackQuery;
+          data = (fallback.data || []).map((row) => ({
+            ...row,
+            activo: true,
+            codigo_barra: null,
+            stock_decimal: null,
+          }));
+          error = fallback.error;
+        }
+
+        if (error) {
+          console.warn("No se pudieron cargar variantes:", error);
+          continue;
+        }
       }
 
       (data || []).forEach((variant) => {
@@ -197,7 +230,9 @@ export default function TransferenciaSucursalPage() {
       .limit(8);
 
     if (error) {
-      console.warn("Historial de transferencias no disponible:", error);
+      if (!isMissingSchemaError(error, ["transferencias_sucursal"])) {
+        console.warn("Historial de transferencias no disponible:", error);
+      }
       setRecentTransfers([]);
       return;
     }

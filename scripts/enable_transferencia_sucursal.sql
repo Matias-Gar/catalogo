@@ -32,6 +32,8 @@ create index if not exists idx_transferencias_sucursal_origen_fecha
 create index if not exists idx_transferencias_sucursal_destino_fecha
   on public.transferencias_sucursal(sucursal_destino_id, created_at desc);
 
+alter table public.producto_variantes add column if not exists codigo_barra text;
+
 create or replace function public.transferir_stock_sucursal(
   p_producto_origen_id bigint,
   p_variante_origen_id bigint,
