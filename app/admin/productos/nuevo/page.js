@@ -568,10 +568,14 @@ export default function AdminProductosPage() {
 
     const getColorSuggestions = (value = '') => {
         const query = normalizeText(value);
-        if (!query) return colorOptions.slice(0, 8);
+        const cleanOptions = colorOptions
+            .map(displayColorValue)
+            .filter((color) => color && !/^[?�]/.test(color))
+            .filter((color, index, arr) => arr.indexOf(color) === index);
+        if (!query) return cleanOptions.slice(0, 8);
 
-        const startsWith = colorOptions.filter((c) => normalizeText(c).startsWith(query));
-        const includes = colorOptions.filter(
+        const startsWith = cleanOptions.filter((c) => normalizeText(c).startsWith(query));
+        const includes = cleanOptions.filter(
             (c) => !startsWith.includes(c) && normalizeText(c).includes(query)
         );
         return [...startsWith, ...includes].slice(0, 8);
@@ -580,6 +584,12 @@ export default function AdminProductosPage() {
     const selectColorSuggestion = (rowIndex, colorValue) => {
         handleVariantChange(rowIndex, 'color', colorValue);
         setActiveColorRow(null);
+    };
+
+    const displayColorValue = (value = '') => {
+        const text = String(value || '');
+        if (/^[?�]+nico$/i.test(text)) return 'Unico';
+        return text.replace(/Ãšnico|Ãºnico/g, 'Unico');
     };
 
     const colorOptions = Array.from(
@@ -591,7 +601,9 @@ export default function AdminProductosPage() {
                     .flat()
                     .map((v) => String(v?.color || '').trim())
                     .filter(Boolean),
-            ].map((c) => c.trim())
+            ].map(displayColorValue)
+                .map((c) => c.trim())
+                .filter((c) => c && !/^[?�]/.test(c))
                 .filter(Boolean)
         )
     ).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
@@ -1928,10 +1940,10 @@ export default function AdminProductosPage() {
             )} 
 
             {/* 1. Formulario de Anadir Producto */} 
-            <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-10 border-t-4 border-indigo-500"> 
-                <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">{currentViewMeta.createTitle}</h2> 
-                <form onSubmit={handleAnadirProducto} className="space-y-6"> 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> 
+            <div className="bg-white p-4 sm:p-5 rounded-xl shadow-lg mb-6 border-t-4 border-indigo-500"> 
+                <h2 className="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">{currentViewMeta.createTitle}</h2> 
+                <form onSubmit={handleAnadirProducto} className="space-y-4"> 
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> 
                                 <input 
                                         type="text" 
                                         name="nombre" 
@@ -1939,7 +1951,7 @@ export default function AdminProductosPage() {
                                         value={newProduct.nombre} 
                                         onChange={handleNewProductChange} 
                                         required 
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
+                                        className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-900 placeholder-gray-700 focus:border-indigo-500 focus:ring-indigo-500" 
                                 /> 
                                 <input 
                                         type="number" 
@@ -1949,7 +1961,7 @@ export default function AdminProductosPage() {
                                         onChange={handleNewProductChange} 
                                         required 
                                         step="0.01" 
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
+                                        className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-900 placeholder-gray-700 focus:border-indigo-500 focus:ring-indigo-500" 
                                 />
                                 <input 
                                         type="number" 
@@ -1959,16 +1971,16 @@ export default function AdminProductosPage() {
                                         onChange={handleNewProductChange} 
                                         required 
                                         step="0.01" 
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
+                                        className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-900 placeholder-gray-700 focus:border-indigo-500 focus:ring-indigo-500" 
                                 /> 
                                 {/* NUEVO: Unidad base */}
                                 <div>
-                                    <label className="block text-gray-700 font-semibold mb-1">Unidad base</label>
+                                    <label className="mb-1 block text-sm font-semibold text-gray-700">Unidad base</label>
                                     <select
                                         name="unidad_base"
                                         value={newProduct.unidad_base}
                                         onChange={handleNewProductChange}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
+                                        className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
                                     >
                                         {unidadOptions.map(u => (
                                             <option key={u} value={u}>{u}</option>
@@ -1979,7 +1991,7 @@ export default function AdminProductosPage() {
                                     <>
                                         {/* NUEVO: Unidad alternativa */}
                                         <div>
-                                            <label className="block text-gray-700 font-semibold mb-1">Unidad alternativa</label>
+                                            <label className="mb-1 block text-sm font-semibold text-gray-700">Unidad alternativa</label>
                                             {smartAlternativeOptions.length > 0 ? (
                                                 <>
                                                     <select
@@ -1990,7 +2002,7 @@ export default function AdminProductosPage() {
                                                             unidades_alternativas: e.target.value ? [e.target.value] : [],
                                                             factor_conversion: e.target.value ? p.factor_conversion : ''
                                                         }))}
-                                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
+                                                        className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
                                                     >
                                                         <option value="">-- Sin unidad alternativa --</option>
                                                         {smartAlternativeOptions.map((unidadAlternativa) => (
@@ -1999,19 +2011,19 @@ export default function AdminProductosPage() {
                                                             </option>
                                                         ))}
                                                     </select>
-                                                    <p className="mt-2 text-sm text-gray-600">
+                                                    <p className="mt-1 text-xs text-gray-600">
                                                         Opciones compatibles para <span className="font-semibold">{newProduct.unidad_base}</span>.
                                                     </p>
                                                 </>
                                             ) : (
-                                                <div className="rounded-lg border border-dashed border-gray-300 bg-white px-3 py-3 text-sm text-gray-500">
+                                                    <div className="rounded-lg border border-dashed border-gray-300 bg-white px-3 py-2 text-sm text-gray-500">
                                                     No hay conversiones sugeridas para esta unidad base.
                                                 </div>
                                             )}
                                         </div>
                                         {/* NUEVO: Factor de conversión */}
                                         <div>
-                                            <label className="block text-gray-700 font-semibold mb-1">
+                                            <label className="mb-1 block text-sm font-semibold text-gray-700">
                                                 Factor de conversión (1 {newProduct.unidad_base} = ? {Array.isArray(newProduct.unidades_alternativas) && newProduct.unidades_alternativas.length > 0
                                                     ? newProduct.unidades_alternativas[0]
                                                     : 'unidad'})
@@ -2024,7 +2036,7 @@ export default function AdminProductosPage() {
                                                 step={0.0001}
                                                 onChange={e => setNewProduct(p => ({ ...p, factor_conversion: e.target.value === '' ? '' : parseFloat(e.target.value) }))}
                                                 placeholder="Ej: 50 (1 rollo = 50 metros)"
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-700 font-semibold bg-white"
+                                                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-900 placeholder-gray-700 focus:border-indigo-500 focus:ring-indigo-500"
                                             />
                                         </div>
                                     </>
@@ -2034,7 +2046,7 @@ export default function AdminProductosPage() {
                                         name="vista_producto"
                                         value={newProduct.vista_producto}
                                         onChange={handleNewProductChange}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
+                                        className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
                                 >
                                         <option value="articulos">Vista: Articulos</option>
                                         <option value="insumos">Vista: Insumos</option>
@@ -2043,7 +2055,7 @@ export default function AdminProductosPage() {
                                         name="category_id"
                                         value={newProduct.category_id}
                                         onChange={handleNewProductChange}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
+                                        className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
                                 >
                                         <option value="">-- Seleccionar Categoría --</option>
                                         {categories && categories.length > 0 && categories.map(cat => (
@@ -2053,7 +2065,7 @@ export default function AdminProductosPage() {
                                 </select>
                         </div> {/* cierre del grid principal */}
 
-                    <div className="border rounded-lg p-4 bg-gray-50 space-y-3">
+                    <div className="relative overflow-visible rounded-lg bg-gray-50 p-3 space-y-2">
                         <div className="flex items-center justify-between">
                             <h3 className="font-bold text-gray-800">Colores disponibles</h3>
                             <button
@@ -2067,27 +2079,27 @@ export default function AdminProductosPage() {
                         {newVariants.length === 0 ? (
                             <div className="text-sm text-gray-500">Sin colores. Agrega al menos uno.</div>
                         ) : (
-                            <div className="space-y-3">
-                                <div className="hidden xl:grid xl:grid-cols-[minmax(180px,1.5fr)_110px_140px_160px_190px_90px_96px] gap-3 px-3 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                            <div className="space-y-2 overflow-visible">
+                                <div className="grid grid-cols-[minmax(150px,1.35fr)_78px_140px_88px_108px_40px_40px] gap-1.5 px-1 text-xs font-semibold text-slate-700">
                                     <span>Color</span>
                                     <span>Stock</span>
-                                    <span>Unidad base</span>
-                                    <span>Unidad de conversion</span>
                                     <span>Precio</span>
-                                    <span>Activo</span>
-                                    <span>Acciones</span>
+                                    <span>Unidad base</span>
+                                    <span>Conversion</span>
+                                    <span></span>
+                                    <span></span>
                                 </div>
                                 {newVariants.map((variant, idx) => (
                                     <div
                                         key={`variant-${idx}`}
-                                        className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm xl:grid xl:grid-cols-[minmax(180px,1.5fr)_110px_140px_160px_190px_90px_96px] xl:items-center xl:gap-3"
+                                        className="grid grid-cols-[minmax(150px,1.35fr)_78px_140px_88px_108px_40px_40px] items-center gap-1.5"
                                     >
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:contents gap-3">
+                                        <div className="contents">
                                             <div className="relative">
-                                                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 xl:hidden">Color</label>
+                                                <label className="hidden">Color</label>
                                                 <input
                                                     type="text"
-                                                    value={variant.color}
+                                                    value={displayColorValue(variant.color)}
                                                     onFocus={() => setActiveColorRow(idx)}
                                                     onBlur={() => setTimeout(() => setActiveColorRow((current) => (current === idx ? null : current)), 120)}
                                                     onChange={(e) => {
@@ -2099,7 +2111,7 @@ export default function AdminProductosPage() {
                                                     }}
                                                     placeholder="Color (ej: Rojo)"
                                                     autoComplete="off"
-                                                    className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
+                                                    className="h-8 w-full rounded border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
                                                 />
                                                 {activeColorRow === idx && getColorSuggestions(variant.color).length > 0 && (
                                                     <div className="absolute z-20 mt-1 w-full max-h-36 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg">
@@ -2121,26 +2133,26 @@ export default function AdminProductosPage() {
                                             </div>
 
                                             <div>
-                                                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 xl:hidden">Stock</label>
+                                                <label className="hidden">Stock</label>
                                                 <input
                                                     type="number"
                                                     min="0"
                                                     value={variant.stock}
                                                     onChange={e => handleVariantChange(idx, 'stock', e.target.value)}
                                                     placeholder="Stock"
-                                                    className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
+                                                    className="h-8 w-full rounded border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
                                                     required
                                                 />
                                             </div>
 
-                                            <div>
+                                            <div className="hidden">
                                                 <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 xl:hidden">Unidad base</label>
                                                 <div className="flex min-h-[42px] items-center rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm font-semibold text-gray-700">
                                                     {newProduct.unidad_base || 'Unidad'}
                                                 </div>
                                             </div>
 
-                                            <div>
+                                            <div className="hidden">
                                                 <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 xl:hidden">Unidad de conversion</label>
                                                 <div className="flex min-h-[42px] items-center rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-700">
                                                     {Array.isArray(newProduct.unidades_alternativas) && newProduct.unidades_alternativas.length > 0
@@ -2150,7 +2162,7 @@ export default function AdminProductosPage() {
                                             </div>
 
                                             <div>
-                                                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 xl:hidden">Precio</label>
+                                                <label className="hidden">Precio</label>
                                                 <input
                                                     type="number"
                                                     step="0.01"
@@ -2158,25 +2170,20 @@ export default function AdminProductosPage() {
                                                     value={variant.precio}
                                                     onChange={(e) => handleVariantChange(idx, 'precio', e.target.value)}
                                                     placeholder="Precio (opcional)"
-                                                    className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
+                                                    className="h-8 w-full rounded border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
                                                 />
                                             </div>
 
-                                            <div>
-                                                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 xl:hidden">Activo</label>
-                                                <label className="flex min-h-[42px] items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-700">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={variant.activo !== false}
-                                                        onChange={(e) => handleVariantChange(idx, 'activo', e.target.checked)}
-                                                    />
-                                                    <span>Activo</span>
-                                                </label>
+                                            <div className="flex h-8 items-center truncate rounded border border-gray-200 bg-gray-50 px-2 text-xs font-semibold text-gray-700">
+                                                {newProduct.unidad_base || 'unidad'}
                                             </div>
 
-                                            <div>
-                                                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 xl:hidden">Acciones</label>
-                                                <div className="flex min-h-[42px] items-center gap-2 xl:justify-start">
+                                            <div className="flex h-8 items-center truncate rounded border border-gray-200 bg-gray-50 px-2 text-xs text-gray-700">
+                                                {Array.isArray(newProduct.unidades_alternativas) && newProduct.unidades_alternativas.length > 0
+                                                    ? `${newProduct.unidades_alternativas[0]} x${newProduct.factor_conversion || 1}`
+                                                    : 'Sin conversion'}
+                                            </div>
+
                                                     <button
                                                         type="button"
                                                         onClick={() => {
@@ -2193,14 +2200,14 @@ export default function AdminProductosPage() {
                                                                 window.dispatchEvent(event);
                                                             }
                                                         }}
-                                                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-green-600 text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        className="inline-flex h-8 w-8 items-center justify-center rounded bg-green-600 text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
                                                         disabled={!variant.codigo_barra}
                                                         title="Imprimir etiqueta"
                                                     >
                                                         <svg
                                                             aria-hidden="true"
                                                             viewBox="0 0 24 24"
-                                                            className="h-5 w-5"
+                                                            className="h-4 w-4"
                                                             fill="none"
                                                             stroke="currentColor"
                                                             strokeWidth="2"
@@ -2216,14 +2223,14 @@ export default function AdminProductosPage() {
                                                     <button
                                                         type="button"
                                                         onClick={() => removeVariantRow(idx)}
-                                                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-red-600 text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        className="inline-flex h-8 w-8 items-center justify-center rounded bg-red-400 text-white shadow-sm transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
                                                         disabled={newVariants.length <= 1}
                                                         title="Eliminar variante"
                                                     >
                                                         <svg
                                                             aria-hidden="true"
                                                             viewBox="0 0 24 24"
-                                                            className="h-5 w-5"
+                                                            className="h-4 w-4"
                                                             fill="none"
                                                             stroke="currentColor"
                                                             strokeWidth="2"
@@ -2237,8 +2244,6 @@ export default function AdminProductosPage() {
                                                             <path d="M14 11v6" />
                                                         </svg>
                                                     </button>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -2250,13 +2255,13 @@ export default function AdminProductosPage() {
                         placeholder="Descripción del Producto" 
                         value={newProduct.descripcion} 
                         onChange={handleNewProductChange} 
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 h-24 text-gray-900 placeholder-gray-700 font-semibold bg-white" 
+                        className="h-16 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-900 placeholder-gray-700 focus:border-indigo-500 focus:ring-indigo-500" 
                     /> 
                     
                     {/* Campo de Subida de Imagen */} 
-                    <div className="flex flex-col">
+                    <div className="flex flex-col gap-2">
                         <label className="text-gray-700 font-medium mb-2">Imágenes del Producto</label>
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center gap-3">
                             <input
                                 type="file"
                                 accept="image/*"
@@ -2268,11 +2273,11 @@ export default function AdminProductosPage() {
                             />
                             <label
                                 htmlFor="new-product-image"
-                                className="px-4 py-2 bg-indigo-500 text-white rounded-lg shadow-md hover:bg-indigo-600 transition cursor-pointer"
+                                className="cursor-pointer rounded-lg bg-indigo-500 px-3 py-2 text-sm text-white shadow-md transition hover:bg-indigo-600"
                             >
                                 Seleccionar archivos
                             </label>
-                            <span className="text-gray-500">
+                            <span className="text-sm text-gray-500">
                                 {imageFiles && imageFiles.length > 0 ? `${imageFiles.length} archivo(s) seleccionado(s)` : 'Ningún archivo seleccionado'}
                             </span>
                         </div>
@@ -2281,7 +2286,7 @@ export default function AdminProductosPage() {
                     <button 
                         type="submit" 
                         disabled={loading} 
-                        className={`w-full py-3 font-bold text-white rounded-lg transition ${ 
+                        className={`w-full rounded-lg py-2.5 font-bold text-white transition ${ 
                             loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 shadow-lg' 
                         }`} 
                     > 

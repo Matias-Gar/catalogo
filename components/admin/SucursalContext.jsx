@@ -11,7 +11,7 @@ function getSavedSucursalId() {
   return window.localStorage.getItem(STORAGE_KEY) || "";
 }
 
-export function SucursalProvider({ children }) {
+export function SucursalProvider({ children, showShell = true }) {
   const [sucursales, setSucursales] = useState([]);
   const [activeSucursalId, setActiveSucursalIdState] = useState("");
   const [loading, setLoading] = useState(true);
@@ -90,6 +90,7 @@ export function SucursalProvider({ children }) {
         selectorOpen={selectorOpen}
         setActiveSucursalId={setActiveSucursalId}
         setSelectorOpen={setSelectorOpen}
+        showShell={showShell}
         sucursales={sucursales}
       >
         {children}
@@ -107,9 +108,12 @@ function SucursalShell({
   selectorOpen,
   setActiveSucursalId,
   setSelectorOpen,
+  showShell,
   sucursales,
 }) {
   const needsSelection = !loading && sucursales.length > 1 && selectorOpen;
+
+  if (!showShell) return <>{children}</>;
 
   return (
     <>

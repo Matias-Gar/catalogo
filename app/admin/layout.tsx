@@ -110,7 +110,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </button>
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} userRole={userRole} />
       <main className="flex-1 bg-gray-100 p-6 overflow-y-auto">
-        <SucursalProvider>
+        <SucursalProvider showShell={userRole === 'admin'}>
           {children}
         </SucursalProvider>
       </main>
