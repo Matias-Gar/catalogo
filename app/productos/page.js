@@ -1531,7 +1531,7 @@ export default function CatalogoPage() {
                                                     onChange={(e) => setAddToCartModal(prev => ({
                                                         ...prev,
                                                         unidad: e.target.value,
-                                                        cantidad: normalizeQuantityForUnit(prev.cantidad, e.target.value)
+                                                        cantidad: prev.cantidad === '' ? '' : normalizeQuantityForUnit(prev.cantidad, e.target.value)
                                                     }))}
                                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                 >
@@ -1556,8 +1556,9 @@ export default function CatalogoPage() {
                                                 value={addToCartModal.cantidad}
                                                 onChange={(e) => setAddToCartModal(prev => ({
                                                     ...prev,
-                                                    cantidad: normalizeQuantityForUnit(e.target.value, selectedUnit)
+                                                    cantidad: e.target.value
                                                 }))}
+                                                inputMode={isDiscreteUnit(selectedUnit) ? "numeric" : "decimal"}
                                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                                 );
