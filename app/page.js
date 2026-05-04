@@ -63,15 +63,15 @@ function getEffectiveVariantStock(variant) {
 function getProductStockBase(producto) {
   const variantes = Array.isArray(producto?.variantes) ? producto.variantes : [];
   const productStock = Math.max(0, Number(producto?.stock ?? producto?.stock_total ?? 0));
+  const variantStock = variantes.reduce((acc, variante) => acc + getEffectiveVariantStock(variante), 0);
   const hasUnitConversion =
     Array.isArray(producto?.unidades_alternativas) &&
     producto.unidades_alternativas.length > 0 &&
     Number(producto?.factor_conversion || 0) > 0;
   if (hasUnitConversion && Number.isFinite(productStock)) {
-    return productStock;
+    return productStock > 0 ? productStock : variantStock;
   }
   if (variantes.length > 0) {
-    const variantStock = variantes.reduce((acc, variante) => acc + getEffectiveVariantStock(variante), 0);
     return variantStock > 0 || productStock <= 0 ? variantStock : productStock;
   }
   return productStock;
@@ -162,20 +162,20 @@ function UnitPricePanel({ conversionInfo, factor }) {
   );
 
   return (
-    <div className="mb-3 space-y-2 text-left">
-      <div className="space-y-1.5">
+    <div className="mb-1.5 space-y-1 text-left">
+      <div className="space-y-0.5">
         {conversionInfo.showBasePrice && (
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm text-gray-600">Por {conversionInfo.unidadBase}</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-gray-600 sm:text-sm">Por {conversionInfo.unidadBase}</span>
             <PriceValue original={conversionInfo.precioBaseOriginal} final={conversionInfo.precioBase} />
           </div>
         )}
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-sm text-gray-600">Por {conversionInfo.unidadAlternativa}</span>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-gray-600 sm:text-sm">Por {conversionInfo.unidadAlternativa}</span>
           <PriceValue original={conversionInfo.precioAlternativoOriginal} final={conversionInfo.precioAlternativo} />
         </div>
       </div>
-      <div className="text-xs text-gray-500">
+      <div className="text-[11px] leading-tight text-gray-500">
         1 {conversionInfo.unidadBase} = {Number(factor || 0).toFixed(2).replace(/\.00$/, '')} {conversionInfo.unidadAlternativa}
       </div>
       {conversionInfo.tienePromocion && (
@@ -400,8 +400,10 @@ export default function Home() {
           unidad_base: extra.unidad_base || 'unidad',
           unidades_alternativas: extra.unidades_alternativas || [],
           factor_conversion: extra.factor_conversion,
-          stock: hasUnitConversion ? productStock : (variantStock > 0 || productStock <= 0 ? variantStock : productStock),
-        };
+        stock: hasUnitConversion
+          ? (productStock > 0 ? productStock : variantStock)
+          : (variantStock > 0 || productStock <= 0 ? variantStock : productStock),
+      };
       });
       const visibleProducts = dedupeCatalogProducts(filteredProducts);
       setProductos(visibleProducts);
@@ -766,7 +768,7 @@ export default function Home() {
           </div>
         )}
         {/* Grid de productos */}
-  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-8">
+  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
           {productosFiltrados.map((p) => {
             const stockInfo = getStockBreakdown(p);
             const agotado = stockInfo.agotado;
@@ -783,8 +785,8 @@ export default function Home() {
               }
             }
             return (
-              <div key={p.user_id} className={`relative overflow-hidden rounded-xl border bg-white p-2 sm:p-4 shadow-md flex flex-col items-center ${agotado ? 'border-gray-900' : 'border-transparent'}`}>
-                <div className="w-full h-40 sm:h-64 flex items-center justify-center mb-2 cursor-pointer relative group">
+              <div key={p.user_id} className={`relative overflow-hidden rounded-lg border bg-white p-1.5 sm:p-3 shadow-md flex flex-col items-center ${agotado ? 'border-gray-900' : 'border-transparent'}`}>
+                <div className={`w-full ${agotado ? 'h-28 sm:h-44 mb-1' : 'h-32 sm:h-48 mb-1.5'} flex items-center justify-center cursor-pointer relative group`}>
                   {galeria.length > 0 ? (
                     <>
                       <img
@@ -794,7 +796,7 @@ export default function Home() {
                         loading="lazy"
                         decoding="async"
                         alt={p.nombre}
-                        className={`w-full h-full object-contain rounded-xl bg-gray-50 group-hover:opacity-80 transition ${agotado ? 'grayscale' : ''}`}
+                        className={`w-full h-full object-contain rounded-lg bg-gray-50 group-hover:opacity-80 transition ${agotado ? 'grayscale' : ''}`}
                         onClick={() => openImageModal(galeria, 0, p.nombre)}
                       />
                       {galeria.length > 1 && (
@@ -802,7 +804,7 @@ export default function Home() {
                           {galeria.map((img, idx2) => (
                             <button
                               key={img + '-' + idx2}
-                              className={`w-2.5 h-2.5 rounded-full border-2 ${idx2 === 0 ? 'bg-green-600 border-green-700' : 'bg-white border-gray-400'} focus:outline-none`}
+                              className={`w-2 h-2 rounded-full border ${idx2 === 0 ? 'bg-green-600 border-green-700' : 'bg-white border-gray-400'} focus:outline-none`}
                               title={`Ver imagen ${idx2 + 1}`}
                               onClick={e => { e.stopPropagation(); openImageModal(galeria, idx2, p.nombre); }}
                             />
@@ -814,18 +816,18 @@ export default function Home() {
                     <img
                       src="https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen"
                       alt="Sin imagen"
-                      className="w-full h-40 sm:h-48 object-contain rounded-xl bg-gray-50"
+                      className="w-full h-32 sm:h-40 object-contain rounded-lg bg-gray-50"
                     />
                   )}
                 </div>
-                <div className={`w-full text-center ${agotado ? 'pb-24' : ''}`}>
-                  <h2 className="text-sm sm:text-lg font-bold text-gray-900 mb-1">{p.nombre}</h2>
+                <div className={`w-full text-center ${agotado ? 'pb-9' : ''}`}>
+                  <h2 className={`${agotado ? 'text-[13px] sm:text-base leading-tight mb-0.5' : 'text-[13px] sm:text-base leading-tight mb-0.5'} font-bold text-gray-900`}>{p.nombre}</h2>
                   <ExpandableDescription
                     text={p.descripcion}
-                    lines={3}
-                    className="mb-2"
-                    textClassName="text-gray-600 text-xs sm:text-sm"
-                    buttonClassName="mt-1 text-[11px] sm:text-xs font-semibold text-blue-600 hover:text-blue-800"
+                    lines={agotado ? 1 : 2}
+                    className="mb-1"
+                    textClassName="text-gray-600 text-[11px] leading-snug sm:text-xs"
+                    buttonClassName="mt-0.5 text-[10px] sm:text-[11px] font-semibold text-blue-600 hover:text-blue-800"
                   />
                   
                   {/* Usar el componente de precio con promoción */}
@@ -833,7 +835,7 @@ export default function Home() {
                     <PrecioConPromocion
                       producto={p}
                       promociones={promociones}
-                      className="mb-2"
+                      className="mb-1"
                     />
                   )}
                   
@@ -858,9 +860,9 @@ export default function Home() {
                       : [];
                     if (coloresEnStock.length <= 1) return null;
                     return (
-                      <div className="mt-3 pt-3 border-t border-gray-200">
-                        <p className="text-xs text-gray-600 font-medium mb-2">Disponible en color:</p>
-                        <div className="flex gap-2 flex-wrap justify-center">
+                      <div className="mt-1.5 pt-1.5 border-t border-gray-200">
+                        <p className="text-[11px] text-gray-600 font-medium mb-1">Disponible en color:</p>
+                        <div className="flex gap-1.5 flex-wrap justify-center">
                           {coloresEnStock.map((v, vIdx) => {
                               const colorStyle = getColorStyle(v.color);
                               return (
@@ -869,7 +871,7 @@ export default function Home() {
                                   className="relative group"
                                 >
                                   <div
-                                    className="w-6 h-6 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all cursor-pointer shadow-sm hover:shadow-md hover:scale-110"
+                                    className="w-5 h-5 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all cursor-pointer shadow-sm hover:shadow-md hover:scale-110"
                                     style={colorStyle}
                                   />
                                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-blue-700 !text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-md">
@@ -886,9 +888,9 @@ export default function Home() {
                 {agotado && (
                   <>
                     <div className="pointer-events-none absolute inset-0 bg-gray-950/55" />
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-4 bg-gray-950/90 px-5 py-5 text-left">
-                      <span className="text-lg font-black uppercase tracking-wide text-red-500">Agotado</span>
-                      <span className="text-sm leading-snug text-gray-100">Este producto no esta disponible</span>
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 bg-gray-950/90 px-3 py-2 text-center">
+                      <span className="text-sm font-black uppercase tracking-wide text-red-500 sm:text-base">Agotado</span>
+                      <span className="text-xs leading-tight text-gray-100 sm:text-sm">No disponible</span>
                     </div>
                   </>
                 )}

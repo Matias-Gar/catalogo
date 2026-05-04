@@ -128,6 +128,10 @@ async function enriquecerUnidades(productos: Producto[], sucursalId?: string) {
       ? variantes.reduce((acc, v) => acc + Math.max(0, Number(v.stock_decimal ?? v.stock ?? 0)), 0)
       : 0;
     const productStock = Number.isFinite(extra.stock) ? Math.max(0, extra.stock) : Math.max(0, Number(producto.stock || 0));
+    const hasUnitConversion =
+      extra.factor_conversion &&
+      extra.factor_conversion > 0 &&
+      extra.unidades_alternativas.length > 0;
     return {
       ...producto,
       variantes,
@@ -136,8 +140,8 @@ async function enriquecerUnidades(productos: Producto[], sucursalId?: string) {
       unidades_disponibles: buildUnidadesDisponibles(extra.unidad_base, extra.unidades_alternativas),
       factor_conversion: extra.factor_conversion,
       unidad: producto.unidad ?? extra.unidad_base,
-      stock: extra.factor_conversion && extra.factor_conversion > 0 && extra.unidades_alternativas.length > 0
-        ? productStock
+      stock: hasUnitConversion
+        ? (productStock > 0 ? productStock : variantStock)
         : (variantStock > 0 || productStock <= 0 ? variantStock : productStock)
     };
   });

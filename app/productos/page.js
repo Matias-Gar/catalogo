@@ -28,20 +28,20 @@ function UnitPricePanel({ conversionInfo, factor, className = "mb-3" }) {
     );
 
     return (
-        <div className={`${className} space-y-2 text-left`}>
-            <div className="space-y-1.5">
+        <div className={`${className} space-y-1 text-left`}>
+            <div className="space-y-0.5">
                 {conversionInfo.showBasePrice && (
-                    <div className="flex items-center justify-between gap-3">
-                        <span className="text-sm text-gray-600">Por {conversionInfo.unidadBase}</span>
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs text-gray-600 sm:text-sm">Por {conversionInfo.unidadBase}</span>
                         <PriceValue original={conversionInfo.precioBaseOriginal} final={conversionInfo.precioBase} />
                     </div>
                 )}
-                <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm text-gray-600">Por {conversionInfo.unidadAlternativa}</span>
+                <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-gray-600 sm:text-sm">Por {conversionInfo.unidadAlternativa}</span>
                     <PriceValue original={conversionInfo.precioAlternativoOriginal} final={conversionInfo.precioAlternativo} />
                 </div>
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-[11px] leading-tight text-gray-500">
                 1 {conversionInfo.unidadBase} = {Number(factor || 0).toFixed(2).replace(/\.00$/, '')} {conversionInfo.unidadAlternativa}
             </div>
             {conversionInfo.tienePromocion && (
@@ -140,12 +140,13 @@ export default function CatalogoPage() {
     const getProductStockBase = (producto, varianteId = null) => {
         const variantes = Array.isArray(producto?.variantes) ? producto.variantes : [];
         const productStock = Math.max(0, Number(producto?.stock ?? producto?.stock_total ?? 0));
+        const totalVariantStock = variantes.reduce((acc, variante) => acc + getEffectiveVariantStock(variante), 0);
         const hasUnitConversion =
             Array.isArray(producto?.unidades_alternativas) &&
             producto.unidades_alternativas.length > 0 &&
             Number(producto?.factor_conversion || 0) > 0;
         if (hasUnitConversion && varianteId === null && Number.isFinite(productStock)) {
-            return productStock;
+            return productStock > 0 ? productStock : totalVariantStock;
         }
         if (variantes.length > 0) {
             if (varianteId !== null && varianteId !== undefined) {
@@ -162,8 +163,7 @@ export default function CatalogoPage() {
                 }
                 return getEffectiveVariantStock(variante);
             }
-            const variantStock = variantes.reduce((acc, variante) => acc + getEffectiveVariantStock(variante), 0);
-            return variantStock > 0 || productStock <= 0 ? variantStock : productStock;
+            return totalVariantStock > 0 || productStock <= 0 ? totalVariantStock : productStock;
         }
         return productStock;
     };
@@ -296,7 +296,9 @@ export default function CatalogoPage() {
                     unidades_alternativas: Array.isArray(extra.unidades_alternativas) ? extra.unidades_alternativas : item.unidades_alternativas,
                     factor_conversion: Number(extra.factor_conversion || 0) || item.factor_conversion,
                     vista_producto: normalizeProductView(extra.vista_producto),
-                    stock: hasUnitConversion ? productStock : (variantStock > 0 || productStock <= 0 ? variantStock : productStock)
+                    stock: hasUnitConversion
+                        ? (productStock > 0 ? productStock : variantStock)
+                        : (variantStock > 0 || productStock <= 0 ? variantStock : productStock)
                 };
             });
         } catch {
@@ -550,12 +552,12 @@ export default function CatalogoPage() {
                                 const variante = variantes.find(function(v) { return String(v.variante_id ?? v.id) === String(varianteId); });
                                 const variantStock = getEffectiveVariantStock(variante);
                                 if (hasUnitConversion && variantes.length === 1 && Number.isFinite(productStock)) {
-                                    return productStock;
+                                    return productStock > 0 ? productStock : variantStock;
                                 }
                                 return variantStock;
                         }
-                        if (hasUnitConversion) return productStock;
                         const totalDisponible = variantes.reduce(function(acc, v) { return acc + getEffectiveVariantStock(v); }, 0);
+                        if (hasUnitConversion) return productStock > 0 ? productStock : totalDisponible;
                         return Math.max(0, totalDisponible);
                 }
 
@@ -682,8 +684,9 @@ export default function CatalogoPage() {
                 Array.isArray(productoDB?.unidades_alternativas) &&
                 productoDB.unidades_alternativas.length > 0 &&
                 Number(productoDB?.factor_conversion || producto.factor_conversion || 0) > 0;
+            const stockProductoActual = Math.max(0, Number(productoDB?.stock || 0));
             const stockVarianteActual = hasUnitConversionForSale && variantes.length === 1
-                ? Math.max(0, Number(productoDB?.stock || 0))
+                ? (stockProductoActual > 0 ? stockProductoActual : getEffectiveVariantStock(varianteDB))
                 : getEffectiveVariantStock(varianteDB);
             if (stockVarianteActual <= 0) {
                 setModalWarning('Esa opción está agotada. Elige otra disponible.');
@@ -1247,11 +1250,11 @@ export default function CatalogoPage() {
                             return (
                                 <div
                                     key={producto.user_id ? producto.user_id : 'producto-' + idx}
-                                    className={`relative overflow-hidden bg-white border rounded-xl p-2 sm:p-4 shadow-lg flex flex-col transition-shadow duration-300 hover:shadow-xl ${agotado ? 'border-gray-900' : 'border-gray-200'}`}
+                                    className={`relative overflow-hidden bg-white border rounded-lg p-1.5 sm:p-3 shadow-lg flex flex-col transition-shadow duration-300 hover:shadow-xl ${agotado ? 'border-gray-900' : 'border-gray-200'}`}
                                 >
                                     <div className="relative">
                                         {Array.isArray(imagenes) && imagenes.length > 0 && typeof imagenes[0] === 'string' ? (
-                                            <div className="w-full h-32 sm:h-40 mb-2 overflow-hidden rounded-lg relative group cursor-pointer">
+                                            <div className={`w-full ${agotado ? 'h-24 sm:h-32 mb-1' : 'h-28 sm:h-36 mb-1.5'} overflow-hidden rounded-lg relative group cursor-pointer`}>
                                                 <Image
                                                     src={getOptimizedImageUrl(imagenes[0], 900, { quality: 96, format: 'origin' })}
                                                     alt={producto.nombre}
@@ -1278,21 +1281,21 @@ export default function CatalogoPage() {
                                                 )}
                                             </div>
                                         ) : (
-                                            <div className="w-full h-40 mb-2 bg-gray-100 flex flex-col items-center justify-center rounded-lg relative">
+                                            <div className="w-full h-28 sm:h-36 mb-1.5 bg-gray-100 flex flex-col items-center justify-center rounded-lg relative">
                                                 <span className="text-gray-400 text-center">Sin imagen</span>
                                             </div>
                                         )}
                                     </div>
-                                    <div className={`flex-1 flex flex-col ${agotado ? 'pb-24' : ''}`}>
-                                        <div className="text-xs sm:text-sm text-gray-600 font-medium mb-1">{categoria ? (categoria.categori || categoria.nombre) : '-'}</div>
-                                        <div className="text-sm sm:text-lg font-bold mb-2 line-clamp-2 text-gray-900">{producto.nombre}</div>
+                                    <div className={`flex-1 flex flex-col ${agotado ? 'pb-9' : ''}`}>
+                                        <div className={`text-xs sm:text-sm text-gray-600 font-medium ${agotado ? 'mb-0.5' : 'mb-1'}`}>{categoria ? (categoria.categori || categoria.nombre) : '-'}</div>
+                                        <div className={`${agotado ? 'text-[13px] sm:text-base mb-0.5 leading-tight' : 'text-[13px] sm:text-base mb-1 leading-tight'} font-bold line-clamp-2 text-gray-900`}>{producto.nombre}</div>
                                         
                                         {/* Usar el componente de precio con promoción */}
                                         {!agotado && !conversionInfo && (
                                             <PrecioConPromocion
                                                 producto={producto}
                                                 promociones={promociones}
-                                                className="mb-1"
+                                                className="mb-0.5"
                                             />
                                         )}
                                         {(() => {
@@ -1314,8 +1317,8 @@ export default function CatalogoPage() {
                                                                                             : [];
                                             if (coloresEnStock.length <= 1) return null;
                                             return (
-                                              <div className="mt-2">
-                                                  <p className="text-xs text-gray-600 font-medium mb-1.5">Disponible en color:</p>
+                                              <div className="mt-1.5">
+                                                  <p className="text-[11px] text-gray-600 font-medium mb-1">Disponible en color:</p>
                                                   <div className="flex gap-1.5 flex-wrap">
                                                       {coloresEnStock.map((v, vIdx) => {
                                                               const colorStyle = getColorStyle(v.color);
@@ -1339,18 +1342,18 @@ export default function CatalogoPage() {
                                             );
                                         })()}
                                                                                 {agotado ? (
-                                                                                        <span className="mt-2 inline-flex self-start bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-md">
+                                                                                        <span className="mt-1 inline-flex self-start bg-red-100 text-red-700 text-[11px] font-bold px-2 py-0.5 rounded-md">
                                                                                                 Agotado
                                                                                         </span>
                                                                                 ) : (
-                                                                                    <span className="mt-2 inline-flex self-start bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-md">
+                                                                                    <span className="mt-1 inline-flex self-start bg-green-100 text-green-700 text-[11px] font-bold px-2 py-0.5 rounded-md">
                                                                                         Disponible
                                                                                     </span>
                                                                                 )}
                                     </div>
                                     <button
                                         disabled={agotado}
-                                        className={`mt-3 sm:mt-4 w-full sm:w-auto sm:self-end ${agotado ? 'bg-gray-400 cursor-not-allowed' : isInCart ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-600 hover:bg-green-700'} text-white rounded-lg sm:rounded-full px-4 py-2 sm:w-9 sm:h-9 flex items-center justify-center text-sm sm:text-2xl font-bold shadow-xl focus:outline-none transition-colors duration-150`}
+                                        className={`mt-2 sm:mt-3 w-full sm:w-auto sm:self-end ${agotado ? 'bg-gray-400 cursor-not-allowed' : isInCart ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-600 hover:bg-green-700'} text-white rounded-lg sm:rounded-full px-3 py-1.5 sm:w-8 sm:h-8 flex items-center justify-center text-sm sm:text-xl font-bold shadow-xl focus:outline-none transition-colors duration-150`}
                                         onClick={() => {
                                             if (agotado) return;
                                             openAddToCartModal(producto);
@@ -1365,9 +1368,9 @@ export default function CatalogoPage() {
                                     {agotado && (
                                         <>
                                             <div className="pointer-events-none absolute inset-0 bg-gray-950/55" />
-                                            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-4 bg-gray-950/90 px-5 py-5 text-left">
-                                                <span className="text-lg font-black uppercase tracking-wide text-red-500">Agotado</span>
-                                                <span className="text-sm leading-snug text-gray-100">Este producto no esta disponible</span>
+                                            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 bg-gray-950/90 px-3 py-2 text-center">
+                                                <span className="text-sm font-black uppercase tracking-wide text-red-500 sm:text-base">Agotado</span>
+                                                <span className="text-xs leading-tight text-gray-100 sm:text-sm">No disponible</span>
                                             </div>
                                         </>
                                     )}
