@@ -10,6 +10,7 @@ import { PacksDisponibles } from '../lib/packs';
 import ExpandableDescription from '../components/ui/ExpandableDescription';
 import { getOptimizedImageUrl, buildImageSrcSet } from '../lib/imageOptimization';
 import { normalizeProductView } from '../lib/productViews';
+import PublicSucursalSelector, { usePublicSucursal } from '../components/PublicSucursalSelector';
 
 // Componente principal de la página (Tienda)
 // Utilidad para obtener nombre de categoría por id
@@ -258,6 +259,14 @@ export default function Home() {
   const pathname = usePathname();
   const currentPublicView = pathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
   const pedidosHref = currentPublicView === 'insumos' ? '/insumos/productos' : '/productos';
+  const {
+    sucursales,
+    activeSucursal,
+    activeSucursalId,
+    loading: sucursalesLoading,
+    error: sucursalesError,
+    setActiveSucursalId,
+  } = usePublicSucursal();
   // Estados para el modal de galería de imágenes
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImageList, setSelectedImageList] = useState([]);
@@ -292,27 +301,32 @@ export default function Home() {
   const [error, setError] = useState(null);
   
   // Usar el hook para promociones
-  const { promociones } = usePromociones();
+  const { promociones } = usePromociones(activeSucursalId);
   
   // Usar el hook para packs
-  const { packs, loading: loadingPacks } = usePacks();
+  const { packs, loading: loadingPacks } = usePacks(activeSucursalId);
 
   const fetchCategorias = async () => {
     if (!supabase) return;
-    const { data, error } = await supabase
+    let query = supabase
       .from('categorias')
       .select('id, categori')
       .order('categori', { ascending: true });
+    if (activeSucursalId) query = query.eq('sucursal_id', activeSucursalId);
+    const { data, error } = await query;
     if (!error && data) setCategorias(data);
   };
 
   const fetchProductos = async () => {
+    if (sucursalesLoading) return;
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase
+      let catalogQuery = supabase
         .from('v_productos_catalogo')
         .select('producto_id, nombre, descripcion, precio_base, imagen_base, category_id, categoria, stock_total, codigo_barra, variantes');
+      if (activeSucursalId) catalogQuery = catalogQuery.eq('sucursal_id', activeSucursalId);
+      const { data, error } = await catalogQuery;
 
       if (error) {
         throw new Error(`Error al cargar productos: ${error.message}`);
@@ -346,15 +360,21 @@ export default function Home() {
       let viewsById = {};
       let variantsByProductId = {};
       if (ids.length > 0) {
-        const [{ data: viewRows }, { data: variantRows }] = await Promise.all([
-          supabase
+        let productDetailsQuery = supabase
           .from('productos')
           .select('user_id, vista_producto, unidad_base, unidades_alternativas, factor_conversion, stock')
-            .in('user_id', ids),
-          supabase
-            .from('producto_variantes')
-            .select('producto_id, id, color, stock, stock_decimal, precio, imagen_url, sku')
-            .in('producto_id', ids),
+          .in('user_id', ids);
+        let variantsQuery = supabase
+          .from('producto_variantes')
+          .select('producto_id, id, color, stock, stock_decimal, precio, imagen_url, sku')
+          .in('producto_id', ids);
+        if (activeSucursalId) {
+          productDetailsQuery = productDetailsQuery.eq('sucursal_id', activeSucursalId);
+          variantsQuery = variantsQuery.eq('sucursal_id', activeSucursalId);
+        }
+        const [{ data: viewRows }, { data: variantRows }] = await Promise.all([
+          productDetailsQuery,
+          variantsQuery,
         ]);
         viewsById = Object.fromEntries(
           (Array.isArray(viewRows) ? viewRows : []).map((row) => [
@@ -410,10 +430,12 @@ export default function Home() {
       // Buscar imágenes
       const visibleIds = visibleProducts.map(p => p.user_id);
       if (visibleIds.length > 0) {
-        const { data: imgs, error: imgsError } = await supabase
+        let imgsQuery = supabase
           .from('producto_imagenes')
           .select('producto_id, imagen_url')
           .in('producto_id', visibleIds);
+        if (activeSucursalId) imgsQuery = imgsQuery.eq('sucursal_id', activeSucursalId);
+        const { data: imgs, error: imgsError } = await imgsQuery;
         if (!imgsError && imgs) {
           const agrupadas = {};
           imgs.forEach(img => {
@@ -422,6 +444,8 @@ export default function Home() {
           });
           setImagenesProductos(agrupadas);
         }
+      } else {
+        setImagenesProductos({});
       }
     } catch (e) {
       setError(`Error al cargar productos: ${e.message}. (Verifique RLS y nombre de tabla)`);
@@ -449,7 +473,7 @@ export default function Home() {
         supabase.removeChannel(channel);
       };
     }
-  }, [currentPublicView]);
+  }, [currentPublicView, activeSucursalId, sucursalesLoading]);
 
 
   // 2. Definición de la variable calculada: productosFiltrados
@@ -566,6 +590,15 @@ export default function Home() {
 
   return (
   <div className="min-h-screen bg-gray-100 p-2 sm:p-4">
+      <PublicSucursalSelector
+        activeSucursal={activeSucursal}
+        activeSucursalId={activeSucursalId}
+        currentPublicView={currentPublicView}
+        error={sucursalesError}
+        loading={sucursalesLoading}
+        setActiveSucursalId={setActiveSucursalId}
+        sucursales={sucursales}
+      />
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-extrabold text-gray-900 mb-8 text-center">
           {currentPublicView === 'insumos' ? 'Catalogo de Insumos' : 'Catalogo de Productos'}

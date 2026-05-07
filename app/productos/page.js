@@ -11,6 +11,7 @@ import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from "@/lib/storeSettings"
 import { PrecioConPromocion, calcularPrecioConPromocion, PromoCompactBanner } from "@/lib/promociones";
 import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 import { normalizeProductView } from "@/lib/productViews";
+import PublicSucursalSelector, { usePublicSucursal } from "@/components/PublicSucursalSelector";
 
 function UnitPricePanel({ conversionInfo, factor, className = "mb-3" }) {
     if (!conversionInfo) return null;
@@ -66,7 +67,16 @@ function getEffectiveVariantStock(variant) {
 export default function CatalogoPage() {
         const pathname = usePathname();
         const currentPublicView = pathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
-        const cartStorageKey = currentPublicView === 'insumos' ? 'carrito_temporal_insumos' : 'carrito_temporal';
+        const {
+            sucursales,
+            activeSucursal,
+            activeSucursalId,
+            loading: sucursalesLoading,
+            error: sucursalesError,
+            setActiveSucursalId,
+        } = usePublicSucursal();
+        const cartStorageBaseKey = currentPublicView === 'insumos' ? 'carrito_temporal_insumos' : 'carrito_temporal';
+        const cartStorageKey = `${cartStorageBaseKey}_${activeSucursalId || 'global'}`;
     const [modalWarning, setModalWarning] = useState("");
     const [modalImg, setModalImg] = useState(null);
     const [addToCartModal, setAddToCartModal] = useState(null);
@@ -74,12 +84,12 @@ export default function CatalogoPage() {
     const [showConfirmOrder, setShowConfirmOrder] = useState(false);
     const [customerData, setCustomerData] = useState({ nombre: '', nit_ci: '' });
     // --- Declarar promociones usando el hook personalizado ---
-    const { promociones } = usePromociones();
+    const { promociones } = usePromociones(activeSucursalId);
                                 const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
                                 const [busqueda, setBusqueda] = useState('');
                                 const [imagenesProductos, setImagenesProductos] = useState({});
                             const [productos, setProductos] = useState([]);
-                        const { packs, loading: loadingPacks } = usePacks();
+                        const { packs, loading: loadingPacks } = usePacks(activeSucursalId);
                     const [categorias, setCategorias] = useState([]);
                 const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
             const [cart, setCart] = useState([]);
@@ -254,15 +264,21 @@ export default function CatalogoPage() {
         const ids = items.map((item) => item.user_id).filter(Boolean);
         if (ids.length === 0) return items;
         try {
+            let productDetailsQuery = supabase
+                .from('productos')
+                .select('user_id, unidad_base, unidades_alternativas, factor_conversion, vista_producto, stock')
+                .in('user_id', ids);
+            let variantsQuery = supabase
+                .from('producto_variantes')
+                .select('producto_id, id, color, stock, stock_decimal, precio, imagen_url, sku')
+                .in('producto_id', ids);
+            if (activeSucursalId) {
+                productDetailsQuery = productDetailsQuery.eq('sucursal_id', activeSucursalId);
+                variantsQuery = variantsQuery.eq('sucursal_id', activeSucursalId);
+            }
             const [{ data, error }, { data: variantRows }] = await Promise.all([
-                supabase
-                    .from('productos')
-                    .select('user_id, unidad_base, unidades_alternativas, factor_conversion, vista_producto, stock')
-                    .in('user_id', ids),
-                supabase
-                    .from('producto_variantes')
-                    .select('producto_id, id, color, stock, stock_decimal, precio, imagen_url, sku')
-                    .in('producto_id', ids),
+                productDetailsQuery,
+                variantsQuery,
             ]);
             if (error || !Array.isArray(data)) return items;
             const byId = new Map(data.map((row) => [String(row.user_id), row]));
@@ -315,10 +331,13 @@ export default function CatalogoPage() {
     );
     // --- Refactor: función de fetch fuera del useEffect para poder reutilizarla ---
     const fetchProductosYCategoriasYImagenes = async () => {
+        if (sucursalesLoading) return;
         // Usar la misma vista pública que la home para evitar desajustes entre rutas.
-        const { data: productosData, error: productosError } = await supabase
+        let catalogQuery = supabase
             .from('v_productos_catalogo')
             .select('producto_id, nombre, descripcion, precio_base, imagen_base, category_id, categoria, stock_total, codigo_barra, variantes');
+        if (activeSucursalId) catalogQuery = catalogQuery.eq('sucursal_id', activeSucursalId);
+        const { data: productosData, error: productosError } = await catalogQuery;
         if (productosError || !productosData) {
             setProductos([]);
             setImagenesProductos({});
@@ -359,17 +378,21 @@ export default function CatalogoPage() {
         setProductos(normalizedProducts);
 
         // Traer categorías
-        const { data: categoriasData, error: categoriasError } = await supabase
+        let categoriasQuery = supabase
             .from('categorias')
             .select('*');
+        if (activeSucursalId) categoriasQuery = categoriasQuery.eq('sucursal_id', activeSucursalId);
+        const { data: categoriasData, error: categoriasError } = await categoriasQuery;
         if (!categoriasError && categoriasData) {
             setCategorias(categoriasData);
         }
 
         // Traer imágenes asociadas
-        const { data: imagenesData, error: imagenesError } = await supabase
+        let imagenesQuery = supabase
             .from('producto_imagenes')
             .select('producto_id, imagen_url');
+        if (activeSucursalId) imagenesQuery = imagenesQuery.eq('sucursal_id', activeSucursalId);
+        const { data: imagenesData, error: imagenesError } = await imagenesQuery;
         if (imagenesError || !imagenesData) {
             setImagenesProductos({});
             return;
@@ -386,7 +409,7 @@ export default function CatalogoPage() {
 
     useEffect(() => {
         fetchProductosYCategoriasYImagenes();
-    }, [currentPublicView]);
+    }, [currentPublicView, activeSucursalId, sucursalesLoading]);
 
     // --- Recarga productos e imágenes al volver a la pestaña ---
     useEffect(() => {
@@ -399,7 +422,7 @@ export default function CatalogoPage() {
         return () => {
             document.removeEventListener('visibilitychange', handleVisibility);
         };
-    }, []);
+    }, [activeSucursalId, sucursalesLoading]);
 
     // Obtener usuario y perfil
     useEffect(() => {
@@ -484,16 +507,10 @@ export default function CatalogoPage() {
         }
     }, [usuario]);
 
-
-    // 1. Cargar productos y sus imágenes desde Supabase
-    useEffect(() => {
-        fetchProductosYCategoriasYImagenes();
-    }, []);
-
     // 2. Cargar carrito desde localStorage al inicio
     useEffect(() => {
         const stored = localStorage.getItem(cartStorageKey);
-        if (stored) setCart(JSON.parse(stored));
+        setCart(stored ? JSON.parse(stored) : []);
     }, [cartStorageKey]);
 
     // 3. Guardar carrito en localStorage cada vez que cambia
@@ -638,17 +655,19 @@ export default function CatalogoPage() {
         let productoDB = null;
         let varianteDB = null;
         try {
-            const { data: prodWithUnits, error: prodWithUnitsError } = await supabase
+            let prodWithUnitsQuery = supabase
                 .from('productos')
                 .select('user_id, nombre, precio, imagen_url, stock, unidad_base, unidades_alternativas, factor_conversion')
-                .eq('user_id', producto.user_id)
-                .maybeSingle();
+                .eq('user_id', producto.user_id);
+            if (activeSucursalId) prodWithUnitsQuery = prodWithUnitsQuery.eq('sucursal_id', activeSucursalId);
+            const { data: prodWithUnits, error: prodWithUnitsError } = await prodWithUnitsQuery.maybeSingle();
             if (prodWithUnitsError) {
-                const { data: prodFallback } = await supabase
+                let prodFallbackQuery = supabase
                     .from('productos')
                     .select('user_id, nombre, precio, imagen_url, stock')
-                    .eq('user_id', producto.user_id)
-                    .maybeSingle();
+                    .eq('user_id', producto.user_id);
+                if (activeSucursalId) prodFallbackQuery = prodFallbackQuery.eq('sucursal_id', activeSucursalId);
+                const { data: prodFallback } = await prodFallbackQuery.maybeSingle();
                 productoDB = prodFallback;
             } else {
                 productoDB = prodWithUnits;
@@ -658,11 +677,12 @@ export default function CatalogoPage() {
                     setModalWarning('Debes seleccionar un color para continuar.');
                     return;
                 }
-                const { data: varData } = await supabase
+                let variantQuery = supabase
                     .from('producto_variantes')
                     .select('id, color, stock, stock_decimal, precio, imagen_url')
-                    .eq('id', selectedVarianteId)
-                    .maybeSingle();
+                    .eq('id', selectedVarianteId);
+                if (activeSucursalId) variantQuery = variantQuery.eq('sucursal_id', activeSucursalId);
+                const { data: varData } = await variantQuery.maybeSingle();
                 varianteDB = varData;
             }
         } catch (e) {
@@ -883,6 +903,7 @@ export default function CatalogoPage() {
                     };
                 }),
                 carrito_token: carritoToken || null,
+                sucursal_id: activeSucursalId || null,
             }
         ]).select('id').single();
 
@@ -1023,6 +1044,15 @@ export default function CatalogoPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 sm:p-8 relative">
+            <PublicSucursalSelector
+                activeSucursal={activeSucursal}
+                activeSucursalId={activeSucursalId}
+                currentPublicView={currentPublicView}
+                error={sucursalesError}
+                loading={sucursalesLoading}
+                setActiveSucursalId={setActiveSucursalId}
+                sucursales={sucursales}
+            />
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-extrabold text-gray-900 text-center flex items-center gap-2">
                     {storeSettings?.store_logo_url ? (
