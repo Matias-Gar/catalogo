@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
@@ -11,11 +11,16 @@ import { getOptimizedImageUrl, buildImageSrcSet } from "../../../../lib/imageOpt
 import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
 
 
-function EliminarProductos(props) {
-  const { activeSucursalId } = useSucursalActiva();
+function getCategoryName(prod) {
+  return String(prod?.categorias?.categori || prod?.categoria || prod?.category_id || "Sin categoria").trim();
+}
+
+function EliminarProductos() {
+  const { activePaisId, activeSucursalId } = useSucursalActiva();
   const [productos, setProductos] = useState([]);
   const [imagenes, setImagenes] = useState({});
   const [eliminando, setEliminando] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
   const [categoria, setCategoria] = useState("");
   const [orden, setOrden] = useState("recientes");
@@ -23,35 +28,46 @@ function EliminarProductos(props) {
 
   useEffect(() => {
     async function fetchProductos() {
+      setLoading(true);
       let query = supabase
         .from("productos")
-        .select("user_id, nombre, precio, stock, categoria, created_at");
+        .select("user_id, nombre, precio, stock, categoria, category_id, codigo_barra, created_at, categorias (categori)");
+      if (activePaisId) query = query.eq("pais_id", activePaisId);
       if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
       const { data, error } = await query;
-      if (!error && data) {
-        setProductos(data);
+      if (error) {
+        console.error("Error cargando productos para eliminar:", error);
+        setProductos([]);
+        setImagenes({});
+        setLoading(false);
+        return;
+      }
+
+      const productosData = Array.isArray(data) ? data : [];
+      setProductos(productosData);
         // Obtener imágenes
-        const ids = data.map(p => p.user_id);
+        const ids = productosData.map(p => p.user_id).filter(Boolean);
         if (ids.length > 0) {
           let imgsQuery = supabase
             .from("producto_imagenes")
             .select("producto_id, imagen_url")
             .in("producto_id", ids);
+          if (activePaisId) imgsQuery = imgsQuery.eq("pais_id", activePaisId);
           if (activeSucursalId) imgsQuery = imgsQuery.eq("sucursal_id", activeSucursalId);
           const { data: imgs } = await imgsQuery;
-          if (imgs) {
-            const agrupadas = {};
-            imgs.forEach(img => {
-              if (!agrupadas[img.producto_id]) agrupadas[img.producto_id] = [];
-              agrupadas[img.producto_id].push(img.imagen_url);
-            });
-            setImagenes(agrupadas);
-          }
+          const agrupadas = {};
+          (imgs || []).forEach(img => {
+            if (!agrupadas[img.producto_id]) agrupadas[img.producto_id] = [];
+            agrupadas[img.producto_id].push(img.imagen_url);
+          });
+          setImagenes(agrupadas);
+        } else {
+          setImagenes({});
         }
-      }
+      setLoading(false);
     }
     fetchProductos();
-  }, [eliminando, activeSucursalId]);
+  }, [eliminando, activePaisId, activeSucursalId]);
 
   const eliminarProducto = async (user_id) => {
     if (!window.confirm("¿Seguro que deseas eliminar este producto?")) return;
@@ -61,6 +77,7 @@ function EliminarProductos(props) {
       const user = (await supabase.auth.getUser())?.data?.user;
       // Buscar el producto para obtener los datos antes de eliminar
       let prodQuery = supabase.from("productos").select("*").eq("user_id", user_id);
+      if (activePaisId) prodQuery = prodQuery.eq("pais_id", activePaisId);
       if (activeSucursalId) prodQuery = prodQuery.eq("sucursal_id", activeSucursalId);
       const { data: prodData } = await prodQuery.single();
       const movimientoPayload = {
@@ -69,6 +86,7 @@ function EliminarProductos(props) {
         cantidad: prodData?.stock || 0,
         usuario_id: user?.id || null,
         usuario_email: user?.email || '',
+        pais_id: activePaisId || null,
         observaciones: 'Eliminación de producto desde panel',
         sucursal_id: activeSucursalId || null
       };
@@ -79,31 +97,49 @@ function EliminarProductos(props) {
         datos_anteriores: prodData,
         datos_nuevos: null,
         usuario_email: user?.email || null,
+        pais_id: activePaisId || null,
         sucursal_id: activeSucursalId || null
       });
     } catch (err) {
       console.warn('No se pudo registrar movimiento/historial de eliminación:', err);
     }
     // Eliminar primero dependencias para evitar errores 409
-    const scopeSucursal = (query) => activeSucursalId ? query.eq("sucursal_id", activeSucursalId) : query;
-    await scopeSucursal(supabase.from("stock_movimientos").delete().eq("producto_id", user_id));
-    await scopeSucursal(supabase.from("productos_historial").delete().eq("producto_id", user_id));
-    await scopeSucursal(supabase.from("producto_variantes").delete().eq("producto_id", user_id));
-    await scopeSucursal(supabase.from("producto_imagenes").delete().eq("producto_id", user_id));
-    await scopeSucursal(supabase.from("promociones").delete().eq("producto_id", user_id));
-    await scopeSucursal(supabase.from("pack_productos").delete().eq("producto_id", user_id));
-    await scopeSucursal(supabase.from("ventas_detalle").delete().eq("producto_id", user_id));
+    const scopeOperation = (query) => {
+      let scoped = query;
+      if (activePaisId) scoped = scoped.eq("pais_id", activePaisId);
+      if (activeSucursalId) scoped = scoped.eq("sucursal_id", activeSucursalId);
+      return scoped;
+    };
+    await scopeOperation(supabase.from("stock_movimientos").delete().eq("producto_id", user_id));
+    await scopeOperation(supabase.from("productos_historial").delete().eq("producto_id", user_id));
+    await scopeOperation(supabase.from("producto_variantes").delete().eq("producto_id", user_id));
+    await scopeOperation(supabase.from("producto_imagenes").delete().eq("producto_id", user_id));
+    await scopeOperation(supabase.from("promociones").delete().eq("producto_id", user_id));
+    await scopeOperation(supabase.from("pack_productos").delete().eq("producto_id", user_id));
+    await scopeOperation(supabase.from("ventas_detalle").delete().eq("producto_id", user_id));
     // Finalmente, eliminar el producto
-    await scopeSucursal(supabase.from("productos").delete().eq("user_id", user_id));
+    await scopeOperation(supabase.from("productos").delete().eq("user_id", user_id));
     setEliminando(null);
   };
 
   // --- Filtros y ordenamiento ---
-  const categoriasDisponibles = Array.from(new Set(productos.map(p => p.categoria).filter(Boolean)));
-  let productosFiltrados = productos.filter(p =>
-    (!busqueda || p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || String(p.user_id).includes(busqueda)) &&
-    (!categoria || p.categoria === categoria)
-  );
+  const categoriasDisponibles = useMemo(() => {
+    return Array.from(new Set(productos.map(p => getCategoryName(p)).filter(Boolean)))
+      .sort((a, b) => a.localeCompare(b, "es"));
+  }, [productos]);
+
+  let productosFiltrados = productos.filter(p => {
+    const categoryName = getCategoryName(p);
+    const term = busqueda.trim().toLowerCase();
+    const matchesSearch = !term || [
+      p.nombre,
+      p.user_id,
+      p.codigo_barra,
+      categoryName,
+    ].some((value) => String(value || "").toLowerCase().includes(term));
+
+    return matchesSearch && (!categoria || categoryName === categoria);
+  });
   if (orden === "recientes") {
     productosFiltrados = productosFiltrados.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   } else if (orden === "alfabetico") {
@@ -119,7 +155,7 @@ function EliminarProductos(props) {
         <input
           ref={inputRef}
           className="border rounded px-3 py-2 w-full max-w-xs text-gray-900 placeholder-gray-600"
-          placeholder="Buscar por nombre o ID..."
+          placeholder="Buscar por nombre, ID, codigo o categoria..."
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
         />
@@ -153,8 +189,10 @@ function EliminarProductos(props) {
         >Limpiar filtros</button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {productosFiltrados.length === 0 ? (
-          <div className="col-span-full text-gray-700">No hay productos para eliminar.</div>
+        {loading ? (
+          <div className="col-span-full text-gray-700">Cargando productos...</div>
+        ) : productosFiltrados.length === 0 ? (
+          <div className="col-span-full text-gray-700">No hay productos para eliminar con esos filtros.</div>
         ) : (
           productosFiltrados.map(prod => (
             <Card key={prod.user_id}>
@@ -178,7 +216,7 @@ function EliminarProductos(props) {
                   )}
                   <div className="text-gray-900 text-sm mt-2 font-semibold">Precio: Bs {Number(prod.precio).toFixed(2)}</div>
                   <div className="text-gray-900">Stock: <span className={prod.stock < 3 ? 'text-red-600 font-bold' : ''}>{prod.stock}</span></div>
-                  <div className="text-gray-900">Categoría: {prod.categoria || '-'}</div>
+                  <div className="text-gray-900">Categoría: {getCategoryName(prod) || '-'}</div>
                 </div>
               </CardContent>
               <CardFooter>

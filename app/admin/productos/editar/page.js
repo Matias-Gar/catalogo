@@ -98,7 +98,7 @@ export default function EditarCatalogo() {
           ...prev,
           [productKey]: {
             ...prev[productKey],
-            variantes: [...current, { color: '', talla: '', stock: 0 }],
+            variantes: [...current, { color: '', stock: 0 }],
           },
         };
       });

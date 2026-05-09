@@ -65,6 +65,10 @@ function getEffectiveVariantStock(variant) {
     return Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
 }
 
+function cleanWhatsappNumber(input) {
+    return String(input || '').replace(/[^\d]/g, '');
+}
+
 export default function CatalogoPage() {
         const pathname = usePathname();
         const activeCountrySlug = getCountrySlugFromPath(pathname);
@@ -884,6 +888,13 @@ export default function CatalogoPage() {
         let nombreFinal = customerData.nombre || (usuario && usuario.nombre) || null;
         let nitciLlenado = customerData.nit_ci || (usuario && usuario.nit_ci) || null;
         let emailFinal = usuario && usuario.email ? usuario.email : null;
+        const whatsappNumber = cleanWhatsappNumber(
+            activeSucursal?.telefono || activePais?.whatsapp || storeSettings?.whatsapp_number || DEFAULT_STORE_SETTINGS.whatsapp_number
+        );
+        if (!whatsappNumber) {
+            alert("Esta sucursal no tiene WhatsApp configurado. Revisa el telefono de la sucursal o el WhatsApp del pais.");
+            return;
+        }
 
         // Importar el token anónimo
         let carritoToken = null;
@@ -967,7 +978,6 @@ export default function CatalogoPage() {
             `¡Hola! Me gustaría hacer el siguiente pedido:\n\n${pedidoTexto}\n${nombreTexto}${nitciTexto}\n${itemsList}\n\n*Total:* Bs ${total}\n\n¡Gracias!`
         );
         
-        const whatsappNumber = activeSucursal?.telefono || activePais?.whatsapp || storeSettings?.whatsapp_number || CONFIG.WHATSAPP_BUSINESS;
         const whatsappURL = `https://wa.me/${whatsappNumber}?text=${message}`;
         window.open(whatsappURL, '_blank');
         

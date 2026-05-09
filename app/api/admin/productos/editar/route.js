@@ -91,7 +91,7 @@ export async function POST(request) {
 
     let variantesQuery = supabaseAdmin
       .from("producto_variantes")
-      .select("id, producto_id, color, talla, stock, stock_decimal, sku, precio, imagen_url, activo")
+      .select("id, producto_id, color, stock, stock_decimal, sku, precio, imagen_url, activo")
       .eq("producto_id", productoActual.user_id);
     if (activeSucursalId) variantesQuery = variantesQuery.eq("sucursal_id", activeSucursalId);
     const { data: variantesBD, error: variantesError } = await variantesQuery;
@@ -145,7 +145,6 @@ export async function POST(request) {
     for (const variant of nuevasVariantes) {
       const payload = {
         color: variant.color,
-        talla: variant.talla,
         stock: Math.max(0, Math.floor(Number(variant.stock) || 0)),
         stock_decimal: Number(variant.stock) || 0,
         sku: variant.sku,
