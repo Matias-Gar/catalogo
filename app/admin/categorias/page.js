@@ -8,7 +8,8 @@ import { useSucursalActiva } from "../../../components/admin/SucursalContext";
 
 export default function AdminCategorias() {
   const router = useRouter();
-  const { activeSucursalId } = useSucursalActiva();
+  const { activePaisId, activeSucursal } = useSucursalActiva();
+  const effectiveSucursalId = activeSucursal?.id || "";
 
   const [categorias, setCategorias] = useState([]);
   const [productos, setProductos] = useState([]);
@@ -17,14 +18,15 @@ export default function AdminCategorias() {
   const [nombreEdit, setNombreEdit] = useState("");
 
   useEffect(() => {
-    if (!activeSucursalId) return;
+    if (!effectiveSucursalId) return;
     fetchCategorias();
     fetchProductos();
-  }, [activeSucursalId]);
+  }, [activePaisId, effectiveSucursalId]);
 
   async function fetchCategorias() {
     let query = supabase.from("categorias").select("*");
-    if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
+    if (activePaisId) query = query.eq("pais_id", activePaisId);
+    if (effectiveSucursalId) query = query.eq("sucursal_id", effectiveSucursalId);
     const { data, error } = await query;
     if (error) {
       showToast("Error al cargar categorías", "error");
@@ -35,7 +37,8 @@ export default function AdminCategorias() {
 
   async function fetchProductos() {
     let query = supabase.from("productos").select("*");
-    if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
+    if (activePaisId) query = query.eq("pais_id", activePaisId);
+    if (effectiveSucursalId) query = query.eq("sucursal_id", effectiveSucursalId);
     const { data, error } = await query;
     if (error) {
       showToast("Error al cargar productos", "error");
@@ -47,13 +50,17 @@ export default function AdminCategorias() {
   async function handleAgregar(e) {
     e.preventDefault();
     if (!nuevaCategoria.trim()) return;
+    if (!activePaisId || !effectiveSucursalId) {
+      showToast("Selecciona pais y sucursal antes de crear categorias", "error");
+      return;
+    }
 
     const { error } = await supabase
       .from("categorias")
-      .insert({ categori: nuevaCategoria, sucursal_id: activeSucursalId });
+      .insert({ categori: nuevaCategoria, pais_id: activePaisId, sucursal_id: effectiveSucursalId });
 
     if (error) {
-      showToast("Error al agregar la categoría", "error");
+      showToast(`Error al agregar la categoria: ${error.message || error}`, "error");
     } else {
       setNuevaCategoria("");
       fetchCategorias();
@@ -70,7 +77,8 @@ export default function AdminCategorias() {
     if (!confirm("¿Eliminar esta categoría?")) return;
 
     let query = supabase.from("categorias").delete().eq("id", id);
-    if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
+    if (activePaisId) query = query.eq("pais_id", activePaisId);
+    if (effectiveSucursalId) query = query.eq("sucursal_id", effectiveSucursalId);
     const { error } = await query;
 
     if (error) {
@@ -88,10 +96,11 @@ export default function AdminCategorias() {
       .from("categorias")
       .update({ categori: nombreEdit })
       .eq("id", id)
-      .eq("sucursal_id", activeSucursalId);
+      .eq("pais_id", activePaisId)
+      .eq("sucursal_id", effectiveSucursalId);
 
     if (error) {
-      showToast("Error al guardar la categoría", "error");
+      showToast(`Error al guardar la categoria: ${error.message || error}`, "error");
     } else {
       setEditando(null);
       setNombreEdit("");

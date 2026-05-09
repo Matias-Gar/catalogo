@@ -17,7 +17,7 @@ export default function PedidosPage() {
   async function fetchCarritos() {
     let query = supabase
       .from("carritos_pendientes")
-      .select("id, cliente_nombre, cliente_telefono, usuario_email, productos, fecha, confirmado_pago")
+      .select("id, cliente_nombre, cliente_telefono, usuario_email, productos, fecha, confirmado_pago, sucursal_id")
       .order("fecha", { ascending: false });
     if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
     const { data, error } = await query;

@@ -91,6 +91,7 @@ export default function CarritoPanel({
                             `${packItem.cantidad}x ${packItem.productos.nombre}`
                           ).join(', ') || 'Productos del pack'}
                         </div>
+                        <button onClick={() => quitar(packKey)} className="mt-2 bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded font-bold text-xs">Quitar</button>
                       </td>
                       <td className="p-2">
                         <input
@@ -160,6 +161,12 @@ export default function CarritoPanel({
                     <td className="p-2 text-left font-bold text-gray-900">
                       <div>{item.nombre}</div>
                       {item.color && <div className="text-xs font-semibold text-blue-700">Color: {item.color}</div>}
+                      <button
+                        onClick={() => quitar(itemKey)}
+                        className="mt-2 bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded font-bold text-xs"
+                      >
+                        Quitar
+                      </button>
                     </td>
                     <td className="p-2">
                       {hasUnitConversion ? (

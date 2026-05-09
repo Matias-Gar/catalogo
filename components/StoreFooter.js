@@ -2,15 +2,22 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from '../lib/storeSettings';
+import { usePublicSucursal } from './PublicSucursalSelector';
 
 export default function StoreFooter() {
   const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
+  const { activePais, activeSucursal } = usePublicSucursal();
 
   useEffect(() => {
     let mounted = true;
 
     const loadSettings = async () => {
-      const settings = await fetchStoreSettings();
+      const settings = await fetchStoreSettings({
+        paisId: activePais?.id,
+        paisSlug: activePais?.slug,
+        whatsapp: activePais?.whatsapp,
+        direccion: activePais?.direccion,
+      });
       if (mounted) setStoreSettings(settings);
     };
 
@@ -28,12 +35,16 @@ export default function StoreFooter() {
       mounted = false;
       window.removeEventListener('storage', handleStorage);
     };
-  }, []);
+  }, [activePais?.direccion, activePais?.id, activePais?.slug, activePais?.whatsapp]);
 
   const whatsappLink = useMemo(() => {
     if (!storeSettings?.whatsapp_number) return '';
     return `https://wa.me/${storeSettings.whatsapp_number}`;
   }, [storeSettings?.whatsapp_number]);
+
+  const footerAddress = activeSucursal?.direccion || activePais?.direccion || storeSettings?.store_address || '';
+  const footerPhone = activeSucursal?.telefono || activePais?.whatsapp || storeSettings?.whatsapp_number || '';
+  const footerWhatsappLink = footerPhone ? `https://wa.me/${String(footerPhone).replace(/[^\d]/g, '')}` : whatsappLink;
 
   return (
     <footer className="border-t border-slate-200 bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8">
@@ -42,13 +53,13 @@ export default function StoreFooter() {
         {storeSettings?.store_info ? (
           <p className="max-w-3xl text-sm leading-6 text-slate-300">{storeSettings.store_info}</p>
         ) : null}
-        {storeSettings?.store_address ? (
-          <p className="text-sm font-medium text-slate-200">Ubicación: {storeSettings.store_address}</p>
+        {footerAddress ? (
+          <p className="text-sm font-medium text-slate-200">Ubicacion: {footerAddress}</p>
         ) : null}
-        {storeSettings?.whatsapp_number ? (
+        {footerPhone ? (
           <div>
-            <a href={whatsappLink} target="_blank" rel="noreferrer" className="text-sm font-semibold text-emerald-300 hover:text-emerald-200 hover:underline">
-              WhatsApp: +{storeSettings.whatsapp_number}
+            <a href={footerWhatsappLink} target="_blank" rel="noreferrer" className="text-sm font-semibold text-emerald-300 hover:text-emerald-200 hover:underline">
+              WhatsApp: +{footerPhone}
             </a>
           </div>
         ) : null}

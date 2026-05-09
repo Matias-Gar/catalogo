@@ -3,27 +3,31 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { buildCountryPath, getCountrySlugFromPath, stripCountryFromPath } from "../lib/countryRoutes";
 
 const STORAGE_KEY = "streetwear.public_sucursal_id";
 
-function getSavedSucursalId() {
+function getSavedSucursalId(countrySlug = "bo") {
   if (typeof window === "undefined") return "";
-  return window.localStorage.getItem(STORAGE_KEY) || "";
+  return window.localStorage.getItem(`${STORAGE_KEY}_${countrySlug}`) || window.localStorage.getItem(STORAGE_KEY) || "";
 }
 
 export function usePublicSucursal() {
   const [sucursales, setSucursales] = useState([]);
+  const [activePais, setActivePais] = useState(null);
   const [activeSucursalId, setActiveSucursalIdState] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const pathname = usePathname();
+  const activeCountrySlug = getCountrySlugFromPath(pathname);
 
   const setActiveSucursalId = useCallback((id) => {
     setActiveSucursalIdState(id);
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, id);
-      window.dispatchEvent(new CustomEvent("public-sucursal:changed", { detail: { sucursalId: id } }));
+      window.localStorage.setItem(`${STORAGE_KEY}_${activeCountrySlug}`, id);
+      window.dispatchEvent(new CustomEvent("public-sucursal:changed", { detail: { sucursalId: id, countrySlug: activeCountrySlug } }));
     }
-  }, []);
+  }, [activeCountrySlug]);
 
   useEffect(() => {
     let mounted = true;
@@ -32,19 +36,20 @@ export function usePublicSucursal() {
       setLoading(true);
       setError("");
       try {
-        const response = await fetch("/api/public/sucursales");
+        const response = await fetch(`/api/public/sucursales?pais=${encodeURIComponent(activeCountrySlug)}`);
         const result = await response.json();
         if (!response.ok || !result.success) {
           throw new Error(result.error || "No se pudieron cargar sucursales.");
         }
 
         const branches = Array.isArray(result.sucursales) ? result.sucursales : [];
-        const savedId = getSavedSucursalId();
+        const savedId = getSavedSucursalId(activeCountrySlug);
         const savedStillValid = branches.some((branch) => branch.id === savedId);
         const nextId = savedStillValid ? savedId : branches[0]?.id || "";
 
         if (!mounted) return;
         setSucursales(branches);
+        setActivePais(result.pais || null);
         if (nextId) setActiveSucursalId(nextId);
       } catch (requestError) {
         if (mounted) setError(requestError?.message || "No se pudieron cargar sucursales.");
@@ -58,7 +63,27 @@ export function usePublicSucursal() {
     return () => {
       mounted = false;
     };
-  }, [setActiveSucursalId]);
+  }, [activeCountrySlug, setActiveSucursalId]);
+
+  useEffect(() => {
+    const syncFromBrowser = (event) => {
+      if (event?.detail?.countrySlug && event.detail.countrySlug !== activeCountrySlug) return;
+      const nextId = event?.detail?.sucursalId || getSavedSucursalId(activeCountrySlug);
+      if (nextId) setActiveSucursalIdState(nextId);
+    };
+
+    const syncFromStorage = (event) => {
+      if (event.key === STORAGE_KEY) syncFromBrowser(event);
+    };
+
+    window.addEventListener("public-sucursal:changed", syncFromBrowser);
+    window.addEventListener("storage", syncFromStorage);
+
+    return () => {
+      window.removeEventListener("public-sucursal:changed", syncFromBrowser);
+      window.removeEventListener("storage", syncFromStorage);
+    };
+  }, [activeCountrySlug]);
 
   const activeSucursal = useMemo(
     () => sucursales.find((branch) => branch.id === activeSucursalId) || null,
@@ -67,6 +92,8 @@ export function usePublicSucursal() {
 
   return {
     sucursales,
+    activePais,
+    activeCountrySlug,
     activeSucursal,
     activeSucursalId,
     loading,
@@ -86,9 +113,11 @@ export default function PublicSucursalSelector({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const isPedidoRoute = pathname?.includes("/productos");
-  const articleHref = isPedidoRoute ? "/productos" : "/";
-  const insumosHref = isPedidoRoute ? "/insumos/productos" : "/insumos";
+  const countrySlug = getCountrySlugFromPath(pathname);
+  const cleanPath = stripCountryFromPath(pathname);
+  const isPedidoRoute = cleanPath?.includes("/productos");
+  const articleHref = buildCountryPath(countrySlug, isPedidoRoute ? "/productos" : "/");
+  const insumosHref = buildCountryPath(countrySlug, isPedidoRoute ? "/insumos/productos" : "/insumos");
 
   if (loading || sucursales.length === 0) return null;
 

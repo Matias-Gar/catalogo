@@ -25,27 +25,42 @@ export interface ProductoInput {
 // --- SINCRONIZACIÓN GLOBAL DE STOCK DE PRODUCTO ---
 export async function sincronizarStockProducto(
   producto_id: string | number,
-  supabase: unknown
+  supabase: unknown,
+  scope: { pais_id?: string | null; sucursal_id?: string | null } = {}
 ): Promise<number> {
-  const { data } = await (supabase as any)
+  let productoQuery = (supabase as any)
+    .from("productos")
+    .select("stock, unidad_base, unidades_alternativas, factor_conversion")
+    .eq("user_id", producto_id);
+  if (scope.pais_id) productoQuery = productoQuery.eq("pais_id", scope.pais_id);
+  if (scope.sucursal_id) productoQuery = productoQuery.eq("sucursal_id", scope.sucursal_id);
+  const { data: producto } = await productoQuery.maybeSingle();
+
+  const stockActual = Number((producto as any)?.stock ?? 0);
+  const stockProducto = Number.isFinite(stockActual) ? Math.max(0, stockActual) : 0;
+  const hasConversion = Boolean(
+    Array.isArray((producto as any)?.unidades_alternativas) &&
+      (producto as any).unidades_alternativas.length > 0 &&
+      Number((producto as any)?.factor_conversion || 0) > 0
+  );
+
+  if (hasConversion) return stockProducto;
+
+  let variantesQuery = (supabase as any)
     .from("producto_variantes")
     .select("stock, stock_decimal")
     .eq("producto_id", producto_id)
     .eq("activo", true);
+  if (scope.pais_id) variantesQuery = variantesQuery.eq("pais_id", scope.pais_id);
+  if (scope.sucursal_id) variantesQuery = variantesQuery.eq("sucursal_id", scope.sucursal_id);
+  const { data } = await variantesQuery;
 
   const variantes: Variante[] = Array.isArray(data)
     ? data.map((v) => ({ ...v, color: (v as any).color ?? "", id: (v as any).id ?? undefined }))
     : [];
 
   if (variantes.length === 0) {
-    const { data: producto } = await (supabase as any)
-      .from("productos")
-      .select("stock")
-      .eq("user_id", producto_id)
-      .maybeSingle();
-
-    const stockActual = Number((producto as any)?.stock ?? 0);
-    return Number.isFinite(stockActual) ? Math.max(0, stockActual) : 0;
+    return stockProducto;
   }
 
   const stockTotal = variantes.reduce<number>(
@@ -57,10 +72,13 @@ export async function sincronizarStockProducto(
     0
   );
 
-  await (supabase as any)
+  let updateQuery = (supabase as any)
     .from("productos")
     .update({ stock: stockTotal })
     .eq("user_id", producto_id);
+  if (scope.pais_id) updateQuery = updateQuery.eq("pais_id", scope.pais_id);
+  if (scope.sucursal_id) updateQuery = updateQuery.eq("sucursal_id", scope.sucursal_id);
+  await updateQuery;
 
   return stockTotal;
 }

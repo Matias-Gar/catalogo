@@ -11,6 +11,7 @@ import ExpandableDescription from '../components/ui/ExpandableDescription';
 import { getOptimizedImageUrl, buildImageSrcSet } from '../lib/imageOptimization';
 import { normalizeProductView } from '../lib/productViews';
 import PublicSucursalSelector, { usePublicSucursal } from '../components/PublicSucursalSelector';
+import { buildCountryPath, getCountrySlugFromPath, stripCountryFromPath } from '../lib/countryRoutes';
 
 // Componente principal de la página (Tienda)
 // Utilidad para obtener nombre de categoría por id
@@ -257,8 +258,12 @@ function ImageGalleryModal({ isOpen, onClose, imageList, imageIndex, productName
 
 export default function Home() {
   const pathname = usePathname();
-  const currentPublicView = pathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
-  const pedidosHref = currentPublicView === 'insumos' ? '/insumos/productos' : '/productos';
+  const activeCountrySlug = getCountrySlugFromPath(pathname);
+  const cleanPathname = stripCountryFromPath(pathname);
+  const currentPublicView = cleanPathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
+  const pedidosHref = currentPublicView === 'insumos'
+    ? buildCountryPath(activeCountrySlug, '/insumos/productos')
+    : buildCountryPath(activeCountrySlug, '/productos');
   const {
     sucursales,
     activeSucursal,
@@ -308,6 +313,10 @@ export default function Home() {
 
   const fetchCategorias = async () => {
     if (!supabase) return;
+    if (!activeSucursalId) {
+      setCategorias([]);
+      return;
+    }
     let query = supabase
       .from('categorias')
       .select('id, categori')
@@ -319,6 +328,12 @@ export default function Home() {
 
   const fetchProductos = async () => {
     if (sucursalesLoading) return;
+    if (!activeSucursalId) {
+      setProductos([]);
+      setImagenesProductos({});
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {

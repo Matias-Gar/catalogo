@@ -12,7 +12,8 @@ import { sincronizarStockProducto } from "@/lib/utils";
 import { useSucursalActiva } from "@/components/admin/SucursalContext";
 
 export default function AumentarStockPage() {
-  const { activeSucursalId } = useSucursalActiva();
+  const { activePaisId, activeSucursal } = useSucursalActiva();
+  const effectiveSucursalId = activeSucursal?.id || "";
   const QZ_PRINTER_NAME = "POS-80C";
   const ENABLE_QZ_DIRECT_LABEL_PRINT = true;
 
@@ -27,9 +28,9 @@ export default function AumentarStockPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
 
   useEffect(() => {
-    if (!activeSucursalId) return;
+    if (!activePaisId || !effectiveSucursalId) return;
     fetchData();
-  }, [activeSucursalId]);
+  }, [activePaisId, effectiveSucursalId]);
 
   const loadQzTray = () =>
     new Promise((resolve, reject) => {
@@ -233,7 +234,8 @@ export default function AumentarStockPage() {
       `)
       .order("nombre", { ascending: true })
       .limit(1200);
-    if (activeSucursalId) productosQuery = productosQuery.eq("sucursal_id", activeSucursalId);
+    if (activePaisId) productosQuery = productosQuery.eq("pais_id", activePaisId);
+    if (effectiveSucursalId) productosQuery = productosQuery.eq("sucursal_id", effectiveSucursalId);
     const { data: prods, error: prodsError } = await productosQuery;
 
     if (prodsError) {
@@ -266,7 +268,8 @@ export default function AumentarStockPage() {
           .in("producto_id", chunk)
           .eq("activo", true)
           .order("color", { ascending: true });
-        if (activeSucursalId) withActiveQuery = withActiveQuery.eq("sucursal_id", activeSucursalId);
+        if (activePaisId) withActiveQuery = withActiveQuery.eq("pais_id", activePaisId);
+        if (effectiveSucursalId) withActiveQuery = withActiveQuery.eq("sucursal_id", effectiveSucursalId);
         const withActive = await withActiveQuery;
         if (withActive.error) {
           let fallbackWithoutActiveQuery = supabase
@@ -274,7 +277,8 @@ export default function AumentarStockPage() {
             .select("id, producto_id, color, stock, stock_decimal, codigo_barra, sku")
             .in("producto_id", chunk)
             .order("color", { ascending: true });
-          if (activeSucursalId) fallbackWithoutActiveQuery = fallbackWithoutActiveQuery.eq("sucursal_id", activeSucursalId);
+          if (activePaisId) fallbackWithoutActiveQuery = fallbackWithoutActiveQuery.eq("pais_id", activePaisId);
+          if (effectiveSucursalId) fallbackWithoutActiveQuery = fallbackWithoutActiveQuery.eq("sucursal_id", effectiveSucursalId);
           const fallbackWithoutActive = await fallbackWithoutActiveQuery;
           if (fallbackWithoutActive.error) {
             let minimalFallbackQuery = supabase
@@ -282,7 +286,8 @@ export default function AumentarStockPage() {
               .select("id, producto_id, color, stock")
               .in("producto_id", chunk)
               .order("color", { ascending: true });
-            if (activeSucursalId) minimalFallbackQuery = minimalFallbackQuery.eq("sucursal_id", activeSucursalId);
+            if (activePaisId) minimalFallbackQuery = minimalFallbackQuery.eq("pais_id", activePaisId);
+            if (effectiveSucursalId) minimalFallbackQuery = minimalFallbackQuery.eq("sucursal_id", effectiveSucursalId);
             const minimalFallback = await minimalFallbackQuery;
             if (minimalFallback.error) {
               console.warn("Variantes no disponibles en este esquema:", minimalFallback.error);
@@ -429,7 +434,30 @@ export default function AumentarStockPage() {
     setIncrements((prev) => ({ ...prev, [key]: normalizeIncrementValue(prev[key], unit) }));
   }
 
+  async function aumentarStockApi(payload) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    const response = await fetch("/api/admin/productos/aumentar-stock", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || "No se pudo aumentar stock");
+    }
+    return result;
+  }
+
   async function aumentarStockProducto(prod, shouldPrint = false) {
+    if (!activePaisId || !effectiveSucursalId) {
+      showToast("Selecciona pais y sucursal antes de aumentar stock", "error");
+      return;
+    }
+
     const pid = prod.user_id;
     const key = `p-${pid}`;
     const increaseBy = getBaseIncrease(prod, key);
@@ -447,15 +475,47 @@ export default function AumentarStockPage() {
     try {
       setSavingKey(key);
 
+      const result = await aumentarStockApi({
+        mode: "product",
+        productId: pid,
+        paisId: activePaisId,
+        sucursalId: effectiveSucursalId,
+        baseIncrease: increaseBy,
+        displayIncrease,
+        selectedUnit,
+      });
+      const apiTotalStock = Number(result.totalStock || newStock);
+      setProductos((prev) =>
+        prev.map((p) => (p.user_id === pid ? { ...p, stock: apiTotalStock } : p))
+      );
+      setIncrements((prev) => ({ ...prev, [key]: 0 }));
+
+      if (shouldPrint) {
+        const barcode = String(prod.codigo_barra || "").trim();
+        if (!barcode) {
+          showToast("No se puede imprimir: el producto no tiene codigo de barras", "error");
+          return;
+        }
+        await printLabels({ code: barcode, label: prod.nombre, copies: Math.max(1, Math.ceil(displayIncrease)) });
+      }
+
+      showToast(`Stock actualizado para ${prod.nombre}`);
+      return;
+
       const { error } = await supabase
         .from("productos")
         .update({ stock: newStock })
-        .eq("user_id", pid);
+        .eq("user_id", pid)
+        .eq("pais_id", activePaisId)
+        .eq("sucursal_id", effectiveSucursalId);
 
       if (error) throw error;
 
       // Sincroniza el stock del producto como suma de variantes
-      const totalStock = await sincronizarStockProducto(pid, supabase);
+      const totalStock = await sincronizarStockProducto(pid, supabase, {
+        pais_id: activePaisId,
+        sucursal_id: effectiveSucursalId,
+      });
 
       setProductos((prev) =>
         prev.map((p) => (p.user_id === pid ? { ...p, stock: totalStock } : p))
@@ -470,6 +530,8 @@ export default function AumentarStockPage() {
           .from("productos")
           .select("*")
           .eq("user_id", pid)
+          .eq("pais_id", activePaisId)
+          .eq("sucursal_id", effectiveSucursalId)
           .single();
         const movimientoPayload = {
           producto_id: Number(pid),
@@ -479,7 +541,8 @@ export default function AumentarStockPage() {
           unidad: selectedUnit,
           usuario_id: user?.id || null,
           usuario_email: user?.email || '',
-          sucursal_id: activeSucursalId || null,
+          pais_id: activePaisId || null,
+          sucursal_id: effectiveSucursalId || null,
           observaciones: `Aumento de stock desde panel (${formatQuantity(displayIncrease)} ${selectedUnit})`
         };
         await registrarMovimientoStock(movimientoPayload);
@@ -488,7 +551,8 @@ export default function AumentarStockPage() {
           accion: "UPDATE",
           datos_anteriores: actual,
           datos_nuevos: { ...actual, stock: totalStock },
-          sucursal_id: activeSucursalId || null,
+          pais_id: activePaisId || null,
+          sucursal_id: effectiveSucursalId || null,
           usuario_email: user?.email || null
         });
       } catch (err) {
@@ -507,13 +571,18 @@ export default function AumentarStockPage() {
       showToast(`Stock actualizado para ${prod.nombre}`);
     } catch (err) {
       console.error("Error aumentando stock de producto:", err);
-      showToast("No se pudo actualizar el stock", "error");
+      showToast(`No se pudo actualizar el stock: ${err?.message || JSON.stringify(err)}`, "error");
     } finally {
       setSavingKey(null);
     }
   }
 
   async function aumentarStockVariante(prod, variante, shouldPrint = false) {
+    if (!activePaisId || !effectiveSucursalId) {
+      showToast("Selecciona pais y sucursal antes de aumentar stock", "error");
+      return;
+    }
+
     const pid = prod.user_id;
     const variantId = variante.id;
     const key = `v-${variantId}`;
@@ -532,19 +601,63 @@ export default function AumentarStockPage() {
     try {
       setSavingKey(key);
 
+      const result = await aumentarStockApi({
+        mode: "variant",
+        productId: pid,
+        variantId,
+        paisId: activePaisId,
+        sucursalId: effectiveSucursalId,
+        baseIncrease: increaseBy,
+        displayIncrease,
+        selectedUnit,
+      });
+      const apiTotalStock = Number(result.totalStock || 0);
+      const savedVariantStock = Number(result.nextVariantStock || nextVariantStock);
+
+      setVariantesByProducto((prev) => ({
+        ...prev,
+        [String(pid)]: (prev[String(pid)] || []).map((v) =>
+          v.id === variantId ? { ...v, stock: Math.floor(savedVariantStock), stock_decimal: savedVariantStock } : v
+        ),
+      }));
+
+      setProductos((prev) =>
+        prev.map((p) => (p.user_id === pid ? { ...p, stock: apiTotalStock } : p))
+      );
+
+      setIncrements((prev) => ({ ...prev, [key]: 0 }));
+
+      if (shouldPrint) {
+        const barcode = String(variante.codigo_barra || variante.sku || prod.codigo_barra || "").trim();
+        if (!barcode) {
+          showToast("No se puede imprimir: la variante/producto no tiene codigo de barras", "error");
+          return;
+        }
+        const label = `${prod.nombre} - ${variante.color || "Unico"}`;
+        await printLabels({ code: barcode, label, copies: Math.max(1, Math.ceil(displayIncrease)) });
+      }
+
+      showToast(`Stock aumentado en ${variante.color || "Unico"}`);
+      return;
+
       const { error: variantError } = await supabase
         .from("producto_variantes")
         .update({
           stock_decimal: nextVariantStock,
           stock: Math.floor(nextVariantStock),
         })
-        .eq("id", variantId);
+        .eq("id", variantId)
+        .eq("pais_id", activePaisId)
+        .eq("sucursal_id", effectiveSucursalId);
 
       if (variantError) throw variantError;
 
 
       // Sincroniza el stock del producto como suma de variantes
-      const totalStock = await sincronizarStockProducto(pid, supabase);
+      const totalStock = await sincronizarStockProducto(pid, supabase, {
+        pais_id: activePaisId,
+        sucursal_id: effectiveSucursalId,
+      });
 
       // Registrar movimiento e historial de aumento de stock para variante
       try {
@@ -554,6 +667,8 @@ export default function AumentarStockPage() {
           .from("productos")
           .select("*")
           .eq("user_id", pid)
+          .eq("pais_id", activePaisId)
+          .eq("sucursal_id", effectiveSucursalId)
           .single();
         const movimientoPayload = {
           producto_id: Number(pid),
@@ -564,7 +679,8 @@ export default function AumentarStockPage() {
           unidad: selectedUnit,
           usuario_id: user?.id || null,
           usuario_email: user?.email || '',
-          sucursal_id: activeSucursalId || null,
+          pais_id: activePaisId || null,
+          sucursal_id: effectiveSucursalId || null,
           observaciones: `Aumento de stock en variante (${variante.color || 'Unico'}) desde panel (${formatQuantity(displayIncrease)} ${selectedUnit})`
         };
         await registrarMovimientoStock(movimientoPayload);
@@ -573,7 +689,8 @@ export default function AumentarStockPage() {
           accion: "UPDATE",
           datos_anteriores: actual,
           datos_nuevos: { ...actual, stock: totalStock },
-          sucursal_id: activeSucursalId || null,
+          pais_id: activePaisId || null,
+          sucursal_id: effectiveSucursalId || null,
           usuario_email: user?.email || null
         });
       } catch (err) {
@@ -606,7 +723,7 @@ export default function AumentarStockPage() {
       showToast(`Stock aumentado en ${variante.color || "Unico"}`);
     } catch (err) {
       console.error("Error aumentando stock de variante:", err);
-      showToast("No se pudo actualizar el stock de color", "error");
+      showToast(`No se pudo actualizar el stock de color: ${err?.message || JSON.stringify(err)}`, "error");
     } finally {
       setSavingKey(null);
     }

@@ -472,7 +472,8 @@ export default function AdminProductosPage() {
     // HOOKS AL INICIO
     const router = useRouter(); 
     const pathname = usePathname();
-    const { activeSucursalId } = useSucursalActiva();
+    const { activePaisId, activeSucursal } = useSucursalActiva();
+    const effectiveSucursalId = activeSucursal?.id || "";
     const currentProductView = normalizeProductView(pathname?.includes('/admin/insumos') ? 'insumos' : 'articulos');
     const currentViewMeta = getProductViewMeta(currentProductView);
     const [userRole, setUserRole] = useState(null); 
@@ -1247,7 +1248,8 @@ export default function AdminProductosPage() {
             .from('categorias')
             .select('id, categori')
             .order('categori', { ascending: true });
-        if (activeSucursalId) query = query.eq('sucursal_id', activeSucursalId);
+        if (activePaisId) query = query.eq('pais_id', activePaisId);
+        if (effectiveSucursalId) query = query.eq('sucursal_id', effectiveSucursalId);
         const { data, error } = await query;
         if (error) {
             setCategories([]);
@@ -1282,7 +1284,8 @@ export default function AdminProductosPage() {
                 categorias (categori)
             `)
             .order('created_at', { ascending: false });
-        if (activeSucursalId) query = query.eq('sucursal_id', activeSucursalId);
+        if (activePaisId) query = query.eq('pais_id', activePaisId);
+        if (effectiveSucursalId) query = query.eq('sucursal_id', effectiveSucursalId);
         let response = await query;
 
         data = response.data;
@@ -1305,7 +1308,8 @@ export default function AdminProductosPage() {
                     categorias (categori)
                 `)
                 .order('created_at', { ascending: false });
-            if (activeSucursalId) fallbackQuery = fallbackQuery.eq('sucursal_id', activeSucursalId);
+            if (activePaisId) fallbackQuery = fallbackQuery.eq('pais_id', activePaisId);
+            if (effectiveSucursalId) fallbackQuery = fallbackQuery.eq('sucursal_id', effectiveSucursalId);
             response = await fallbackQuery;
 
             data = response.data;
@@ -1390,7 +1394,7 @@ export default function AdminProductosPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [userRole, currentProductView, activeSucursalId]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [userRole, currentProductView, activePaisId, effectiveSucursalId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // load saved form if returning from otra página
     const restoredRef = useRef(false);
@@ -1458,7 +1462,8 @@ export default function AdminProductosPage() {
             .from("productos")
             .select("user_id")
             .ilike("nombre", newProduct.nombre.trim());
-        if (activeSucursalId) duplicateQuery = duplicateQuery.eq('sucursal_id', activeSucursalId);
+        if (activePaisId) duplicateQuery = duplicateQuery.eq('pais_id', activePaisId);
+        if (effectiveSucursalId) duplicateQuery = duplicateQuery.eq('sucursal_id', effectiveSucursalId);
         const { data: productosConNombre, error: errorNombre } = await duplicateQuery;
         if (!errorNombre && productosConNombre && productosConNombre.length > 0) {
             setShowNameRepeatModal(true);
@@ -1515,6 +1520,10 @@ export default function AdminProductosPage() {
             const factorConversionNormalizado = Number(newProduct.factor_conversion) > 0 ? Number(newProduct.factor_conversion) : null;
             const vistaProductoNormalizada = normalizeProductView(newProduct.vista_producto);
 
+            if (!activePaisId || !effectiveSucursalId) {
+                throw new Error("Selecciona un pais y una sucursal activa antes de crear productos.");
+            }
+
             const baseInsertPayload = {
                 nombre: newProduct.nombre,
                 descripcion: newProduct.descripcion,
@@ -1524,7 +1533,8 @@ export default function AdminProductosPage() {
                 category_id: categoryIdValue,
                 codigo_barra: codigoBarra,
                 imagen_url: null,
-                sucursal_id: activeSucursalId || null,
+                pais_id: activePaisId || null,
+                sucursal_id: effectiveSucursalId || null,
                 created_at: new Date().toISOString()
             };
 
@@ -1582,7 +1592,7 @@ export default function AdminProductosPage() {
 
             // Insertar las imágenes en la tabla producto_imagenes
             if (productoId && imagenUrls.length > 0) {
-                const imagesToInsert = imagenUrls.map(url => ({ producto_id: productoId, imagen_url: url, sucursal_id: activeSucursalId || null }));
+                const imagesToInsert = imagenUrls.map(url => ({ producto_id: productoId, imagen_url: url, pais_id: activePaisId || null, sucursal_id: effectiveSucursalId || null }));
                 const { error: imgInsertError } = await supabase.from('producto_imagenes').insert(imagesToInsert);
                 if (imgInsertError) {
                     // Si falla la inserción, intentar borrar las imágenes subidas al storage
@@ -1609,7 +1619,8 @@ export default function AdminProductosPage() {
                     precio: v.precio,
                     sku: v.sku,
                     imagen_url: null,
-                    sucursal_id: activeSucursalId || null,
+                    pais_id: activePaisId || null,
+                    sucursal_id: effectiveSucursalId || null,
                     activo: v.activo
                 }));
                 const { error: variantsError } = await supabase.from('producto_variantes').insert(finalVariants);
@@ -1618,7 +1629,10 @@ export default function AdminProductosPage() {
                 }
 
                 // --- Sincronizar stock del producto como suma de variantes ---
-                await sincronizarStockProducto(productoId, supabase);
+                await sincronizarStockProducto(productoId, supabase, {
+                    pais_id: activePaisId,
+                    sucursal_id: effectiveSucursalId,
+                });
             }
 
             // Registrar movimiento de creación en stock_movimientos y historial
@@ -1644,7 +1658,8 @@ export default function AdminProductosPage() {
                                             cantidad_base: v.stock,
                                             usuario_id: user?.id || null,
                                             usuario_email: user?.email || '',
-                                            sucursal_id: activeSucursalId || null,
+                                            pais_id: activePaisId || null,
+                                            sucursal_id: effectiveSucursalId || null,
                                             observaciones: `Stock inicial para variante ${v.color}`
                                         });
                                     }
@@ -1658,13 +1673,15 @@ export default function AdminProductosPage() {
                                     cantidad_base: stockTotal,
                                     usuario_id: user?.id || null,
                                     usuario_email: user?.email || '',
-                                    sucursal_id: activeSucursalId || null,
+                                    pais_id: activePaisId || null,
+                                    sucursal_id: effectiveSucursalId || null,
                                     observaciones: 'Alta de producto desde panel'
                                 });
                                 await registrarHistorialProducto({
                                     producto_id: productoId,
                                     accion: "CREATE",
-                                    sucursal_id: activeSucursalId || null,
+                                    pais_id: activePaisId || null,
+                                    sucursal_id: effectiveSucursalId || null,
                                     datos_anteriores: null,
                                     datos_nuevos: {
                                         nombre: newProduct.nombre,

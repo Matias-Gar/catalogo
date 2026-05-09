@@ -368,7 +368,7 @@ export default function AuditoriaStockPage() {
                   {event.usuario && <span>Usuario: {event.usuario}</span>}
                   {event.variante && <span>Variante: {event.variante}</span>}
                   {event.textoCantidad && <span>Cantidad: {event.textoCantidad}</span>}
-                  {event.stock_antes !== undefined && event.stock_despues !== undefined && (
+                  {event.stock_antes != null && event.stock_despues != null && (
                     <span>
                       Stock: {formatQuantity(product, event.stock_antes, { compact: true })} a {formatQuantity(product, event.stock_despues, { compact: true })}
                     </span>

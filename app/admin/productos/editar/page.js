@@ -255,6 +255,56 @@ export default function EditarCatalogo() {
       const nuevasVariantes = cambios.variantes !== undefined ? cambios.variantes : variantes[prodId] || [];
       const nuevasImagenes = cambios.imagenes !== undefined ? cambios.imagenes : imagenes[prodId] || [];
 
+      const erroresApi = validarProducto({
+        nombre: cambios.nombre ?? productoActual?.nombre,
+        descripcion: cambios.descripcion ?? productoActual?.descripcion,
+        variantes: nuevasVariantes,
+        imagenes: nuevasImagenes,
+      });
+
+      if (erroresApi.length > 0) {
+        showToast(erroresApi.join("\n"), "error");
+        setLoading(false);
+        return;
+      }
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const response = await fetch("/api/admin/productos/editar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          productId: productoActual?.user_id ?? prodId,
+          activeSucursalId,
+          cambios: {
+            ...cambios,
+            precio: precioNormalizado,
+          },
+          variantes: nuevasVariantes,
+          imagenes: nuevasImagenes,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "No se pudo guardar el producto");
+      }
+
+      showToast("Producto actualizado con exito!");
+
+      if (typeof window !== "undefined") {
+        setTimeout(() => {
+          window.location.reload();
+        }, 900);
+      }
+
+      setEditando((prev) => ({ ...prev, [prodId]: undefined }));
+      setLoading(false);
+      closeConfirm();
+      return;
+
       const errores = validarProducto({
         nombre: cambios.nombre ?? productoActual?.nombre,
         descripcion: cambios.descripcion ?? productoActual?.descripcion,

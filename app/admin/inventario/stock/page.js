@@ -8,7 +8,7 @@ import { Toast, showToast } from "../../../../components/ui/Toast";
 import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
 
 export default function StockPage() {
-  const { activeSucursalId } = useSucursalActiva();
+  const { activePaisId, activeSucursalId } = useSucursalActiva();
     // --- Mover funciones dependientes arriba para evitar ReferenceError ---
     const getStockMinimo = useCallback((prod) => {
       return Number(prod?.stock_minimo ?? CONFIG.INVENTARIO.STOCK_MINIMO_ALERTA ?? 3);
@@ -45,11 +45,11 @@ export default function StockPage() {
   useEffect(() => {
     fetchProductos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orden, page, activeSucursalId]);
+  }, [orden, page, activePaisId, activeSucursalId, search, categoryFilter, stockFilter]);
 
   useEffect(() => {
     fetchCategorias();
-  }, [activeSucursalId]);
+  }, [activePaisId, activeSucursalId]);
 
   useEffect(() => {
     let mounted = true;
@@ -71,6 +71,7 @@ export default function StockPage() {
     setLoading(true);
     const from = page * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
+    const hasClientFilters = Boolean(search.trim()) || categoryFilter !== "all" || stockFilter !== "all";
 
     let data = null;
     let error = null;
@@ -90,12 +91,14 @@ export default function StockPage() {
       factor_conversion,
       categorias (categori)
     `, { count: "exact" });
+    if (activePaisId) enrichedQuery = enrichedQuery.eq("pais_id", activePaisId);
     if (activeSucursalId) enrichedQuery = enrichedQuery.eq("sucursal_id", activeSucursalId);
 
     const orderField = orden === "stock-desc" || orden === "stock-asc" ? "stock" : "user_id";
-    const enrichedResult = await enrichedQuery
-      .order(orderField, { ascending: orden === "asc" || orden === "stock-asc" })
-      .range(from, to);
+    let enrichedOrderedQuery = enrichedQuery
+      .order(orderField, { ascending: orden === "asc" || orden === "stock-asc" });
+    if (!hasClientFilters) enrichedOrderedQuery = enrichedOrderedQuery.range(from, to);
+    const enrichedResult = await enrichedOrderedQuery;
 
     if (enrichedResult.error) {
       let fallbackQuery = supabase.from("productos").select(`
@@ -111,12 +114,14 @@ export default function StockPage() {
         factor_conversion,
         categorias (categori)
       `, { count: "exact" });
+      if (activePaisId) fallbackQuery = fallbackQuery.eq("pais_id", activePaisId);
       if (activeSucursalId) fallbackQuery = fallbackQuery.eq("sucursal_id", activeSucursalId);
 
       const orderField = orden === "stock-desc" || orden === "stock-asc" ? "stock" : "user_id";
-      const fallbackResult = await fallbackQuery
-        .order(orderField, { ascending: orden === "asc" || orden === "stock-asc" })
-        .range(from, to);
+      let fallbackOrderedQuery = fallbackQuery
+        .order(orderField, { ascending: orden === "asc" || orden === "stock-asc" });
+      if (!hasClientFilters) fallbackOrderedQuery = fallbackOrderedQuery.range(from, to);
+      const fallbackResult = await fallbackOrderedQuery;
 
       data = fallbackResult.data;
       error = fallbackResult.error;
@@ -136,7 +141,7 @@ export default function StockPage() {
     } else {
       const loadedProductos = data || [];
       setProductos(loadedProductos);
-      setTotalCount(count || 0);
+      setTotalCount(hasClientFilters ? loadedProductos.length : count || 0);
       await fetchVariantesPorProductos(loadedProductos);
     }
     setLoading(false);
@@ -160,6 +165,7 @@ export default function StockPage() {
       .select("producto_id, color, stock, stock_decimal, activo")
       .in("producto_id", ids)
       .eq("activo", true);
+    if (activePaisId) withActiveQuery = withActiveQuery.eq("pais_id", activePaisId);
     if (activeSucursalId) withActiveQuery = withActiveQuery.eq("sucursal_id", activeSucursalId);
     const withActive = await withActiveQuery;
 
@@ -168,6 +174,7 @@ export default function StockPage() {
         .from("producto_variantes")
         .select("producto_id, color, stock, stock_decimal, activo")
         .in("producto_id", ids);
+      if (activePaisId) fallbackQuery = fallbackQuery.eq("pais_id", activePaisId);
       if (activeSucursalId) fallbackQuery = fallbackQuery.eq("sucursal_id", activeSucursalId);
       const fallback = await fallbackQuery;
 
@@ -364,6 +371,7 @@ export default function StockPage() {
       .from("categorias")
       .select("categori")
       .order("categori", { ascending: true });
+    if (activePaisId) query = query.eq("pais_id", activePaisId);
     if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
     const { data, error } = await query;
 
@@ -448,6 +456,7 @@ export default function StockPage() {
       factor_conversion,
       categorias (categori)
     `);
+    if (activePaisId) enrichedQuery = enrichedQuery.eq("pais_id", activePaisId);
     if (activeSucursalId) enrichedQuery = enrichedQuery.eq("sucursal_id", activeSucursalId);
     const enrichedResult = await enrichedQuery.order(orderField, { ascending });
 
@@ -468,6 +477,7 @@ export default function StockPage() {
       factor_conversion,
       categorias (categori)
     `);
+    if (activePaisId) fallbackQuery = fallbackQuery.eq("pais_id", activePaisId);
     if (activeSucursalId) fallbackQuery = fallbackQuery.eq("sucursal_id", activeSucursalId);
     const fallbackResult = await fallbackQuery.order(orderField, { ascending });
 
@@ -486,6 +496,7 @@ export default function StockPage() {
       .from("producto_variantes")
       .select("producto_id, stock, stock_decimal")
       .in("producto_id", ids);
+    if (activePaisId) query = query.eq("pais_id", activePaisId);
     if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
     const { data } = await query;
 

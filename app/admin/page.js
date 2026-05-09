@@ -5,10 +5,16 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/SupabaseClient";
 import { canAccessAdminPath, isAdminPanelRole } from "../../lib/adminPermissions";
+import { useSucursalActiva } from "../../components/admin/SucursalContext";
+import { buildCountryPath } from "../../lib/countryRoutes";
 
 export default function AdminDashboard() {
     const [userRole, setUserRole] = useState(null);
     const router = useRouter();
+    const { activePais } = useSucursalActiva();
+    const activeCountrySlug = activePais?.slug || "bo";
+    const articlesHref = buildCountryPath(activeCountrySlug, "/");
+    const suppliesHref = buildCountryPath(activeCountrySlug, "/insumos");
 
     useEffect(() => {
         const checkAuthAndRole = async () => {
@@ -80,7 +86,7 @@ export default function AdminDashboard() {
 
                 <div className="grid w-full gap-6 md:grid-cols-2">
                     <Link
-                        href="/"
+                        href={articlesHref}
                         className="group rounded-3xl bg-white p-7 shadow-sm ring-1 ring-gray-200 transition hover:-translate-y-1 hover:shadow-lg"
                     >
                         <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
@@ -110,7 +116,7 @@ export default function AdminDashboard() {
                     </Link>
 
                     <Link
-                        href="/insumos"
+                        href={suppliesHref}
                         className="group rounded-3xl bg-white p-7 shadow-sm ring-1 ring-gray-200 transition hover:-translate-y-1 hover:shadow-lg"
                     >
                         <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">

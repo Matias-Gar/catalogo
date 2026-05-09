@@ -4,10 +4,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { supabase } from '../lib/SupabaseClient'; // Asegúrate que esta ruta es correcta
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from '../lib/storeSettings';
+import { getCountrySlugFromPath } from '../lib/countryRoutes';
 import { getDefaultAdminRoute, isAdminPanelRole } from '../lib/adminPermissions';
 
 export default function Header() {
   const pathname = usePathname();
+  const countrySlug = getCountrySlugFromPath(pathname);
   const [session, setSession] = useState(null);
   const [userRole, setUserRole] = useState(null); // Nuevo estado para el rol
   const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
@@ -54,7 +56,7 @@ export default function Header() {
     let mounted = true;
 
     const loadSettings = async () => {
-      const settings = await fetchStoreSettings();
+      const settings = await fetchStoreSettings({ paisSlug: countrySlug });
       if (mounted) setStoreSettings(settings);
     };
 
@@ -72,7 +74,7 @@ export default function Header() {
       mounted = false;
       window.removeEventListener('storage', handleStorage);
     };
-  }, []);
+  }, [countrySlug]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;

@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/SupabaseAdminClient";
 import { getUserIdFromRequest } from "@/lib/authUserFromRequest";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 async function requireAdmin(request) {
   const userId = await getUserIdFromRequest(request);
   if (!userId) {
@@ -25,6 +28,7 @@ function cleanBranchPayload(body) {
   return {
     nombre: String(body?.nombre || "").trim(),
     slug: String(body?.slug || "").trim(),
+    pais_id: body?.pais_id || null,
     direccion: String(body?.direccion || "").trim() || null,
     telefono: String(body?.telefono || "").trim() || null,
     activa: body?.activa !== false,
@@ -36,8 +40,9 @@ export async function GET(request) {
   const auth = await requireAdmin(request);
   if (auth.error) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
 
-  const [branchesResult, profilesResult, assignmentsResult] = await Promise.all([
-    supabaseAdmin.from("sucursales").select("*").order("created_at", { ascending: true }),
+  const [countriesResult, branchesResult, profilesResult, assignmentsResult] = await Promise.all([
+    supabaseAdmin.from("paises").select("*").order("created_at", { ascending: true }),
+    supabaseAdmin.from("sucursales").select("*").order("pais_id", { ascending: true }).order("created_at", { ascending: true }),
     supabaseAdmin.from("perfiles").select("id, email, nombre, rol").order("email", { ascending: true }),
     supabaseAdmin
       .from("usuario_sucursales")
@@ -45,11 +50,12 @@ export async function GET(request) {
       .order("created_at", { ascending: false }),
   ]);
 
-  const error = branchesResult.error || profilesResult.error || assignmentsResult.error;
+  const error = countriesResult.error || branchesResult.error || profilesResult.error || assignmentsResult.error;
   if (error) return NextResponse.json({ success: false, error: error.message }, { status: 400 });
 
   return NextResponse.json({
     success: true,
+    paises: countriesResult.data || [],
     sucursales: branchesResult.data || [],
     perfiles: profilesResult.data || [],
     asignaciones: assignmentsResult.data || [],
@@ -65,8 +71,8 @@ export async function POST(request) {
 
   if (action === "save_branch") {
     const payload = cleanBranchPayload(body);
-    if (!payload.nombre || !payload.slug) {
-      return NextResponse.json({ success: false, error: "Nombre y slug son obligatorios" }, { status: 400 });
+    if (!payload.nombre || !payload.slug || !payload.pais_id) {
+      return NextResponse.json({ success: false, error: "Nombre, slug y pais son obligatorios" }, { status: 400 });
     }
 
     const result = body.id
@@ -96,15 +102,39 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: "Usuario, sucursal y rol son obligatorios" }, { status: 400 });
     }
 
-    const { error } = await supabaseAdmin.from("usuario_sucursales").upsert(
-      {
-        usuario_id,
-        sucursal_id,
-        rol,
-        activo: true,
-      },
-      { onConflict: "usuario_id,sucursal_id" }
-    );
+    const { data: branch, error: branchError } = await supabaseAdmin
+      .from("sucursales")
+      .select("pais_id")
+      .eq("id", sucursal_id)
+      .single();
+
+    if (branchError || !branch?.pais_id) {
+      return NextResponse.json({ success: false, error: branchError?.message || "Sucursal sin pais asignado" }, { status: 400 });
+    }
+
+    const countryRole = rol === "admin" ? "admin" : rol;
+    const [branchAssignment, countryAssignment] = await Promise.all([
+      supabaseAdmin.from("usuario_sucursales").upsert(
+        {
+          usuario_id,
+          sucursal_id,
+          rol,
+          activo: true,
+        },
+        { onConflict: "usuario_id,sucursal_id" }
+      ),
+      supabaseAdmin.from("usuario_paises").upsert(
+        {
+          usuario_id,
+          pais_id: branch.pais_id,
+          rol: countryRole,
+          activo: true,
+        },
+        { onConflict: "usuario_id,pais_id" }
+      ),
+    ]);
+
+    const error = branchAssignment.error || countryAssignment.error;
 
     if (error) return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     return NextResponse.json({ success: true });

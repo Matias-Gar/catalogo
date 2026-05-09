@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 
 const EMPTY_BRANCH = {
+  pais_id: "",
   nombre: "",
   slug: "",
   direccion: "",
@@ -34,6 +35,7 @@ function displayUser(profile) {
 
 export default function SucursalesPage() {
   const [sucursales, setSucursales] = useState([]);
+  const [paises, setPaises] = useState([]);
   const [perfiles, setPerfiles] = useState([]);
   const [asignaciones, setAsignaciones] = useState([]);
   const [form, setForm] = useState(EMPTY_BRANCH);
@@ -81,6 +83,8 @@ export default function SucursalesPage() {
     try {
       const result = await requestSucursalesApi();
       const branches = result.sucursales || [];
+      const countries = result.paises || [];
+      setPaises(countries);
       setSucursales(branches);
       setPerfiles(result.perfiles || []);
       setAsignaciones(result.asignaciones || []);
@@ -88,6 +92,10 @@ export default function SucursalesPage() {
       setAssignment((prev) => ({
         ...prev,
         sucursal_id: prev.sucursal_id || branches[0]?.id || "",
+      }));
+      setForm((prev) => ({
+        ...prev,
+        pais_id: prev.pais_id || countries[0]?.id || "",
       }));
     } catch (error) {
       setStatus(error?.message || "No se pudieron cargar sucursales.");
@@ -121,6 +129,7 @@ export default function SucursalesPage() {
   const editBranch = (branch) => {
     setEditingId(branch.id);
     setForm({
+      pais_id: branch.pais_id || paises[0]?.id || "",
       nombre: branch.nombre || "",
       slug: branch.slug || "",
       direccion: branch.direccion || "",
@@ -136,13 +145,14 @@ export default function SucursalesPage() {
     const nombre = form.nombre.trim();
     const slug = slugify(form.slug || nombre);
 
-    if (!nombre || !slug) {
-      setStatus("Escribe un nombre y un slug valido para la sucursal.");
+    if (!nombre || !slug || !form.pais_id) {
+      setStatus("Escribe un nombre, un slug y un pais valido para la sucursal.");
       return;
     }
 
     setSaving(true);
     const payload = {
+      pais_id: form.pais_id,
       nombre,
       slug,
       direccion: form.direccion.trim() || null,
@@ -242,6 +252,21 @@ export default function SucursalesPage() {
             <h2 className="text-lg font-black text-gray-900">{editingId ? "Editar sucursal" : "Nueva sucursal"}</h2>
             <div className="mt-4 space-y-4">
               <div>
+                <label className="mb-1 block text-sm font-bold text-gray-700">Pais</label>
+                <select
+                  value={form.pais_id}
+                  onChange={(event) => updateForm("pais_id", event.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                >
+                  <option value="">Seleccionar pais</option>
+                  {paises.map((country) => (
+                    <option key={country.id} value={country.id}>
+                      {country.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="mb-1 block text-sm font-bold text-gray-700">Nombre</label>
                 <input
                   value={form.nombre}
@@ -315,6 +340,7 @@ export default function SucursalesPage() {
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-gray-100 text-xs uppercase text-gray-600">
                   <tr>
+                    <th className="px-3 py-2">Pais</th>
                     <th className="px-3 py-2">Sucursal</th>
                     <th className="px-3 py-2">Slug</th>
                     <th className="px-3 py-2">Estado</th>
@@ -324,6 +350,9 @@ export default function SucursalesPage() {
                 <tbody className="divide-y divide-gray-200">
                   {sucursales.map((branch) => (
                     <tr key={branch.id}>
+                      <td className="px-3 py-3 text-xs font-bold text-gray-700">
+                        {paises.find((country) => country.id === branch.pais_id)?.nombre || "-"}
+                      </td>
                       <td className="px-3 py-3">
                         <div className="font-bold text-gray-900">{branch.nombre}</div>
                         <div className="text-xs text-gray-500">{branch.direccion || "Sin direccion"}</div>

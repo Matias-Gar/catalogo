@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { supabase } from "@/lib/SupabaseClient";
 
 const STORAGE_KEY = "streetwear.active_sucursal_id";
+const COUNTRY_STORAGE_KEY = "streetwear.active_pais_id";
 const SucursalContext = createContext(null);
 
 function getSavedSucursalId() {
@@ -11,12 +12,27 @@ function getSavedSucursalId() {
   return window.localStorage.getItem(STORAGE_KEY) || "";
 }
 
+function getSavedPaisId() {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem(COUNTRY_STORAGE_KEY) || "";
+}
+
 export function SucursalProvider({ children, showShell = true }) {
   const [sucursales, setSucursales] = useState([]);
+  const [paises, setPaises] = useState([]);
+  const [activePaisId, setActivePaisIdState] = useState("");
   const [activeSucursalId, setActiveSucursalIdState] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectorOpen, setSelectorOpen] = useState(false);
+
+  const setActivePaisId = useCallback((id) => {
+    setActivePaisIdState(id);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(COUNTRY_STORAGE_KEY, id);
+      window.dispatchEvent(new CustomEvent("pais:changed", { detail: { paisId: id } }));
+    }
+  }, []);
 
   const setActiveSucursalId = useCallback((id) => {
     setActiveSucursalIdState(id);
@@ -36,6 +52,7 @@ export function SucursalProvider({ children, showShell = true }) {
 
       const response = await fetch("/api/admin/sucursal-context", {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
+        cache: "no-store",
       });
       const result = await response.json();
 
@@ -44,54 +61,91 @@ export function SucursalProvider({ children, showShell = true }) {
       }
 
       const branches = result.sucursales || [];
+      const countries = result.paises || [];
+      const savedPaisId = getSavedPaisId();
+      const savedPaisStillValid = countries.some((country) => country.id === savedPaisId);
+      const nextPaisId = savedPaisStillValid ? savedPaisId : countries[0]?.id || branches[0]?.pais_id || "";
+      const branchesForCountry = nextPaisId ? branches.filter((branch) => branch.pais_id === nextPaisId) : branches;
       const savedId = getSavedSucursalId();
-      const savedStillValid = branches.some((branch) => branch.id === savedId);
-      const nextId = savedStillValid ? savedId : branches[0]?.id || "";
+      const savedStillValid = branchesForCountry.some((branch) => branch.id === savedId);
+      const nextId = savedStillValid ? savedId : branchesForCountry[0]?.id || "";
 
+      setPaises(countries);
+      setActivePaisId(nextPaisId || "");
       setSucursales(branches);
-      if (nextId) setActiveSucursalId(nextId);
-      setSelectorOpen(branches.length > 1 && !savedStillValid);
+      setActiveSucursalId(nextId || "");
+      setSelectorOpen((countries.length > 1 && !savedPaisStillValid) || (branchesForCountry.length > 1 && !savedStillValid));
     } catch (requestError) {
       setError(requestError?.message || "No se pudieron cargar sucursales.");
     } finally {
       setLoading(false);
     }
-  }, [setActiveSucursalId]);
+  }, [setActivePaisId, setActiveSucursalId]);
 
   useEffect(() => {
     loadSucursales();
   }, [loadSucursales]);
 
   const activeSucursal = useMemo(
-    () => sucursales.find((branch) => branch.id === activeSucursalId) || null,
-    [activeSucursalId, sucursales]
+    () => sucursales.find((branch) => branch.id === activeSucursalId && (!activePaisId || branch.pais_id === activePaisId)) || null,
+    [activePaisId, activeSucursalId, sucursales]
   );
+
+  const activePais = useMemo(
+    () => paises.find((country) => country.id === activePaisId) || null,
+    [activePaisId, paises]
+  );
+
+  const sucursalesActivas = useMemo(
+    () => activePaisId ? sucursales.filter((branch) => branch.pais_id === activePaisId) : sucursales,
+    [activePaisId, sucursales]
+  );
+
+  useEffect(() => {
+    if (!activePaisId) return;
+    if (sucursalesActivas.length === 0) {
+      if (activeSucursalId) setActiveSucursalId("");
+      return;
+    }
+    if (!sucursalesActivas.some((branch) => branch.id === activeSucursalId)) {
+      setActiveSucursalId(sucursalesActivas[0].id);
+    }
+  }, [activePaisId, activeSucursalId, setActiveSucursalId, sucursalesActivas]);
 
   const value = useMemo(
     () => ({
+      paises,
+      activePais,
+      activePaisId,
       sucursales,
+      sucursalesActivas,
       activeSucursal,
       activeSucursalId,
       loading,
       error,
+      setActivePaisId,
       setActiveSucursalId,
       reloadSucursales: loadSucursales,
     }),
-    [activeSucursal, activeSucursalId, error, loadSucursales, loading, setActiveSucursalId, sucursales]
+    [activePais, activePaisId, activeSucursal, activeSucursalId, error, loadSucursales, loading, paises, setActivePaisId, setActiveSucursalId, sucursales, sucursalesActivas]
   );
 
   return (
     <SucursalContext.Provider value={value}>
       <SucursalShell
+        activePais={activePais}
+        activePaisId={activePaisId}
         activeSucursal={activeSucursal}
         activeSucursalId={activeSucursalId}
         error={error}
         loading={loading}
         selectorOpen={selectorOpen}
+        paises={paises}
+        setActivePaisId={setActivePaisId}
         setActiveSucursalId={setActiveSucursalId}
         setSelectorOpen={setSelectorOpen}
         showShell={showShell}
-        sucursales={sucursales}
+        sucursales={sucursalesActivas}
       >
         {children}
       </SucursalShell>
@@ -100,11 +154,15 @@ export function SucursalProvider({ children, showShell = true }) {
 }
 
 function SucursalShell({
+  activePais,
+  activePaisId,
   activeSucursal,
   activeSucursalId,
   children,
   error,
   loading,
+  paises,
+  setActivePaisId,
   selectorOpen,
   setActiveSucursalId,
   setSelectorOpen,
@@ -120,15 +178,28 @@ function SucursalShell({
       <div className="mb-4 rounded-md border border-gray-200 bg-white px-4 py-3 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Sucursal activa</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Operacion activa</p>
             <p className="text-base font-black text-gray-900">
-              {loading ? "Cargando sucursal..." : activeSucursal?.nombre || "Sin sucursal asignada"}
+              {loading ? "Cargando operacion..." : `${activePais?.nombre || "Sin pais"} / ${activeSucursal?.nombre || "Sin sucursal"}`}
             </p>
             {error && <p className="mt-1 text-sm font-semibold text-red-600">{error}</p>}
           </div>
 
-          {sucursales.length > 1 && (
+          {(paises.length > 1 || sucursales.length > 1) && (
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              {paises.length > 1 && (
+                <select
+                  className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-800"
+                  value={activePaisId}
+                  onChange={(event) => setActivePaisId(event.target.value)}
+                >
+                  {paises.map((country) => (
+                    <option key={country.id} value={country.id}>
+                      {country.nombre}
+                    </option>
+                  ))}
+                </select>
+              )}
               <select
                 className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-800"
                 value={activeSucursalId}
@@ -159,8 +230,25 @@ function SucursalShell({
           <div className="w-full max-w-lg rounded-lg bg-white p-5 shadow-2xl">
             <h2 className="text-xl font-black text-gray-900">Selecciona la sucursal</h2>
             <p className="mt-1 text-sm text-gray-600">
-              Trabajaras solo con los datos de la sucursal elegida en esta sesion.
+              Trabajaras solo con los datos del pais y sucursal elegidos en esta sesion.
             </p>
+
+            {paises.length > 1 && (
+              <div className="mt-4">
+                <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Pais</label>
+                <select
+                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-800"
+                  value={activePaisId}
+                  onChange={(event) => setActivePaisId(event.target.value)}
+                >
+                  {paises.map((country) => (
+                    <option key={country.id} value={country.id}>
+                      {country.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="mt-4 grid gap-2">
               {sucursales.map((branch) => (

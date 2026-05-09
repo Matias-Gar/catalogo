@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../../lib/SupabaseClient';
 import { optimizeImageForUpload } from '../../../lib/imageUploadOptimization';
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings, saveStoreSettings } from '../../../lib/storeSettings';
+import { useSucursalActiva } from '../../../components/admin/SucursalContext';
 
 const STORE_LOGO_BUCKET = 'product_images';
 
@@ -13,6 +14,7 @@ function getFileExtension(fileName) {
 }
 
 export default function StoreSettingsPage() {
+  const { activePais, activePaisId } = useSucursalActiva();
   const [form, setForm] = useState(DEFAULT_STORE_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -20,12 +22,18 @@ export default function StoreSettingsPage() {
   const [status, setStatus] = useState('');
 
   useEffect(() => {
+    if (!activePaisId) return;
     (async () => {
-      const settings = await fetchStoreSettings();
+      setLoading(true);
+      const settings = await fetchStoreSettings({
+        paisId: activePaisId,
+        whatsapp: activePais?.whatsapp,
+        direccion: activePais?.direccion,
+      });
       setForm(settings);
       setLoading(false);
     })();
-  }, []);
+  }, [activePais?.direccion, activePais?.whatsapp, activePaisId]);
 
   const whatsappLink = useMemo(() => {
     if (!form.whatsapp_number) return '';
@@ -85,13 +93,13 @@ export default function StoreSettingsPage() {
     e.preventDefault();
     setSaving(true);
 
-    const { settings, persistedToSupabase } = await saveStoreSettings(form);
+    const { settings, persistedToSupabase, error } = await saveStoreSettings(form, { paisId: activePaisId });
     setForm(settings);
 
     if (persistedToSupabase) {
-      setStatus('Configuración guardada correctamente y aplicada en toda la web.');
+      setStatus(`Configuración guardada correctamente para ${activePais?.nombre || 'el pais activo'}.`);
     } else {
-      setStatus('Configuración guardada localmente en este navegador. Si quieres compartirlo para todos, crea la tabla app_settings en Supabase.');
+      setStatus(`No se pudo guardar en Supabase: ${error || 'revisa permisos o sesión'}. Se guardó localmente en este navegador.`);
     }
 
     setSaving(false);
@@ -109,9 +117,9 @@ export default function StoreSettingsPage() {
     <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
       <div className="mx-auto max-w-3xl space-y-6">
         <section className="rounded-2xl bg-white p-6 shadow">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">Configuración Global de la Tienda</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">Configuración de {activePais?.nombre || 'Pais'}</h1>
           <p className="mt-2 text-gray-600">
-            Cambia aquí el nombre, la información, el WhatsApp, la dirección y el logo para que se actualice en toda la página.
+            Cambia aquí el nombre, la información, el WhatsApp, la dirección y el logo solo para el país activo.
           </p>
         </section>
 

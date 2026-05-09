@@ -12,6 +12,7 @@ import { PrecioConPromocion, calcularPrecioConPromocion, PromoCompactBanner } fr
 import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 import { normalizeProductView } from "@/lib/productViews";
 import PublicSucursalSelector, { usePublicSucursal } from "@/components/PublicSucursalSelector";
+import { getCountrySlugFromPath, stripCountryFromPath } from "@/lib/countryRoutes";
 
 function UnitPricePanel({ conversionInfo, factor, className = "mb-3" }) {
     if (!conversionInfo) return null;
@@ -66,17 +67,19 @@ function getEffectiveVariantStock(variant) {
 
 export default function CatalogoPage() {
         const pathname = usePathname();
-        const currentPublicView = pathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
+        const activeCountrySlug = getCountrySlugFromPath(pathname);
+        const cleanPathname = stripCountryFromPath(pathname);
+        const currentPublicView = cleanPathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
         const {
             sucursales,
+            activePais,
             activeSucursal,
             activeSucursalId,
             loading: sucursalesLoading,
             error: sucursalesError,
             setActiveSucursalId,
         } = usePublicSucursal();
-        const cartStorageBaseKey = currentPublicView === 'insumos' ? 'carrito_temporal_insumos' : 'carrito_temporal';
-        const cartStorageKey = `${cartStorageBaseKey}_${activeSucursalId || 'global'}`;
+        const cartStorageKey = `carrito_temporal_${activeCountrySlug}_${activeSucursalId || 'global'}`;
     const [modalWarning, setModalWarning] = useState("");
     const [modalImg, setModalImg] = useState(null);
     const [addToCartModal, setAddToCartModal] = useState(null);
@@ -332,6 +335,12 @@ export default function CatalogoPage() {
     // --- Refactor: función de fetch fuera del useEffect para poder reutilizarla ---
     const fetchProductosYCategoriasYImagenes = async () => {
         if (sucursalesLoading) return;
+        if (!activeSucursalId) {
+            setProductos([]);
+            setCategorias([]);
+            setImagenesProductos({});
+            return;
+        }
         // Usar la misma vista pública que la home para evitar desajustes entre rutas.
         let catalogQuery = supabase
             .from('v_productos_catalogo')
@@ -463,7 +472,12 @@ export default function CatalogoPage() {
         let mounted = true;
 
         const loadStoreSettings = async () => {
-            const settings = await fetchStoreSettings();
+            const settings = await fetchStoreSettings({
+                paisId: activePais?.id,
+                paisSlug: activePais?.slug,
+                whatsapp: activePais?.whatsapp,
+                direccion: activePais?.direccion,
+            });
             if (mounted) setStoreSettings(settings);
         };
 
@@ -471,7 +485,7 @@ export default function CatalogoPage() {
         return () => {
             mounted = false;
         };
-    }, []);
+    }, [activePais?.direccion, activePais?.id, activePais?.slug, activePais?.whatsapp]);
 
     // --- Recarga productos e imágenes al volver a la pestaña ---
     useEffect(() => {
@@ -510,8 +524,26 @@ export default function CatalogoPage() {
     // 2. Cargar carrito desde localStorage al inicio
     useEffect(() => {
         const stored = localStorage.getItem(cartStorageKey);
-        setCart(stored ? JSON.parse(stored) : []);
-    }, [cartStorageKey]);
+        const legacyInsumosKey = `carrito_temporal_insumos_${activeSucursalId || 'global'}`;
+        const legacyInsumos = localStorage.getItem(legacyInsumosKey);
+        const parseCart = (value) => {
+            try {
+                const parsed = value ? JSON.parse(value) : [];
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                return [];
+            }
+        };
+        const merged = [...parseCart(stored), ...parseCart(legacyInsumos)].reduce((acc, item) => {
+            const key = item.cart_key || `${item.tipo || 'producto'}:${item.pack_id || item.user_id || ''}:${item.variante_id || 'default'}:${item.unidad || item.unidad_base || 'unidad'}`;
+            if (!acc.some((current) => (current.cart_key || `${current.tipo || 'producto'}:${current.pack_id || current.user_id || ''}:${current.variante_id || 'default'}:${current.unidad || current.unidad_base || 'unidad'}`) === key)) {
+                acc.push(item);
+            }
+            return acc;
+        }, []);
+        setCart(merged);
+        if (legacyInsumosKey !== cartStorageKey) localStorage.removeItem(legacyInsumosKey);
+    }, [cartStorageKey, activeSucursalId]);
 
     // 3. Guardar carrito en localStorage cada vez que cambia
     useEffect(() => {
@@ -903,6 +935,7 @@ export default function CatalogoPage() {
                     };
                 }),
                 carrito_token: carritoToken || null,
+                pais_id: activePais?.id || null,
                 sucursal_id: activeSucursalId || null,
             }
         ]).select('id').single();
@@ -934,7 +967,7 @@ export default function CatalogoPage() {
             `¡Hola! Me gustaría hacer el siguiente pedido:\n\n${pedidoTexto}\n${nombreTexto}${nitciTexto}\n${itemsList}\n\n*Total:* Bs ${total}\n\n¡Gracias!`
         );
         
-        const whatsappNumber = storeSettings?.whatsapp_number || CONFIG.WHATSAPP_BUSINESS;
+        const whatsappNumber = activeSucursal?.telefono || activePais?.whatsapp || storeSettings?.whatsapp_number || CONFIG.WHATSAPP_BUSINESS;
         const whatsappURL = `https://wa.me/${whatsappNumber}?text=${message}`;
         window.open(whatsappURL, '_blank');
         
