@@ -16,7 +16,7 @@ interface Cliente {
 
 type GuardarAccion = 'add' | 'update';
 
-export function useCliente(sucursalId?: string | null) {
+export function useCliente(sucursalId?: string | null, paisId?: string | null) {
   const [cliente, setCliente] = useState<Cliente>({
     nombre: '',
     carnet: '',
@@ -39,6 +39,7 @@ export function useCliente(sucursalId?: string | null) {
     }
 
     let query = supabase.from('clientes').select('id, carnet, telefono').limit(1);
+    if (paisId) query = query.eq('pais_id', paisId);
     if (sucursalId) query = query.eq('sucursal_id', sucursalId);
     if (carnet && telefono) {
       query = query.or(`carnet.eq.${carnet},telefono.eq.${telefono}`);
@@ -57,7 +58,7 @@ export function useCliente(sucursalId?: string | null) {
       existente: exists,
       source: exists ? 'clientes' : (c.source === 'clientes' ? '' : c.source),
     }));
-  }, [sucursalId]);
+  }, [paisId, sucursalId]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -101,6 +102,7 @@ export function useCliente(sucursalId?: string | null) {
             .eq('cliente_nit', nitval)
             .order('fecha', { ascending: false })
             .limit(1);
+          if (paisId) ventasHistQuery = ventasHistQuery.eq('pais_id', paisId);
           if (sucursalId) ventasHistQuery = ventasHistQuery.eq('sucursal_id', sucursalId);
           const { data: ventasHist } = await ventasHistQuery;
           if (ventasHist && ventasHist[0]?.cliente_email) {
@@ -125,6 +127,7 @@ export function useCliente(sucursalId?: string | null) {
         .from('clientes')
         .select('id, nombre, carnet, telefono, email')
         .eq('carnet', q);
+      if (paisId) cliQuery = cliQuery.eq('pais_id', paisId);
       if (sucursalId) cliQuery = cliQuery.eq('sucursal_id', sucursalId);
       const { data: cli, error: cliErr } = await cliQuery.maybeSingle();
       if (!cliErr && cli) {
@@ -154,6 +157,7 @@ export function useCliente(sucursalId?: string | null) {
         .eq('cliente_nit', q)
         .order('fecha', { ascending: false })
         .limit(1);
+      if (paisId) ventasByNitQuery = ventasByNitQuery.eq('pais_id', paisId);
       if (sucursalId) ventasByNitQuery = ventasByNitQuery.eq('sucursal_id', sucursalId);
       const { data: ventasByNit } = await ventasByNitQuery;
       if (ventasByNit && ventasByNit.length) {
@@ -175,7 +179,7 @@ export function useCliente(sucursalId?: string | null) {
 
     setCliente((c: Cliente) => ({ ...c, guardado: false, existente: false, source: '' }));
     showToast('Cliente no encontrado. Puedes anadirlo para busquedas futuras.', 'info');
-  }, [cliente.carnet, cambiarCampo, sucursalId]);
+  }, [cliente.carnet, cambiarCampo, paisId, sucursalId]);
 
   const guardar = useCallback(async (accion: GuardarAccion) => {
     const nombre = cliente.nombre.trim();
@@ -197,6 +201,7 @@ export function useCliente(sucursalId?: string | null) {
             .from('clientes')
             .select('id')
             .eq('carnet', carnet);
+          if (paisId) existingQuery = existingQuery.eq('pais_id', paisId);
           if (sucursalId) existingQuery = existingQuery.eq('sucursal_id', sucursalId);
           const { data: existingClient, error: existingError } = await existingQuery.maybeSingle();
 
@@ -209,6 +214,7 @@ export function useCliente(sucursalId?: string | null) {
           carnet: carnet || null,
           telefono: telefono || null,
           email: cliente.email || null,
+          pais_id: paisId || null,
           sucursal_id: sucursalId || null
         }]);
 
@@ -260,6 +266,7 @@ export function useCliente(sucursalId?: string | null) {
           email: cliente.email || null,
           carnet: carnet || null,
         });
+      if (paisId) updateQuery = updateQuery.eq('pais_id', paisId);
       if (sucursalId) updateQuery = updateQuery.eq('sucursal_id', sucursalId);
 
       if (carnet) {
@@ -288,13 +295,14 @@ export function useCliente(sucursalId?: string | null) {
       // console.error(e);
       showToast('Error inesperado al actualizar cliente', 'error');
     }
-  }, [cliente, sucursalId]);
+  }, [cliente, paisId, sucursalId]);
 
   const buscarEmailHistorico = useCallback(async () => {
     try {
       const q = cliente.carnet.trim() || cliente.nit.trim();
       if (!q) return showToast('Introduce carnet o NIT para buscar email historico', 'info');
       let query = supabase.from('ventas').select('cliente_email').or(`cliente_nit.ilike.%${q}%,cliente_telefono.ilike.%${q}%`).order('fecha', { ascending: false }).limit(1);
+      if (paisId) query = query.eq('pais_id', paisId);
       if (sucursalId) query = query.eq('sucursal_id', sucursalId);
       const { data } = await query;
       if (data && data[0]?.cliente_email) {
@@ -304,7 +312,7 @@ export function useCliente(sucursalId?: string | null) {
         showToast('No se encontro email historico', 'info');
       }
     } catch (e) { /* console.warn(e); */ showToast('Error buscando email historico', 'error'); }
-  }, [cliente.carnet, cliente.nit, sucursalId]);
+  }, [cliente.carnet, cliente.nit, paisId, sucursalId]);
 
   return { cliente, cambiarCampo, buscarPorCarnet, guardar, buscarEmailHistorico };
 }

@@ -154,7 +154,7 @@ export default function NuevaVenta() {
   // hooks
   const { activePaisId, activeSucursal } = useSucursalActiva() as any;
   const effectiveSucursalId = activeSucursal?.id || "";
-  const { cliente, cambiarCampo, buscarPorCarnet, guardar, buscarEmailHistorico } = useCliente(effectiveSucursalId);
+  const { cliente, cambiarCampo, buscarPorCarnet, guardar, buscarEmailHistorico } = useCliente(effectiveSucursalId, activePaisId);
   const { promociones } = usePromociones(effectiveSucursalId);
   const { packs } = usePacks(effectiveSucursalId) as { packs: Pack[] };
   const {

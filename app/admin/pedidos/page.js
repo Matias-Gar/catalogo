@@ -7,18 +7,19 @@ import { useSucursalActiva } from "../../../components/admin/SucursalContext";
 export default function PedidosPage() {
   const [carritos, setCarritos] = useState([]);
   const router = useRouter();
-  const { activeSucursalId } = useSucursalActiva();
+  const { activePaisId, activeSucursalId } = useSucursalActiva();
 
   useEffect(() => {
-    if (!activeSucursalId) return;
+    if (!activePaisId || !activeSucursalId) return;
     fetchCarritos();
-  }, [activeSucursalId]);
+  }, [activePaisId, activeSucursalId]);
 
   async function fetchCarritos() {
     let query = supabase
       .from("carritos_pendientes")
-      .select("id, cliente_nombre, cliente_telefono, usuario_email, productos, fecha, confirmado_pago, sucursal_id")
+      .select("id, cliente_nombre, cliente_telefono, usuario_email, productos, fecha, confirmado_pago, pais_id, sucursal_id")
       .order("fecha", { ascending: false });
+    if (activePaisId) query = query.eq("pais_id", activePaisId);
     if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
     const { data, error } = await query;
     
@@ -44,6 +45,7 @@ export default function PedidosPage() {
       // Eliminar los carritos vencidos de la base de datos
       for (const carrito of carritosVencidos) {
         let deleteQuery = supabase.from("carritos_pendientes").delete().eq("id", carrito.id);
+        if (activePaisId) deleteQuery = deleteQuery.eq("pais_id", activePaisId);
         if (activeSucursalId) deleteQuery = deleteQuery.eq("sucursal_id", activeSucursalId);
         await deleteQuery;
       }
@@ -53,6 +55,7 @@ export default function PedidosPage() {
   async function eliminarCarrito(id) {
     if (!window.confirm("¿Estás seguro de que deseas eliminar este pedido? Esta acción no se puede deshacer.")) return;
     let query = supabase.from("carritos_pendientes").delete().eq("id", id);
+    if (activePaisId) query = query.eq("pais_id", activePaisId);
     if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
     await query;
     fetchCarritos();

@@ -17,6 +17,7 @@ export async function GET(request) {
       opening_balance: searchParams.get("opening_balance"),
       opening_qr: searchParams.get("opening_qr"),
       cashbox_id: searchParams.get("cashbox_id") || "main",
+      pais_id: searchParams.get("pais_id"),
       sucursal_id: searchParams.get("sucursal_id"),
     });
 

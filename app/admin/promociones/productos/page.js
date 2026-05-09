@@ -8,7 +8,7 @@ import { PrecioConPromocion } from "../../../../lib/promociones";
 import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
 
 export default function PromocionesProductosPage() {
-  const { activeSucursalId } = useSucursalActiva();
+  const { activePaisId, activeSucursalId } = useSucursalActiva();
   const [productos, setProductos] = useState([]);
   const [promociones, setPromociones] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,9 +28,9 @@ export default function PromocionesProductosPage() {
 
   // Cargar datos iniciales
   useEffect(() => {
-    if (!activeSucursalId) return;
+    if (!activePaisId || !activeSucursalId) return;
     fetchDatos();
-  }, [activeSucursalId]);
+  }, [activePaisId, activeSucursalId]);
 
   const fetchDatos = async () => {
     setLoading(true);
@@ -49,6 +49,7 @@ export default function PromocionesProductosPage() {
         `)
         .order('nombre');
       if (activeSucursalId) productosQuery = productosQuery.eq("sucursal_id", activeSucursalId);
+      if (activePaisId) productosQuery = productosQuery.eq("pais_id", activePaisId);
       const { data: productosData, error: prodError } = await productosQuery;
 
       // Cargar promociones
@@ -57,6 +58,7 @@ export default function PromocionesProductosPage() {
         .select("*")
         .order('id', { ascending: false });
       if (activeSucursalId) promosQuery = promosQuery.eq("sucursal_id", activeSucursalId);
+      if (activePaisId) promosQuery = promosQuery.eq("pais_id", activePaisId);
       const { data: promosData, error: promoError } = await promosQuery;
 
       if (prodError) {
@@ -120,6 +122,10 @@ export default function PromocionesProductosPage() {
       alert("Por favor completa todos los campos obligatorios");
       return;
     }
+    if (!activePaisId || !activeSucursalId) {
+      alert("Selecciona pais y sucursal antes de crear promociones");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -131,6 +137,7 @@ export default function PromocionesProductosPage() {
         fecha_inicio: promoDraft.fecha_inicio || new Date().toISOString().split('T')[0],
         fecha_fin: promoDraft.fecha_fin || null,
         activa: promoDraft.activa,
+        pais_id: activePaisId || null,
         sucursal_id: activeSucursalId || null
       }]);
 
@@ -173,7 +180,8 @@ export default function PromocionesProductosPage() {
           activa: editandoPromo.activa
         })
         .eq("id", editandoPromo.id)
-        .eq("sucursal_id", activeSucursalId);
+        .eq("sucursal_id", activeSucursalId)
+        .eq("pais_id", activePaisId);
 
       if (error) throw error;
 
@@ -194,7 +202,7 @@ export default function PromocionesProductosPage() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("promociones").delete().eq("id", promoId).eq("sucursal_id", activeSucursalId);
+      const { error } = await supabase.from("promociones").delete().eq("id", promoId).eq("sucursal_id", activeSucursalId).eq("pais_id", activePaisId);
       if (error) throw error;
 
       await fetchDatos();
@@ -215,7 +223,8 @@ export default function PromocionesProductosPage() {
         .from("promociones")
         .update({ activa: !activa })
         .eq("id", promoId)
-        .eq("sucursal_id", activeSucursalId);
+        .eq("sucursal_id", activeSucursalId)
+        .eq("pais_id", activePaisId);
 
       if (error) throw error;
       await fetchDatos();

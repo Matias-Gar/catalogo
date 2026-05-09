@@ -9,7 +9,7 @@ const STORAGE_KEY = "streetwear.public_sucursal_id";
 
 function getSavedSucursalId(countrySlug = "bo") {
   if (typeof window === "undefined") return "";
-  return window.localStorage.getItem(`${STORAGE_KEY}_${countrySlug}`) || window.localStorage.getItem(STORAGE_KEY) || "";
+  return window.localStorage.getItem(`${STORAGE_KEY}_${countrySlug}`) || "";
 }
 
 export function usePublicSucursal() {
@@ -50,7 +50,11 @@ export function usePublicSucursal() {
         if (!mounted) return;
         setSucursales(branches);
         setActivePais(result.pais || null);
-        if (nextId) setActiveSucursalId(nextId);
+        if (nextId) {
+          setActiveSucursalId(nextId);
+        } else {
+          setActiveSucursalIdState("");
+        }
       } catch (requestError) {
         if (mounted) setError(requestError?.message || "No se pudieron cargar sucursales.");
       } finally {

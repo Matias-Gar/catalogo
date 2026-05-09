@@ -906,8 +906,12 @@ export default function CatalogoPage() {
         }
 
         // Insertar y obtener el número de pedido (id)
-        const { data, error } = await supabase.from("carritos_pendientes").insert([
-            {
+        if (!activePais?.id || !activeSucursalId) {
+            alert("Selecciona pais y sucursal antes de enviar el pedido.");
+            return;
+        }
+
+        const pendingOrderPayload = {
                 cliente_nombre: nombreFinal || null,
                 cliente_telefono: nitciLlenado || null, // Usar NIT/CI en lugar de teléfono
                 usuario_id: usuario ? usuario.id : null,
@@ -947,10 +951,18 @@ export default function CatalogoPage() {
                     };
                 }),
                 carrito_token: carritoToken || null,
-                pais_id: activePais?.id || null,
-                sucursal_id: activeSucursalId || null,
-            }
-        ]).select('id').single();
+                pais_id: activePais.id,
+                sucursal_id: activeSucursalId,
+        };
+
+        const response = await fetch("/api/carritos-pendientes-service-role", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(pendingOrderPayload),
+        });
+        const result = await response.json();
+        const data = result?.id ? { id: result.id } : null;
+        const error = response.ok && result?.success ? null : { message: result?.error || "Error desconocido" };
 
         if (error || !data) {
             alert(`No se pudo guardar el pedido. Error: ${error?.message || 'Error desconocido'}. Por favor intenta de nuevo.`);

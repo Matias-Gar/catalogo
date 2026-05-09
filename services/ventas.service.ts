@@ -149,7 +149,16 @@ export async function establecerStockLegacyVariante(varianteId: ProductoId, stoc
 }
 
 export async function guardarCarritoPendiente(payload: GenericPayload) {
-  return supabase.from('carritos_pendientes').insert([payload]);
+  const response = await fetch('/api/carritos-pendientes-service-role', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const result = await response.json();
+  return {
+    data: result?.id ? [{ id: result.id }] : null,
+    error: response.ok && result?.success ? null : { message: result?.error || 'No se pudo guardar el pedido' },
+  };
 }
 
 export async function fetchCarritosPendientes() {

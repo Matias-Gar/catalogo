@@ -93,7 +93,7 @@ function monthRangeISO() {
 }
 
 export default function FlujoCajaPage() {
-  const { activeSucursalId } = useSucursalActiva();
+  const { activePaisId, activeSucursalId } = useSucursalActiva();
   const [startDate, setStartDate] = useState(todayISO());
   const [endDate, setEndDate] = useState(todayISO());
   const [realCashInput, setRealCashInput] = useState("");
@@ -181,6 +181,7 @@ export default function FlujoCajaPage() {
         end_date: endDate,
         cashbox_id: cashboxId || "main",
       });
+      if (activePaisId) params.set("pais_id", activePaisId);
       if (activeSucursalId) params.set("sucursal_id", activeSucursalId);
 
       const res = await fetch(`/api/cash/summary?${params.toString()}`, {
@@ -212,6 +213,7 @@ export default function FlujoCajaPage() {
         cashbox_id: cashboxId || "main",
         limit: "25",
       });
+      if (activePaisId) params.set("pais_id", activePaisId);
       if (activeSucursalId) params.set("sucursal_id", activeSucursalId);
 
       const res = await fetch(`/api/cash/closures?${params.toString()}`, {
@@ -245,6 +247,7 @@ export default function FlujoCajaPage() {
         cashbox_id: cashboxId || "main",
         limit: "200",
       });
+      if (activePaisId) params.set("pais_id", activePaisId);
       if (activeSucursalId) params.set("sucursal_id", activeSucursalId);
 
       const res = await fetch(`/api/cash/movements?${params.toString()}`, {
@@ -269,19 +272,19 @@ export default function FlujoCajaPage() {
   }
 
   useEffect(() => {
-    if (!activeSucursalId) return;
+    if (!activePaisId || !activeSucursalId) return;
     fetchSummary();
     fetchClosures();
     fetchMovements();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSucursalId]);
+  }, [activePaisId, activeSucursalId]);
 
   useEffect(() => {
-    if (!activeSucursalId) return;
+    if (!activePaisId || !activeSucursalId) return;
     fetchSummary();
     fetchMovements();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, endDate, cashboxId, activeSucursalId]);
+  }, [startDate, endDate, cashboxId, activePaisId, activeSucursalId]);
 
   const difference = useMemo(() => {
     const expectedCash = Number(summary?.expected_cash || 0);
@@ -446,6 +449,7 @@ export default function FlujoCajaPage() {
           amount: movementAmount,
           description: movementDescription,
           cashbox_id: cashboxId || "main",
+          pais_id: activePaisId || null,
           sucursal_id: activeSucursalId || null,
         }),
       });
@@ -483,6 +487,7 @@ export default function FlujoCajaPage() {
           real_cash: Number(realCashInput),
           real_qr: realQrInput === "" ? null : Number(realQrInput),
           cashbox_id: cashboxId || "main",
+          pais_id: activePaisId || null,
           sucursal_id: activeSucursalId || null,
         }),
       });
@@ -566,6 +571,7 @@ export default function FlujoCajaPage() {
           payment_method: editFormData.payment_method,
           amount: editFormData.amount,
           description: editFormData.description,
+          pais_id: activePaisId || null,
           sucursal_id: activeSucursalId || null,
         }),
       });

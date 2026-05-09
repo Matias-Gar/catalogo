@@ -16,6 +16,7 @@ export async function GET(request) {
       end_date: searchParams.get("end_date"),
       limit: searchParams.get("limit"),
       cashbox_id: searchParams.get("cashbox_id") || "main",
+      pais_id: searchParams.get("pais_id"),
       sucursal_id: searchParams.get("sucursal_id"),
     });
 
@@ -93,7 +94,7 @@ export async function PATCH(request) {
     }
 
     const body = await request.json();
-    const { id, date, type, payment_method, amount, description, sucursal_id } = body;
+    const { id, date, type, payment_method, amount, description, pais_id, sucursal_id } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -111,8 +112,10 @@ export async function PATCH(request) {
         payment_method: payment_method || null,
         amount: amount ? Number(amount) : null,
         description: description || null,
+        pais_id: pais_id || null,
       })
       .eq("id", id);
+    if (pais_id) query = query.eq("pais_id", pais_id);
     if (sucursal_id) query = query.eq("sucursal_id", sucursal_id);
     const { error } = await query;
 

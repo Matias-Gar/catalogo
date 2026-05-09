@@ -138,7 +138,7 @@ const uploadProductImages = async (files) => {
 export default function AdminProductosPage() { 
     // HOOKS AL INICIO
     const router = useRouter(); 
-    const { activeSucursalId } = useSucursalActiva();
+    const { activePaisId, activeSucursalId } = useSucursalActiva();
     const [userRole, setUserRole] = useState(null); 
     const [productos, setProductos] = useState([]);
     const [imagenesProductos, setImagenesProductos] = useState({});
@@ -399,6 +399,7 @@ export default function AdminProductosPage() {
             .from('categorias')
             .select('id, categori')
             .order('categori', { ascending: true });
+        if (activePaisId) query = query.eq('pais_id', activePaisId);
         if (activeSucursalId) query = query.eq('sucursal_id', activeSucursalId);
         const { data, error } = await query;
         if (error) {
@@ -448,6 +449,7 @@ export default function AdminProductosPage() {
             .from('productos')
             .select(selectWithView)
             .order('nombre', { ascending: true });
+        if (activePaisId) query = query.eq('pais_id', activePaisId);
         if (activeSucursalId) query = query.eq('sucursal_id', activeSucursalId);
         let response = await query;
 
@@ -460,6 +462,7 @@ export default function AdminProductosPage() {
                 .from('productos')
                 .select(selectWithoutView)
                 .order('nombre', { ascending: true });
+            if (activePaisId) fallbackQuery = fallbackQuery.eq('pais_id', activePaisId);
             if (activeSucursalId) fallbackQuery = fallbackQuery.eq('sucursal_id', activeSucursalId);
             response = await fallbackQuery;
             data = response.data;
@@ -489,6 +492,7 @@ export default function AdminProductosPage() {
                 .from('producto_imagenes')
                 .select('producto_id, imagen_url')
                 .in('producto_id', ids);
+            if (activePaisId) imgsQuery = imgsQuery.eq('pais_id', activePaisId);
             if (activeSucursalId) imgsQuery = imgsQuery.eq('sucursal_id', activeSucursalId);
             const { data: imgs, error: imgsError } = await imgsQuery;
             if (!imgsError && imgs) {
@@ -528,7 +532,7 @@ export default function AdminProductosPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [userRole, activeSucursalId]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [userRole, activePaisId, activeSucursalId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     
     // Función para Añadir Producto
@@ -558,6 +562,7 @@ export default function AdminProductosPage() {
                         category_id: categoryIdValue,
                         codigo_barra: codigoBarra,
                         vista_producto: normalizeProductView(newProduct.vista_producto),
+                        pais_id: activePaisId || null,
                         sucursal_id: activeSucursalId || null
                     }
                 ]).select();
@@ -575,6 +580,7 @@ export default function AdminProductosPage() {
                 const imagesToInsert = imagenUrls.map(url => ({
                     producto_id: productoId,
                     imagen_url: url,
+                    pais_id: activePaisId || null,
                     sucursal_id: activeSucursalId || null
                 }));
                 const { error: imgInsertError } = await supabase.from('producto_imagenes').insert(imagesToInsert);
@@ -618,6 +624,7 @@ export default function AdminProductosPage() {
                 .delete() 
                 // Usamos user_id como ID único del producto para filtrar
                 .eq('user_id', productToDelete.user_id); 
+            if (activePaisId) deleteQuery = deleteQuery.eq('pais_id', activePaisId);
             if (activeSucursalId) deleteQuery = deleteQuery.eq('sucursal_id', activeSucursalId);
             const { error } = await deleteQuery;
 
@@ -664,6 +671,7 @@ export default function AdminProductosPage() {
                     codigo_barra: editingProduct.codigo_barra
                 })
                 .eq('user_id', editingProduct.user_id);
+            if (activePaisId) updateQuery = updateQuery.eq('pais_id', activePaisId);
             if (activeSucursalId) updateQuery = updateQuery.eq('sucursal_id', activeSucursalId);
             const { error: updateError } = await updateQuery;
             if (updateError) {
@@ -681,6 +689,7 @@ export default function AdminProductosPage() {
                     .delete()
                     .in('imagen_url', urlsAEliminar)
                     .eq('producto_id', editingProduct.user_id);
+                if (activePaisId) deleteImgQuery = deleteImgQuery.eq('pais_id', activePaisId);
                 if (activeSucursalId) deleteImgQuery = deleteImgQuery.eq('sucursal_id', activeSucursalId);
                 const { error: deleteImgError } = await deleteImgQuery;
                 
@@ -696,6 +705,7 @@ export default function AdminProductosPage() {
                 const imagesToInsert = nuevasUrls.map(url => ({
                     producto_id: editingProduct.user_id,
                     imagen_url: url,
+                    pais_id: activePaisId || null,
                     sucursal_id: activeSucursalId || null
                 }));
                 const { error: imgInsertError } = await supabase.from('producto_imagenes').insert(imagesToInsert);

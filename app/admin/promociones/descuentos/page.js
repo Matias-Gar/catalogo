@@ -8,7 +8,7 @@ import { PrecioConPromocion } from "../../../../lib/promociones";
 import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
 
 export default function PromocionesDescuentosPage() {
-  const { activeSucursalId } = useSucursalActiva();
+  const { activePaisId, activeSucursalId } = useSucursalActiva();
   const [productosConPromociones, setProductosConPromociones] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editandoPromo, setEditandoPromo] = useState(null);
@@ -18,7 +18,7 @@ export default function PromocionesDescuentosPage() {
   // Cargar productos que tienen promociones activas
   useEffect(() => {
     fetchProductosConPromociones();
-  }, [activeSucursalId]);
+  }, [activePaisId, activeSucursalId]);
 
   const fetchProductosConPromociones = async () => {
     setLoading(true);
@@ -39,6 +39,7 @@ export default function PromocionesDescuentosPage() {
         `)
         .order('activa', { ascending: false }) // Primero las activas
         .order('id', { ascending: false });
+      if (activePaisId) query = query.eq("pais_id", activePaisId);
       if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
       const { data: promocionesData, error: promoError } = await query;
 
@@ -91,6 +92,7 @@ export default function PromocionesDescuentosPage() {
           activa: editandoPromo.activa
         })
         .eq("id", editandoPromo.id);
+      if (activePaisId) query = query.eq("pais_id", activePaisId);
       if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
       const { error } = await query;
 
@@ -116,6 +118,7 @@ export default function PromocionesDescuentosPage() {
         .from('promociones')
         .update({ activa: nuevoEstado })
         .eq('id', promocionId);
+      if (activePaisId) query = query.eq("pais_id", activePaisId);
       if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
       const { error } = await query;
 
@@ -146,6 +149,7 @@ export default function PromocionesDescuentosPage() {
     setLoading(true);
     try {
       let query = supabase.from("promociones").delete().eq("id", promoId);
+      if (activePaisId) query = query.eq("pais_id", activePaisId);
       if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
       const { error } = await query;
       if (error) throw error;
