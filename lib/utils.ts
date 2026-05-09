@@ -38,14 +38,6 @@ export async function sincronizarStockProducto(
 
   const stockActual = Number((producto as any)?.stock ?? 0);
   const stockProducto = Number.isFinite(stockActual) ? Math.max(0, stockActual) : 0;
-  const hasConversion = Boolean(
-    Array.isArray((producto as any)?.unidades_alternativas) &&
-      (producto as any).unidades_alternativas.length > 0 &&
-      Number((producto as any)?.factor_conversion || 0) > 0
-  );
-
-  if (hasConversion) return stockProducto;
-
   let variantesQuery = (supabase as any)
     .from("producto_variantes")
     .select("stock, stock_decimal")

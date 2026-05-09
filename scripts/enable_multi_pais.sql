@@ -622,7 +622,8 @@ begin
     from public.productos p
     where p.user_id = v_producto_id
       and p.pais_id = v_pais_id
-      and p.sucursal_id = v_sucursal_id;
+      and p.sucursal_id = v_sucursal_id
+    for update;
 
     if not found then
       raise exception 'Producto no encontrado para pais/sucursal (%)', v_producto_id;
@@ -639,20 +640,21 @@ begin
       end;
     end if;
 
-    if v_has_conversion then
-      v_stock_antes := v_producto.stock;
-    elsif v_variante_id is not null then
+    if v_variante_id is not null then
       select pv.id, pv.color, coalesce(nullif(pv.stock_decimal, 0), pv.stock, 0)::numeric as stock
       into v_variante
       from public.producto_variantes pv
       where pv.id = v_variante_id
         and pv.pais_id = v_pais_id
-        and pv.sucursal_id = v_sucursal_id;
+        and pv.sucursal_id = v_sucursal_id
+      for update;
       if not found then
         raise exception 'Variante no encontrada (%)', v_variante_id;
       end if;
       v_stock_antes := v_variante.stock;
       v_color := coalesce(v_color, v_variante.color);
+    elsif v_has_conversion then
+      v_stock_antes := v_producto.stock;
     else
       v_stock_antes := v_producto.stock;
     end if;
@@ -702,22 +704,7 @@ begin
 
     v_stock_despues := greatest(0, v_stock_antes - v_qty_base);
 
-    if v_has_conversion then
-      update public.productos
-      set stock = v_stock_despues
-      where user_id = v_producto_id
-        and pais_id = v_pais_id
-        and sucursal_id = v_sucursal_id;
-
-      if v_variante_id is not null then
-        update public.producto_variantes
-        set stock_decimal = v_stock_despues,
-            stock = floor(v_stock_despues)
-        where id = v_variante_id
-          and pais_id = v_pais_id
-          and sucursal_id = v_sucursal_id;
-      end if;
-    elsif v_variante_id is not null then
+    if v_variante_id is not null then
       update public.producto_variantes
       set stock_decimal = v_stock_despues,
           stock = floor(v_stock_despues)
@@ -734,6 +721,12 @@ begin
           and pv.sucursal_id = v_sucursal_id
           and coalesce(pv.activo, true) = true
       )
+      where user_id = v_producto_id
+        and pais_id = v_pais_id
+        and sucursal_id = v_sucursal_id;
+    elsif v_has_conversion then
+      update public.productos
+      set stock = v_stock_despues
       where user_id = v_producto_id
         and pais_id = v_pais_id
         and sucursal_id = v_sucursal_id;

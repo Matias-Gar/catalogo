@@ -100,10 +100,7 @@ begin
 
   v_has_conversion := v_producto.factor_conversion > 0 and v_producto.alternativas_count > 0;
 
-  if v_has_conversion then
-    -- Rollo/metro: product stock is authoritative and cantidad_base is in base unit.
-    v_available := v_producto.stock;
-  elsif new.variante_id is not null then
+  if new.variante_id is not null then
     select
       pv.id,
       pv.color,
@@ -117,6 +114,9 @@ begin
     end if;
 
     v_available := v_variante.stock;
+  elsif v_has_conversion then
+    -- Rollo/metro without variant: product stock is authoritative and cantidad_base is in base unit.
+    v_available := v_producto.stock;
   else
     -- Old/simple products: plain product stock.
     v_available := v_producto.stock;
@@ -242,7 +242,8 @@ begin
       coalesce(cardinality(p.unidades_alternativas), 0) as alternativas_count
     into v_producto
     from public.productos p
-    where p.user_id = v_producto_id;
+    where p.user_id = v_producto_id
+    for update;
 
     if not found then
       raise exception 'Producto no encontrado (%)', v_producto_id;
@@ -259,18 +260,19 @@ begin
       end;
     end if;
 
-    if v_has_conversion then
-      v_stock_antes := v_producto.stock;
-    elsif v_variante_id is not null then
+    if v_variante_id is not null then
       select pv.id, pv.color, coalesce(nullif(pv.stock_decimal, 0), pv.stock, 0)::numeric as stock
       into v_variante
       from public.producto_variantes pv
-      where pv.id = v_variante_id;
+      where pv.id = v_variante_id
+      for update;
       if not found then
         raise exception 'Variante no encontrada (%)', v_variante_id;
       end if;
       v_stock_antes := v_variante.stock;
       v_color := coalesce(v_color, v_variante.color);
+    elsif v_has_conversion then
+      v_stock_antes := v_producto.stock;
     else
       v_stock_antes := v_producto.stock;
     end if;
@@ -316,18 +318,7 @@ begin
 
     v_stock_despues := greatest(0, v_stock_antes - v_qty_base);
 
-    if v_has_conversion then
-      update public.productos
-      set stock = v_stock_despues
-      where user_id = v_producto_id;
-
-      if v_variante_id is not null then
-        update public.producto_variantes
-        set stock_decimal = v_stock_despues,
-            stock = floor(v_stock_despues)
-        where id = v_variante_id;
-      end if;
-    elsif v_variante_id is not null then
+    if v_variante_id is not null then
       update public.producto_variantes
       set stock_decimal = v_stock_despues,
           stock = floor(v_stock_despues)
@@ -340,6 +331,10 @@ begin
         where pv.producto_id = v_producto_id
           and coalesce(pv.activo, true) = true
       )
+      where user_id = v_producto_id;
+    elsif v_has_conversion then
+      update public.productos
+      set stock = v_stock_despues
       where user_id = v_producto_id;
     else
       update public.productos
@@ -549,21 +544,14 @@ begin
             stock = floor(v_stock_despues)
         where id = v_row.variante_id;
 
-        if v_producto.factor_conversion > 0 and v_producto.alternativas_count > 0 then
-          update public.productos
-          set stock = coalesce(stock, 0)::numeric + v_qty_base
-          where user_id = v_row.producto_id
-          returning stock into v_stock_despues;
-        else
-          update public.productos
-          set stock = (
-            select coalesce(sum(coalesce(pv.stock_decimal, pv.stock, 0)), 0)
-            from public.producto_variantes pv
-            where pv.producto_id = v_row.producto_id
-              and coalesce(pv.activo, true) = true
-          )
-          where user_id = v_row.producto_id;
-        end if;
+        update public.productos
+        set stock = (
+          select coalesce(sum(coalesce(pv.stock_decimal, pv.stock, 0)), 0)
+          from public.producto_variantes pv
+          where pv.producto_id = v_row.producto_id
+            and coalesce(pv.activo, true) = true
+        )
+        where user_id = v_row.producto_id;
       else
         v_stock_antes := v_producto.stock;
         v_stock_despues := v_stock_antes + v_qty_base;
@@ -666,21 +654,14 @@ begin
             stock = floor(v_stock_despues)
         where id = v_row.variante_id;
 
-        if v_producto.factor_conversion > 0 and v_producto.alternativas_count > 0 then
-          update public.productos
-          set stock = coalesce(stock, 0)::numeric + v_qty_base
-          where user_id = v_row.producto_id
-          returning stock into v_stock_despues;
-        else
-          update public.productos
-          set stock = (
-            select coalesce(sum(coalesce(pv.stock_decimal, pv.stock, 0)), 0)
-            from public.producto_variantes pv
-            where pv.producto_id = v_row.producto_id
-              and coalesce(pv.activo, true) = true
-          )
-          where user_id = v_row.producto_id;
-        end if;
+        update public.productos
+        set stock = (
+          select coalesce(sum(coalesce(pv.stock_decimal, pv.stock, 0)), 0)
+          from public.producto_variantes pv
+          where pv.producto_id = v_row.producto_id
+            and coalesce(pv.activo, true) = true
+        )
+        where user_id = v_row.producto_id;
       else
         v_stock_antes := v_producto.stock;
         v_stock_despues := v_stock_antes + v_qty_base;

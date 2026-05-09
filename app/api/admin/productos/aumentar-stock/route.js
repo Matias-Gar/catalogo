@@ -53,10 +53,6 @@ async function setProductStock(productId, paisId, sucursalId, stock) {
 
 async function syncProductStock(product, paisId, sucursalId) {
   const productId = product.user_id;
-  if (hasUnitConversion(product)) {
-    return Math.max(0, Number(product.stock || 0));
-  }
-
   let variantsQuery = supabaseAdmin
     .from("producto_variantes")
     .select("stock, stock_decimal")
@@ -158,7 +154,6 @@ export async function POST(request) {
     let stockBefore = null;
     let stockAfter = null;
     let productStockAfter = Math.max(0, Number(product.stock || 0));
-    const productHasConversion = hasUnitConversion(product);
     if (mode === "variant") {
       if (!variantId) {
         return NextResponse.json({ success: false, error: "Variante requerida" }, { status: 400 });
@@ -176,7 +171,7 @@ export async function POST(request) {
         return NextResponse.json({ success: false, error: variantError?.message || "Variante no encontrada" }, { status: 404 });
       }
 
-      stockBefore = productHasConversion ? productStockAfter : getEffectiveStock(variant);
+      stockBefore = getEffectiveStock(variant);
       nextVariantStock = stockBefore + baseIncrease;
       stockAfter = nextVariantStock;
       const { error: updateVariantError } = await supabaseAdmin
@@ -187,10 +182,6 @@ export async function POST(request) {
         })
         .eq("id", variantId);
       if (updateVariantError) throw updateVariantError;
-
-      if (productHasConversion) {
-        productStockAfter = await setProductStock(productId, paisId, sucursalId, nextVariantStock);
-      }
     } else {
       stockBefore = Math.max(0, Number(product.stock || 0));
       const nextProductStock = stockBefore + baseIncrease;

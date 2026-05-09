@@ -121,12 +121,8 @@ function hasUnitConversion(product?: { unidades_alternativas?: string[]; factor_
   );
 }
 
-function shouldUseProductStockForVariant(product?: { unidades_alternativas?: string[]; factor_conversion?: number; producto_variantes?: unknown[] } | null) {
-  return hasUnitConversion(product);
-}
-
 function getStockForVariantSale(product: ProductoDB, variant?: { stock?: number; stock_decimal?: number } | null) {
-  return shouldUseProductStockForVariant(product) ? getProductStock(product) : getVariantStock(variant);
+  return variant ? getVariantStock(variant) : getProductStock(product);
 }
 
 function formatStockQuantity(value: number) {
@@ -497,7 +493,14 @@ export default function NuevaVenta() {
           : [];
         const unidadAlternativa = alternativas[0];
         const factor = Number(product.factor_conversion || item.factor_conversion || 0);
-        const stockBase = getProductStock(product);
+        const variantForItem = item.variante_id
+          ? (Array.isArray((product as Producto & { variantes?: VariantMatch[] }).variantes)
+              ? (product as Producto & { variantes?: VariantMatch[] }).variantes?.find((variant) =>
+                  String(variant.variante_id ?? variant.id) === String(item.variante_id)
+                )
+              : null)
+          : null;
+        const stockBase = variantForItem ? getVariantStock(variantForItem) : getProductStock(product);
         if (!unidadAlternativa || !Number.isFinite(factor) || factor <= 0) return item;
 
         const unidadesDisponibles = [
@@ -557,19 +560,12 @@ export default function NuevaVenta() {
         return matchesBarcode(codigo, currentVariant?.codigo_barra) || matchesBarcode(codigo, currentVariant?.sku);
       }) as VariantMatch | undefined;
       if (!matchedVariant) return null;
-      const productHasConversion = hasUnitConversion(p as {
-        unidades_alternativas?: string[];
-        factor_conversion?: number;
-      });
-
       return {
         ...p,
         variante_id: matchedVariant?.variante_id ?? matchedVariant?.id,
         color: matchedVariant?.color || 'Sin color',
         precio: Number(matchedVariant?.precio ?? p.precio ?? 0),
-        stock: productHasConversion
-          ? Number((p as Producto & { stock?: number }).stock ?? 0)
-          : Number((matchedVariant as VariantMatch & { stock_decimal?: number })?.stock_decimal ?? matchedVariant?.stock ?? 0),
+        stock: getVariantStock(matchedVariant),
         codigo: String(matchedVariant?.sku || '')
       } as Producto;
     };

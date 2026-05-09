@@ -209,15 +209,10 @@ export default function StockPage() {
 
     const normalized = {};
     for (const [productoId, colorsMap] of Object.entries(grouped)) {
-      const prod = productById[productoId];
-      const conversionProductStock = hasUnitConversion(prod) ? Math.max(0, Number(prod?.stock || 0)) : null;
-      const entries = Object.entries(colorsMap);
       normalized[productoId] = Object.entries(colorsMap)
         .map(([color, stock]) => ({
           color,
-          stock: conversionProductStock !== null && entries.length === 1
-            ? conversionProductStock
-            : Number(stock || 0)
+          stock: Number(stock || 0)
         }))
         // Ya no filtramos por stock > 0, mostramos todas
         .sort((a, b) => b.stock - a.stock || a.color.localeCompare(b.color, "es"));
@@ -230,7 +225,7 @@ export default function StockPage() {
       if (!Array.isArray(variantes) || variantes.length === 0) return prod;
       const stockDecimal = variantes.reduce((sum, v) => sum + Number(v.stock || 0), 0);
       const productStock = Math.max(0, Number(prod?.stock || 0));
-      return { ...prod, stock: hasUnitConversion(prod) ? productStock : (stockDecimal > 0 || productStock <= 0 ? stockDecimal : productStock) };
+      return { ...prod, stock: stockDecimal > 0 || productStock <= 0 ? stockDecimal : productStock };
     }));
   }
 
@@ -270,7 +265,6 @@ export default function StockPage() {
 
   function getBaseStock(prod) {
     const productStock = Math.max(0, Number(prod?.stock || 0));
-    if (hasUnitConversion(prod)) return productStock;
     if (Array.isArray(prod?.variantes) && prod.variantes.length > 0) {
       const variantStock = prod.variantes.reduce((sum, v) => sum + getEffectiveVariantStock(v), 0);
       return variantStock > 0 || productStock <= 0 ? variantStock : productStock;
@@ -513,7 +507,7 @@ export default function StockPage() {
       if (!(pid in totals)) return prod;
       const productStock = Math.max(0, Number(prod?.stock || 0));
       const variantStock = Math.max(0, Number(totals[pid] || 0));
-      return { ...prod, stock: hasUnitConversion(prod) ? productStock : (variantStock > 0 || productStock <= 0 ? variantStock : productStock) };
+      return { ...prod, stock: variantStock > 0 || productStock <= 0 ? variantStock : productStock };
     });
   }
 

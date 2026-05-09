@@ -12,13 +12,27 @@ function parseDecimalInput(value, fallback = null) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function getEffectiveVariantStock(variant) {
+  const decimal = Number(variant?.stock_decimal);
+  const legacy = Number(variant?.stock);
+  return Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
+}
+
+function hasUnitConversion(product) {
+  return Boolean(
+    Array.isArray(product?.unidades_alternativas) &&
+      product.unidades_alternativas.length > 0 &&
+      Number(product?.factor_conversion || 0) > 0
+  );
+}
+
 async function requireAdmin(request) {
   const userId = await getUserIdFromRequest(request);
   if (!userId) return { error: "Unauthorized", status: 401 };
 
   const { data: profile, error } = await supabaseAdmin
     .from("perfiles")
-    .select("rol")
+    .select("email, rol")
     .eq("id", userId)
     .single();
 
@@ -26,7 +40,7 @@ async function requireAdmin(request) {
     return { error: "Solo el administrador puede editar productos", status: 403 };
   }
 
-  return { userId };
+  return { userId, email: profile?.email || "" };
 }
 
 function normalizeProductView(value) {
@@ -75,7 +89,36 @@ export async function POST(request) {
       productoActual.imagen_url ||
       "/sin-imagen.png";
 
-    const stockTotal = nuevasVariantes.reduce((acc, variant) => acc + (parseInt(variant?.stock, 10) || 0), 0);
+    let variantesQuery = supabaseAdmin
+      .from("producto_variantes")
+      .select("id, producto_id, color, talla, stock, stock_decimal, sku, precio, imagen_url, activo")
+      .eq("producto_id", productoActual.user_id);
+    if (activeSucursalId) variantesQuery = variantesQuery.eq("sucursal_id", activeSucursalId);
+    const { data: variantesBD, error: variantesError } = await variantesQuery;
+    if (variantesError) throw variantesError;
+
+    const productHasConversion = hasUnitConversion(productoActual);
+    const hasVariantsAfterSave = nuevasVariantes.length > 0;
+    const stockTotal = hasVariantsAfterSave
+      ? nuevasVariantes.reduce((acc, variant) => acc + getEffectiveVariantStock(variant), 0)
+      : Math.max(0, Number(productoActual.stock || 0));
+    const variantesActualesById = new Map((variantesBD || []).map((variant) => [String(variant.id), variant]));
+
+    for (const variant of variantesBD || []) {
+      if (!nuevasVariantes.some((item) => item.id === variant.id)) {
+        const stockActual = getEffectiveVariantStock(variant);
+        if (stockActual > 0.0001) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `No se puede eliminar la variante "${variant.color || variant.id}" porque todavia tiene stock (${stockActual}). Primero transfierelo, vendelo o ajustalo desde el modulo de stock.`,
+            },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     const updatePayload = {
       nombre: cambios.nombre ?? productoActual.nombre,
       descripcion: cambios.descripcion ?? productoActual.descripcion,
@@ -83,7 +126,7 @@ export async function POST(request) {
       vista_producto: normalizeProductView(cambios.vista_producto ?? productoActual.vista_producto),
       category_id: cambios.category_id ? parseInt(cambios.category_id, 10) : productoActual.category_id ?? null,
       codigo_barra: cambios.codigo_barra ?? productoActual.codigo_barra,
-      stock: stockTotal,
+      stock: hasVariantsAfterSave ? stockTotal : Math.max(0, Number(productoActual.stock || 0)),
       imagen_url: imagenPrincipal,
     };
 
@@ -91,14 +134,6 @@ export async function POST(request) {
     if (activeSucursalId) updateQuery = updateQuery.eq("sucursal_id", activeSucursalId);
     const { error: updateError } = await updateQuery;
     if (updateError) throw updateError;
-
-    let variantesQuery = supabaseAdmin
-      .from("producto_variantes")
-      .select("id")
-      .eq("producto_id", productoActual.user_id);
-    if (activeSucursalId) variantesQuery = variantesQuery.eq("sucursal_id", activeSucursalId);
-    const { data: variantesBD, error: variantesError } = await variantesQuery;
-    if (variantesError) throw variantesError;
 
     for (const variant of variantesBD || []) {
       if (!nuevasVariantes.some((item) => item.id === variant.id)) {
@@ -120,18 +155,70 @@ export async function POST(request) {
       };
 
       if (variant.id) {
+        const stockAntes = getEffectiveVariantStock(variantesActualesById.get(String(variant.id)));
+        const stockDespues = getEffectiveVariantStock(payload);
         const { error } = await supabaseAdmin.from("producto_variantes").update(payload).eq("id", variant.id);
         if (error) throw error;
+        const delta = stockDespues - stockAntes;
+        if (Math.abs(delta) > 0.0001) {
+          const { error: movementError } = await supabaseAdmin.from("stock_movimientos").insert([{
+            producto_id: productoActual.user_id,
+            variante_id: variant.id,
+            tipo: delta > 0 ? "ajuste_positivo" : "ajuste_negativo",
+            cantidad: Math.abs(delta),
+            cantidad_base: Math.abs(delta),
+            unidad: productoActual.unidad_base || "unidad",
+            pais_id: productoActual.pais_id || null,
+            sucursal_id: productoActual.sucursal_id || null,
+            usuario_id: auth.userId,
+            usuario_email: auth.email,
+            stock_antes: stockAntes,
+            stock_despues: stockDespues,
+            motivo: "edicion_producto",
+            observaciones: "Ajuste de stock desde edicion de producto",
+          }]);
+          if (movementError) throw movementError;
+        }
       } else {
-        const { error } = await supabaseAdmin.from("producto_variantes").insert({
+        const { data: insertedVariant, error } = await supabaseAdmin.from("producto_variantes").insert({
           ...payload,
           producto_id: productoActual.user_id,
           pais_id: productoActual.pais_id,
           sucursal_id: productoActual.sucursal_id,
           stock_inicial_decimal: Number(variant.stock) || 0,
-        });
+        }).select("id").single();
         if (error) throw error;
+        const stockNuevo = getEffectiveVariantStock(payload);
+        if (stockNuevo > 0.0001) {
+          const { error: movementError } = await supabaseAdmin.from("stock_movimientos").insert([{
+            producto_id: productoActual.user_id,
+            variante_id: insertedVariant?.id || null,
+            tipo: "ajuste_positivo",
+            cantidad: stockNuevo,
+            cantidad_base: stockNuevo,
+            unidad: productoActual.unidad_base || "unidad",
+            pais_id: productoActual.pais_id || null,
+            sucursal_id: productoActual.sucursal_id || null,
+            usuario_id: auth.userId,
+            usuario_email: auth.email,
+            stock_antes: 0,
+            stock_despues: stockNuevo,
+            motivo: "edicion_producto",
+            observaciones: `Stock inicial de nueva variante ${variant.color || ""}`.trim(),
+          }]);
+          if (movementError) throw movementError;
+        }
       }
+    }
+
+    if (hasVariantsAfterSave) {
+      let resyncQuery = supabaseAdmin
+        .from("productos")
+        .update({ stock: stockTotal })
+        .eq("user_id", productoActual.user_id);
+      if (activeSucursalId) resyncQuery = resyncQuery.eq("sucursal_id", activeSucursalId);
+      const { error: resyncError } = await resyncQuery;
+      if (resyncError) throw resyncError;
     }
 
     let imagenesQuery = supabaseAdmin
@@ -162,7 +249,13 @@ export async function POST(request) {
       }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      totalStock: hasVariantsAfterSave ? stockTotal : updatePayload.stock,
+      stockMode: hasVariantsAfterSave
+        ? productHasConversion ? "variantes_con_conversion" : "variantes"
+        : "producto",
+    });
   } catch (error) {
     return NextResponse.json(
       { success: false, error: error?.message || "No se pudo guardar el producto" },
