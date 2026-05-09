@@ -3,6 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getOptimizedImageUrl, buildImageSrcSet } from "@/lib/imageOptimization";
 
+function generateVariantBarcode() {
+  const base = `${Date.now()}${Math.floor(Math.random() * 100000)}`.replace(/\D/g, "");
+  return base.slice(-13).padStart(13, "2");
+}
+
 export default function ProductCard({
   prod,
   categories,
@@ -182,7 +187,7 @@ export default function ProductCard({
             </Button>
             <Button
               type="button"
-              onClick={() => onAddVariantRow(productId)}
+              onClick={() => onAddVariantRow(productId, generateVariantBarcode())}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 text-sm"
             >
               + Agregar color
@@ -197,16 +202,17 @@ export default function ProductCard({
             <div className="text-xs text-slate-500 mb-1">
               Lista editable por variante: color, stock, precio, SKU y estado.
             </div>
-            <div className="text-xs text-gray-600 mb-2 grid grid-cols-1 md:grid-cols-6 gap-2 px-2">
+            <div className="text-xs text-gray-600 mb-2 grid grid-cols-1 md:grid-cols-7 gap-2 px-2">
               <span>Color</span>
               <span>Stock</span>
               <span>Precio</span>
               <span>SKU</span>
               <span>Activo</span>
+              <span>Etiqueta</span>
               <span></span>
             </div>
             {variantsArr.map((variant, idx) => (
-              <div key={`${productId}-variant-${variant.id ?? idx}`} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center bg-white border border-slate-200 rounded-lg p-2">
+              <div key={`${productId}-variant-${variant.id ?? idx}`} className="grid grid-cols-1 md:grid-cols-7 gap-2 items-center bg-white border border-slate-200 rounded-lg p-2">
                 <Input
                   value={variant.color ?? ""}
                   onChange={(e) => onVariantFieldChange(productId, idx, "color", e.target.value)}
@@ -234,7 +240,7 @@ export default function ProductCard({
                 <Input
                   value={variant.sku ?? ""}
                   onChange={(e) => onVariantFieldChange(productId, idx, "sku", e.target.value)}
-                  placeholder="SKU (opt)"
+                  placeholder="Codigo"
                   className="text-sm"
                 />
                 <label className="flex items-center gap-2 text-xs text-slate-700">
@@ -245,6 +251,25 @@ export default function ProductCard({
                   />
                   Activo
                 </label>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    const code = variant.codigo_barra || variant.sku;
+                    if (!code || typeof window === "undefined") return;
+                    window.dispatchEvent(new CustomEvent("printVariantBarcode", {
+                      detail: {
+                        codigoBarras: code,
+                        nombre: `${prod.nombre || "Producto"} (${variant.color || "Color"})`,
+                        copies: Math.max(1, Math.min(200, Number(variant.stock) || 1)),
+                        printMode: "browser",
+                      },
+                    }));
+                  }}
+                  disabled={!(variant.codigo_barra || variant.sku)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 text-xs disabled:bg-slate-300"
+                >
+                  Imprimir
+                </Button>
                 <Button
                   type="button"
                   onClick={() => onRemoveVariantRow(productId, idx)}

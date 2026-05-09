@@ -6,6 +6,7 @@ import { CONFIG, whatsappUtils } from "../../../../lib/config";
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from "../../../../lib/storeSettings";
 import { Toast, showToast } from "../../../../components/ui/Toast";
 import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
+import { productMatchesSearch } from "../../../../lib/searchMatching";
 
 export default function StockPage() {
   const { activePaisId, activeSucursalId } = useSucursalActiva();
@@ -162,7 +163,7 @@ export default function StockPage() {
     // Traer todas las variantes activas, incluidas las de stock 0
     let withActiveQuery = supabase
       .from("producto_variantes")
-      .select("producto_id, color, stock, stock_decimal, activo")
+      .select("producto_id, color, stock, stock_decimal, activo, sku")
       .in("producto_id", ids)
       .eq("activo", true);
     if (activePaisId) withActiveQuery = withActiveQuery.eq("pais_id", activePaisId);
@@ -172,7 +173,7 @@ export default function StockPage() {
     if (withActive.error) {
       let fallbackQuery = supabase
         .from("producto_variantes")
-        .select("producto_id, color, stock, stock_decimal, activo")
+        .select("producto_id, color, stock, stock_decimal, activo, sku")
         .in("producto_id", ids);
       if (activePaisId) fallbackQuery = fallbackQuery.eq("pais_id", activePaisId);
       if (activeSucursalId) fallbackQuery = fallbackQuery.eq("sucursal_id", activeSucursalId);
@@ -203,16 +204,22 @@ export default function StockPage() {
       const stock = getEffectiveVariantStock(variant);
 
       if (!grouped[productoId]) grouped[productoId] = {};
-      if (!grouped[productoId][color]) grouped[productoId][color] = 0;
-      grouped[productoId][color] += stock;
+      if (!grouped[productoId][color]) {
+        grouped[productoId][color] = {
+          stock: 0,
+          sku: variant?.sku || "",
+        };
+      }
+      grouped[productoId][color].stock += stock;
     }
 
     const normalized = {};
     for (const [productoId, colorsMap] of Object.entries(grouped)) {
       normalized[productoId] = Object.entries(colorsMap)
-        .map(([color, stock]) => ({
+        .map(([color, variant]) => ({
           color,
-          stock: Number(stock || 0)
+          stock: Number(variant?.stock || 0),
+          sku: variant?.sku,
         }))
         // Ya no filtramos por stock > 0, mostramos todas
         .sort((a, b) => b.stock - a.stock || a.color.localeCompare(b.color, "es"));
@@ -418,8 +425,8 @@ export default function StockPage() {
 
   const matchesFilters = useCallback((prod, searchTerm = search.trim().toLowerCase(), category = categoryFilter, stock = stockFilter) => {
     const categoryName = getCategoryName(prod);
-    const matchesSearch = !searchTerm || [prod.nombre, prod.codigo_barra, categoryName]
-      .some((value) => String(value || "").toLowerCase().includes(searchTerm));
+    const pid = String(prod?.user_id ?? prod?.id ?? "");
+    const matchesSearch = productMatchesSearch({ ...prod, variantes: variantesByProducto[pid] || [] }, searchTerm, [categoryName]);
     const matchesCategory = category === "all" || categoryName === category;
     const state = getStockState(prod);
     const highStockThreshold = 20;
@@ -430,7 +437,7 @@ export default function StockPage() {
       || (stock === "high" && getBaseStock(prod) >= highStockThreshold);
 
     return matchesSearch && matchesCategory && matchesStock;
-  }, [search, categoryFilter, stockFilter, getStockState]);
+  }, [search, categoryFilter, stockFilter, getStockState, variantesByProducto]);
 
   async function fetchAllProductos() {
     const orderField = orden === "stock-desc" || orden === "stock-asc" ? "stock" : "user_id";

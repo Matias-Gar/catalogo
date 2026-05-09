@@ -10,6 +10,7 @@ import { PacksDisponibles } from '../lib/packs';
 import ExpandableDescription from '../components/ui/ExpandableDescription';
 import { getOptimizedImageUrl, buildImageSrcSet } from '../lib/imageOptimization';
 import { normalizeProductView } from '../lib/productViews';
+import { productMatchesSearch } from '../lib/searchMatching';
 import PublicSucursalSelector, { usePublicSucursal } from '../components/PublicSucursalSelector';
 import { buildCountryPath, getCountrySlugFromPath, stripCountryFromPath } from '../lib/countryRoutes';
 
@@ -493,15 +494,7 @@ export default function Home() {
 
   // 2. Definición de la variable calculada: productosFiltrados
   const productosFiltrados = productos.filter(p => {
-    const term = busqueda.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-    const matchesBusqueda = !term || [
-      p.nombre,
-      p.descripcion,
-      p.categoria,
-      p.categorias?.categori,
-      p.codigo_barra,
-      ...(Array.isArray(p.variantes) ? p.variantes.map((v) => v?.color) : []),
-    ].some((value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(term));
+    const matchesBusqueda = productMatchesSearch(p, busqueda);
     if (!matchesBusqueda) return false;
     if (filtroCategoria === '') return true;
     const match = Number(p.category_id) === Number(filtroCategoria);

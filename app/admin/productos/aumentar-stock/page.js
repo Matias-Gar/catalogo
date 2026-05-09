@@ -9,6 +9,7 @@ import Toast, { showToast } from '../../../../components/ui/Toast';
 import { registrarMovimientoStock } from "@/lib/stockMovimientos";
 import { registrarHistorialProducto } from "@/lib/productosHistorial";
 import { sincronizarStockProducto } from "@/lib/utils";
+import { productMatchesSearch } from "@/lib/searchMatching";
 import { useSucursalActiva } from "@/components/admin/SucursalContext";
 
 export default function AumentarStockPage() {
@@ -225,6 +226,7 @@ export default function AumentarStockPage() {
         user_id,
         nombre,
         stock,
+        imagen_url,
         codigo_barra,
         category_id,
         unidad_base,
@@ -249,6 +251,26 @@ export default function AumentarStockPage() {
     setProductos(productosData);
 
     const productIds = productosData.map((p) => p.user_id).filter(Boolean);
+    const imageMap = {};
+    productosData.forEach((product) => {
+      const pid = String(product?.user_id ?? "");
+      if (pid && product?.imagen_url) imageMap[pid] = product.imagen_url;
+    });
+
+    if (productIds.length > 0) {
+      let imagenesQuery = supabase
+        .from("producto_imagenes")
+        .select("producto_id, imagen_url")
+        .in("producto_id", productIds);
+      if (activePaisId) imagenesQuery = imagenesQuery.eq("pais_id", activePaisId);
+      if (effectiveSucursalId) imagenesQuery = imagenesQuery.eq("sucursal_id", effectiveSucursalId);
+      const { data: imagenesData } = await imagenesQuery;
+      (imagenesData || []).forEach((image) => {
+        const pid = String(image?.producto_id ?? "");
+        if (pid && image?.imagen_url && !imageMap[pid]) imageMap[pid] = image.imagen_url;
+      });
+    }
+    setImagenPrincipalByProducto(imageMap);
 
     // Filtrar y convertir a número solo IDs válidos antes de consultar variantes
     const validProductIds = productIds
@@ -264,7 +286,7 @@ export default function AumentarStockPage() {
         let vars = [];
         let withActiveQuery = supabase
           .from("producto_variantes")
-          .select("id, producto_id, color, stock, stock_decimal, activo, codigo_barra, sku")
+          .select("id, producto_id, color, stock, stock_decimal, activo, sku")
           .in("producto_id", chunk)
           .eq("activo", true)
           .order("color", { ascending: true });
@@ -274,7 +296,7 @@ export default function AumentarStockPage() {
         if (withActive.error) {
           let fallbackWithoutActiveQuery = supabase
             .from("producto_variantes")
-            .select("id, producto_id, color, stock, stock_decimal, codigo_barra, sku")
+            .select("id, producto_id, color, stock, stock_decimal, sku")
             .in("producto_id", chunk)
             .order("color", { ascending: true });
           if (activePaisId) fallbackWithoutActiveQuery = fallbackWithoutActiveQuery.eq("pais_id", activePaisId);
@@ -295,7 +317,6 @@ export default function AumentarStockPage() {
             } else {
               vars = (minimalFallback.data || []).map((row) => ({
                 ...row,
-                codigo_barra: null,
                 sku: null,
               }));
             }
@@ -319,7 +340,7 @@ export default function AumentarStockPage() {
         const pid = String(prod.user_id ?? "");
         const variants = grouped[pid] || [];
         if (!Array.isArray(variants) || variants.length === 0) return prod;
-        return { ...prod, stock: getBaseStock(prod, variants) };
+        return { ...prod, variantes: variants, stock: getBaseStock(prod, variants) };
       }));
     } else {
       setVariantesByProducto({});
@@ -734,18 +755,15 @@ export default function AumentarStockPage() {
   }, [productos]);
 
   const productosFiltrados = useMemo(() => {
-    const term = search.trim().toLowerCase();
+    const term = search.trim();
     return productos.filter((prod) => {
       const categoryName = getCategoryName(prod);
+      const variants = variantesByProducto[String(prod.user_id ?? prod.id ?? "")] || prod.variantes || [];
       const matchesCategory = categoryFilter === "all" || categoryName === categoryFilter;
-      const matchesSearch =
-        !term ||
-        [prod.nombre, prod.codigo_barra, categoryName].some((value) =>
-          String(value || "").toLowerCase().includes(term)
-        );
+      const matchesSearch = productMatchesSearch({ ...prod, variantes: variants }, term, [categoryName]);
       return matchesCategory && matchesSearch;
     });
-  }, [productos, search, categoryFilter]);
+  }, [productos, variantesByProducto, search, categoryFilter]);
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-white via-slate-50 to-gray-100 px-4 py-8 sm:px-6 lg:px-8">
@@ -761,7 +779,7 @@ export default function AumentarStockPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por nombre, codigo o categoria"
+            placeholder="Buscar por nombre, codigo de barras, color o categoria"
             className="h-10 rounded-md border border-gray-200 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300"
           />
 

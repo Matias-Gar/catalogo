@@ -231,7 +231,9 @@ export function useProductos(_includeCost = false, sucursalId?: string) {
         const { data: variantMatches } = await variantQuery;
 
         if (Array.isArray(variantMatches) && variantMatches.length > 0) {
-          const matchedVariants = (variantMatches as VarianteBusqueda[]).filter((variant) => matchesBarcode(term, variant.sku));
+          const matchedVariants = (variantMatches as VarianteBusqueda[]).filter((variant) =>
+            matchesBarcode(term, variant.sku)
+          );
           
           if (matchedVariants.length > 0) {
             // Obtener los productos de las variantes encontradas
@@ -279,6 +281,44 @@ export function useProductos(_includeCost = false, sucursalId?: string) {
 
       // Si no encontramos por código de variante y la búsqueda era numérica,
       // devolvemos vacío para evitar caer al código general de producto.
+      if (resultados.length === 0 && numericMatch && term.length > 3) {
+        const fallbackCode = term.length === 13 ? term.slice(0, -1) : '';
+        let barcodeQuery = supabase
+          .from('v_productos_catalogo')
+          .select('producto_id, nombre, precio_base, stock_total, codigo_barra, categoria, variantes')
+          .limit(10);
+        if (sucursalId) barcodeQuery = barcodeQuery.eq('sucursal_id', sucursalId);
+        barcodeQuery = fallbackCode
+          ? barcodeQuery.or(`codigo_barra.eq.${term},codigo_barra.eq.${fallbackCode}`)
+          : barcodeQuery.eq('codigo_barra', term);
+        const { data: barcodeProducts } = await barcodeQuery;
+        const matchedProducts = Array.isArray(barcodeProducts)
+          ? barcodeProducts.filter((p) => matchesBarcode(term, p.codigo_barra))
+          : [];
+        if (matchedProducts.length > 0) {
+          const productosEncontrados = (matchedProducts as Array<Record<string, unknown>>).map((p) => {
+            const variantes = Array.isArray(p.variantes)
+              ? (p.variantes as Producto['variantes'])
+              : [];
+            const precioBase = Number(p.precio_base ?? 0);
+            return {
+              user_id: String(p.producto_id ?? ''),
+              nombre: String(p.nombre ?? ''),
+              precio: precioBase,
+              precio_base: precioBase,
+              precio_compra: undefined,
+              stock: Number(p.stock_total ?? 0),
+              stock_total: Number(p.stock_total ?? 0),
+              codigo_barra: String(p.codigo_barra ?? ''),
+              categoria: String(p.categoria ?? ''),
+              categorias: { categori: String(p.categoria ?? '') },
+              variantes
+            } as Producto;
+          });
+          resultados = await enriquecerUnidades(productosEncontrados, sucursalId);
+        }
+      }
+
       if (resultados.length === 0 && numericMatch) {
         setSearchResults([]);
         return [] as Producto[];

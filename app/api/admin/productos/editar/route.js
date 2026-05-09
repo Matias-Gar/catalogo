@@ -147,7 +147,7 @@ export async function POST(request) {
         color: variant.color,
         stock: Math.max(0, Math.floor(Number(variant.stock) || 0)),
         stock_decimal: Number(variant.stock) || 0,
-        sku: variant.sku,
+        sku: variant.sku || variant.codigo_barra || null,
         precio: parseDecimalInput(variant.precio, null),
         imagen_url: variant.imagen_url || null,
         activo: variant.activo !== undefined ? variant.activo : true,

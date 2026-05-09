@@ -472,7 +472,7 @@ export default function AdminProductosPage() {
     // HOOKS AL INICIO
     const router = useRouter(); 
     const pathname = usePathname();
-    const { activePaisId, activeSucursal } = useSucursalActiva();
+    const { activePaisId, activeSucursal, setActivePaisId, setActiveSucursalId } = useSucursalActiva();
     const effectiveSucursalId = activeSucursal?.id || "";
     const currentProductView = normalizeProductView(pathname?.includes('/admin/insumos') ? 'insumos' : 'articulos');
     const currentViewMeta = getProductViewMeta(currentProductView);
@@ -1195,6 +1195,41 @@ export default function AdminProductosPage() {
         }));
     };
 
+    const resolveOperationalScope = async () => {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        const response = await fetch("/api/admin/sucursal-context", {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            cache: "no-store",
+        });
+        const result = await response.json().catch(() => null);
+        if (!response.ok || !result?.success) {
+            throw new Error(result?.error || "No se pudo validar la sucursal activa.");
+        }
+
+        const branches = Array.isArray(result.sucursales) ? result.sucursales : [];
+        const countries = Array.isArray(result.paises) ? result.paises : [];
+        const selectedBranch =
+            branches.find((branch) => branch.id === effectiveSucursalId && (!activePaisId || branch.pais_id === activePaisId)) ||
+            branches.find((branch) => branch.id === activeSucursal?.id) ||
+            branches.find((branch) => activePaisId && branch.pais_id === activePaisId) ||
+            branches[0];
+
+        if (!selectedBranch?.id || !selectedBranch?.pais_id) {
+            throw new Error("Selecciona un pais y una sucursal activa antes de crear productos.");
+        }
+
+        const selectedPaisId = selectedBranch.pais_id;
+        if (selectedPaisId !== activePaisId && countries.some((country) => country.id === selectedPaisId)) {
+            setActivePaisId(selectedPaisId);
+        }
+        if (selectedBranch.id !== effectiveSucursalId) {
+            setActiveSucursalId(selectedBranch.id);
+        }
+
+        return { paisId: selectedBranch.pais_id, sucursalId: selectedBranch.id };
+    };
+
     const addVariantRow = () => {
         setNewVariants(prev => [...prev, createVariantDraft(prev)]);
     };
@@ -1457,13 +1492,23 @@ export default function AdminProductosPage() {
         }
 
         setLoading(true);
+        let scope;
+        try {
+            scope = await resolveOperationalScope();
+        } catch (scopeError) {
+            setMessage(scopeError?.message || "Selecciona un pais y una sucursal activa antes de crear productos.");
+            setLoading(false);
+            return;
+        }
+        const scopePaisId = scope.paisId;
+        const scopeSucursalId = scope.sucursalId;
+
         // Validar nombre duplicado antes de guardar
         let duplicateQuery = supabase
             .from("productos")
             .select("user_id")
             .ilike("nombre", newProduct.nombre.trim());
-        if (activePaisId) duplicateQuery = duplicateQuery.eq('pais_id', activePaisId);
-        if (effectiveSucursalId) duplicateQuery = duplicateQuery.eq('sucursal_id', effectiveSucursalId);
+        duplicateQuery = duplicateQuery.eq('pais_id', scopePaisId).eq('sucursal_id', scopeSucursalId);
         const { data: productosConNombre, error: errorNombre } = await duplicateQuery;
         if (!errorNombre && productosConNombre && productosConNombre.length > 0) {
             setShowNameRepeatModal(true);
@@ -1510,6 +1555,51 @@ export default function AdminProductosPage() {
                 throw new Error('Debes agregar al menos una variante.');
             }
 
+            if (!scopePaisId || !scopeSucursalId) {
+                throw new Error("Selecciona un pais y una sucursal activa antes de crear productos.");
+            }
+
+            const { data: sessionData } = await supabase.auth.getSession();
+            const token = sessionData?.session?.access_token;
+            const response = await fetch("/api/admin/productos/nuevo", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({
+                    paisId: scopePaisId,
+                    sucursalId: scopeSucursalId,
+                    product: {
+                        ...newProduct,
+                        category_id: categoryIdValue,
+                    },
+                    variants: variantsPayload,
+                    imageUrls: imagenUrls,
+                }),
+            });
+            const result = await response.json().catch(() => null);
+            if (!response.ok || !result?.success) {
+                if (result?.duplicateName) {
+                    setShowNameRepeatModal(true);
+                    return;
+                }
+                throw new Error(result?.error || "No se pudo crear el producto");
+            }
+
+            setMessage('Producto creado con exito!');
+            setNewProduct({ nombre: '', descripcion: '', precio: '', precio_compra: '', category_id: '', codigo_barra: '', vista_producto: currentProductView, unidad_base: 'unidad', unidades_alternativas: [], factor_conversion: 1 });
+            setNewVariants([createVariantDraft([], { color: '' })]);
+            setImageFiles([]);
+            setTimeout(() => {
+                sessionStorage.removeItem('pendingProduct');
+                if (newImageInputRef.current) {
+                    newImageInputRef.current.value = '';
+                }
+            }, 100);
+            fetchProductos();
+            return;
+
             const stockTotal = variantsPayload.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
             const codigoBarra = String(newProduct.codigo_barra || '').trim() || null;
 
@@ -1520,7 +1610,7 @@ export default function AdminProductosPage() {
             const factorConversionNormalizado = Number(newProduct.factor_conversion) > 0 ? Number(newProduct.factor_conversion) : null;
             const vistaProductoNormalizada = normalizeProductView(newProduct.vista_producto);
 
-            if (!activePaisId || !effectiveSucursalId) {
+            if (!scopePaisId || !scopeSucursalId) {
                 throw new Error("Selecciona un pais y una sucursal activa antes de crear productos.");
             }
 
@@ -1533,8 +1623,8 @@ export default function AdminProductosPage() {
                 category_id: categoryIdValue,
                 codigo_barra: codigoBarra,
                 imagen_url: null,
-                pais_id: activePaisId || null,
-                sucursal_id: effectiveSucursalId || null,
+                pais_id: scopePaisId,
+                sucursal_id: scopeSucursalId,
                 created_at: new Date().toISOString()
             };
 
@@ -1592,7 +1682,7 @@ export default function AdminProductosPage() {
 
             // Insertar las imágenes en la tabla producto_imagenes
             if (productoId && imagenUrls.length > 0) {
-                const imagesToInsert = imagenUrls.map(url => ({ producto_id: productoId, imagen_url: url, pais_id: activePaisId || null, sucursal_id: effectiveSucursalId || null }));
+                const imagesToInsert = imagenUrls.map(url => ({ producto_id: productoId, imagen_url: url, pais_id: scopePaisId, sucursal_id: scopeSucursalId }));
                 const { error: imgInsertError } = await supabase.from('producto_imagenes').insert(imagesToInsert);
                 if (imgInsertError) {
                     // Si falla la inserción, intentar borrar las imágenes subidas al storage
@@ -1619,8 +1709,8 @@ export default function AdminProductosPage() {
                     precio: v.precio,
                     sku: v.sku,
                     imagen_url: null,
-                    pais_id: activePaisId || null,
-                    sucursal_id: effectiveSucursalId || null,
+                    pais_id: scopePaisId,
+                    sucursal_id: scopeSucursalId,
                     activo: v.activo
                 }));
                 const { error: variantsError } = await supabase.from('producto_variantes').insert(finalVariants);
@@ -1630,8 +1720,8 @@ export default function AdminProductosPage() {
 
                 // --- Sincronizar stock del producto como suma de variantes ---
                 await sincronizarStockProducto(productoId, supabase, {
-                    pais_id: activePaisId,
-                    sucursal_id: effectiveSucursalId,
+                    pais_id: scopePaisId,
+                    sucursal_id: scopeSucursalId,
                 });
             }
 
@@ -1658,8 +1748,8 @@ export default function AdminProductosPage() {
                                             cantidad_base: v.stock,
                                             usuario_id: user?.id || null,
                                             usuario_email: user?.email || '',
-                                            pais_id: activePaisId || null,
-                                            sucursal_id: effectiveSucursalId || null,
+                                            pais_id: scopePaisId,
+                                            sucursal_id: scopeSucursalId,
                                             observaciones: `Stock inicial para variante ${v.color}`
                                         });
                                     }
@@ -1673,15 +1763,15 @@ export default function AdminProductosPage() {
                                     cantidad_base: stockTotal,
                                     usuario_id: user?.id || null,
                                     usuario_email: user?.email || '',
-                                    pais_id: activePaisId || null,
-                                    sucursal_id: effectiveSucursalId || null,
+                                    pais_id: scopePaisId,
+                                    sucursal_id: scopeSucursalId,
                                     observaciones: 'Alta de producto desde panel'
                                 });
                                 await registrarHistorialProducto({
                                     producto_id: productoId,
                                     accion: "CREATE",
-                                    pais_id: activePaisId || null,
-                                    sucursal_id: effectiveSucursalId || null,
+                                    pais_id: scopePaisId,
+                                    sucursal_id: scopeSucursalId,
                                     datos_anteriores: null,
                                     datos_nuevos: {
                                         nombre: newProduct.nombre,

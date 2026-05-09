@@ -12,6 +12,7 @@ import { registrarMovimientoStock } from "@/lib/stockMovimientos";
 import { registrarHistorialProducto } from "@/lib/productosHistorial";
 import { sincronizarStockProducto, validarProducto } from "@/lib/utils";
 import { getProductViewMeta, normalizeProductView } from "@/lib/productViews";
+import { productMatchesSearch } from "@/lib/searchMatching";
 import { useSucursalActiva } from "@/components/admin/SucursalContext";
 
 export default function EditarCatalogo() {
@@ -79,6 +80,53 @@ export default function EditarCatalogo() {
       };
       fetchData();
     }, [activeSucursalId]);
+
+    useEffect(() => {
+      const handlePrintVariantBarcode = (event) => {
+        const { codigoBarras, nombre, copies } = event.detail || {};
+        const code = String(codigoBarras || "").trim();
+        if (!code) return;
+        const safeName = String(nombre || "Etiqueta").replace(/[<>&"]/g, "");
+        const safeCopies = Math.max(1, Math.min(200, Number(copies) || 1));
+        const barcodeUrl = `https://bwipjs-api.metafloor.com/?bcid=code128&text=${encodeURIComponent(code)}&scale=2&height=10&includetext=true`;
+        const labels = Array.from({ length: safeCopies }).map(() => `
+          <div class="label">
+            <div class="name">${safeName}</div>
+            <img src="${barcodeUrl}" />
+            <div class="code">${code}</div>
+          </div>
+        `).join("");
+        const popup = window.open("", "_blank", "width=900,height=700");
+        if (!popup) {
+          showToast("El navegador bloqueo la ventana de impresion", "error");
+          return;
+        }
+        popup.document.write(`
+          <html>
+            <head>
+              <title>${safeName}</title>
+              <style>
+                @page { margin: 8mm; }
+                body { font-family: Arial, sans-serif; margin: 0; padding: 10px; }
+                .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+                .label { border: 1px solid #d1d5db; border-radius: 8px; padding: 8px; text-align: center; break-inside: avoid; }
+                .name { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+                img { width: 100%; max-height: 78px; object-fit: contain; }
+                .code { margin-top: 4px; font-size: 11px; }
+              </style>
+            </head>
+            <body>
+              <div class="grid">${labels}</div>
+              <script>window.onload = function(){ window.print(); };</script>
+            </body>
+          </html>
+        `);
+        popup.document.close();
+      };
+
+      window.addEventListener("printVariantBarcode", handlePrintVariantBarcode);
+      return () => window.removeEventListener("printVariantBarcode", handlePrintVariantBarcode);
+    }, []);
     // Manejo de cambios en campos del producto
     const setEditDataField = (productKey, field, value) => {
       setEditando((prev) => ({
@@ -91,14 +139,14 @@ export default function EditarCatalogo() {
     };
 
     // Variantes
-    const handleAddVariantRow = (productKey) => {
+    const handleAddVariantRow = (productKey, generatedCode = "") => {
       setEditando((prev) => {
         const current = prev[productKey]?.variantes || variantes[productKey] || [];
         return {
           ...prev,
           [productKey]: {
             ...prev[productKey],
-            variantes: [...current, { color: '', stock: 0 }],
+            variantes: [...current, { color: '', stock: 0, sku: generatedCode }],
           },
         };
       });
@@ -442,18 +490,7 @@ export default function EditarCatalogo() {
       list = list.filter((p) => {
         const productKey = getProductKey(p);
         const productVariants = editando[productKey]?.variantes ?? variantes[productKey] ?? [];
-        const colorsText = productVariants.map((v) => String(v?.color || "")).join(" ").toLowerCase();
-        const nombre = String(p?.nombre || "").toLowerCase();
-        const categoria = String(p?.categoria || "").toLowerCase();
-        const descripcion = String(p?.descripcion || "").toLowerCase();
-        const codigoBarra = String(p?.codigo_barra || "").toLowerCase();
-        return (
-          nombre.includes(normalizedSearch) ||
-          categoria.includes(normalizedSearch) ||
-          descripcion.includes(normalizedSearch) ||
-          codigoBarra.includes(normalizedSearch) ||
-          colorsText.includes(normalizedSearch)
-        );
+        return productMatchesSearch({ ...p, variantes: productVariants }, normalizedSearch);
       });
     }
 

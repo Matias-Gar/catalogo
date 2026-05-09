@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/SupabaseClient";
 import Image from "next/image";
 import { useSucursalActiva } from "@/components/admin/SucursalContext";
+import { productMatchesSearch } from "@/lib/searchMatching";
 
 export default function PacksClient({ initialPacks = [] }) {
   const { activeSucursalId } = useSucursalActiva();
@@ -17,7 +18,7 @@ export default function PacksClient({ initialPacks = [] }) {
   // Cargar todos los productos para edición
   useEffect(() => {
     if (editPack) {
-      let query = supabase.from("productos").select("user_id, nombre, precio, stock");
+      let query = supabase.from("productos").select("user_id, nombre, precio, stock, codigo_barra");
       if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
       query.then(({ data }) => setProductosAll(data || []));
     }
@@ -43,13 +44,13 @@ export default function PacksClient({ initialPacks = [] }) {
   const productosFiltrados = productos.filter((producto) => {
     const term = normalizeSearch(busquedaProducto);
     if (!term) return true;
-    return normalizeSearch(`${producto.nombre} ${producto.user_id}`).includes(term);
+    return productMatchesSearch(producto, term);
   });
 
   const productosAllFiltrados = productosAll.filter((producto) => {
     const term = normalizeSearch(busquedaProductoEdit);
     if (!term) return true;
-    return normalizeSearch(`${producto.nombre} ${producto.user_id}`).includes(term);
+    return productMatchesSearch(producto, term);
   });
 
   const fetchPacks = async () => {
@@ -86,7 +87,7 @@ export default function PacksClient({ initialPacks = [] }) {
     setLoading(true);
     let query = supabase
       .from("productos")
-      .select("user_id, nombre, precio, stock");
+      .select("user_id, nombre, precio, stock, codigo_barra");
     if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
     const { data, error } = await query;
     setProductos(data || []);

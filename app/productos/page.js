@@ -11,6 +11,7 @@ import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from "@/lib/storeSettings"
 import { PrecioConPromocion, calcularPrecioConPromocion, PromoCompactBanner } from "@/lib/promociones";
 import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 import { normalizeProductView } from "@/lib/productViews";
+import { productMatchesSearch } from "@/lib/searchMatching";
 import PublicSucursalSelector, { usePublicSucursal } from "@/components/PublicSucursalSelector";
 import { getCountrySlugFromPath, stripCountryFromPath } from "@/lib/countryRoutes";
 
@@ -1284,15 +1285,7 @@ export default function CatalogoPage() {
                 {Array.isArray(productos) && productos.length > 0 ? (
                     (() => {
                         const productosFiltrados = productos.filter(producto => {
-                            const term = busqueda.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-                            const matchesBusqueda = !term || [
-                                producto.nombre,
-                                producto.descripcion,
-                                producto.categoria,
-                                producto.categorias?.categori,
-                                producto.codigo_barra,
-                                ...(Array.isArray(producto.variantes) ? producto.variantes.map((v) => v?.color) : []),
-                            ].some((value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(term));
+                            const matchesBusqueda = productMatchesSearch(producto, busqueda);
                             if (!matchesBusqueda) return false;
                             if (!categoriaSeleccionada) return true;
                             return Number(producto.category_id) === Number(categoriaSeleccionada);

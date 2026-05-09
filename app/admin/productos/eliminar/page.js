@@ -9,6 +9,7 @@ import { registrarMovimientoStock } from "../../../../lib/stockMovimientos";
 import { registrarHistorialProducto } from "../../../../lib/productosHistorial";
 import { getOptimizedImageUrl, buildImageSrcSet } from "../../../../lib/imageOptimization";
 import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
+import { productMatchesSearch } from "../../../../lib/searchMatching";
 
 
 function getCategoryName(prod) {
@@ -19,6 +20,7 @@ function EliminarProductos() {
   const { activePaisId, activeSucursalId } = useSucursalActiva();
   const [productos, setProductos] = useState([]);
   const [imagenes, setImagenes] = useState({});
+  const [variantes, setVariantes] = useState({});
   const [eliminando, setEliminando] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
@@ -63,6 +65,24 @@ function EliminarProductos() {
           setImagenes(agrupadas);
         } else {
           setImagenes({});
+        }
+        if (ids.length > 0) {
+          let variantesQuery = supabase
+            .from("producto_variantes")
+            .select("producto_id, color, sku")
+            .in("producto_id", ids);
+          if (activePaisId) variantesQuery = variantesQuery.eq("pais_id", activePaisId);
+          if (activeSucursalId) variantesQuery = variantesQuery.eq("sucursal_id", activeSucursalId);
+          const { data: variantesData } = await variantesQuery;
+          const agrupadasVariantes = {};
+          (variantesData || []).forEach((variant) => {
+            const key = String(variant.producto_id);
+            if (!agrupadasVariantes[key]) agrupadasVariantes[key] = [];
+            agrupadasVariantes[key].push(variant);
+          });
+          setVariantes(agrupadasVariantes);
+        } else {
+          setVariantes({});
         }
       setLoading(false);
     }
@@ -131,12 +151,7 @@ function EliminarProductos() {
   let productosFiltrados = productos.filter(p => {
     const categoryName = getCategoryName(p);
     const term = busqueda.trim().toLowerCase();
-    const matchesSearch = !term || [
-      p.nombre,
-      p.user_id,
-      p.codigo_barra,
-      categoryName,
-    ].some((value) => String(value || "").toLowerCase().includes(term));
+    const matchesSearch = productMatchesSearch({ ...p, variantes: variantes[String(p.user_id)] || [] }, term, [categoryName]);
 
     return matchesSearch && (!categoria || categoryName === categoria);
   });
