@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseServerClientFromRequest } from "@/lib/supabaseServer";
+import { supabaseAdmin } from "@/lib/SupabaseAdminClient";
 import { createCashMovement, listCashMovements, deleteCashMovement } from "@/services/cash.service";
 import { getUserIdFromRequest } from "@/lib/authUserFromRequest";
 
@@ -40,7 +41,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const movement = await createCashMovement(getSupabaseServerClientFromRequest(request), {
+    const movement = await createCashMovement(supabaseAdmin, {
       ...body,
       user_id: loggedUserId,
     });
