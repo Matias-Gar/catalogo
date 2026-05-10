@@ -91,6 +91,8 @@ export function SucursalProvider({ children, showShell = true }) {
     [activePaisId, activeSucursalId, sucursales]
   );
 
+  const safeActiveSucursalId = activeSucursal?.id || "";
+
   const activePais = useMemo(
     () => paises.find((country) => country.id === activePaisId) || null,
     [activePaisId, paises]
@@ -120,14 +122,14 @@ export function SucursalProvider({ children, showShell = true }) {
       sucursales,
       sucursalesActivas,
       activeSucursal,
-      activeSucursalId,
+      activeSucursalId: safeActiveSucursalId,
       loading,
       error,
       setActivePaisId,
       setActiveSucursalId,
       reloadSucursales: loadSucursales,
     }),
-    [activePais, activePaisId, activeSucursal, activeSucursalId, error, loadSucursales, loading, paises, setActivePaisId, setActiveSucursalId, sucursales, sucursalesActivas]
+    [activePais, activePaisId, activeSucursal, safeActiveSucursalId, error, loadSucursales, loading, paises, setActivePaisId, setActiveSucursalId, sucursales, sucursalesActivas]
   );
 
   return (
@@ -136,7 +138,7 @@ export function SucursalProvider({ children, showShell = true }) {
         activePais={activePais}
         activePaisId={activePaisId}
         activeSucursal={activeSucursal}
-        activeSucursalId={activeSucursalId}
+        activeSucursalId={safeActiveSucursalId}
         error={error}
         loading={loading}
         selectorOpen={selectorOpen}

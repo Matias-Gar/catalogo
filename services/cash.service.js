@@ -94,23 +94,41 @@ async function resolveBranchScope(supabase, params = {}) {
     return { paisId: requestedPaisId, sucursalId: null };
   }
 
-  let branchQuery = supabase
+  const { data: requestedBranch, error: requestedBranchError } = await supabase
     .from("sucursales")
     .select("id, pais_id")
     .eq("id", requestedSucursalId)
     .limit(1)
     .maybeSingle();
 
+  if (requestedBranchError) {
+    throw new Error(requestedBranchError.message || "Sucursal no encontrada para el pais seleccionado");
+  }
+
+  if (requestedBranch?.id && requestedBranch?.pais_id && (!requestedPaisId || requestedBranch.pais_id === requestedPaisId)) {
+    return { paisId: requestedBranch.pais_id, sucursalId: requestedBranch.id };
+  }
+
   if (requestedPaisId) {
-    branchQuery = branchQuery.eq("pais_id", requestedPaisId);
+    const { data: fallbackBranch, error: fallbackBranchError } = await supabase
+      .from("sucursales")
+      .select("id, pais_id")
+      .eq("pais_id", requestedPaisId)
+      .eq("activa", true)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (fallbackBranchError) {
+      throw new Error(fallbackBranchError.message || "Sucursal no encontrada para el pais seleccionado");
+    }
+
+    if (fallbackBranch?.id && fallbackBranch?.pais_id) {
+      return { paisId: fallbackBranch.pais_id, sucursalId: fallbackBranch.id };
+    }
   }
 
-  const { data: branch, error } = await branchQuery;
-  if (error || !branch?.id || !branch?.pais_id) {
-    throw new Error(error?.message || "Sucursal no encontrada para el pais seleccionado");
-  }
-
-  return { paisId: branch.pais_id, sucursalId: branch.id };
+  throw new Error("Sucursal no encontrada para el pais seleccionado");
 }
 
 async function summarizeSalesIncomeByMethod(supabase, sales = []) {
