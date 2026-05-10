@@ -126,9 +126,11 @@ async function resolveBranchScope(supabase, params = {}) {
     if (fallbackBranch?.id && fallbackBranch?.pais_id) {
       return { paisId: fallbackBranch.pais_id, sucursalId: fallbackBranch.id };
     }
+
+    return { paisId: requestedPaisId, sucursalId: null };
   }
 
-  throw new Error("Sucursal no encontrada para el pais seleccionado");
+  return { paisId: null, sucursalId: null };
 }
 
 async function summarizeSalesIncomeByMethod(supabase, sales = []) {
@@ -356,6 +358,7 @@ export async function getCashSummary(supabase, params) {
       end_date: carryEndDate,
       user_id: userId,
       cashbox_id: cashboxId,
+      pais_id: paisId,
       sucursal_id: sucursalId,
     })
     : { cash: 0, bank: 0 };
