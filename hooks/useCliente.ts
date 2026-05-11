@@ -16,6 +16,42 @@ interface Cliente {
 
 type GuardarAccion = 'add' | 'update';
 
+async function resolverSucursalCliente(paisId?: string | null, sucursalId?: string | null) {
+  const cleanPaisId = String(paisId || '').trim();
+  const cleanSucursalId = String(sucursalId || '').trim();
+
+  if (!cleanPaisId) {
+    return { paisId: null, sucursalId: cleanSucursalId || null };
+  }
+
+  if (cleanSucursalId) {
+    const { data: branch, error } = await supabase
+      .from('sucursales')
+      .select('id, pais_id')
+      .eq('id', cleanSucursalId)
+      .maybeSingle();
+
+    if (!error && branch?.id && branch?.pais_id === cleanPaisId) {
+      return { paisId: cleanPaisId, sucursalId: branch.id };
+    }
+  }
+
+  const { data: fallbackBranch, error: fallbackError } = await supabase
+    .from('sucursales')
+    .select('id')
+    .eq('pais_id', cleanPaisId)
+    .eq('activa', true)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (fallbackError || !fallbackBranch?.id) {
+    throw new Error(fallbackError?.message || 'No se encontro una sucursal activa para el pais seleccionado');
+  }
+
+  return { paisId: cleanPaisId, sucursalId: fallbackBranch.id };
+}
+
 export function useCliente(sucursalId?: string | null, paisId?: string | null) {
   const [cliente, setCliente] = useState<Cliente>({
     nombre: '',
@@ -192,6 +228,8 @@ export function useCliente(sucursalId?: string | null, paisId?: string | null) {
 
     if (accion === 'add') {
       try {
+        const scope = await resolverSucursalCliente(paisId, sucursalId);
+
         if (cliente.existente) {
           return showToast('Ese cliente ya existe. Usa "Actualizar cliente".', 'info');
         }
@@ -201,8 +239,8 @@ export function useCliente(sucursalId?: string | null, paisId?: string | null) {
             .from('clientes')
             .select('id')
             .eq('carnet', carnet);
-          if (paisId) existingQuery = existingQuery.eq('pais_id', paisId);
-          if (sucursalId) existingQuery = existingQuery.eq('sucursal_id', sucursalId);
+          if (scope.paisId) existingQuery = existingQuery.eq('pais_id', scope.paisId);
+          if (scope.sucursalId) existingQuery = existingQuery.eq('sucursal_id', scope.sucursalId);
           const { data: existingClient, error: existingError } = await existingQuery.maybeSingle();
 
           if (existingError) return showToast('Error validando cliente: ' + existingError.message, 'error');
@@ -214,8 +252,8 @@ export function useCliente(sucursalId?: string | null, paisId?: string | null) {
           carnet: carnet || null,
           telefono: telefono || null,
           email: cliente.email || null,
-          pais_id: paisId || null,
-          sucursal_id: sucursalId || null
+          pais_id: scope.paisId,
+          sucursal_id: scope.sucursalId
         }]);
 
         if (insertError) return showToast('Error al anadir cliente: ' + (insertError.message || ''), 'error');
@@ -230,6 +268,7 @@ export function useCliente(sucursalId?: string | null, paisId?: string | null) {
 
     let actualizadoEnPerfiles = false;
     let actualizadoEnClientes = false;
+    const scope = await resolverSucursalCliente(paisId, sucursalId);
 
     try {
       if (carnet) {
@@ -266,8 +305,8 @@ export function useCliente(sucursalId?: string | null, paisId?: string | null) {
           email: cliente.email || null,
           carnet: carnet || null,
         });
-      if (paisId) updateQuery = updateQuery.eq('pais_id', paisId);
-      if (sucursalId) updateQuery = updateQuery.eq('sucursal_id', sucursalId);
+      if (scope.paisId) updateQuery = updateQuery.eq('pais_id', scope.paisId);
+      if (scope.sucursalId) updateQuery = updateQuery.eq('sucursal_id', scope.sucursalId);
 
       if (carnet) {
         updateQuery = updateQuery.eq('carnet', carnet);
