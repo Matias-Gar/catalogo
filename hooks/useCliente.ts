@@ -20,20 +20,12 @@ async function resolverSucursalCliente(paisId?: string | null, sucursalId?: stri
   const cleanPaisId = String(paisId || '').trim();
   const cleanSucursalId = String(sucursalId || '').trim();
 
-  if (!cleanPaisId) {
-    return { paisId: null, sucursalId: cleanSucursalId || null };
+  if (cleanPaisId && cleanSucursalId) {
+    return { paisId: cleanPaisId, sucursalId: cleanSucursalId };
   }
 
-  if (cleanSucursalId) {
-    const { data: branch, error } = await supabase
-      .from('sucursales')
-      .select('id, pais_id')
-      .eq('id', cleanSucursalId)
-      .maybeSingle();
-
-    if (!error && branch?.id && branch?.pais_id === cleanPaisId) {
-      return { paisId: cleanPaisId, sucursalId: branch.id };
-    }
+  if (!cleanPaisId) {
+    return { paisId: null, sucursalId: cleanSucursalId || null };
   }
 
   const { data: fallbackBranch, error: fallbackError } = await supabase
@@ -261,8 +253,8 @@ export function useCliente(sucursalId?: string | null, paisId?: string | null) {
         setCliente((c: Cliente) => ({ ...c, guardado: true, existente: true, source: 'clientes' }));
         return showToast('Cliente anadido correctamente');
       } catch (e) {
-        // console.error(e);
-        return showToast('Error inesperado al anadir cliente', 'error');
+        const message = e instanceof Error ? e.message : '';
+        return showToast(message || 'Error inesperado al anadir cliente', 'error');
       }
     }
 
