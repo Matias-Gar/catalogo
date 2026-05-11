@@ -220,35 +220,32 @@ export function useCliente(sucursalId?: string | null, paisId?: string | null) {
 
     if (accion === 'add') {
       try {
-        const scope = await resolverSucursalCliente(paisId, sucursalId);
-
         if (cliente.existente) {
           return showToast('Ese cliente ya existe. Usa "Actualizar cliente".', 'info');
         }
 
-        if (carnet) {
-          let existingQuery = supabase
-            .from('clientes')
-            .select('id')
-            .eq('carnet', carnet);
-          if (scope.paisId) existingQuery = existingQuery.eq('pais_id', scope.paisId);
-          if (scope.sucursalId) existingQuery = existingQuery.eq('sucursal_id', scope.sucursalId);
-          const { data: existingClient, error: existingError } = await existingQuery.maybeSingle();
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        const response = await fetch('/api/admin/clientes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            nombre,
+            carnet: carnet || null,
+            telefono: telefono || null,
+            email: cliente.email || null,
+            pais_id: paisId || null,
+            sucursal_id: sucursalId || null,
+          }),
+        });
+        const result = await response.json().catch(() => ({}));
 
-          if (existingError) return showToast('Error validando cliente: ' + existingError.message, 'error');
-          if (existingClient) return showToast('El cliente ya existe. Usa "Actualizar cliente".', 'info');
+        if (!response.ok || !result?.success) {
+          return showToast(result?.error || 'Error al anadir cliente', 'error');
         }
-
-        const { error: insertError } = await supabase.from('clientes').insert([{
-          nombre,
-          carnet: carnet || null,
-          telefono: telefono || null,
-          email: cliente.email || null,
-          pais_id: scope.paisId,
-          sucursal_id: scope.sucursalId
-        }]);
-
-        if (insertError) return showToast('Error al anadir cliente: ' + (insertError.message || ''), 'error');
 
         setCliente((c: Cliente) => ({ ...c, guardado: true, existente: true, source: 'clientes' }));
         return showToast('Cliente anadido correctamente');
