@@ -1053,7 +1053,7 @@ export default function NuevaVenta() {
               className="mt-6 w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-lg text-base disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={efectivizando || carrito.length === 0}
             >
-              Imprimir cotización
+              Imprimir proforma
             </button>
           </div>
         </div>

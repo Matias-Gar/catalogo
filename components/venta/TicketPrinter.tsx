@@ -232,7 +232,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9);
-      doc.text(esCotizacion ? 'COTIZACION' : 'COMPROBANTE TIENDA', PAPER_WIDTH / 2, y, { align: 'center' });
+      doc.text(esCotizacion ? 'PROFORMA' : 'COMPROBANTE TIENDA', PAPER_WIDTH / 2, y, { align: 'center' });
       y += 3;
       doc.setFontSize(7);
       for (const line of RECEIPT_LEGAL_HEADER) {
@@ -342,7 +342,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
         y += 2;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(6);
-        doc.text('Cotizacion referencial. No registra venta ni descuenta stock.', PAPER_WIDTH / 2, y, { align: 'center' });
+        doc.text('Proforma referencial. No registra venta ni descuenta stock.', PAPER_WIDTH / 2, y, { align: 'center' });
         y += 4;
       }
 
@@ -624,7 +624,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
   }
 
   async function printCotizacion() {
-    if (!props.carrito || props.carrito.length === 0) return alert('Agrega al menos un producto para imprimir la cotizacion');
+    if (!props.carrito || props.carrito.length === 0) return alert('Agrega al menos un producto para imprimir la proforma');
     const ticket = {
       tipo_documento: 'cotizacion' as const,
       fecha: new Date().toLocaleString(),
@@ -655,9 +655,9 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
     try {
       const pdfOk = await printTicketAsPDF(ticket);
       if (pdfOk) return;
-      alert('No se pudo generar la cotizacion para imprimir');
+      alert('No se pudo generar la proforma para imprimir');
     } catch (err) {
-      alert('Error al intentar imprimir la cotizacion');
+      alert('Error al intentar imprimir la proforma');
     }
   }
 
