@@ -150,6 +150,13 @@ function calcularItem(item: TicketItem) {
   };
 }
 
+const RECEIPT_LEGAL_HEADER = [
+  'Razon Social: Importadora GarBlac',
+  'Nit: 8845863015',
+  'Representante legal: Fernando Matias Garcia Blacutt',
+  'Validez de 30 dias Calendario',
+];
+
 const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props, ref) => {
   const ticketRef = useRef<HTMLDivElement>(null);
   // QZ Tray deshabilitado en esta vista
@@ -228,6 +235,10 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
       doc.text(esCotizacion ? 'COTIZACION' : 'COMPROBANTE TIENDA', PAPER_WIDTH / 2, y, { align: 'center' });
       y += 3;
       doc.setFontSize(7);
+      for (const line of RECEIPT_LEGAL_HEADER) {
+        doc.text(line, PAPER_WIDTH / 2, y, { align: 'center', maxWidth: CONTENT_WIDTH });
+        y += 3;
+      }
       doc.text(branding.storeName || 'Tienda', PAPER_WIDTH / 2, y, { align: 'center' });
       y += 3;
       doc.setFont('helvetica', 'normal');
@@ -423,6 +434,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
       lines.push('\x1b\x61\x01');
       lines.push('================================');
       lines.push('      COMPROBANTE DE VENTA      ');
+      for (const line of RECEIPT_LEGAL_HEADER) lines.push(line);
       lines.push((branding.storeName || 'Tienda').toUpperCase());
       if (branding.businessAddress) lines.push(branding.businessAddress);
       if (branding.whatsappDisplay) lines.push(`WhatsApp: ${branding.whatsappDisplay}`);
