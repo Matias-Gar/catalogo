@@ -108,7 +108,13 @@ export function useVentasDashboard(sucursalId = null) {
             producto_id,
             pack_id,
             productos (
-              nombre
+              nombre,
+              categoria,
+              category_id,
+              vista_producto,
+              categorias (
+                categori
+              )
             ),
             packs (
               nombre
@@ -150,10 +156,21 @@ export function useVentasDashboard(sucursalId = null) {
           const ids = Array.from(productIds);
           let productsQuery = supabase
             .from('productos')
-            .select('user_id, nombre, precio_compra, unidad_base, unidades_alternativas, factor_conversion')
+            .select('user_id, nombre, precio_compra, unidad_base, unidades_alternativas, factor_conversion, categoria, category_id, vista_producto, categorias (categori)')
             .in('user_id', ids);
           if (sucursalId) productsQuery = productsQuery.eq('sucursal_id', sucursalId);
-          const { data: productsData, error: productsError } = await productsQuery;
+          let { data: productsData, error: productsError } = await productsQuery;
+
+          if (productsError && String(productsError.message || '').includes('vista_producto')) {
+            let fallbackProductsQuery = supabase
+              .from('productos')
+              .select('user_id, nombre, precio_compra, unidad_base, unidades_alternativas, factor_conversion, categoria, category_id, categorias (categori)')
+              .in('user_id', ids);
+            if (sucursalId) fallbackProductsQuery = fallbackProductsQuery.eq('sucursal_id', sucursalId);
+            const fallbackProducts = await fallbackProductsQuery;
+            productsData = fallbackProducts.data;
+            productsError = fallbackProducts.error;
+          }
 
           if (productsError) throw productsError;
           products = Array.isArray(productsData) ? productsData : [];
@@ -234,8 +251,21 @@ export function useVentasDashboard(sucursalId = null) {
             (item?.pack_id || item?.tipo === 'pack'
               ? `Pack #${item?.pack_id ?? 'N/A'}`
               : `Producto #${item?.producto_id ?? 'N/A'}`);
+          const categoria =
+            item?.productos?.categorias?.categori ||
+            productInfo?.categorias?.categori ||
+            item?.productos?.categoria ||
+            productInfo?.categoria ||
+            item?.productos?.category_id ||
+            productInfo?.category_id ||
+            (item?.pack_id || item?.tipo === 'pack' ? 'Packs' : 'Sin categoria');
+          const vistaProducto =
+            item?.pack_id || item?.tipo === 'pack'
+              ? 'packs'
+              : (item?.productos?.vista_producto || productInfo?.vista_producto || 'articulos');
 
           items.push({
+            productoId: item?.producto_id != null ? String(item.producto_id) : '',
             nombre: itemName,
             cantidad: qtyDisplay,
             cantidadBase: qtyBase,
@@ -247,6 +277,8 @@ export function useVentasDashboard(sucursalId = null) {
             ganancia: gananciaItem,
             color: item?.color || '',
             tipo: item?.pack_id || item?.tipo === 'pack' ? 'pack' : 'producto',
+            categoria: String(categoria || 'Sin categoria'),
+            vistaProducto: String(vistaProducto || 'articulos'),
             lowProfit: gananciaItem < 0,
           });
 
