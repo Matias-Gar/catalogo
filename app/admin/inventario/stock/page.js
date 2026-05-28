@@ -7,6 +7,7 @@ import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from "../../../../lib/stor
 import { Toast, showToast } from "../../../../components/ui/Toast";
 import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
 import { productMatchesSearch } from "../../../../lib/searchMatching";
+import { buildImageSrcSet, getOptimizedImageUrl } from "../../../../lib/imageOptimization";
 
 export default function StockPage() {
   const { activePaisId, activeSucursalId } = useSucursalActiva();
@@ -28,6 +29,8 @@ export default function StockPage() {
   const PAGE_SIZE = 30;
   const [productos, setProductos] = useState([]);
   const [variantesByProducto, setVariantesByProducto] = useState({});
+  const [imagenesByProducto, setImagenesByProducto] = useState({});
+  const [previewImage, setPreviewImage] = useState(null);
   const [availableCategories, setAvailableCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [orden, setOrden] = useState("desc");
@@ -137,15 +140,54 @@ export default function StockPage() {
       console.error("Error al obtener productos:", error);
       setProductos([]);
       setVariantesByProducto({});
+      setImagenesByProducto({});
       setTotalCount(0);
       showToast("Error al cargar productos", "error");
     } else {
       const loadedProductos = data || [];
       setProductos(loadedProductos);
       setTotalCount(hasClientFilters ? loadedProductos.length : count || 0);
+      await fetchImagenesPrincipales(loadedProductos);
       await fetchVariantesPorProductos(loadedProductos);
     }
     setLoading(false);
+  }
+
+  async function fetchImagenesPrincipales(productosPage) {
+    const ids = (productosPage || [])
+      .map((p) => p?.user_id ?? p?.id)
+      .filter(Boolean);
+
+    const imageMap = {};
+    for (const product of productosPage || []) {
+      const pid = String(product?.user_id ?? product?.id ?? "");
+      if (pid && product?.imagen_url) imageMap[pid] = product.imagen_url;
+    }
+
+    if (ids.length === 0) {
+      setImagenesByProducto(imageMap);
+      return;
+    }
+
+    let query = supabase
+      .from("producto_imagenes")
+      .select("producto_id, imagen_url")
+      .in("producto_id", ids);
+    if (activePaisId) query = query.eq("pais_id", activePaisId);
+    if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
+    const { data, error } = await query;
+
+    if (error) {
+      setImagenesByProducto(imageMap);
+      return;
+    }
+
+    for (const image of data || []) {
+      const pid = String(image?.producto_id ?? "");
+      if (pid && image?.imagen_url && !imageMap[pid]) imageMap[pid] = image.imagen_url;
+    }
+
+    setImagenesByProducto(imageMap);
   }
 
   async function fetchVariantesPorProductos(productosPage) {
@@ -363,6 +405,47 @@ export default function StockPage() {
             </div>
           </div>
         )}
+      </div>
+    );
+  }
+
+  function getProductImageUrl(prod) {
+    const pid = String(prod?.user_id ?? prod?.id ?? "");
+    return imagenesByProducto[pid] || prod?.imagen_url || "";
+  }
+
+  function ProductThumb({ prod, categoryName }) {
+    const imageUrl = getProductImageUrl(prod);
+    const productId = prod?.user_id ?? prod?.id;
+
+    return (
+      <div className="flex w-full min-w-0 items-center gap-3">
+        {imageUrl ? (
+          <button
+            type="button"
+            onClick={() => setPreviewImage({ url: imageUrl, name: prod.nombre })}
+            className="h-14 w-14 shrink-0 overflow-hidden rounded-md border border-slate-200 bg-slate-50 shadow-sm transition hover:scale-[1.03] hover:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            title="Ver imagen grande"
+          >
+            <img
+              src={getOptimizedImageUrl(imageUrl, 140, { quality: 94, format: "origin" })}
+              srcSet={buildImageSrcSet(imageUrl, [80, 140, 280], { quality: 94, format: "origin" })}
+              alt={`Imagen de ${prod.nombre}`}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          </button>
+        ) : (
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-dashed border-slate-300 bg-slate-50 text-[10px] font-semibold text-slate-400">
+            Sin imagen
+          </div>
+        )}
+        <div className="min-w-0">
+          <div className="font-semibold leading-snug text-slate-900">{prod.nombre}</div>
+          <div className="mt-1 text-xs text-slate-500">
+            ID: {productId ?? "-"} | Categoria: {categoryName}
+          </div>
+        </div>
       </div>
     );
   }
@@ -793,6 +876,30 @@ export default function StockPage() {
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-white via-slate-50 to-gray-100 px-4 py-10 sm:px-6 lg:px-8">
       <Toast />
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div className="relative max-h-[90vh] w-full max-w-4xl" onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setPreviewImage(null)}
+              className="absolute right-2 top-2 z-10 rounded-md bg-white/95 px-3 py-2 text-sm font-bold text-slate-800 shadow hover:bg-white"
+            >
+              Cerrar
+            </button>
+            <img
+              src={getOptimizedImageUrl(previewImage.url, 1600, { quality: 98, format: "origin" })}
+              srcSet={buildImageSrcSet(previewImage.url, [700, 1100, 1600], { quality: 98, format: "origin" })}
+              alt={`Imagen ampliada de ${previewImage.name}`}
+              className="max-h-[90vh] w-full rounded-lg bg-white object-contain shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto w-full max-w-6xl">
         <header className="mb-6 flex flex-col items-center gap-4 text-center">
@@ -982,7 +1089,6 @@ export default function StockPage() {
                     <th className="p-3 text-center">Stock claro</th>
                     <th className="p-3 text-left">Detalle por color</th>
                     <th className="p-3 text-center">Estado</th>
-                    <th className="p-3 text-center">Codigo</th>
                     <th className="p-3 text-center">Acciones</th>
                   </tr>
                 </thead>
@@ -994,7 +1100,9 @@ export default function StockPage() {
                     return (
                       <tr key={pid} className="transition hover:bg-gray-50">
                         <td className="p-3 text-center text-slate-600">{prod.user_id ?? prod.id}</td>
-                        <td className="p-3 font-semibold text-slate-900">{prod.nombre}</td>
+                        <td className="p-3">
+                          <ProductThumb prod={prod} categoryName={categoryName} />
+                        </td>
                         <td className="p-3 text-center font-semibold text-indigo-600">Bs {Number(prod.precio).toFixed(2)}</td>
                         <td className="p-3 text-center text-slate-600">{categoryName}</td>
                         <td className="p-3 min-w-[260px]">
@@ -1008,7 +1116,6 @@ export default function StockPage() {
                             {getStockLabel(prod)}
                           </span>
                         </td>
-                        <td className="p-3 text-center text-slate-500">{prod.codigo_barra || "-"}</td>
                         <td className="p-3 text-center">
                           <button
                             type="button"
@@ -1035,9 +1142,8 @@ export default function StockPage() {
                   <div key={pid} className="rounded-lg bg-white p-4 shadow">
                     <div className="flex-1">
                       <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="font-semibold text-slate-900">{prod.nombre}</div>
-                          <div className="mt-1 text-xs text-slate-500">Categoria: {categoryName}</div>
+                        <div className="min-w-0 flex-1">
+                          <ProductThumb prod={prod} categoryName={categoryName} />
                         </div>
                         <div className="text-right">
                           <div className="font-bold text-indigo-600">Bs {Number(prod.precio).toFixed(2)}</div>
@@ -1054,10 +1160,6 @@ export default function StockPage() {
                         <span className={"inline-flex items-center rounded-full px-2 py-1 text-[11px] font-bold " + getStockColor(prod)}>
                           {getStockLabel(prod)}
                         </span>
-                      </div>
-
-                      <div className="mt-2 text-xs text-slate-500">
-                        Codigo: {prod.codigo_barra || "-"}
                       </div>
 
                       <div className="mt-1 text-xs text-slate-600">
