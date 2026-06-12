@@ -181,7 +181,7 @@ export default function CatalogoPage() {
                 }
                 return getEffectiveVariantStock(variante);
             }
-            return totalVariantStock > 0 || productStock <= 0 ? totalVariantStock : productStock;
+            return totalVariantStock;
         }
         return productStock;
     };
@@ -322,7 +322,7 @@ export default function CatalogoPage() {
                     vista_producto: normalizeProductView(extra.vista_producto),
                     stock: hasUnitConversion
                         ? (productStock > 0 ? productStock : variantStock)
-                        : (variantStock > 0 || productStock <= 0 ? variantStock : productStock)
+                        : (variantes.length > 0 ? variantStock : productStock)
                 };
             });
         } catch {
@@ -369,7 +369,7 @@ export default function CatalogoPage() {
                                         const stockBase = Number(p.stock_total || 0);
                                 const variantStock = p.variantes.reduce((acc, v) => acc + getEffectiveVariantStock(v), 0);
                                 const hasUnitConversion = Array.isArray(p.unidades_alternativas) && p.unidades_alternativas.length > 0 && Number(p.factor_conversion) > 0;
-                                return hasUnitConversion ? stockBase : (variantStock > 0 || stockBase <= 0 ? variantStock : stockBase);
+                                return hasUnitConversion ? stockBase : variantStock;
                                 }
                                 const stockBase = Number(p.stock_total || 0);
                                 // Si hay conversión y unidades alternativas, calcular stock alternativo

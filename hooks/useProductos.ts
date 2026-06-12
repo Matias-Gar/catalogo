@@ -142,7 +142,7 @@ async function enriquecerUnidades(productos: Producto[], sucursalId?: string) {
       unidad: producto.unidad ?? extra.unidad_base,
       stock: hasUnitConversion
         ? (productStock > 0 ? productStock : variantStock)
-        : (variantStock > 0 || productStock <= 0 ? variantStock : productStock)
+        : (Array.isArray(variantes) && variantes.length > 0 ? variantStock : productStock)
     };
   });
 }

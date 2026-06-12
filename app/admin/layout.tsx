@@ -26,14 +26,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           return;
         }
 
-        // Obtener el rol del usuario
+        // Obtener el rol global del usuario
         const { data: profile } = await supabase
           .from('perfiles')
           .select('rol')
           .eq('id', session.user.id)
           .single();
-        
-        const role = profile?.rol || 'cliente';
+
+        let role = profile?.rol || 'cliente';
+        if (role !== 'admin') {
+          try {
+            const response = await fetch('/api/admin/sucursal-context', {
+              headers: { Authorization: `Bearer ${session.access_token}` },
+              cache: 'no-store',
+            });
+            const context = await response.json();
+            if (response.ok && Array.isArray(context?.paises)) {
+              const hasCountryAdmin = context.paises.some((country: { rol_pais?: string }) => country?.rol_pais === 'admin');
+              if (hasCountryAdmin) role = 'admin';
+            }
+          } catch (_countryRoleError) {
+            // Si falla el contexto por pais, seguimos con el rol global.
+          }
+        }
         setUserRole(role);
 
         if (!isAdminPanelRole(role)) {

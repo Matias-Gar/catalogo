@@ -75,7 +75,7 @@ function getProductStockBase(producto) {
     return productStock > 0 ? productStock : variantStock;
   }
   if (variantes.length > 0) {
-    return variantStock > 0 || productStock <= 0 ? variantStock : productStock;
+    return variantStock;
   }
   return productStock;
 }
@@ -363,7 +363,7 @@ export default function Home() {
           const productStock = Math.max(0, Number(p.stock_total || 0));
           if (Array.isArray(p.variantes) && p.variantes.length > 0) {
             const variantStock = p.variantes.reduce((acc, v) => acc + getEffectiveVariantStock(v), 0);
-            return variantStock > 0 || productStock <= 0 ? variantStock : productStock;
+            return variantStock;
           }
           return productStock;
         })(),
@@ -438,7 +438,7 @@ export default function Home() {
           factor_conversion: extra.factor_conversion,
         stock: hasUnitConversion
           ? (productStock > 0 ? productStock : variantStock)
-          : (variantStock > 0 || productStock <= 0 ? variantStock : productStock),
+          : (variantes.length > 0 ? variantStock : productStock),
       };
       });
       const visibleProducts = dedupeCatalogProducts(filteredProducts);

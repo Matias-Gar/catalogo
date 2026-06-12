@@ -3,9 +3,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/SupabaseClient";
 
 export default function PerfilesAdminPage() {
+  const rolesPanel = ['admin', 'administracion', 'vendedor', 'almacen'];
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [perfiles, setPerfiles] = useState([]);
+  const [paises, setPaises] = useState([]);
+  const [asignacionesPais, setAsignacionesPais] = useState([]);
   const [loading, setLoading] = useState(true);
   const [procesando, setProcesando] = useState(null);
   const [mensaje, setMensaje] = useState(null);
@@ -15,8 +18,15 @@ export default function PerfilesAdminPage() {
     nombre: '',
     telefono: '',
     nit_ci: '',
-    rol: 'vendedor'
+    rol: 'vendedor',
+    accesosPais: {}
   });
+
+  const getAuthHeaders = async () => {
+    const { data } = await supabase.auth.getSession();
+    const token = data?.session?.access_token;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
 
   useEffect(() => {
     const getUser = async () => {
@@ -35,7 +45,7 @@ export default function PerfilesAdminPage() {
         setUserProfile(perfilData);
         
         if (perfilData?.rol === 'admin') {
-          cargarPerfiles();
+          await Promise.all([cargarPerfiles(), cargarPermisosPais()]);
         }
       }
       setLoading(false);
@@ -52,13 +62,74 @@ export default function PerfilesAdminPage() {
     if (data) setPerfiles(data);
   };
 
+  const cargarPermisosPais = async () => {
+    try {
+      const response = await fetch('/api/admin/perfiles-permisos', {
+        headers: await getAuthHeaders(),
+        cache: 'no-store',
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        setMensaje({ tipo: 'error', texto: result.error || 'No se pudieron cargar permisos por pais' });
+        return;
+      }
+      setPaises(Array.isArray(result.paises) ? result.paises : []);
+      setAsignacionesPais(Array.isArray(result.asignaciones) ? result.asignaciones : []);
+    } catch (_error) {
+      setMensaje({ tipo: 'error', texto: 'No se pudieron cargar permisos por pais' });
+    }
+  };
+
+  const getAsignacionesPerfil = (perfilId) =>
+    asignacionesPais.filter((item) => String(item.usuario_id) === String(perfilId));
+
+  const buildAccessForm = (perfilId) => {
+    const access = {};
+    getAsignacionesPerfil(perfilId).forEach((item) => {
+      access[item.pais_id] = {
+        activo: item.activo !== false,
+        rol: item.rol || 'administracion',
+      };
+    });
+    return access;
+  };
+
+  const getAccessSummary = (perfil) => {
+    if (perfil.rol === 'admin') return 'Admin global';
+    const activeAssignments = getAsignacionesPerfil(perfil.id).filter((item) => item.activo !== false);
+    if (activeAssignments.length === 0) return 'Sin pais asignado';
+    return activeAssignments
+      .map((item) => {
+        const country = paises.find((pais) => String(pais.id) === String(item.pais_id));
+        return `${country?.nombre || 'Pais'}: ${item.rol}`;
+      })
+      .join(', ');
+  };
+
   const handleEdit = (perfil) => {
     setEditingProfile(perfil.id);
     setFormData({
       nombre: perfil.nombre || '',
       telefono: perfil.telefono || '',
       nit_ci: perfil.nit_ci || '',
-      rol: perfil.rol || 'vendedor'
+      rol: rolesPanel.includes(perfil.rol) ? perfil.rol : 'administracion',
+      accesosPais: buildAccessForm(perfil.id)
+    });
+  };
+
+  const updateCountryAccess = (paisId, changes) => {
+    setFormData((current) => {
+      const currentAccess = current.accesosPais?.[paisId] || { activo: false, rol: 'administracion' };
+      return {
+        ...current,
+        accesosPais: {
+          ...current.accesosPais,
+          [paisId]: {
+            ...currentAccess,
+            ...changes,
+          },
+        },
+      };
     });
   };
 
@@ -80,12 +151,32 @@ export default function PerfilesAdminPage() {
       if (error) {
         setMensaje({ tipo: 'error', texto: 'Error al actualizar perfil: ' + error.message });
       } else {
+        const accessEntries = Object.entries(formData.accesosPais || {});
+        for (const [paisId, access] of accessEntries) {
+          const response = await fetch('/api/admin/perfiles-permisos', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(await getAuthHeaders()),
+            },
+            body: JSON.stringify({
+              usuario_id: editingProfile,
+              pais_id: paisId,
+              rol: access.rol || 'administracion',
+              activo: access.activo === true,
+            }),
+          });
+          const result = await response.json();
+          if (!response.ok || !result.success) {
+            throw new Error(result.error || 'Error al guardar permisos por pais');
+          }
+        }
         setMensaje({ tipo: 'success', texto: 'Perfil actualizado exitosamente' });
         setEditingProfile(null);
-        cargarPerfiles();
+        await Promise.all([cargarPerfiles(), cargarPermisosPais()]);
       }
-    } catch (_err) {
-      setMensaje({ tipo: 'error', texto: 'Error al actualizar el perfil' });
+    } catch (err) {
+      setMensaje({ tipo: 'error', texto: err?.message || 'Error al actualizar el perfil' });
     } finally {
       setProcesando(null);
       setTimeout(() => setMensaje(null), 3000);
@@ -98,7 +189,8 @@ export default function PerfilesAdminPage() {
       nombre: '',
       telefono: '',
       nit_ci: '',
-      rol: 'vendedor'
+      rol: 'vendedor',
+      accesosPais: {}
     });
   };
 
@@ -148,7 +240,8 @@ export default function PerfilesAdminPage() {
     (perfil.nombre?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (perfil.telefono?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (perfil.nit_ci?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (perfil.rol?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+    (perfil.rol?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    getAccessSummary(perfil).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -311,7 +404,8 @@ export default function PerfilesAdminPage() {
                 <th className="text-left p-4 font-medium text-gray-700">Teléfono</th>
                 <th className="text-left p-4 font-medium text-gray-700">NIT/CI</th>
                 <th className="text-left p-4 font-medium text-gray-700">Rol</th>
-                <th className="text-center p-4 font-medium text-gray-700">Acciones</th>
+                <th className="w-[260px] text-left p-4 font-medium text-gray-700">Acceso por pais</th>
+                <th className="w-[170px] text-center p-4 font-medium text-gray-700">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -395,7 +489,52 @@ export default function PerfilesAdminPage() {
                       </span>
                     )}
                   </td>
-                  <td className="p-4">
+                  <td className="w-[260px] p-4">
+                    {editingProfile === perfil.id ? (
+                      formData.rol === 'admin' ? (
+                        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+                          Admin global: puede administrar todos los paises.
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {paises.map((pais) => {
+                            const access = formData.accesosPais?.[pais.id] || { activo: false, rol: 'administracion' };
+                            return (
+                              <div key={pais.id} className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-2 py-1.5">
+                                <input
+                                  type="checkbox"
+                                  checked={access.activo === true}
+                                  onChange={(e) => updateCountryAccess(pais.id, { activo: e.target.checked })}
+                                  className="h-4 w-4"
+                                  title={`Permitir acceso a ${pais.nombre}`}
+                                />
+                                <span className="min-w-20 flex-1 text-xs font-semibold text-gray-800">{pais.nombre}</span>
+                                <select
+                                  value={access.rol || 'administracion'}
+                                  onChange={(e) => updateCountryAccess(pais.id, { rol: e.target.value, activo: true })}
+                                  disabled={access.activo !== true}
+                                  className="rounded border border-gray-300 px-2 py-1 text-xs disabled:bg-gray-100 disabled:text-gray-400"
+                                >
+                                  <option value="admin">Admin pais</option>
+                                  <option value="administracion">Administracion</option>
+                                  <option value="vendedor">Vendedor</option>
+                                  <option value="almacen">Almacen</option>
+                                </select>
+                              </div>
+                            );
+                          })}
+                          {paises.length === 0 && (
+                            <div className="text-xs text-gray-500">No hay paises configurados.</div>
+                          )}
+                        </div>
+                      )
+                    ) : (
+                      <div className="w-[220px] text-xs font-semibold text-gray-700">
+                        {getAccessSummary(perfil)}
+                      </div>
+                    )}
+                  </td>
+                  <td className="w-[170px] p-4">
                     {editingProfile === perfil.id ? (
                       <div className="flex gap-2 justify-center">
                         <button
