@@ -12,7 +12,7 @@ import { getOptimizedImageUrl, buildImageSrcSet } from '../lib/imageOptimization
 import { normalizeProductView } from '../lib/productViews';
 import { productMatchesSearch } from '../lib/searchMatching';
 import PublicSucursalSelector, { usePublicSucursal } from '../components/PublicSucursalSelector';
-import { buildCountryPath, getCountrySlugFromPath, stripCountryFromPath } from '../lib/countryRoutes';
+import { buildCountryPath, stripCountryFromPath } from '../lib/countryRoutes';
 
 // Componente principal de la página (Tienda)
 // Utilidad para obtener nombre de categoría por id
@@ -259,20 +259,20 @@ function ImageGalleryModal({ isOpen, onClose, imageList, imageIndex, productName
 
 export default function Home() {
   const pathname = usePathname();
-  const activeCountrySlug = getCountrySlugFromPath(pathname);
   const cleanPathname = stripCountryFromPath(pathname);
   const currentPublicView = cleanPathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
-  const pedidosHref = currentPublicView === 'insumos'
-    ? buildCountryPath(activeCountrySlug, '/insumos/productos')
-    : buildCountryPath(activeCountrySlug, '/productos');
   const {
     sucursales,
+    activeCountrySlug,
     activeSucursal,
     activeSucursalId,
     loading: sucursalesLoading,
     error: sucursalesError,
     setActiveSucursalId,
   } = usePublicSucursal();
+  const pedidosHref = currentPublicView === 'insumos'
+    ? buildCountryPath(activeCountrySlug, '/insumos/productos')
+    : buildCountryPath(activeCountrySlug, '/productos');
   // Estados para el modal de galería de imágenes
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImageList, setSelectedImageList] = useState([]);
@@ -601,6 +601,7 @@ export default function Home() {
       <PublicSucursalSelector
         activeSucursal={activeSucursal}
         activeSucursalId={activeSucursalId}
+        activeCountrySlug={activeCountrySlug}
         currentPublicView={currentPublicView}
         error={sucursalesError}
         loading={sucursalesLoading}

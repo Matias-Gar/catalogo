@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { buildCountryPath, getCountrySlugFromPath, stripCountryFromPath } from "../lib/countryRoutes";
+import { buildCountryPath, getCountrySlugFromPath, getSavedPublicCountrySlug, hasCountrySlugInPath, savePublicCountrySlug, stripCountryFromPath } from "../lib/countryRoutes";
 
 const STORAGE_KEY = "streetwear.public_sucursal_id";
 
@@ -19,11 +19,18 @@ export function usePublicSucursal() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const pathname = usePathname();
-  const activeCountrySlug = getCountrySlugFromPath(pathname);
+  const pathCountrySlug = getCountrySlugFromPath(pathname);
+  const [activeCountrySlug, setActiveCountrySlug] = useState(pathCountrySlug);
+
+  useEffect(() => {
+    const nextSlug = hasCountrySlugInPath(pathname) ? pathCountrySlug : getSavedPublicCountrySlug() || pathCountrySlug;
+    setActiveCountrySlug(nextSlug);
+  }, [pathCountrySlug, pathname]);
 
   const setActiveSucursalId = useCallback((id) => {
     setActiveSucursalIdState(id);
     if (typeof window !== "undefined") {
+      savePublicCountrySlug(activeCountrySlug);
       window.localStorage.setItem(`${STORAGE_KEY}_${activeCountrySlug}`, id);
       window.dispatchEvent(new CustomEvent("public-sucursal:changed", { detail: { sucursalId: id, countrySlug: activeCountrySlug } }));
     }
@@ -36,6 +43,14 @@ export function usePublicSucursal() {
       setLoading(true);
       setError("");
       try {
+        if (!hasCountrySlugInPath(pathname)) {
+          const savedCountrySlug = getSavedPublicCountrySlug();
+          if (savedCountrySlug && savedCountrySlug !== activeCountrySlug) {
+            setActiveCountrySlug(savedCountrySlug);
+            return;
+          }
+        }
+
         const response = await fetch(`/api/public/sucursales?pais=${encodeURIComponent(activeCountrySlug)}`);
         const result = await response.json();
         if (!response.ok || !result.success) {
@@ -43,6 +58,7 @@ export function usePublicSucursal() {
         }
 
         const branches = Array.isArray(result.sucursales) ? result.sucursales : [];
+        savePublicCountrySlug(activeCountrySlug);
         const savedId = getSavedSucursalId(activeCountrySlug);
         const savedStillValid = branches.some((branch) => branch.id === savedId);
         const nextId = savedStillValid ? savedId : branches[0]?.id || "";
@@ -67,7 +83,7 @@ export function usePublicSucursal() {
     return () => {
       mounted = false;
     };
-  }, [activeCountrySlug, setActiveSucursalId]);
+  }, [activeCountrySlug, pathname, setActiveSucursalId]);
 
   useEffect(() => {
     const syncFromBrowser = (event) => {
@@ -77,7 +93,7 @@ export function usePublicSucursal() {
     };
 
     const syncFromStorage = (event) => {
-      if (event.key === STORAGE_KEY) syncFromBrowser(event);
+      if (event.key === `${STORAGE_KEY}_${activeCountrySlug}`) syncFromBrowser(event);
     };
 
     window.addEventListener("public-sucursal:changed", syncFromBrowser);
@@ -114,10 +130,11 @@ export default function PublicSucursalSelector({
   loading,
   setActiveSucursalId,
   sucursales,
+  activeCountrySlug,
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const countrySlug = getCountrySlugFromPath(pathname);
+  const countrySlug = activeCountrySlug || getCountrySlugFromPath(pathname);
   const cleanPath = stripCountryFromPath(pathname);
   const isPedidoRoute = cleanPath?.includes("/productos");
   const articleHref = buildCountryPath(countrySlug, isPedidoRoute ? "/productos" : "/");

@@ -2,19 +2,32 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/SupabaseClient";
+import { savePublicCountrySlug } from "@/lib/countryRoutes";
 
 const STORAGE_KEY = "streetwear.active_sucursal_id";
 const COUNTRY_STORAGE_KEY = "streetwear.active_pais_id";
 const SucursalContext = createContext(null);
 
-function getSavedSucursalId() {
-  if (typeof window === "undefined") return "";
-  return window.localStorage.getItem(STORAGE_KEY) || "";
+function scopedStorageKey(key, userId) {
+  return userId ? `${key}.${userId}` : key;
 }
 
-function getSavedPaisId() {
+function getSavedValue(key, userId) {
   if (typeof window === "undefined") return "";
-  return window.localStorage.getItem(COUNTRY_STORAGE_KEY) || "";
+  return window.localStorage.getItem(scopedStorageKey(key, userId)) || "";
+}
+
+function saveValue(key, userId, value) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(scopedStorageKey(key, userId), value);
+}
+
+function getSavedSucursalId(userId) {
+  return getSavedValue(STORAGE_KEY, userId);
+}
+
+function getSavedPaisId(userId) {
+  return getSavedValue(COUNTRY_STORAGE_KEY, userId);
 }
 
 export function SucursalProvider({ children, showShell = true }) {
@@ -22,6 +35,7 @@ export function SucursalProvider({ children, showShell = true }) {
   const [paises, setPaises] = useState([]);
   const [activePaisId, setActivePaisIdState] = useState("");
   const [activeSucursalId, setActiveSucursalIdState] = useState("");
+  const [currentUserId, setCurrentUserId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectorOpen, setSelectorOpen] = useState(false);
@@ -29,18 +43,18 @@ export function SucursalProvider({ children, showShell = true }) {
   const setActivePaisId = useCallback((id) => {
     setActivePaisIdState(id);
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(COUNTRY_STORAGE_KEY, id);
+      saveValue(COUNTRY_STORAGE_KEY, currentUserId, id);
       window.dispatchEvent(new CustomEvent("pais:changed", { detail: { paisId: id } }));
     }
-  }, []);
+  }, [currentUserId]);
 
   const setActiveSucursalId = useCallback((id) => {
     setActiveSucursalIdState(id);
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, id);
+      saveValue(STORAGE_KEY, currentUserId, id);
       window.dispatchEvent(new CustomEvent("sucursal:changed", { detail: { sucursalId: id } }));
     }
-  }, []);
+  }, [currentUserId]);
 
   const loadSucursales = useCallback(async () => {
     setLoading(true);
@@ -49,6 +63,8 @@ export function SucursalProvider({ children, showShell = true }) {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
+      const userId = sessionData?.session?.user?.id || "";
+      setCurrentUserId(userId);
 
       const response = await fetch("/api/admin/sucursal-context", {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -62,11 +78,11 @@ export function SucursalProvider({ children, showShell = true }) {
 
       const branches = result.sucursales || [];
       const countries = result.paises || [];
-      const savedPaisId = getSavedPaisId();
+      const savedPaisId = getSavedPaisId(userId);
       const savedPaisStillValid = countries.some((country) => country.id === savedPaisId);
       const nextPaisId = savedPaisStillValid ? savedPaisId : countries[0]?.id || branches[0]?.pais_id || "";
       const branchesForCountry = nextPaisId ? branches.filter((branch) => branch.pais_id === nextPaisId) : branches;
-      const savedId = getSavedSucursalId();
+      const savedId = getSavedSucursalId(userId);
       const savedStillValid = branchesForCountry.some((branch) => branch.id === savedId);
       const nextId = savedStillValid ? savedId : branchesForCountry[0]?.id || "";
 
@@ -97,6 +113,10 @@ export function SucursalProvider({ children, showShell = true }) {
     () => paises.find((country) => country.id === activePaisId) || null,
     [activePaisId, paises]
   );
+
+  useEffect(() => {
+    if (activePais?.slug) savePublicCountrySlug(activePais.slug);
+  }, [activePais?.slug]);
 
   const sucursalesActivas = useMemo(
     () => activePaisId ? sucursales.filter((branch) => branch.pais_id === activePaisId) : sucursales,

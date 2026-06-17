@@ -13,7 +13,7 @@ import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 import { normalizeProductView } from "@/lib/productViews";
 import { productMatchesSearch } from "@/lib/searchMatching";
 import PublicSucursalSelector, { usePublicSucursal } from "@/components/PublicSucursalSelector";
-import { getCountrySlugFromPath, stripCountryFromPath } from "@/lib/countryRoutes";
+import { stripCountryFromPath } from "@/lib/countryRoutes";
 
 function UnitPricePanel({ conversionInfo, factor, className = "mb-3" }) {
     if (!conversionInfo) return null;
@@ -72,12 +72,12 @@ function cleanWhatsappNumber(input) {
 
 export default function CatalogoPage() {
         const pathname = usePathname();
-        const activeCountrySlug = getCountrySlugFromPath(pathname);
         const cleanPathname = stripCountryFromPath(pathname);
         const currentPublicView = cleanPathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
         const {
             sucursales,
             activePais,
+            activeCountrySlug,
             activeSucursal,
             activeSucursalId,
             loading: sucursalesLoading,
@@ -1103,6 +1103,7 @@ export default function CatalogoPage() {
             <PublicSucursalSelector
                 activeSucursal={activeSucursal}
                 activeSucursalId={activeSucursalId}
+                activeCountrySlug={activeCountrySlug}
                 currentPublicView={currentPublicView}
                 error={sucursalesError}
                 loading={sucursalesLoading}

@@ -4,15 +4,21 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { supabase } from '../lib/SupabaseClient'; // Asegúrate que esta ruta es correcta
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from '../lib/storeSettings';
-import { getCountrySlugFromPath } from '../lib/countryRoutes';
+import { buildCountryPath, getCountrySlugFromPath, getSavedPublicCountrySlug, hasCountrySlugInPath, stripCountryFromPath } from '../lib/countryRoutes';
 import { getDefaultAdminRoute, isAdminPanelRole } from '../lib/adminPermissions';
 
 export default function Header() {
   const pathname = usePathname();
-  const countrySlug = getCountrySlugFromPath(pathname);
+  const pathCountrySlug = getCountrySlugFromPath(pathname);
+  const [countrySlug, setCountrySlug] = useState(pathCountrySlug);
   const [session, setSession] = useState(null);
   const [userRole, setUserRole] = useState(null); // Nuevo estado para el rol
   const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
+
+  useEffect(() => {
+    const nextSlug = hasCountrySlugInPath(pathname) ? pathCountrySlug : getSavedPublicCountrySlug() || pathCountrySlug;
+    setCountrySlug(nextSlug);
+  }, [pathCountrySlug, pathname]);
 
   useEffect(() => {
     // Función para obtener la sesión y el rol
@@ -87,9 +93,10 @@ export default function Header() {
 
   const hasAdminPanelAccess = isAdminPanelRole(userRole);
   const adminPanelRoute = getDefaultAdminRoute(userRole);
-  const isInsumosView = pathname?.startsWith('/insumos');
-  const homeHref = isInsumosView ? '/insumos' : '/';
-  const pedidosHref = isInsumosView ? '/insumos/productos' : '/productos';
+  const cleanPathname = stripCountryFromPath(pathname);
+  const isInsumosView = cleanPathname?.startsWith('/insumos');
+  const homeHref = buildCountryPath(countrySlug, isInsumosView ? '/insumos' : '/');
+  const pedidosHref = buildCountryPath(countrySlug, isInsumosView ? '/insumos/productos' : '/productos');
 
   return (
     <header className="bg-gray-800 p-2 sm:p-4 shadow-lg sticky top-0 z-10">

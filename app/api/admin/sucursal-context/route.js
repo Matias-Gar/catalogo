@@ -98,11 +98,38 @@ export async function GET(request) {
     .map((row) => ({ ...row.pais, rol_pais: row.rol }))
     .filter((country) => country?.id && country.activa !== false);
 
-  const sucursales = (data || [])
+  const sucursalesFromAssignments = (data || [])
     .map((row) => ({ ...row.sucursal, rol_sucursal: row.rol }))
     .filter((branch) => branch?.id && branch.activa !== false);
 
   const assignedPaisIds = new Set(paisesFromAssignments.map((country) => country.id));
+  const paisRoleById = new Map(paisesFromAssignments.map((country) => [country.id, country.rol_pais]));
+  let sucursalesFromCountries = [];
+
+  if (assignedPaisIds.size > 0) {
+    const { data: countryBranches, error: countryBranchesError } = await supabaseAdmin
+      .from("sucursales")
+      .select("id, nombre, slug, direccion, telefono, activa, pais_id")
+      .in("pais_id", Array.from(assignedPaisIds))
+      .eq("activa", true)
+      .order("created_at", { ascending: true });
+
+    if (countryBranchesError) {
+      return NextResponse.json({ success: false, error: countryBranchesError.message }, { status: 400 });
+    }
+
+    sucursalesFromCountries = (countryBranches || []).map((branch) => ({
+      ...branch,
+      rol_sucursal: paisRoleById.get(branch.pais_id) || "administracion",
+    }));
+  }
+
+  const sucursalesById = new Map();
+  [...sucursalesFromCountries, ...sucursalesFromAssignments].forEach((branch) => {
+    if (branch?.id) sucursalesById.set(branch.id, branch);
+  });
+  const sucursales = Array.from(sucursalesById.values());
+
   const missingPaisIds = Array.from(new Set(sucursales.map((branch) => branch.pais_id).filter(Boolean)))
     .filter((paisId) => !assignedPaisIds.has(paisId));
 
