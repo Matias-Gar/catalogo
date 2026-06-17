@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/SupabaseClient';
 import { usePathname, useRouter } from 'next/navigation';
 import { Toast } from '../../components/ui/Toast';
-import { canAccessAdminPath, getDefaultAdminRoute, isAdminPanelRole } from '../../lib/adminPermissions';
+import { canAccessAdminPath, getDefaultAdminRoute, getEffectiveAdminRole, isAdminPanelRole } from '../../lib/adminPermissions';
 import { SucursalProvider } from '../../components/admin/SucursalContext';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -34,20 +34,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           .single();
 
         let role = profile?.rol || 'cliente';
-        if (role !== 'admin') {
-          try {
-            const response = await fetch('/api/admin/sucursal-context', {
-              headers: { Authorization: `Bearer ${session.access_token}` },
-              cache: 'no-store',
-            });
-            const context = await response.json();
-            if (response.ok && Array.isArray(context?.paises)) {
-              const hasCountryAdmin = context.paises.some((country: { rol_pais?: string }) => country?.rol_pais === 'admin');
-              if (hasCountryAdmin) role = 'admin';
-            }
-          } catch (_countryRoleError) {
-            // Si falla el contexto por pais, seguimos con el rol global.
-          }
+        try {
+          const response = await fetch('/api/admin/sucursal-context', {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+            cache: 'no-store',
+          });
+          const context = await response.json();
+          const countryRoles = Array.isArray(context?.paises)
+            ? context.paises.map((country: { rol_pais?: string }) => country?.rol_pais).filter(Boolean)
+            : [];
+          role = getEffectiveAdminRole(role, countryRoles);
+        } catch (_countryRoleError) {
+          // Si falla el contexto por pais, seguimos con el rol global.
         }
         setUserRole(role);
 

@@ -10,7 +10,7 @@ import { optimizeImageForUpload } from '../../../../lib/imageUploadOptimization'
 
 import { registrarMovimientoStock } from '../../../../lib/stockMovimientos';
 import { registrarHistorialProducto } from '../../../../lib/productosHistorial';
-import { canAccessAdminPath } from '../../../../lib/adminPermissions';
+import { canAccessAdminPath, getEffectiveAdminRole } from '../../../../lib/adminPermissions';
 
 import { sincronizarStockProducto } from '../../../../lib/utils';
 import { getProductViewMeta, normalizeProductView } from '../../../../lib/productViews';
@@ -1122,12 +1122,29 @@ export default function AdminProductosPage() {
                 router.push('/');
                 return;
             }
-            if (!canAccessAdminPath(profile.rol, '/admin/productos/nuevo')) {
-                setUserRole(profile.rol);
+            let effectiveRole = profile.rol;
+            try {
+                const { data: sessionData } = await supabase.auth.getSession();
+                const token = sessionData?.session?.access_token;
+                const response = await fetch('/api/admin/sucursal-context', {
+                    headers: token ? { Authorization: `Bearer ${token}` } : {},
+                    cache: 'no-store',
+                });
+                const context = await response.json().catch(() => null);
+                const countryRoles = Array.isArray(context?.paises)
+                    ? context.paises.map((country) => country?.rol_pais).filter(Boolean)
+                    : [];
+                effectiveRole = getEffectiveAdminRole(profile.rol, countryRoles);
+            } catch (_countryRoleError) {
+                effectiveRole = profile.rol;
+            }
+
+            if (!canAccessAdminPath(effectiveRole, '/admin/productos/nuevo')) {
+                setUserRole(effectiveRole);
                 router.push('/');
                 return;
             }
-            setUserRole(profile.rol);
+            setUserRole(effectiveRole);
         };
         checkAuthAndRole();
     }, [router]);
