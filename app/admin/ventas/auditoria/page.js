@@ -223,7 +223,7 @@ export default function AuditoriaStockPage() {
       setLoading(true);
       const scopeSucursal = (query) => activeSucursalId ? query.eq("sucursal_id", activeSucursalId) : query;
       const [prodsRes, detsRes, varsRes, movsRes] = await Promise.all([
-        scopeSucursal(supabase.from("productos").select("user_id, nombre, stock, stock_inicial, unidad_base, unidades_alternativas, factor_conversion")),
+        scopeSucursal(supabase.from("productos").select("user_id, nombre, stock, stock_inicial, unidad_base, unidades_alternativas, factor_conversion").eq("archivado", false)),
         scopeSucursal(supabase.from("ventas_detalle").select("producto_id, cantidad, cantidad_base, unidad, variante_id, created_at, usuario_email")),
         scopeSucursal(supabase.from("producto_variantes").select("*")),
         scopeSucursal(supabase.from("stock_movimientos").select("*")),

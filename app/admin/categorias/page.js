@@ -36,7 +36,7 @@ export default function AdminCategorias() {
   }
 
   async function fetchProductos() {
-    let query = supabase.from("productos").select("*");
+    let query = supabase.from("productos").select("*").eq("archivado", false);
     if (activePaisId) query = query.eq("pais_id", activePaisId);
     if (effectiveSucursalId) query = query.eq("sucursal_id", effectiveSucursalId);
     const { data, error } = await query;

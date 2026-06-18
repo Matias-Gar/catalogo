@@ -1335,6 +1335,7 @@ export default function AdminProductosPage() {
                 created_at,
                 categorias (categori)
             `)
+            .eq('archivado', false)
             .order('created_at', { ascending: false });
         if (activePaisId) query = query.eq('pais_id', activePaisId);
         if (effectiveSucursalId) query = query.eq('sucursal_id', effectiveSucursalId);
@@ -1359,6 +1360,7 @@ export default function AdminProductosPage() {
                     created_at,
                     categorias (categori)
                 `)
+                .eq('archivado', false)
                 .order('created_at', { ascending: false });
             if (activePaisId) fallbackQuery = fallbackQuery.eq('pais_id', activePaisId);
             if (effectiveSucursalId) fallbackQuery = fallbackQuery.eq('sucursal_id', effectiveSucursalId);

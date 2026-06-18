@@ -31,6 +31,7 @@ export default function EditarCatalogo() {
           let productosQuery = supabase
             .from("productos")
             .select("*")
+            .eq("archivado", false)
             .order("nombre", { ascending: true });
           if (activeSucursalId) productosQuery = productosQuery.eq("sucursal_id", activeSucursalId);
           const { data: productosData, error: productosError } = await productosQuery;

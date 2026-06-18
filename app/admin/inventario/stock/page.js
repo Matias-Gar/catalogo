@@ -95,6 +95,7 @@ export default function StockPage() {
       factor_conversion,
       categorias (categori)
     `, { count: "exact" });
+    enrichedQuery = enrichedQuery.eq("archivado", false);
     if (activePaisId) enrichedQuery = enrichedQuery.eq("pais_id", activePaisId);
     if (activeSucursalId) enrichedQuery = enrichedQuery.eq("sucursal_id", activeSucursalId);
 
@@ -118,6 +119,7 @@ export default function StockPage() {
         factor_conversion,
         categorias (categori)
       `, { count: "exact" });
+      fallbackQuery = fallbackQuery.eq("archivado", false);
       if (activePaisId) fallbackQuery = fallbackQuery.eq("pais_id", activePaisId);
       if (activeSucursalId) fallbackQuery = fallbackQuery.eq("sucursal_id", activeSucursalId);
 
@@ -540,6 +542,7 @@ export default function StockPage() {
       factor_conversion,
       categorias (categori)
     `);
+    enrichedQuery = enrichedQuery.eq("archivado", false);
     if (activePaisId) enrichedQuery = enrichedQuery.eq("pais_id", activePaisId);
     if (activeSucursalId) enrichedQuery = enrichedQuery.eq("sucursal_id", activeSucursalId);
     const enrichedResult = await enrichedQuery.order(orderField, { ascending });
@@ -561,6 +564,7 @@ export default function StockPage() {
       factor_conversion,
       categorias (categori)
     `);
+    fallbackQuery = fallbackQuery.eq("archivado", false);
     if (activePaisId) fallbackQuery = fallbackQuery.eq("pais_id", activePaisId);
     if (activeSucursalId) fallbackQuery = fallbackQuery.eq("sucursal_id", activeSucursalId);
     const fallbackResult = await fallbackQuery.order(orderField, { ascending });

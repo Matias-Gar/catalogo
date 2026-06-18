@@ -1,10 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from '../lib/storeSettings';
 import { usePublicSucursal } from './PublicSucursalSelector';
 
 export default function StoreFooter() {
+  const pathname = usePathname();
+  if (pathname === '/contacto') return null;
+
+  return <StoreFooterContent />;
+}
+
+function StoreFooterContent() {
   const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
   const { activePais, activeSucursal } = usePublicSucursal();
 

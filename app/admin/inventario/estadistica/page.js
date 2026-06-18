@@ -30,6 +30,7 @@ export default function InventarioEstadisticaPage() {
       let prodsQuery = supabase
         .from("productos")
         .select("user_id, nombre, precio, stock, categoria")
+        .eq("archivado", false)
         .limit(5000);
       if (activeSucursalId) prodsQuery = prodsQuery.eq("sucursal_id", activeSucursalId);
       const { data: prodsData } = await prodsQuery;

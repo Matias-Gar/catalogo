@@ -448,6 +448,7 @@ export default function AdminProductosPage() {
         let query = supabase
             .from('productos')
             .select(selectWithView)
+            .eq('archivado', false)
             .order('nombre', { ascending: true });
         if (activePaisId) query = query.eq('pais_id', activePaisId);
         if (activeSucursalId) query = query.eq('sucursal_id', activeSucursalId);
@@ -461,6 +462,7 @@ export default function AdminProductosPage() {
             let fallbackQuery = supabase
                 .from('productos')
                 .select(selectWithoutView)
+                .eq('archivado', false)
                 .order('nombre', { ascending: true });
             if (activePaisId) fallbackQuery = fallbackQuery.eq('pais_id', activePaisId);
             if (activeSucursalId) fallbackQuery = fallbackQuery.eq('sucursal_id', activeSucursalId);

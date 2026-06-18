@@ -68,6 +68,7 @@ async function obtenerProductosConDatos() {
         categori
       )
     `)
+    .eq('archivado', false)
     .gt('stock', 0);
 
   if (productosError) throw new Error(`Error al obtener productos: ${productosError.message}`);

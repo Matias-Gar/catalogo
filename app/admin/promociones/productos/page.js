@@ -47,6 +47,7 @@ export default function PromocionesProductosPage() {
           descripcion,
           codigo_barra
         `)
+        .eq("archivado", false)
         .order('nombre');
       if (activeSucursalId) productosQuery = productosQuery.eq("sucursal_id", activeSucursalId);
       if (activePaisId) productosQuery = productosQuery.eq("pais_id", activePaisId);

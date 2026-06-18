@@ -234,6 +234,7 @@ export default function AumentarStockPage() {
         factor_conversion,
         categorias (categori)
       `)
+      .eq("archivado", false)
       .order("nombre", { ascending: true })
       .limit(1200);
     if (activePaisId) productosQuery = productosQuery.eq("pais_id", activePaisId);

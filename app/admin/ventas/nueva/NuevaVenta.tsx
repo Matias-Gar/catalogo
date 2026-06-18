@@ -764,7 +764,8 @@ export default function NuevaVenta() {
         let productosQuery = supabase
           .from('productos')
           .select('user_id, nombre, precio, precio_compra, stock, categoria, codigo_barra, unidad_base, unidades_alternativas, factor_conversion, producto_variantes ( id, color, precio, stock, stock_decimal, sku )')
-          .in('user_id', productosIds);
+          .in('user_id', productosIds)
+          .eq('archivado', false);
         if (activePaisId) productosQuery = productosQuery.eq('pais_id', activePaisId);
         if (effectiveSucursalId) productosQuery = productosQuery.eq('sucursal_id', effectiveSucursalId);
         const { data: productosData, error: productosError } = await productosQuery;

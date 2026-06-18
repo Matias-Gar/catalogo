@@ -9,6 +9,12 @@ import { getDefaultAdminRoute, isAdminPanelRole } from '../lib/adminPermissions'
 
 export default function Header() {
   const pathname = usePathname();
+  if (pathname === '/contacto') return null;
+
+  return <HeaderContent pathname={pathname} />;
+}
+
+function HeaderContent({ pathname }) {
   const pathCountrySlug = getCountrySlugFromPath(pathname);
   const [countrySlug, setCountrySlug] = useState(pathCountrySlug);
   const [session, setSession] = useState(null);

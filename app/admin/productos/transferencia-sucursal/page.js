@@ -163,6 +163,7 @@ export default function TransferenciaSucursalPage() {
         factor_conversion,
         categorias (categori)
       `)
+      .eq("archivado", false)
       .eq("sucursal_id", activeSucursalId)
       .order("nombre", { ascending: true })
       .limit(SEARCH_LIMIT);

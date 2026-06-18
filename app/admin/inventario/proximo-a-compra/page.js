@@ -17,7 +17,8 @@ export default function ProximoACompraPage() {
     async function fetchProductos() {
       let query = supabase
         .from("productos")
-        .select("user_id, nombre, descripcion, precio, stock, categoria");
+        .select("user_id, nombre, descripcion, precio, stock, categoria")
+        .eq("archivado", false);
       if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
       const { data, error } = await query;
       if (!error && data) {

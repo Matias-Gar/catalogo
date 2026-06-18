@@ -157,6 +157,7 @@ alter table public.producto_imagenes add column if not exists sucursal_id uuid;
 alter table public.producto_variantes add column if not exists sucursal_id uuid;
 alter table public.producto_variantes add column if not exists codigo_barra text;
 alter table public.productos add column if not exists sucursal_id uuid;
+alter table public.productos add column if not exists archivado boolean not null default false;
 alter table public.productos_historial add column if not exists sucursal_id uuid;
 alter table public.promociones add column if not exists sucursal_id uuid;
 alter table public.stock_movimientos add column if not exists sucursal_id uuid;
@@ -651,6 +652,7 @@ left join public.categorias c
 left join public.producto_variantes pv
   on pv.producto_id = p.user_id
  and pv.sucursal_id = p.sucursal_id
+where coalesce(p.archivado, false) = false
 group by
   p.user_id,
   p.sucursal_id,
