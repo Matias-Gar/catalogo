@@ -83,10 +83,13 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: productError?.message || "Producto no encontrado" }, { status: 404 });
     }
 
+    const imageUrlsAfterSave = nuevasImagenes.map(cleanImageUrl).filter(Boolean);
+    const requestedPrimaryImageUrl = String(cambios.primaryImageUrl || "").trim();
     const imagenPrincipal =
-      String(cambios.primaryImageUrl || "").trim() ||
-      cleanImageUrl(nuevasImagenes[0]) ||
-      productoActual.imagen_url ||
+      (requestedPrimaryImageUrl && imageUrlsAfterSave.includes(requestedPrimaryImageUrl)
+        ? requestedPrimaryImageUrl
+        : "") ||
+      imageUrlsAfterSave[0] ||
       "/sin-imagen.png";
 
     let variantesQuery = supabaseAdmin
@@ -105,7 +108,7 @@ export async function POST(request) {
     const variantesActualesById = new Map((variantesBD || []).map((variant) => [String(variant.id), variant]));
 
     for (const variant of variantesBD || []) {
-      if (!nuevasVariantes.some((item) => item.id === variant.id)) {
+      if (!nuevasVariantes.some((item) => String(item.id || "") === String(variant.id || ""))) {
         const stockActual = getEffectiveVariantStock(variant);
         if (stockActual > 0.0001) {
           return NextResponse.json(
@@ -136,7 +139,7 @@ export async function POST(request) {
     if (updateError) throw updateError;
 
     for (const variant of variantesBD || []) {
-      if (!nuevasVariantes.some((item) => item.id === variant.id)) {
+      if (!nuevasVariantes.some((item) => String(item.id || "") === String(variant.id || ""))) {
         const { error } = await supabaseAdmin.from("producto_variantes").delete().eq("id", variant.id);
         if (error) throw error;
       }
@@ -229,7 +232,7 @@ export async function POST(request) {
     if (imagenesError) throw imagenesError;
 
     for (const image of imagenesBD || []) {
-      if (!nuevasImagenes.some((item) => item.id === image.id || cleanImageUrl(item) === image.imagen_url)) {
+      if (!nuevasImagenes.some((item) => String(item.id || "") === String(image.id || "") || cleanImageUrl(item) === image.imagen_url)) {
         const { error } = await supabaseAdmin.from("producto_imagenes").delete().eq("id", image.id);
         if (error) throw error;
       }

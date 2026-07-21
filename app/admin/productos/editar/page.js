@@ -185,68 +185,79 @@ export default function EditarCatalogo() {
 
     // Imágenes
     const handleAddImages = (productKey, files) => {
+      const fileList = Array.isArray(files) ? files : [];
       setImagenes((prev) => ({
         ...prev,
-        [productKey]: [...(prev[productKey] || []), ...files],
+        [productKey]: [...(prev[productKey] || []), ...fileList],
       }));
       setEditando((prev) => ({
         ...prev,
         [productKey]: {
           ...prev[productKey],
-          imagenes: [...((prev[productKey]?.imagenes) || []), ...files],
+          imagenes: [...((prev[productKey]?.imagenes) || imagenes[productKey] || []), ...fileList],
         },
       }));
     };
 
     const handleRemoveImage = (productKey, idx) => {
+      const currentImages = editando[productKey]?.imagenes || imagenes[productKey] || [];
+      const nextImages = currentImages.filter((_, i) => i !== idx);
+      const removedImage = currentImages[idx];
       setImagenes((prev) => ({
         ...prev,
-        [productKey]: (prev[productKey] || []).filter((_, i) => i !== idx),
+        [productKey]: nextImages,
       }));
       setEditando((prev) => ({
         ...prev,
         [productKey]: {
           ...prev[productKey],
-          imagenes: (prev[productKey]?.imagenes || []).filter((_, i) => i !== idx),
+          imagenes: nextImages,
+          ...(
+            String(prev[productKey]?.primaryImageId || "") === String(removedImage?.id || "") ||
+            String(prev[productKey]?.primaryImageUrl || "") === String(removedImage?.imagen_url || "")
+              ? {
+                  primaryImageId: nextImages[0]?.id || null,
+                  primaryImageUrl: nextImages[0]?.imagen_url || "",
+                }
+              : {}
+          ),
         },
       }));
     };
 
     const handleReplaceImage = (productKey, idx, file) => {
+      const currentImages = editando[productKey]?.imagenes || imagenes[productKey] || [];
+      const nextImages = currentImages.map((image, i) => (i === idx ? file : image));
       setImagenes((prev) => {
-        const arr = [...(prev[productKey] || [])];
-        arr[idx] = file;
-        return { ...prev, [productKey]: arr };
+        return { ...prev, [productKey]: nextImages };
       });
       setEditando((prev) => {
-        const arr = [...((prev[productKey]?.imagenes) || [])];
-        arr[idx] = file;
         return {
           ...prev,
           [productKey]: {
             ...prev[productKey],
-            imagenes: arr,
+            imagenes: nextImages,
           },
         };
       });
     };
 
     const handleReorderImages = (productKey, fromIdx, toIdx) => {
+      if (fromIdx === toIdx || fromIdx === null || toIdx === null) return;
+      const currentImages = editando[productKey]?.imagenes || imagenes[productKey] || [];
+      const nextImages = [...currentImages];
+      const [moved] = nextImages.splice(fromIdx, 1);
+      if (!moved) return;
+      nextImages.splice(toIdx, 0, moved);
       setImagenes((prev) => {
-        const arr = [...(prev[productKey] || [])];
-        const [moved] = arr.splice(fromIdx, 1);
-        arr.splice(toIdx, 0, moved);
-        return { ...prev, [productKey]: arr };
+        return { ...prev, [productKey]: nextImages };
       });
       setEditando((prev) => {
-        const arr = [...((prev[productKey]?.imagenes) || [])];
-        const [moved] = arr.splice(fromIdx, 1);
-        arr.splice(toIdx, 0, moved);
         return {
           ...prev,
           [productKey]: {
             ...prev[productKey],
-            imagenes: arr,
+            imagenes: nextImages,
           },
         };
       });
@@ -309,7 +320,7 @@ export default function EditarCatalogo() {
         descripcion: cambios.descripcion ?? productoActual?.descripcion,
         variantes: nuevasVariantes,
         imagenes: nuevasImagenes,
-      });
+      }).filter((error) => !String(error || "").toLowerCase().includes("imagen"));
 
       if (erroresApi.length > 0) {
         showToast(erroresApi.join("\n"), "error");

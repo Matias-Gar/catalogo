@@ -11,24 +11,27 @@ export default function ImageManager({
   handleReplaceImage,
   handleReorderImages,
 }) {
-  const onDragStart = (index) =>
-    handleReorderImages(prodId, { type: "START", index });
+  const onDragStart = (event, index) => {
+    event.dataTransfer.setData("text/plain", String(index));
+  };
 
   const onDragOver = (e) => e.preventDefault();
 
-  const onDrop = (index) =>
-    handleReorderImages(prodId, { type: "DROP", index });
+  const onDrop = (event, index) => {
+    const fromIndex = Number(event.dataTransfer.getData("text/plain"));
+    if (Number.isInteger(fromIndex)) handleReorderImages(prodId, fromIndex, index);
+  };
 
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-3 gap-4">
         {images?.map((imgObj, idx) => (
           <div
-            key={imgObj.id}
+            key={imgObj.id ?? imgObj.imagen_url ?? idx}
             draggable
-            onDragStart={() => onDragStart(idx)}
+            onDragStart={(event) => onDragStart(event, idx)}
             onDragOver={onDragOver}
-            onDrop={() => onDrop(idx)}
+            onDrop={(event) => onDrop(event, idx)}
             className="relative border rounded-lg overflow-hidden"
           >
             <img
@@ -62,13 +65,17 @@ export default function ImageManager({
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => handleReplaceImage(prodId, imgObj, e)}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleReplaceImage(prodId, idx, file);
+                  }}
                 />
               </label>
 
               <button
+                type="button"
                 className="bg-red-500 text-white px-2 py-1 text-xs rounded"
-                onClick={() => handleRemoveImage(prodId, imgObj)}
+                onClick={() => handleRemoveImage(prodId, idx)}
               >
                 Eliminar
               </button>
@@ -100,7 +107,7 @@ export default function ImageManager({
           multiple
           accept="image/*"
           className="hidden"
-          onChange={(e) => handleAddImages(prodId, e)}
+          onChange={(e) => handleAddImages(prodId, Array.from(e.target.files || []))}
         />
       </label>
     </div>
