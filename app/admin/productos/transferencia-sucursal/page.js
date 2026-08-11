@@ -393,14 +393,24 @@ export default function TransferenciaSucursalPage() {
         p_observaciones: motivo || null,
       };
 
-      const { error } = await supabase.rpc("transferir_stock_sucursal", rpcPayload);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const response = await fetch("/api/admin/productos/transferir", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(rpcPayload),
+      });
+      const result = await response.json().catch(() => ({}));
 
-      if (error) {
-        const message = describeSupabaseError(error);
+      if (!response.ok || !result.success) {
+        const message = result.error || "No se pudo completar la transferencia";
         console.error("RPC transferir_stock_sucursal fallo:", {
           message,
-          error,
-          errorProps: getErrorProps(error),
+          error: result,
+          errorProps: getErrorProps(result),
           rpcPayload,
         });
         throw new Error(message);

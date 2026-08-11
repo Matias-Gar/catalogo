@@ -34,6 +34,12 @@ create index if not exists idx_transferencias_sucursal_destino_fecha
 
 alter table public.producto_variantes add column if not exists codigo_barra text;
 
+alter table public.stock_movimientos
+  add column if not exists stock_antes numeric,
+  add column if not exists stock_despues numeric,
+  add column if not exists motivo text,
+  add column if not exists metadata jsonb default '{}'::jsonb;
+
 create or replace function public.transferir_stock_sucursal(
   p_producto_origen_id bigint,
   p_variante_origen_id bigint,
@@ -60,6 +66,9 @@ declare
   v_stock_destino numeric;
   v_transferencia_id uuid;
   v_variante_nombre text;
+  v_unidad_base text;
+  v_factor numeric;
+  v_cantidad_esperada numeric;
 begin
   if p_producto_origen_id is null or p_sucursal_origen_id is null or p_sucursal_destino_id is null then
     raise exception 'Datos incompletos para transferencia';
@@ -82,6 +91,21 @@ begin
 
   if not found then
     raise exception 'Producto de origen no encontrado';
+  end if;
+
+  v_unidad_base := coalesce(nullif(v_producto_origen.unidad_base, ''), 'unidad');
+  v_factor := coalesce(v_producto_origen.factor_conversion, 0);
+  if coalesce(nullif(p_unidad, ''), v_unidad_base) = v_unidad_base then
+    v_cantidad_esperada := p_cantidad;
+  elsif v_factor > 0 and p_unidad = any(coalesce(v_producto_origen.unidades_alternativas, array[]::text[])) then
+    v_cantidad_esperada := p_cantidad / v_factor;
+  else
+    raise exception 'Unidad no permitida para transferencia: %', p_unidad;
+  end if;
+
+  if abs(p_cantidad_base - v_cantidad_esperada) > 0.000001 then
+    raise exception 'Conversion inconsistente (esperado %, recibido %)',
+      round(v_cantidad_esperada, 6), round(p_cantidad_base, 6);
   end if;
 
   if p_variante_origen_id is not null then
@@ -328,7 +352,11 @@ begin
     sucursal_id,
     usuario_id,
     usuario_email,
-    observaciones
+    observaciones,
+    stock_antes,
+    stock_despues,
+    motivo,
+    metadata
   )
   values
   (
@@ -341,7 +369,11 @@ begin
     p_sucursal_origen_id,
     p_usuario_id,
     p_usuario_email,
-    concat('Transferencia a sucursal ', p_sucursal_destino_id, coalesce(': ' || p_observaciones, ''))
+    concat('Transferencia a sucursal ', p_sucursal_destino_id, coalesce(': ' || p_observaciones, '')),
+    v_stock_origen,
+    v_stock_origen - p_cantidad_base,
+    'transferencia_sucursal',
+    jsonb_build_object('transferencia_id', v_transferencia_id, 'sucursal_contraparte_id', p_sucursal_destino_id)
   ),
   (
     v_producto_destino.user_id,
@@ -353,7 +385,11 @@ begin
     p_sucursal_destino_id,
     p_usuario_id,
     p_usuario_email,
-    concat('Transferencia desde sucursal ', p_sucursal_origen_id, coalesce(': ' || p_observaciones, ''))
+    concat('Transferencia desde sucursal ', p_sucursal_origen_id, coalesce(': ' || p_observaciones, '')),
+    v_stock_destino,
+    v_stock_destino + p_cantidad_base,
+    'transferencia_sucursal',
+    jsonb_build_object('transferencia_id', v_transferencia_id, 'sucursal_contraparte_id', p_sucursal_origen_id)
   );
 
   insert into public.productos_historial (
@@ -386,6 +422,19 @@ begin
 end;
 $$;
 
+revoke execute on function public.transferir_stock_sucursal(
+  bigint,
+  bigint,
+  uuid,
+  uuid,
+  numeric,
+  text,
+  numeric,
+  uuid,
+  text,
+  text
+) from authenticated, anon;
+
 grant execute on function public.transferir_stock_sucursal(
   bigint,
   bigint,
@@ -397,7 +446,7 @@ grant execute on function public.transferir_stock_sucursal(
   uuid,
   text,
   text
-) to authenticated;
+) to service_role;
 
 -- Repair transfers already completed before image cloning existed.
 with transferencias_sin_imagen as (

@@ -11,17 +11,17 @@ function cleanNumber(value, decimals = 2) {
 }
 
 function isIngreso(tipo) {
-  return ["ingreso", "entrada", "aumento", "ajuste_positivo", "anulacion_venta"].includes(String(tipo || "").toLowerCase());
+  return ["ingreso", "entrada", "aumento", "ajuste_positivo", "anulacion_venta", "transferencia_entrada"].includes(String(tipo || "").toLowerCase());
 }
 
 function isSalida(tipo) {
-  return ["salida", "venta", "ajuste_negativo"].includes(String(tipo || "").toLowerCase());
+  return ["salida", "venta", "venta_anulada", "ajuste_negativo", "transferencia_salida"].includes(String(tipo || "").toLowerCase());
 }
 
 function stockValue(row) {
   const decimal = Number(row?.stock_decimal);
   const legacy = Number(row?.stock);
-  const hasDecimal = variant?.stock_decimal !== null && variant?.stock_decimal !== undefined && variant?.stock_decimal !== "";
+  const hasDecimal = row?.stock_decimal !== null && row?.stock_decimal !== undefined && row?.stock_decimal !== "";
   return Math.max(0, hasDecimal && Number.isFinite(decimal) ? decimal : legacy || 0);
 }
 
@@ -144,13 +144,19 @@ export default function AuditoriaStockPage() {
     const detallePorVariante = vars.map((v) => {
       const inicial = Number(v.stock_inicial_decimal ?? v.stock_inicial) || 0;
       const ventas = ventasPorVariante.find((row) => String(row.id) === String(v.id))?.ventas || 0;
+      const movimientosVariante = movimientosProducto.filter((m) => String(m.variante_id) === String(v.id));
+      const entradasVariante = movimientosVariante.filter((m) => isIngreso(m.tipo)).reduce((sum, m) => sum + qtyBase(m), 0);
+      const salidasVarianteMov = movimientosVariante.filter((m) => isSalida(m.tipo)).reduce((sum, m) => sum + qtyBase(m), 0);
+      const salidasVariante = salidasVarianteMov > 0 ? salidasVarianteMov : ventas;
       const actual = stockValue(v);
-      const calculado = inicial - ventas;
+      const calculado = inicial + entradasVariante - salidasVariante;
       return {
         id: v.id,
         color: v.color || "Unico",
         inicial,
         ventas,
+        entradas: entradasVariante,
+        salidas: salidasVariante,
         actual,
         calculado,
         diferencia: actual - calculado,
@@ -203,7 +209,12 @@ export default function AuditoriaStockPage() {
       });
     });
 
-    detalles.filter((d) => String(d.producto_id) === String(productoId)).forEach((d) => {
+    const detallesConMovimiento = new Set(
+      movimientos
+        .filter((m) => String(m.producto_id) === String(productoId) && m.detalle_id != null)
+        .map((m) => String(m.detalle_id))
+    );
+    detalles.filter((d) => String(d.producto_id) === String(productoId) && !detallesConMovimiento.has(String(d.id))).forEach((d) => {
       eventos.push({
         tipo: "venta",
         fecha: d.created_at,
@@ -225,7 +236,7 @@ export default function AuditoriaStockPage() {
       const scopeSucursal = (query) => activeSucursalId ? query.eq("sucursal_id", activeSucursalId) : query;
       const [prodsRes, detsRes, varsRes, movsRes] = await Promise.all([
         scopeSucursal(supabase.from("productos").select("user_id, nombre, stock, stock_inicial, unidad_base, unidades_alternativas, factor_conversion").eq("archivado", false)),
-        scopeSucursal(supabase.from("ventas_detalle").select("producto_id, cantidad, cantidad_base, unidad, variante_id, created_at, usuario_email")),
+        scopeSucursal(supabase.from("ventas_detalle").select("id, producto_id, cantidad, cantidad_base, unidad, variante_id, created_at, usuario_email")),
         scopeSucursal(supabase.from("producto_variantes").select("*")),
         scopeSucursal(supabase.from("stock_movimientos").select("*")),
       ]);
@@ -241,16 +252,14 @@ export default function AuditoriaStockPage() {
   }, [activeSucursalId]);
 
   useEffect(() => {
-    if (!selected) {
-      setHistorial([]);
-      return;
-    }
+    const selectedId = selected?.user_id;
+    if (!selectedId) return;
 
     async function fetchHistorial() {
       let query = supabase
         .from("productos_historial")
         .select("id, accion, datos_anteriores, datos_nuevos, usuario_email, fecha, producto_id")
-        .eq("producto_id", selected.user_id)
+        .eq("producto_id", selectedId)
         .order("fecha", { ascending: false });
       if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
       const { data } = await query;

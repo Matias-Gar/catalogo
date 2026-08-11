@@ -31,6 +31,16 @@ where estado is null or trim(estado) = '';
 alter table public.ventas_detalle
   alter column cantidad_base type numeric using cantidad_base::numeric;
 
+-- Versiones antiguas creaban stock_decimal=0 por defecto aunque stock tenia
+-- existencias. Se normaliza una sola vez y desde aqui el decimal es canonico.
+update public.producto_variantes
+set stock_decimal = stock::numeric
+where coalesce(stock_decimal, 0) = 0
+  and coalesce(stock, 0) <> 0;
+
+alter table public.producto_variantes
+  alter column stock_decimal drop default;
+
 -- 3) Stronger audit columns. Existing stock_movimientos rows remain valid.
 alter table public.stock_movimientos
   add column if not exists stock_antes numeric,
@@ -164,6 +174,7 @@ declare
   v_qty_visible numeric;
   v_qty_visible_db numeric;
   v_qty_base numeric;
+  v_qty_expected numeric;
   v_unidad text;
   v_unidad_base text;
   v_factor numeric;
@@ -238,6 +249,7 @@ begin
       coalesce(p.precio, 0)::numeric as precio,
       coalesce(p.precio_compra, 0)::numeric as precio_compra,
       coalesce(nullif(p.unidad_base, ''), v_unidad, 'unidad') as unidad_base,
+      coalesce(p.unidades_alternativas, array[]::text[]) as unidades_alternativas,
       coalesce(p.factor_conversion, 0)::numeric as factor_conversion,
       coalesce(cardinality(p.unidades_alternativas), 0) as alternativas_count
     into v_producto
@@ -252,12 +264,20 @@ begin
     v_unidad_base := coalesce(v_producto.unidad_base, v_unidad, 'unidad');
     v_factor := v_producto.factor_conversion;
     v_has_conversion := v_factor > 0 and v_producto.alternativas_count > 0;
-    v_qty_base := coalesce((v_item->>'cantidad_base')::numeric, null);
-    if v_qty_base is null then
-      v_qty_base := case
-        when v_has_conversion and v_unidad <> v_unidad_base then v_qty_visible / v_factor
-        else v_qty_visible
-      end;
+    if v_unidad <> v_unidad_base
+       and not (v_has_conversion and v_unidad = any(v_producto.unidades_alternativas)) then
+      raise exception 'Unidad no permitida para %: %', v_producto.nombre, v_unidad;
+    end if;
+
+    v_qty_expected := case
+      when v_has_conversion and v_unidad <> v_unidad_base then v_qty_visible / v_factor
+      else v_qty_visible
+    end;
+    v_qty_base := coalesce((v_item->>'cantidad_base')::numeric, v_qty_expected);
+
+    if abs(v_qty_base - v_qty_expected) > 0.000001 then
+      raise exception 'Conversion inconsistente para % (esperado %, recibido %)',
+        v_producto.nombre, round(v_qty_expected, 6), round(v_qty_base, 6);
     end if;
 
     if v_variante_id is not null then
@@ -719,7 +739,16 @@ begin
   delete from public.cash_movements
   where description ilike ('%venta #' || p_venta_id || '%');
 
-  delete from public.stock_movimientos
+  update public.stock_movimientos
+  set tipo = 'venta_anulada',
+      metadata = coalesce(metadata, '{}'::jsonb) || jsonb_build_object(
+        'venta_eliminada_id', p_venta_id,
+        'anulada_por', p_admin_email,
+        'motivo_anulacion', p_motivo
+      ),
+      observaciones = concat(coalesce(observaciones, ''), ' | Venta anulada #', p_venta_id),
+      venta_id = null,
+      detalle_id = null
   where tipo = 'venta'
     and (
       venta_id = p_venta_id
