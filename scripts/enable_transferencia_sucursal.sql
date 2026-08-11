@@ -97,13 +97,7 @@ begin
       raise exception 'Variante de origen no encontrada';
     end if;
 
-    v_stock_origen := greatest(
-      0,
-      case
-        when coalesce(v_variante_origen.stock_decimal, 0) > 0 then v_variante_origen.stock_decimal
-        else coalesce(v_variante_origen.stock, 0)
-      end
-    );
+    v_stock_origen := greatest(0, coalesce(v_variante_origen.stock_decimal, v_variante_origen.stock, 0));
     v_variante_nombre := coalesce(v_variante_origen.color, 'Unico');
   else
     v_stock_origen := greatest(0, coalesce(v_producto_origen.stock, 0));
@@ -255,13 +249,7 @@ begin
       returning * into v_variante_destino;
     end if;
 
-    v_stock_destino := greatest(
-      0,
-      case
-        when coalesce(v_variante_destino.stock_decimal, 0) > 0 then v_variante_destino.stock_decimal
-        else coalesce(v_variante_destino.stock, 0)
-      end
-    );
+    v_stock_destino := greatest(0, coalesce(v_variante_destino.stock_decimal, v_variante_destino.stock, 0));
 
     update public.producto_variantes
     set stock_decimal = v_stock_origen - p_cantidad_base,
@@ -275,13 +263,7 @@ begin
 
     update public.productos p
     set stock = coalesce((
-      select sum(greatest(
-        0,
-        case
-          when coalesce(pv.stock_decimal, 0) > 0 then pv.stock_decimal
-          else coalesce(pv.stock, 0)
-        end
-      ))
+      select sum(greatest(0, coalesce(pv.stock_decimal, pv.stock, 0)))
       from public.producto_variantes pv
       where pv.producto_id = p.user_id
         and pv.sucursal_id = p.sucursal_id

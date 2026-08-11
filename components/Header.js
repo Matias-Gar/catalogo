@@ -6,6 +6,7 @@ import { supabase } from '../lib/SupabaseClient'; // Asegúrate que esta ruta es
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from '../lib/storeSettings';
 import { buildCountryPath, getCountrySlugFromPath, getSavedPublicCountrySlug, hasCountrySlugInPath, stripCountryFromPath } from '../lib/countryRoutes';
 import { getDefaultAdminRoute, isAdminPanelRole } from '../lib/adminPermissions';
+import { getProductViewPublicPath, normalizeProductView } from '../lib/productViews';
 
 export default function Header() {
   const pathname = usePathname();
@@ -100,9 +101,10 @@ function HeaderContent({ pathname }) {
   const hasAdminPanelAccess = isAdminPanelRole(userRole);
   const adminPanelRoute = getDefaultAdminRoute(userRole);
   const cleanPathname = stripCountryFromPath(pathname);
-  const isInsumosView = cleanPathname?.startsWith('/insumos');
-  const homeHref = buildCountryPath(countrySlug, isInsumosView ? '/insumos' : '/');
-  const pedidosHref = buildCountryPath(countrySlug, isInsumosView ? '/insumos/productos' : '/productos');
+  const customViewMatch = cleanPathname?.match(/^\/tipo\/([^/]+)/);
+  const currentView = customViewMatch?.[1] ? normalizeProductView(customViewMatch[1]) : cleanPathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
+  const homeHref = buildCountryPath(countrySlug, '/');
+  const pedidosHref = buildCountryPath(countrySlug, getProductViewPublicPath(currentView, true));
 
   return (
     <header className="bg-gray-800 p-2 sm:p-4 shadow-lg sticky top-0 z-10">

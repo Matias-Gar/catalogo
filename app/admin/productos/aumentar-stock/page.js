@@ -363,7 +363,8 @@ export default function AumentarStockPage() {
   function getEffectiveVariantStock(variant) {
     const decimal = Number(variant?.stock_decimal);
     const legacy = Number(variant?.stock);
-    return Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
+    const hasDecimal = variant?.stock_decimal !== null && variant?.stock_decimal !== undefined && variant?.stock_decimal !== "";
+    return Math.max(0, hasDecimal && Number.isFinite(decimal) ? decimal : legacy || 0);
   }
 
   function getUnitInfo(prod) {

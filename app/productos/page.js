@@ -63,7 +63,8 @@ function UnitPricePanel({ conversionInfo, factor, className = "mb-3" }) {
 function getEffectiveVariantStock(variant) {
     const decimal = Number(variant?.stock_decimal);
     const legacy = Number(variant?.stock);
-    return Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
+    const hasDecimal = variant?.stock_decimal !== null && variant?.stock_decimal !== undefined;
+    return Math.max(0, hasDecimal && Number.isFinite(decimal) ? decimal : legacy || 0);
 }
 
 function cleanWhatsappNumber(input) {
@@ -73,7 +74,10 @@ function cleanWhatsappNumber(input) {
 export default function CatalogoPage() {
         const pathname = usePathname();
         const cleanPathname = stripCountryFromPath(pathname);
-        const currentPublicView = cleanPathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
+        const customViewMatch = cleanPathname?.match(/^\/tipo\/([^/]+)/);
+        const currentPublicView = customViewMatch?.[1]
+            ? normalizeProductView(customViewMatch[1])
+            : cleanPathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
         const {
             sucursales,
             activePais,

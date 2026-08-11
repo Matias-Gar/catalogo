@@ -15,6 +15,7 @@ import { canAccessAdminPath, getEffectiveAdminRole } from '../../../../lib/admin
 import { sincronizarStockProducto } from '../../../../lib/utils';
 import { getProductViewMeta, normalizeProductView } from '../../../../lib/productViews';
 import { useSucursalActiva } from '../../../../components/admin/SucursalContext';
+import { useProductViews } from '../../../../hooks/useProductViews';
 
 
 // Importar CantidadConUnidadInput correctamente
@@ -476,6 +477,7 @@ export default function AdminProductosPage() {
     const effectiveSucursalId = activeSucursal?.id || "";
     const currentProductView = normalizeProductView(pathname?.includes('/admin/insumos') ? 'insumos' : 'articulos');
     const currentViewMeta = getProductViewMeta(currentProductView);
+    const { productViews } = useProductViews();
     const [userRole, setUserRole] = useState(null); 
     // Estado para el modal de colores repetidos
     const [showColorRepeatModal, setShowColorRepeatModal] = useState(false);
@@ -1819,8 +1821,8 @@ export default function AdminProductosPage() {
             }, 100);
             fetchProductos();
         } catch (e) {
-            console.error("Error critico al crear producto:", e);
-            setMessage(`Error critico al crear: ${e.message}`);
+            console.error("No se pudo crear el producto:", e);
+            setMessage(`No se pudo crear el producto: ${e.message}`);
         } finally {
             setLoading(false);
         }
@@ -2174,8 +2176,7 @@ export default function AdminProductosPage() {
                                         onChange={handleNewProductChange}
                                         className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
                                 >
-                                        <option value="articulos">Vista: Articulos</option>
-                                        <option value="insumos">Vista: Insumos</option>
+                                        {productViews.map((view) => <option key={view.value} value={view.value}>Vista: {view.label}</option>)}
                                 </select>
                                 <select
                                         name="category_id"
@@ -2626,8 +2627,7 @@ export default function AdminProductosPage() {
                                     onChange={handleEditProductChange}
                                     className="w-full p-3 border rounded-lg bg-white"
                                 >
-                                    <option value="articulos">Vista: Articulos</option>
-                                    <option value="insumos">Vista: Insumos</option>
+                                    {productViews.map((view) => <option key={view.value} value={view.value}>Vista: {view.label}</option>)}
                                 </select>
                                 <select
                                     name="category_id"

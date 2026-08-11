@@ -399,7 +399,7 @@ begin
   where s.id = new.sucursal_id;
 
   if v_pais_id is null then
-    raise exception 'Sucursal no encontrada para pais (%)', new.sucursal_id;
+    raise exception 'La sucursal seleccionada no existe o fue desactivada (%)', new.sucursal_id;
   end if;
 
   if new.pais_id is null then
@@ -551,7 +551,7 @@ begin
     and (v_pais_id is null or s.pais_id = v_pais_id);
 
   if v_pais_id is null then
-    raise exception 'Sucursal no encontrada para pais (%)', v_sucursal_id;
+    raise exception 'La sucursal seleccionada no existe, fue desactivada o no pertenece al pais activo (%)', v_sucursal_id;
   end if;
 
   insert into public.ventas (
@@ -642,10 +642,11 @@ begin
     end if;
 
     if v_variante_id is not null then
-      select pv.id, pv.color, coalesce(nullif(pv.stock_decimal, 0), pv.stock, 0)::numeric as stock
+      select pv.id, pv.color, coalesce(pv.stock_decimal, pv.stock, 0)::numeric as stock
       into v_variante
       from public.producto_variantes pv
       where pv.id = v_variante_id
+        and pv.producto_id = v_producto_id
         and pv.pais_id = v_pais_id
         and pv.sucursal_id = v_sucursal_id
       for update;
@@ -658,6 +659,10 @@ begin
       v_stock_antes := v_producto.stock;
     else
       v_stock_antes := v_producto.stock;
+    end if;
+
+    if v_qty_visible <= 0 or v_qty_base <= 0 then
+      raise exception 'La cantidad vendida debe ser mayor a cero';
     end if;
 
     if v_qty_base > v_stock_antes + 0.0001 then
@@ -715,7 +720,7 @@ begin
 
       update public.productos
       set stock = (
-        select coalesce(sum(coalesce(nullif(pv.stock_decimal, 0), pv.stock, 0)), 0)
+        select coalesce(sum(coalesce(pv.stock_decimal, pv.stock, 0)), 0)
         from public.producto_variantes pv
         where pv.producto_id = v_producto_id
           and pv.pais_id = v_pais_id

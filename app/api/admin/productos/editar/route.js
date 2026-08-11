@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/SupabaseAdminClient";
-import { getUserIdFromRequest } from "@/lib/authUserFromRequest";
+import { requireAdminAccess } from "@/lib/adminAccess";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -15,7 +15,8 @@ function parseDecimalInput(value, fallback = null) {
 function getEffectiveVariantStock(variant) {
   const decimal = Number(variant?.stock_decimal);
   const legacy = Number(variant?.stock);
-  return Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
+  const hasDecimal = variant?.stock_decimal !== null && variant?.stock_decimal !== undefined && variant?.stock_decimal !== "";
+  return Math.max(0, hasDecimal && Number.isFinite(decimal) ? decimal : legacy || 0);
 }
 
 function hasUnitConversion(product) {
@@ -26,26 +27,9 @@ function hasUnitConversion(product) {
   );
 }
 
-async function requireAdmin(request) {
-  const userId = await getUserIdFromRequest(request);
-  if (!userId) return { error: "Unauthorized", status: 401 };
-
-  const { data: profile, error } = await supabaseAdmin
-    .from("perfiles")
-    .select("email, rol")
-    .eq("id", userId)
-    .single();
-
-  if (error || String(profile?.rol || "").toLowerCase() !== "admin") {
-    return { error: "Solo el administrador puede editar productos", status: 403 };
-  }
-
-  return { userId, email: profile?.email || "" };
-}
-
 function normalizeProductView(value) {
   const normalized = String(value || "").trim().toLowerCase();
-  return normalized === "insumos" ? "insumos" : "articulos";
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized) ? normalized : "articulos";
 }
 
 function cleanImageUrl(image) {
@@ -55,9 +39,6 @@ function cleanImageUrl(image) {
 }
 
 export async function POST(request) {
-  const auth = await requireAdmin(request);
-  if (auth.error) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
-
   try {
     const body = await request.json();
     const productId = body?.productId;
@@ -82,6 +63,13 @@ export async function POST(request) {
     if (productError || !productoActual) {
       return NextResponse.json({ success: false, error: productError?.message || "Producto no encontrado" }, { status: 404 });
     }
+
+    const auth = await requireAdminAccess(request, {
+      paisId: productoActual.pais_id,
+      sucursalId: productoActual.sucursal_id,
+      allowedRoles: ["admin", "administracion"],
+    });
+    if (auth.error) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
 
     const imageUrlsAfterSave = nuevasImagenes.map(cleanImageUrl).filter(Boolean);
     const requestedPrimaryImageUrl = String(cambios.primaryImageUrl || "").trim();
@@ -132,6 +120,16 @@ export async function POST(request) {
       stock: hasVariantsAfterSave ? stockTotal : Math.max(0, Number(productoActual.stock || 0)),
       imagen_url: imagenPrincipal,
     };
+
+    const { data: productType, error: productTypeError } = await supabaseAdmin
+      .from("tipos_producto")
+      .select("slug")
+      .eq("slug", updatePayload.vista_producto)
+      .eq("activo", true)
+      .maybeSingle();
+    if (productTypeError || !productType) {
+      return NextResponse.json({ success: false, error: "El tipo de producto seleccionado no existe o esta desactivado" }, { status: 400 });
+    }
 
     let updateQuery = supabaseAdmin.from("productos").update(updatePayload).eq("user_id", productoActual.user_id);
     if (activeSucursalId) updateQuery = updateQuery.eq("sucursal_id", activeSucursalId);

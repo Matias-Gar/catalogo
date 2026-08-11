@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/SupabaseAdminClient";
-import { getUserIdFromRequest } from "@/lib/authUserFromRequest";
+import { requireAdminAccess } from "@/lib/adminAccess";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -14,24 +14,7 @@ function parseDecimalInput(value, fallback = null) {
 
 function normalizeProductView(value) {
   const normalized = String(value || "").trim().toLowerCase();
-  return normalized === "insumos" ? "insumos" : "articulos";
-}
-
-async function requireAdmin(request) {
-  const userId = await getUserIdFromRequest(request);
-  if (!userId) return { error: "Unauthorized", status: 401 };
-
-  const { data: profile, error } = await supabaseAdmin
-    .from("perfiles")
-    .select("email, rol")
-    .eq("id", userId)
-    .single();
-
-  if (error || String(profile?.rol || "").toLowerCase() !== "admin") {
-    return { error: "Solo el administrador puede crear productos", status: 403 };
-  }
-
-  return { userId, email: profile?.email || "" };
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized) ? normalized : "articulos";
 }
 
 async function resolveBranch({ paisId, sucursalId }) {
@@ -44,6 +27,9 @@ async function resolveBranch({ paisId, sucursalId }) {
       .eq("id", sucursalId)
       .maybeSingle();
     branch = data || null;
+    if (branch && paisId && branch.pais_id !== paisId) {
+      throw new Error("La sucursal seleccionada no pertenece al pais activo. Vuelve a seleccionar pais y sucursal.");
+    }
   }
 
   if (!branch && paisId) {
@@ -90,7 +76,8 @@ async function syncProductStock(productId, paisId, sucursalId) {
   const total = variants.reduce((sum, variant) => {
     const decimal = Number(variant?.stock_decimal);
     const legacy = Number(variant?.stock);
-    return sum + Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
+    const hasDecimal = variant?.stock_decimal !== null && variant?.stock_decimal !== undefined && variant?.stock_decimal !== "";
+    return sum + Math.max(0, hasDecimal && Number.isFinite(decimal) ? decimal : legacy || 0);
   }, 0);
 
   await supabaseAdmin
@@ -104,9 +91,6 @@ async function syncProductStock(productId, paisId, sucursalId) {
 }
 
 export async function POST(request) {
-  const auth = await requireAdmin(request);
-  if (auth.error) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
-
   try {
     const body = await request.json();
     const product = body?.product || {};
@@ -116,6 +100,12 @@ export async function POST(request) {
       paisId: body?.paisId || null,
       sucursalId: body?.sucursalId || null,
     });
+    const auth = await requireAdminAccess(request, {
+      paisId,
+      sucursalId,
+      allowedRoles: ["admin", "administracion", "almacen"],
+    });
+    if (auth.error) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
 
     if (!String(product.nombre || "").trim()) {
       return NextResponse.json({ success: false, error: "Nombre de producto requerido" }, { status: 400 });
@@ -162,6 +152,16 @@ export async function POST(request) {
       factor_conversion: Number(product.factor_conversion) > 0 ? Number(product.factor_conversion) : null,
     };
 
+    const { data: productType, error: productTypeError } = await supabaseAdmin
+      .from("tipos_producto")
+      .select("slug")
+      .eq("slug", extendedInsertPayload.vista_producto)
+      .eq("activo", true)
+      .maybeSingle();
+    if (productTypeError || !productType) {
+      return NextResponse.json({ success: false, error: "El tipo de producto seleccionado no existe o esta desactivado" }, { status: 400 });
+    }
+
     let { data: insertedProducts, error: insertError } = await supabaseAdmin
       .from("productos")
       .insert([extendedInsertPayload])
@@ -169,7 +169,7 @@ export async function POST(request) {
 
     if (insertError) {
       const rawMessage = String(insertError.message || "");
-      if (rawMessage.includes("vista_producto") || rawMessage.includes("factor_conversion") || rawMessage.includes("unidad_base") || rawMessage.includes("unidades_alternativas")) {
+      if (rawMessage.includes("factor_conversion") || rawMessage.includes("unidad_base") || rawMessage.includes("unidades_alternativas")) {
         ({ data: insertedProducts, error: insertError } = await supabaseAdmin
           .from("productos")
           .insert([baseInsertPayload])

@@ -12,6 +12,7 @@ import { optimizeImageForUpload } from '../../../lib/imageUploadOptimization';
 import { canAccessAdminPath } from '../../../lib/adminPermissions';
 import { normalizeProductView } from '../../../lib/productViews';
 import { useSucursalActiva } from '../../../components/admin/SucursalContext';
+import { useProductViews } from '../../../hooks/useProductViews';
 
 // Desactivar SSR para el componente de código de barras si usa librerías de cliente como 'react-barcode'
 // Si la tabla usa react-barcode, este dynamic es necesario. Si solo usa la función handlePrintBarcode, se podría quitar.
@@ -136,6 +137,7 @@ const uploadProductImages = async (files) => {
 // COMPONENTE PRINCIPAL
 // -------------------------------------------------------------------------- 
 export default function AdminProductosPage() { 
+    const { productViews } = useProductViews();
     // HOOKS AL INICIO
     const router = useRouter(); 
     const { activePaisId, activeSucursalId } = useSucursalActiva();
@@ -788,8 +790,7 @@ export default function AdminProductosPage() {
                             onChange={handleNewProductChange}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
                         >
-                            <option value="articulos">Vista: Articulos</option>
-                            <option value="insumos">Vista: Insumos</option>
+                            {productViews.map((view) => <option key={view.value} value={view.value}>Vista: {view.label}</option>)}
                         </select>
                         <select
                             name="category_id"
@@ -985,8 +986,7 @@ export default function AdminProductosPage() {
                                     onChange={handleEditProductChange}
                                     className="w-full p-3 border rounded-lg bg-white"
                                 >
-                                    <option value="articulos">Vista: Articulos</option>
-                                    <option value="insumos">Vista: Insumos</option>
+                                    {productViews.map((view) => <option key={view.value} value={view.value}>Vista: {view.label}</option>)}
                                 </select>
                                 <select
                                     name="category_id"

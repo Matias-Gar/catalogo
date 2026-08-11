@@ -1,34 +1,15 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/SupabaseAdminClient";
-import { getUserIdFromRequest } from "@/lib/authUserFromRequest";
+import { requireAdminAccess } from "@/lib/adminAccess";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const ALLOWED_ROLES = new Set(["admin", "administracion", "almacen"]);
-
-async function requireStockAccess(request) {
-  const userId = await getUserIdFromRequest(request);
-  if (!userId) return { error: "Unauthorized", status: 401 };
-
-  const { data: profile, error } = await supabaseAdmin
-    .from("perfiles")
-    .select("email, rol")
-    .eq("id", userId)
-    .single();
-
-  const role = String(profile?.rol || "").toLowerCase();
-  if (error || !ALLOWED_ROLES.has(role)) {
-    return { error: "Sin acceso para aumentar stock", status: 403 };
-  }
-
-  return { userId, email: profile?.email || "" };
-}
-
 function getEffectiveStock(row) {
   const decimal = Number(row?.stock_decimal);
   const legacy = Number(row?.stock);
-  return Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
+  const hasDecimal = row?.stock_decimal !== null && row?.stock_decimal !== undefined && row?.stock_decimal !== "";
+  return Math.max(0, hasDecimal && Number.isFinite(decimal) ? decimal : legacy || 0);
 }
 
 function hasUnitConversion(product) {
@@ -120,9 +101,6 @@ async function registerAudit({
 }
 
 export async function POST(request) {
-  const auth = await requireStockAccess(request);
-  if (auth.error) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
-
   try {
     const body = await request.json();
     const productId = Number(body?.productId);
@@ -133,6 +111,13 @@ export async function POST(request) {
     const displayIncrease = Number(body?.displayIncrease || 0);
     const selectedUnit = String(body?.selectedUnit || "").trim() || null;
     const mode = body?.mode === "variant" ? "variant" : "product";
+
+    const auth = await requireAdminAccess(request, {
+      paisId,
+      sucursalId,
+      allowedRoles: ["admin", "administracion", "almacen"],
+    });
+    if (auth.error) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
 
     if (!productId || !paisId || !sucursalId || !Number.isFinite(baseIncrease) || baseIncrease <= 0) {
       return NextResponse.json({ success: false, error: "Datos incompletos para aumentar stock" }, { status: 400 });

@@ -1,34 +1,11 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/SupabaseAdminClient";
-import { getUserIdFromRequest } from "@/lib/authUserFromRequest";
+import { requireAdminAccess } from "@/lib/adminAccess";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const ALLOWED_ROLES = new Set(["admin", "administracion", "vendedor"]);
-
-async function requireSalesAccess(request) {
-  const userId = await getUserIdFromRequest(request);
-  if (!userId) return { error: "Unauthorized", status: 401 };
-
-  const { data: profile, error } = await supabaseAdmin
-    .from("perfiles")
-    .select("email, rol")
-    .eq("id", userId)
-    .single();
-
-  const role = String(profile?.rol || "").toLowerCase();
-  if (error || !ALLOWED_ROLES.has(role)) {
-    return { error: "Sin acceso para efectivizar ventas", status: 403 };
-  }
-
-  return { userId, email: profile?.email || "" };
-}
-
 export async function POST(request) {
-  const auth = await requireSalesAccess(request);
-  if (auth.error) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
-
   try {
     const body = await request.json();
     const venta = body?.venta || {};
@@ -41,6 +18,12 @@ export async function POST(request) {
     if (items.length === 0) {
       return NextResponse.json({ success: false, error: "La venta no tiene items" }, { status: 400 });
     }
+    const auth = await requireAdminAccess(request, {
+      paisId: venta.pais_id,
+      sucursalId: venta.sucursal_id,
+      allowedRoles: ["admin", "administracion", "vendedor"],
+    });
+    if (auth.error) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
 
     const { data, error } = await supabaseAdmin.rpc("crear_venta_completa", {
       p_venta: venta,

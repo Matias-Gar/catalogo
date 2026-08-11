@@ -9,10 +9,11 @@ import { usePacks, calcularDescuentoPack } from '../lib/packs';
 import { PacksDisponibles } from '../lib/packs';
 import ExpandableDescription from '../components/ui/ExpandableDescription';
 import { getOptimizedImageUrl, buildImageSrcSet } from '../lib/imageOptimization';
-import { normalizeProductView } from '../lib/productViews';
+import { getProductViewMeta, getProductViewPublicPath, normalizeProductView } from '../lib/productViews';
 import { productMatchesSearch } from '../lib/searchMatching';
 import PublicSucursalSelector, { usePublicSucursal } from '../components/PublicSucursalSelector';
 import { buildCountryPath, stripCountryFromPath } from '../lib/countryRoutes';
+import CatalogTypeLanding from '../components/CatalogTypeLanding';
 
 // Componente principal de la página (Tienda)
 // Utilidad para obtener nombre de categoría por id
@@ -60,7 +61,8 @@ function formatQuantity(value) {
 function getEffectiveVariantStock(variant) {
   const decimal = Number(variant?.stock_decimal);
   const legacy = Number(variant?.stock);
-  return Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
+  const hasDecimal = variant?.stock_decimal !== null && variant?.stock_decimal !== undefined;
+  return Math.max(0, hasDecimal && Number.isFinite(decimal) ? decimal : legacy || 0);
 }
 
 function getProductStockBase(producto) {
@@ -260,7 +262,17 @@ function ImageGalleryModal({ isOpen, onClose, imageList, imageIndex, productName
 export default function Home() {
   const pathname = usePathname();
   const cleanPathname = stripCountryFromPath(pathname);
-  const currentPublicView = cleanPathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
+  if (cleanPathname === '/') return <CatalogTypeLanding />;
+  return <CatalogHome />;
+}
+
+function CatalogHome() {
+  const pathname = usePathname();
+  const cleanPathname = stripCountryFromPath(pathname);
+  const customViewMatch = cleanPathname?.match(/^\/tipo\/([^/]+)/);
+  const currentPublicView = customViewMatch?.[1]
+    ? normalizeProductView(customViewMatch[1])
+    : cleanPathname?.startsWith('/insumos') ? 'insumos' : 'articulos';
   const {
     sucursales,
     activeCountrySlug,
@@ -270,9 +282,8 @@ export default function Home() {
     error: sucursalesError,
     setActiveSucursalId,
   } = usePublicSucursal();
-  const pedidosHref = currentPublicView === 'insumos'
-    ? buildCountryPath(activeCountrySlug, '/insumos/productos')
-    : buildCountryPath(activeCountrySlug, '/productos');
+  const currentViewMeta = getProductViewMeta(currentPublicView);
+  const pedidosHref = buildCountryPath(activeCountrySlug, getProductViewPublicPath(currentPublicView, true));
   // Estados para el modal de galería de imágenes
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImageList, setSelectedImageList] = useState([]);
@@ -610,7 +621,7 @@ export default function Home() {
       />
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-extrabold text-gray-900 mb-8 text-center">
-          {currentPublicView === 'insumos' ? 'Catalogo de Insumos' : 'Catalogo de Productos'}
+          {`Catalogo de ${currentViewMeta.title}`}
         </h1>
 
         {/* Sección de Packs Especiales */}

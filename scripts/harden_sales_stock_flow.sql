@@ -104,7 +104,7 @@ begin
     select
       pv.id,
       pv.color,
-      coalesce(nullif(pv.stock_decimal, 0), pv.stock, 0)::numeric as stock
+      coalesce(pv.stock_decimal, pv.stock, 0)::numeric as stock
     into v_variante
     from public.producto_variantes pv
     where pv.id = new.variante_id;
@@ -261,10 +261,11 @@ begin
     end if;
 
     if v_variante_id is not null then
-      select pv.id, pv.color, coalesce(nullif(pv.stock_decimal, 0), pv.stock, 0)::numeric as stock
+      select pv.id, pv.color, coalesce(pv.stock_decimal, pv.stock, 0)::numeric as stock
       into v_variante
       from public.producto_variantes pv
       where pv.id = v_variante_id
+        and pv.producto_id = v_producto_id
       for update;
       if not found then
         raise exception 'Variante no encontrada (%)', v_variante_id;
@@ -275,6 +276,10 @@ begin
       v_stock_antes := v_producto.stock;
     else
       v_stock_antes := v_producto.stock;
+    end if;
+
+    if v_qty_visible <= 0 or v_qty_base <= 0 then
+      raise exception 'La cantidad vendida debe ser mayor a cero';
     end if;
 
     if v_qty_base > v_stock_antes + 0.0001 then
@@ -326,7 +331,7 @@ begin
 
       update public.productos
       set stock = (
-        select coalesce(sum(coalesce(nullif(pv.stock_decimal, 0), pv.stock, 0)), 0)
+        select coalesce(sum(coalesce(pv.stock_decimal, pv.stock, 0)), 0)
         from public.producto_variantes pv
         where pv.producto_id = v_producto_id
           and coalesce(pv.activo, true) = true

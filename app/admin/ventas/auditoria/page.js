@@ -21,7 +21,8 @@ function isSalida(tipo) {
 function stockValue(row) {
   const decimal = Number(row?.stock_decimal);
   const legacy = Number(row?.stock);
-  return Math.max(0, Number.isFinite(decimal) && decimal > 0 ? decimal : legacy || 0);
+  const hasDecimal = variant?.stock_decimal !== null && variant?.stock_decimal !== undefined && variant?.stock_decimal !== "";
+  return Math.max(0, hasDecimal && Number.isFinite(decimal) ? decimal : legacy || 0);
 }
 
 function qtyBase(row) {

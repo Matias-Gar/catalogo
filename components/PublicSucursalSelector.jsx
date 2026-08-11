@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { buildCountryPath, getCountrySlugFromPath, getSavedPublicCountrySlug, hasCountrySlugInPath, savePublicCountrySlug, stripCountryFromPath } from "../lib/countryRoutes";
+import { getProductViewPublicPath } from "../lib/productViews";
+import { useProductViews } from "../hooks/useProductViews";
 
 const STORAGE_KEY = "streetwear.public_sucursal_id";
 
@@ -134,11 +136,10 @@ export default function PublicSucursalSelector({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { productViews } = useProductViews();
   const countrySlug = activeCountrySlug || getCountrySlugFromPath(pathname);
   const cleanPath = stripCountryFromPath(pathname);
   const isPedidoRoute = cleanPath?.includes("/productos");
-  const articleHref = buildCountryPath(countrySlug, isPedidoRoute ? "/productos" : "/");
-  const insumosHref = buildCountryPath(countrySlug, isPedidoRoute ? "/insumos/productos" : "/insumos");
 
   if (loading || sucursales.length === 0) return null;
 
@@ -192,24 +193,12 @@ export default function PublicSucursalSelector({
           </div>
 
           <div className="mt-3 grid grid-cols-2 gap-2 border-t border-gray-100 pt-3">
-            <Link
-              href={articleHref}
-              className={`rounded-md px-3 py-2 text-center text-xs font-bold transition ${
-                currentPublicView === "articulos" ? "bg-violet-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+            {productViews.map((view) => <Link
+              key={view.value}
+              href={buildCountryPath(countrySlug, getProductViewPublicPath(view.value, isPedidoRoute))}
+              className={`rounded-md px-3 py-2 text-center text-xs font-bold transition ${currentPublicView === view.value ? "bg-violet-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
               onClick={() => setOpen(false)}
-            >
-              Articulos
-            </Link>
-            <Link
-              href={insumosHref}
-              className={`rounded-md px-3 py-2 text-center text-xs font-bold transition ${
-                currentPublicView === "insumos" ? "bg-violet-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-              onClick={() => setOpen(false)}
-            >
-              Insumos
-            </Link>
+            >{view.label}</Link>)}
           </div>
         </div>
       )}

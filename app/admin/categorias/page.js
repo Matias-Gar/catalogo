@@ -55,12 +55,23 @@ export default function AdminCategorias() {
       return;
     }
 
-    const { error } = await supabase
-      .from("categorias")
-      .insert({ categori: nuevaCategoria, pais_id: activePaisId, sucursal_id: effectiveSucursalId });
+    const { data: sessionData } = await supabase.auth.getSession();
+    const response = await fetch("/api/admin/categorias", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionData?.session?.access_token || ""}`,
+      },
+      body: JSON.stringify({
+        nombre: nuevaCategoria,
+        paisId: activePaisId,
+        sucursalId: effectiveSucursalId,
+      }),
+    });
+    const result = await response.json().catch(() => null);
 
-    if (error) {
-      showToast(`Error al agregar la categoria: ${error.message || error}`, "error");
+    if (!response.ok || !result?.success) {
+      showToast(`Error al agregar la categoria: ${result?.error || "No se pudo crear"}`, "error");
     } else {
       setNuevaCategoria("");
       fetchCategorias();
