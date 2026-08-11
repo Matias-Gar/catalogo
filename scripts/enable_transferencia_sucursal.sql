@@ -456,6 +456,15 @@ with transferencias_sin_imagen as (
     t.sucursal_origen_id,
     t.sucursal_destino_id
   from public.transferencias_sucursal t
+  -- Una transferencia historica puede apuntar a un producto posteriormente
+  -- eliminado. No intentar recrear imagenes para esos IDs huerfanos: el
+  -- trigger de integridad los rechaza correctamente.
+  join public.productos producto_origen
+    on producto_origen.user_id = t.producto_origen_id
+   and producto_origen.sucursal_id = t.sucursal_origen_id
+  join public.productos producto_destino
+    on producto_destino.user_id = t.producto_destino_id
+   and producto_destino.sucursal_id = t.sucursal_destino_id
   left join public.producto_imagenes dest_img
     on dest_img.producto_id = t.producto_destino_id
    and dest_img.sucursal_id = t.sucursal_destino_id
