@@ -21,9 +21,20 @@ export async function POST(request) {
 
     const paisId = body.pais_id ? String(body.pais_id) : null;
     const sucursalId = body.sucursal_id ? String(body.sucursal_id) : null;
+    const requestKey = String(request.headers.get("idempotency-key") || body.request_key || "").trim();
+    const products = Array.isArray(body.productos) ? body.productos : [];
 
     if (!paisId) {
       return NextResponse.json({ success: false, error: "Pais requerido para guardar el pedido" }, { status: 400 });
+    }
+    if (!requestKey || requestKey.length > 200 || products.length === 0 || products.length > 200) {
+      return NextResponse.json({ success: false, error: "Pedido inválido o sin clave idempotente" }, { status: 400 });
+    }
+    for (const item of products) {
+      const quantity = Number(item?.cantidad);
+      if (!item || typeof item !== "object" || !Number.isFinite(quantity) || quantity <= 0) {
+        return NextResponse.json({ success: false, error: "El pedido contiene cantidades inválidas" }, { status: 400 });
+      }
     }
 
     let branch = null;
@@ -62,9 +73,16 @@ export async function POST(request) {
     }
 
     const payload = {
-      ...body,
+      cliente_nombre: String(body.cliente_nombre || "").slice(0, 200) || null,
+      cliente_telefono: String(body.cliente_telefono || "").slice(0, 100) || null,
+      usuario_id: body.usuario_id || null,
+      usuario_email: String(body.usuario_email || "").slice(0, 320) || null,
+      productos: products,
+      carrito_token: String(body.carrito_token || "").slice(0, 500) || null,
       pais_id: branch.pais_id,
       sucursal_id: branch.id,
+      request_key: requestKey,
+      estado: "pendiente",
     };
 
     const { data, error } = await supabase
@@ -73,6 +91,10 @@ export async function POST(request) {
       .select("id")
       .single();
 
+    if (error?.code === "23505") {
+      const existing = await supabase.from("carritos_pendientes").select("id").eq("request_key", requestKey).single();
+      if (!existing.error && existing.data) return NextResponse.json({ success: true, id: existing.data.id, duplicate: true });
+    }
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 403 });
     }

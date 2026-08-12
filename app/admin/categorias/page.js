@@ -79,6 +79,13 @@ export default function AdminCategorias() {
       // si venimos de la página de producto nuevo, volvemos automáticamente
       const params = new URLSearchParams(window.location.search);
       if (params.get('return') === 'productos_nuevo') {
+        try {
+          const pendingProduct = JSON.parse(sessionStorage.getItem('pendingProduct') || '{}');
+          sessionStorage.setItem('pendingProduct', JSON.stringify({
+            ...pendingProduct,
+            category_id: String(result.categoria.id),
+          }));
+        } catch {}
         router.push('/admin/productos/nuevo');
       }
     }

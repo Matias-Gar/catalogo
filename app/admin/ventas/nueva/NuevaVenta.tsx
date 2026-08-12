@@ -219,6 +219,8 @@ export default function NuevaVenta() {
   const printerRef = useRef<TicketPrinterHandle>(null);
   const efectivizarBtnRef = useRef<HTMLButtonElement>(null);
   const pendingPedidoIdRef = useRef<string | number | null>(null);
+  const saleRequestKeyRef = useRef<string | null>(null);
+  const saleInFlightRef = useRef(false);
 
   // Cargar carrito desde pedidos si existe
   // Dependencias fijas para evitar warning de React
@@ -738,6 +740,8 @@ export default function NuevaVenta() {
   // acciones de venta
 
   const efectivizarVenta = useCallback(async () => {
+    if (saleInFlightRef.current) return;
+    saleRequestKeyRef.current ||= crypto.randomUUID();
       // ...existing code...
     if (carrito.length === 0) { showToast('El carrito esta vacio', 'error'); return; }
     if (!pagos[0].metodo || pagos[0].monto <= 0) { showToast('Selecciona al menos un método de pago y monto', 'error'); return; }
@@ -748,6 +752,7 @@ export default function NuevaVenta() {
     if (!activePaisId || !effectiveSucursalId) { showToast('Selecciona pais y sucursal antes de vender', 'error'); return; }
 
     setEfectivizando(true);
+    saleInFlightRef.current = true;
 
     try {
       // Obtener token y usuario solo una vez
@@ -957,6 +962,8 @@ export default function NuevaVenta() {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
+          'Idempotency-Key': saleRequestKeyRef.current,
+          'X-Correlation-Id': saleRequestKeyRef.current,
         },
         body: JSON.stringify({
           venta: ventaPayload,
@@ -975,12 +982,14 @@ export default function NuevaVenta() {
 
       printerRef.current?.printComprobante();
       pendingPedidoIdRef.current = null;
+      saleRequestKeyRef.current = null;
       setCarrito([]);
       setPagos([{ metodo: '', monto: 0 }]);
       setMostrarSegundoPago(false);
       setEnvio(0); setComision(0); setPublicidad(0); setRebajas(0); setCobrarImpuestos(false);
       cambiarCampo('nombre',''); cambiarCampo('carnet',''); cambiarCampo('telefono',''); cambiarCampo('email',''); cambiarCampo('nit',''); cambiarCampo('guardado',false); cambiarCampo('requiereFactura',false);
       setEfectivizando(false);
+      saleInFlightRef.current = false;
       showToast('Venta efectivizada y stock actualizado');
       return;
     } catch (err) {
@@ -998,6 +1007,7 @@ export default function NuevaVenta() {
         : errorContext || String(err);
       showToast('Error al crear venta: ' + errorMessage, 'error');
       setEfectivizando(false);
+      saleInFlightRef.current = false;
     }
   }, [carrito, cliente, pagos, cambio, totalCobrar, subtotal, totalDescuento, packs, setCarrito, cambiarCampo, envio, comision, publicidad, rebajas, impuestosCalculados, cobrarImpuestos, activePaisId, effectiveSucursalId]);
 

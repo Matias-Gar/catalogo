@@ -1198,6 +1198,14 @@ export default function AdminProductosPage() {
             });
             return;
         }
+        if (name === 'vista_producto') {
+            setNewProduct((prev) => ({
+                ...prev,
+                vista_producto: normalizeProductView(value),
+                category_id: ''
+            }));
+            return;
+        }
         setNewProduct({ ...newProduct, [name]: value }); 
     }; 
 
@@ -1260,8 +1268,17 @@ export default function AdminProductosPage() {
         });
     };
     
-    const handleEditProductChange = (e) => { 
-        setEditingProduct({ ...editingProduct, [e.target.name]: e.target.value }); 
+    const handleEditProductChange = (e) => {
+        const { name, value } = e.target;
+        if (name === 'vista_producto') {
+            setEditingProduct({
+                ...editingProduct,
+                vista_producto: normalizeProductView(value),
+                category_id: ''
+            });
+            return;
+        }
+        setEditingProduct({ ...editingProduct, [name]: value });
     }; 
 
     const handleImageChange = (e) => {
@@ -1909,11 +1926,8 @@ export default function AdminProductosPage() {
                     descripcion: editingProduct.descripcion,
                     precio: parseFloat(editingProduct.precio) || 0,
                     precio_compra: parseFloat(editingProduct.precio_compra) || 0,
-                    stock: parseInt(editingProduct.stock) || 0,
                     category_id: categoryIdValue,
                     vista_producto: normalizeProductView(editingProduct.vista_producto || currentProductView),
-                    // Dejamos el codigo_barra para que no se re-genere si se guarda sin querer
-                    codigo_barra: editingProduct.codigo_barra
                 })
                 .eq('user_id', editingProduct.user_id);
             if (updateError) {
@@ -2054,6 +2068,20 @@ export default function AdminProductosPage() {
       );
     }
 
+    const getCategoriesForView = (view, selectedCategoryId = '') => {
+        const normalizedView = normalizeProductView(view);
+        const usedCategoryIds = new Set(
+            productos
+                .filter((producto) => normalizeProductView(producto.vista_producto) === normalizedView)
+                .map((producto) => String(producto.category_id || ''))
+                .filter(Boolean)
+        );
+        const selectedId = String(selectedCategoryId || '');
+        return categories.filter((category) =>
+            usedCategoryIds.has(String(category.id)) || String(category.id) === selectedId
+        );
+    };
+
     // Retorno del JSX del componente
     return (
         <div className="p-4 sm:p-6 md:p-10 bg-gray-100 min-h-screen">
@@ -2185,7 +2213,7 @@ export default function AdminProductosPage() {
                                         className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
                                 >
                                         <option value="">-- Seleccionar Categoría --</option>
-                                        {categories && categories.length > 0 && categories.map(cat => (
+                                        {getCategoriesForView(newProduct.vista_producto, newProduct.category_id).map(cat => (
                                                 <option key={cat.id} value={cat.id}>{cat.categori}</option>
                                         ))}
                                         <option value="create" className="font-semibold text-blue-700">+ Agregar categoría</option>
@@ -2620,7 +2648,6 @@ export default function AdminProductosPage() {
                             <div className="grid grid-cols-2 gap-4">
                                 <input type="number" name="precio_compra" placeholder="Precio de Compra (Bs)" value={editingProduct.precio_compra} onChange={handleEditProductChange} required step="0.01" className="w-full p-3 border rounded-lg"/>
                                 <input type="number" name="precio" placeholder="Precio de Venta (Bs)" value={editingProduct.precio} onChange={handleEditProductChange} required step="0.01" className="w-full p-3 border rounded-lg"/>
-                                <input type="number" name="stock" placeholder="Stock" value={editingProduct.stock} onChange={handleEditProductChange} required className="w-full p-3 border rounded-lg"/>
                                 <select
                                     name="vista_producto"
                                     value={editingProduct.vista_producto ?? currentProductView}
@@ -2636,17 +2663,8 @@ export default function AdminProductosPage() {
                                     className="w-full p-3 border rounded-lg bg-white"
                                 >
                                     <option value="">-- Seleccionar Categoría --</option>
-                                    {categories.map(cat => (<option key={cat.id} value={cat.id}>{cat.categori}</option>))}
+                                    {getCategoriesForView(editingProduct.vista_producto, editingProduct.category_id).map(cat => (<option key={cat.id} value={cat.id}>{cat.categori}</option>))}
                                 </select>
-                                <input 
-                                    type="text" 
-                                    name="codigo_barra" 
-                                    placeholder="Código de Barra" 
-                                    value={editingProduct.codigo_barra} 
-                                    onChange={handleEditProductChange} 
-                                    className="w-full p-3 border rounded-lg" 
-                                    maxLength={13}
-                                /> 
                             </div>
                             
                             {/* Imágenes Actuales (con opción a eliminar) */}

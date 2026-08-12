@@ -12,7 +12,8 @@ import { sincronizarStockProducto } from "@/lib/utils";
 import { productMatchesSearch } from "@/lib/searchMatching";
 import { useSucursalActiva } from "@/components/admin/SucursalContext";
 
-export default function AumentarStockPage() {
+export function StockControlPage({ operation = "increase" }) {
+  const isReductionMode = operation === "reduce";
   const { activePaisId, activeSucursal } = useSucursalActiva();
   const effectiveSucursalId = activeSucursal?.id || "";
   const QZ_PRINTER_NAME = "POS-80C";
@@ -25,6 +26,8 @@ export default function AumentarStockPage() {
   const [savingKey, setSavingKey] = useState(null);
   const [increments, setIncrements] = useState({});
   const [incrementUnits, setIncrementUnits] = useState({});
+  const [reductionReasons, setReductionReasons] = useState({});
+  const [pendingReduction, setPendingReduction] = useState(null);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
@@ -752,6 +755,50 @@ export default function AumentarStockPage() {
     }
   }
 
+  async function reducirStock(prod, variante = null) {
+    const key = variante ? `v-${variante.id}` : `p-${prod.user_id}`;
+    const displayAmount = Number(increments[key] || 0);
+    const baseAmount = getBaseIncrease(prod, key);
+    const selectedUnit = getSelectedUnit(prod, key);
+    const reason = String(reductionReasons[key] || "").trim();
+    const currentStock = variante ? getEffectiveVariantStock(variante) : getBaseStock(prod);
+    if (displayAmount <= 0 || baseAmount <= 0) return showToast("Ingresa una cantidad mayor a 0", "info");
+    if (!reason) return showToast("Selecciona el motivo de la reducción", "error");
+    if (baseAmount > currentStock + 0.000001) return showToast("No puedes reducir más que el stock disponible", "error");
+    const beforeText = getReadableStockText(prod, currentStock);
+    const afterText = getReadableStockText(prod, currentStock - baseAmount);
+    setPendingReduction({ prod, variante, key, displayAmount, baseAmount, selectedUnit, reason, beforeText, afterText });
+  }
+
+  async function confirmarReduccion() {
+    const pending = pendingReduction;
+    if (!pending) return;
+    const { prod, variante, key, displayAmount, selectedUnit, reason } = pending;
+    try {
+      setSavingKey(key);
+      setPendingReduction(null);
+      await aumentarStockApi({
+        operation: "reduce",
+        mode: variante ? "variant" : "product",
+        productId: prod.user_id,
+        variantId: variante?.id,
+        paisId: activePaisId,
+        sucursalId: effectiveSucursalId,
+        displayIncrease: displayAmount,
+        selectedUnit,
+        reason,
+      });
+      setIncrements((prev) => ({ ...prev, [key]: 0 }));
+      setReductionReasons((prev) => ({ ...prev, [key]: "" }));
+      await fetchData();
+      showToast(`Stock reducido correctamente: ${formatQuantity(displayAmount)} ${selectedUnit}`);
+    } catch (error) {
+      showToast(error?.message || "No se pudo reducir el stock", "error");
+    } finally {
+      setSavingKey(null);
+    }
+  }
+
   const categories = useMemo(() => {
     return Array.from(new Set(productos.map((p) => getCategoryName(p)))).sort((a, b) => a.localeCompare(b, "es"));
   }, [productos]);
@@ -773,7 +820,8 @@ export default function AumentarStockPage() {
 
       <div className="mx-auto w-full max-w-6xl">
         <header className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h1 className="text-3xl font-black text-slate-900">Aumentar Stock</h1>
+          <h1 className="text-3xl font-black text-slate-900">{isReductionMode ? "Reducir Stock" : "Aumentar Stock"}</h1>
+          <p className="mt-1 text-sm text-slate-600">{isReductionMode ? "Registra una salida autorizada respetando unidades, conversiones y decimales." : "Registra el ingreso de nueva mercadería sin alterar el stock existente."}</p>
         </header>
 
         <section className="mb-6 grid grid-cols-1 gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow md:grid-cols-3">
@@ -873,7 +921,7 @@ export default function AumentarStockPage() {
                           <tr className="border-b border-slate-200 text-slate-600">
                             <th className="py-2 text-left">Color</th>
                             <th className="py-2 text-center">Stock actual</th>
-                            <th className="py-2 text-center">Aumentar</th>
+                            <th className="py-2 text-center">{isReductionMode ? "Reducir" : "Aumentar"}</th>
                             <th className="py-2 text-right">Acciones</th>
                           </tr>
                         </thead>
@@ -921,29 +969,51 @@ export default function AumentarStockPage() {
                                     </div>
                                     {unitInfo.hasConversion && Number(increment) > 0 && (
                                       <div className="text-xs font-semibold text-blue-700">
-                                        Suma {formatQuantity(baseIncrease)} {unitInfo.unidadBase}
+                                        {isReductionMode && selectedUnit === unitInfo.unidadAlternativa
+                                          ? `Se retirarán ${formatQuantity(increment)} ${selectedUnit}`
+                                          : `${isReductionMode ? "Retira" : "Suma"} ${formatQuantity(baseIncrease)} ${unitInfo.unidadBase}`}
                                       </div>
                                     )}
+                                    {isReductionMode && <select
+                                      value={reductionReasons[variantKey] || ""}
+                                      onChange={(e) => setReductionReasons((prev) => ({ ...prev, [variantKey]: e.target.value }))}
+                                      className="h-8 max-w-48 rounded-md border border-red-200 px-2 text-xs text-slate-700"
+                                    >
+                                      <option value="">Motivo para reducir...</option>
+                                      <option value="Producto destinado a muestrario">Muestrario</option>
+                                      <option value="Producto con falla de fábrica">Falla de fábrica</option>
+                                      <option value="Producto dañado">Daño</option>
+                                      <option value="Pérdida o faltante físico">Pérdida o faltante</option>
+                                      <option value="Uso interno de la empresa">Uso interno</option>
+                                    </select>}
                                   </div>
                                 </td>
                                 <td className="py-2 text-right">
                                   <div className="flex items-center justify-end gap-2">
-                                    <button
+                                    {!isReductionMode && <button
                                       type="button"
                                       onClick={() => aumentarStockVariante(prod, variant, false)}
                                       disabled={isSaving}
                                       className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:bg-emerald-300"
                                     >
                                       {isSaving ? "Guardando..." : "Aumentar"}
-                                    </button>
-                                    <button
+                                    </button>}
+                                    {isReductionMode && <button
+                                      type="button"
+                                      onClick={() => reducirStock(prod, variant)}
+                                      disabled={isSaving || !reductionReasons[variantKey]}
+                                      className="rounded-md bg-red-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-800 disabled:bg-red-300"
+                                    >
+                                      {isSaving ? "Guardando..." : "Reducir"}
+                                    </button>}
+                                    {!isReductionMode && <button
                                       type="button"
                                       onClick={() => aumentarStockVariante(prod, variant, true)}
                                       disabled={isSaving}
                                       className="rounded-md bg-slate-800 px-3 py-1.5 text-xs font-semibold !text-white hover:bg-slate-900 disabled:bg-slate-400 disabled:!text-white"
                                     >
                                       {isSaving ? "Guardando..." : "Aumentar e imprimir"}
-                                    </button>
+                                    </button>}
                                   </div>
                                 </td>
                               </tr>
@@ -955,7 +1025,7 @@ export default function AumentarStockPage() {
                   ) : (
                     <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-3">
                       <p className="mb-2 text-sm text-slate-600">
-                        Producto unico (sin colores). Aumenta stock directo
+                        Producto unico (sin colores). {isReductionMode ? "Reduce" : "Aumenta"} stock directo
                         {unitInfo.hasConversion ? ` por ${units.join(" o ")}` : ""}:
                       </p>
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -980,25 +1050,47 @@ export default function AumentarStockPage() {
                         )}
                         {unitInfo.hasConversion && Number(productIncrement) > 0 && (
                           <span className="text-xs font-semibold text-blue-700">
-                            Suma {formatQuantity(productBaseIncrease)} {unitInfo.unidadBase}
+                            {isReductionMode && productUnit === unitInfo.unidadAlternativa
+                              ? `Se retirarán ${formatQuantity(productIncrement)} ${productUnit}`
+                              : `${isReductionMode ? "Retira" : "Suma"} ${formatQuantity(productBaseIncrease)} ${unitInfo.unidadBase}`}
                           </span>
                         )}
-                        <button
+                        {isReductionMode && <select
+                          value={reductionReasons[productKey] || ""}
+                          onChange={(e) => setReductionReasons((prev) => ({ ...prev, [productKey]: e.target.value }))}
+                          className="h-9 rounded-md border border-red-200 px-2 text-sm text-slate-700"
+                        >
+                          <option value="">Motivo para reducir...</option>
+                          <option value="Producto destinado a muestrario">Muestrario</option>
+                          <option value="Producto con falla de fábrica">Falla de fábrica</option>
+                          <option value="Producto dañado">Daño</option>
+                          <option value="Pérdida o faltante físico">Pérdida o faltante</option>
+                          <option value="Uso interno de la empresa">Uso interno</option>
+                        </select>}
+                        {!isReductionMode && <button
                           type="button"
                           onClick={() => aumentarStockProducto(prod, false)}
                           disabled={savingKey === productKey}
                           className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:bg-emerald-300"
                         >
                           {savingKey === productKey ? "Guardando..." : "Aumentar stock"}
-                        </button>
-                        <button
+                        </button>}
+                        {!isReductionMode && <button
                           type="button"
                           onClick={() => aumentarStockProducto(prod, true)}
                           disabled={savingKey === productKey}
                           className="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold !text-white hover:bg-slate-900 disabled:bg-slate-400 disabled:!text-white"
                         >
                           {savingKey === productKey ? "Guardando..." : "Aumentar e imprimir"}
-                        </button>
+                        </button>}
+                        {isReductionMode && <button
+                          type="button"
+                          onClick={() => reducirStock(prod)}
+                          disabled={savingKey === productKey || !reductionReasons[productKey]}
+                          className="rounded-md bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:bg-red-300"
+                        >
+                          {savingKey === productKey ? "Guardando..." : "Reducir stock"}
+                        </button>}
                       </div>
                     </div>
                   )}
@@ -1008,6 +1100,44 @@ export default function AumentarStockPage() {
           </div>
         )}
       </div>
+
+      {pendingReduction && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 p-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="reduction-title" className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-100 text-xl text-red-700">!</span>
+              <div>
+                <h2 id="reduction-title" className="text-xl font-black text-slate-900">Confirmar reducción de stock</h2>
+                <p className="mt-1 text-sm text-slate-600">Esta salida quedará registrada en la auditoría.</p>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+              <p className="font-black text-slate-900">{pendingReduction.prod.nombre}</p>
+              {pendingReduction.variante && <p className="text-slate-600">Color: {pendingReduction.variante.color || "Único"}</p>}
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg bg-white p-3 ring-1 ring-slate-200"><span className="block text-xs font-bold uppercase text-slate-500">Stock actual</span><strong className="mt-1 block text-slate-900">{pendingReduction.beforeText}</strong></div>
+                <div className="rounded-lg bg-white p-3 ring-1 ring-red-200"><span className="block text-xs font-bold uppercase text-red-600">Stock después</span><strong className="mt-1 block text-slate-900">{pendingReduction.afterText}</strong></div>
+              </div>
+              <div className="mt-4 rounded-lg border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-amber-950">
+                {getUnitInfo(pendingReduction.prod).hasConversion && pendingReduction.selectedUnit === getUnitInfo(pendingReduction.prod).unidadAlternativa
+                  ? <>Se cortarán <strong>{formatQuantity(pendingReduction.displayAmount)} {pendingReduction.selectedUnit}</strong> de un {getUnitInfo(pendingReduction.prod).unidadBase} de {formatQuantity(getUnitInfo(pendingReduction.prod).factor)} {getUnitInfo(pendingReduction.prod).unidadAlternativa}.</>
+                  : <>Se retirarán <strong>{formatQuantity(pendingReduction.displayAmount)} {pendingReduction.selectedUnit}</strong>.</>}
+              </div>
+              <p className="mt-3 text-slate-700"><strong>Motivo:</strong> {pendingReduction.reason}</p>
+            </div>
+
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button type="button" onClick={() => setPendingReduction(null)} className="rounded-lg border border-slate-300 px-5 py-2.5 font-bold text-slate-700 hover:bg-slate-100">Cancelar</button>
+              <button type="button" onClick={confirmarReduccion} className="rounded-lg bg-red-700 px-5 py-2.5 font-bold text-white hover:bg-red-800">Confirmar salida</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+export default function AumentarStockPage() {
+  return <StockControlPage operation="increase" />;
 }

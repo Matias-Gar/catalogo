@@ -736,32 +736,13 @@ begin
     end loop;
   end if;
 
-  delete from public.cash_movements
-  where description ilike ('%venta #' || p_venta_id || '%');
-
-  update public.stock_movimientos
-  set tipo = 'venta_anulada',
-      metadata = coalesce(metadata, '{}'::jsonb) || jsonb_build_object(
-        'venta_eliminada_id', p_venta_id,
-        'anulada_por', p_admin_email,
-        'motivo_anulacion', p_motivo
-      ),
-      observaciones = concat(coalesce(observaciones, ''), ' | Venta anulada #', p_venta_id),
-      venta_id = null,
-      detalle_id = null
-  where tipo = 'venta'
-    and (
-      venta_id = p_venta_id
-      or observaciones ilike ('%venta #' || p_venta_id || '%')
-    );
-
-  delete from public.ventas_pagos
-  where venta_id = p_venta_id;
-
-  delete from public.ventas_detalle
-  where venta_id = p_venta_id;
-
-  delete from public.ventas
+  -- La evidencia original es inmutable. No se borran ni reescriben venta,
+  -- detalles, pagos, caja o movimientos; la restitucion anterior constituye
+  -- la partida inversa y la venta queda fuera de las vistas operativas por estado.
+  update public.ventas
+  set estado = 'anulada',
+      error_message = concat('Anulada por ', coalesce(p_admin_email, 'administrador'),
+        ': ', coalesce(nullif(trim(p_motivo), ''), 'Sin motivo informado'))
   where id = p_venta_id;
 
   return jsonb_build_object(

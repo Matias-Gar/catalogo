@@ -17,7 +17,7 @@ export default function PedidosPage() {
   async function fetchCarritos() {
     let query = supabase
       .from("carritos_pendientes")
-      .select("id, cliente_nombre, cliente_telefono, usuario_email, productos, fecha, confirmado_pago, pais_id, sucursal_id")
+      .select("id, cliente_nombre, cliente_telefono, usuario_email, productos, fecha, confirmado_pago, estado, pais_id, sucursal_id")
       .order("fecha", { ascending: false });
     if (activePaisId) query = query.eq("pais_id", activePaisId);
     if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
@@ -30,34 +30,28 @@ export default function PedidosPage() {
       const carritosActualizados = data.filter(carrito => {
         const carritoDate = new Date(carrito.fecha);
         const diferenciaEnDias = (currentDate - carritoDate) / (1000 * 3600 * 24); // Diferencia en días
-        return diferenciaEnDias <= 5 && !carrito.confirmado_pago;  // El carrito es válido solo si no ha pasado más de 5 días y no está confirmado
+        return diferenciaEnDias <= 5 && !carrito.confirmado_pago && (carrito.estado || "pendiente") === "pendiente";
       });
 
       setCarritos(carritosActualizados);
 
-      // Eliminar carritos vencidos
-      const carritosVencidos = data.filter(carrito => {
-        const carritoDate = new Date(carrito.fecha);
-        const diferenciaEnDias = (currentDate - carritoDate) / (1000 * 3600 * 24); // Diferencia en días
-        return diferenciaEnDias > 5 && !carrito.confirmado_pago;  // Si el carrito está vencido y no tiene pago confirmado
-      });
-
-      // Eliminar los carritos vencidos de la base de datos
-      for (const carrito of carritosVencidos) {
-        let deleteQuery = supabase.from("carritos_pendientes").delete().eq("id", carrito.id);
-        if (activePaisId) deleteQuery = deleteQuery.eq("pais_id", activePaisId);
-        if (activeSucursalId) deleteQuery = deleteQuery.eq("sucursal_id", activeSucursalId);
-        await deleteQuery;
-      }
+      // Los pedidos vencidos permanecen en la base para trazabilidad; no se borran desde el navegador.
     }
   }
 
   async function eliminarCarrito(id) {
-    if (!window.confirm("¿Estás seguro de que deseas eliminar este pedido? Esta acción no se puede deshacer.")) return;
-    let query = supabase.from("carritos_pendientes").delete().eq("id", id);
-    if (activePaisId) query = query.eq("pais_id", activePaisId);
-    if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
-    await query;
+    const reason = window.prompt("Motivo para retirar el pedido de pendientes (permanecerá en auditoría):");
+    if (!reason?.trim()) return;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) return window.alert("Sesión no disponible");
+    const response = await fetch("/api/admin/pedidos/descartar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ orderId: Number(id), paisId: activePaisId, sucursalId: activeSucursalId, reason: reason.trim() }),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload?.success) return window.alert(payload?.error || "No se pudo descartar el pedido");
     fetchCarritos();
   }
 

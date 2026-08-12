@@ -118,11 +118,15 @@ export default function AuditoriaStockPage() {
     const converted = hasConversion(producto);
     const hasVariants = vars.length > 0;
 
-    const stockInicialTotal = hasVariants && !converted
+    // Las variantes son la fuente de verdad del stock inicial, también cuando
+    // el producto usa conversión (por ejemplo, rollo -> metro).
+    const stockInicialTotal = hasVariants
       ? vars.reduce((sum, v) => sum + (Number(v.stock_inicial_decimal ?? v.stock_inicial) || 0), 0)
       : Number(producto.stock_inicial || 0);
 
-    const stockActualTotal = hasVariants && !converted
+    // Si hay variantes, su suma es el stock físico real. El agregado de
+    // productos puede quedar atrasado tras una edición y no debe crear alertas falsas.
+    const stockActualTotal = hasVariants
       ? vars.reduce((sum, v) => sum + stockValue(v), 0)
       : Number(producto.stock || 0);
 
@@ -200,12 +204,20 @@ export default function AuditoriaStockPage() {
     });
 
     historial.filter((h) => String(h.producto_id) === String(productoId)).forEach((h) => {
+      const isCreate = String(h.accion || "").toUpperCase() === "CREATE";
+      const createdStock = Number(h.datos_nuevos?.stock);
       eventos.push({
         tipo: h.accion,
         fecha: h.fecha,
         usuario: h.usuario_email,
         datos_anteriores: h.datos_anteriores,
         datos_nuevos: h.datos_nuevos,
+        textoCantidad: isCreate && Number.isFinite(createdStock)
+          ? formatQuantity(productoForFormat, createdStock, { compact: true })
+          : "",
+        observaciones: isCreate && Number.isFinite(createdStock)
+          ? "Stock registrado al crear el producto"
+          : "",
       });
     });
 

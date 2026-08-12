@@ -7,7 +7,7 @@ import { usePublicSucursal } from './PublicSucursalSelector';
 
 export default function StoreFooter() {
   const pathname = usePathname();
-  if (pathname === '/contacto') return null;
+  if (pathname === '/contacto' || pathname?.startsWith('/admin')) return null;
 
   return <StoreFooterContent />;
 }

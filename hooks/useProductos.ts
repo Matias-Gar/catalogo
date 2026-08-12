@@ -361,6 +361,36 @@ export function useProductos(_includeCost = false, sucursalId?: string) {
             })
           : [];
         resultados = await enriquecerUnidades(productosEncontrados, sucursalId);
+
+        // Respaldo directo: incluye Artículos, Insumos y cualquier vista nueva,
+        // incluso si un producto todavía no aparece en la vista de catálogo.
+        if (resultados.length === 0 && term) {
+          let directQuery = supabase
+            .from('productos')
+            .select('user_id, nombre, descripcion, precio, stock, codigo_barra, category_id, vista_producto, categorias (categori)')
+            .or('archivado.eq.false,archivado.is.null')
+            .or(`nombre.ilike.%${term}%,descripcion.ilike.%${term}%,codigo_barra.ilike.%${term}%`)
+            .limit(50);
+          if (sucursalId) directQuery = directQuery.eq('sucursal_id', sucursalId);
+          const { data: directProducts } = await directQuery;
+          const directResults = Array.isArray(directProducts)
+            ? directProducts.map((product) => {
+              const categoryRelation = Array.isArray(product.categorias) ? product.categorias[0] : product.categorias;
+              const categoryName = String(categoryRelation?.categori ?? '');
+              return ({
+                user_id: String(product.user_id ?? ''),
+                nombre: String(product.nombre ?? ''),
+                precio: Number(product.precio ?? 0),
+                stock: Number(product.stock ?? 0),
+                codigo_barra: String(product.codigo_barra ?? ''),
+                categoria: categoryName,
+                categorias: { categori: categoryName },
+                variantes: [],
+              } as Producto);
+            })
+            : [];
+          resultados = await enriquecerUnidades(directResults, sucursalId);
+        }
       }
 
       setSearchResults(resultados);

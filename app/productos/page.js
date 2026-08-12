@@ -1,7 +1,7 @@
 "use client";
 
 // --- IMPORTS Y HOOKS NECESARIOS ---
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { usePromociones } from "@/lib/usePromociones";
@@ -105,6 +105,7 @@ export default function CatalogoPage() {
                     const [categorias, setCategorias] = useState([]);
                 const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
             const [cart, setCart] = useState([]);
+            const pendingOrderRequestKeyRef = useRef(null);
         const [usuario, setUsuario] = useState(null);
     const getAvailableUnits = (producto, stockBaseInput = null) => {
         const unidadBase = String(producto?.unidad_base || 'unidad').trim() || 'unidad';
@@ -900,6 +901,7 @@ export default function CatalogoPage() {
             alert("Esta sucursal no tiene WhatsApp configurado. Revisa el telefono de la sucursal o el WhatsApp del pais.");
             return;
         }
+        pendingOrderRequestKeyRef.current ||= crypto.randomUUID();
 
         // Importar el token anónimo
         let carritoToken = null;
@@ -961,7 +963,7 @@ export default function CatalogoPage() {
 
         const response = await fetch("/api/carritos-pendientes-service-role", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", "Idempotency-Key": pendingOrderRequestKeyRef.current },
             body: JSON.stringify(pendingOrderPayload),
         });
         const result = await response.json();
@@ -974,6 +976,7 @@ export default function CatalogoPage() {
         }
 
         const pedidoId = data.id;
+        pendingOrderRequestKeyRef.current = null;
 
         // 📊 Track Facebook Pixel - Purchase
         // const totalValue = cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0);

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1600" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="grid" width="170" height="170" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+      <rect width="170" height="170" fill="#070707"/>
+      <path d="M-20 34 C32 8 62 72 116 42 S202 28 236 78" fill="none" stroke="#777" stroke-width="7" stroke-linecap="round" opacity=".28"/>
+      <path d="M18 116 L145 88 M54 143 L190 116 M6 68 L84 26" stroke="#aaa" stroke-width="5" stroke-linecap="round" opacity=".2"/>
+      <text x="24" y="96" font-family="Impact, Arial Black, sans-serif" font-size="52" fill="#9a9a9a" opacity=".22" transform="rotate(-7 24 96)">SW</text>
+      <text x="78" y="152" font-family="Impact, Arial Black, sans-serif" font-size="28" fill="#bbb" opacity=".18" transform="rotate(15 78 152)">STREET</text>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="38%" r="72%">
+      <stop offset="0" stop-color="#303030"/>
+      <stop offset=".52" stop-color="#101010"/>
+      <stop offset="1" stop-color="#000"/>
+    </radialGradient>
+  </defs>
+  <rect width="900" height="1600" fill="url(#grid)"/>
+  <rect width="900" height="1600" fill="url(#glow)" opacity=".72"/>
+  <g opacity=".22" fill="none" stroke="#d8d8d8" stroke-linecap="round">
+    <path d="M61 246 C169 167 277 286 391 206 S638 133 779 233" stroke-width="8"/>
+    <path d="M93 1233 C220 1114 352 1274 486 1164 S686 1059 839 1188" stroke-width="7"/>
+    <path d="M-22 724 C103 610 212 761 339 654 S566 563 717 681" stroke-width="6"/>
+    <path d="M158 420 L305 366 M214 473 L435 395 M519 440 L778 355" stroke-width="5"/>
+    <path d="M92 940 L340 872 M476 961 L803 852" stroke-width="5"/>
+  </g>
+  <g font-family="Impact, Arial Black, sans-serif" font-weight="900" fill="#fff" opacity=".1">
+    <text x="30" y="360" font-size="102" transform="rotate(-19 30 360)">STREET</text>
+    <text x="505" y="780" font-size="118" transform="rotate(14 505 780)">WEAR</text>
+    <text x="88" y="1390" font-size="132" transform="rotate(-11 88 1390)">STYLE</text>
+  </g>
+</svg>

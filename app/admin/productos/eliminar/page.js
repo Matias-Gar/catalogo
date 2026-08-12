@@ -5,8 +5,6 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../../.
 import { Button } from "../../../../components/ui/button";
 
 
-import { registrarMovimientoStock } from "../../../../lib/stockMovimientos";
-import { registrarHistorialProducto } from "../../../../lib/productosHistorial";
 import { getOptimizedImageUrl, buildImageSrcSet } from "../../../../lib/imageOptimization";
 import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
 import { productMatchesSearch } from "../../../../lib/searchMatching";
@@ -90,56 +88,25 @@ function EliminarProductos() {
   }, [eliminando, activePaisId, activeSucursalId]);
 
   const eliminarProducto = async (user_id) => {
-    if (!window.confirm("¿Seguro que deseas eliminar este producto?")) return;
+    const reason = window.prompt("Motivo para retirar este producto de las vistas (permanecerá en auditoría):");
+    if (!reason?.trim()) return;
     setEliminando(user_id);
-    // Registrar movimiento e historial de eliminación
     try {
-      const user = (await supabase.auth.getUser())?.data?.user;
-      // Buscar el producto para obtener los datos antes de eliminar
-      let prodQuery = supabase.from("productos").select("*").eq("user_id", user_id);
-      if (activePaisId) prodQuery = prodQuery.eq("pais_id", activePaisId);
-      if (activeSucursalId) prodQuery = prodQuery.eq("sucursal_id", activeSucursalId);
-      const { data: prodData } = await prodQuery.single();
-      const movimientoPayload = {
-        producto_id: Number(user_id),
-        tipo: 'eliminación',
-        cantidad: prodData?.stock || 0,
-        usuario_id: user?.id || null,
-        usuario_email: user?.email || '',
-        pais_id: activePaisId || null,
-        observaciones: 'Eliminación de producto desde panel',
-        sucursal_id: activeSucursalId || null
-      };
-      await registrarMovimientoStock(movimientoPayload);
-      await registrarHistorialProducto({
-        producto_id: Number(user_id),
-        accion: "DELETE",
-        datos_anteriores: prodData,
-        datos_nuevos: null,
-        usuario_email: user?.email || null,
-        pais_id: activePaisId || null,
-        sucursal_id: activeSucursalId || null
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) throw new Error("Sesión no disponible");
+      const response = await fetch("/api/admin/productos/eliminar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ productId: Number(user_id), paisId: activePaisId, sucursalId: activeSucursalId, reason: reason.trim() }),
       });
+      const payload = await response.json();
+      if (!response.ok || !payload?.success) throw new Error(payload?.error || "No se pudo retirar el producto");
     } catch (err) {
-      console.warn('No se pudo registrar movimiento/historial de eliminación:', err);
+      window.alert(err?.message || "No se pudo retirar el producto");
+    } finally {
+      setEliminando(null);
     }
-    // Eliminar primero dependencias para evitar errores 409
-    const scopeOperation = (query) => {
-      let scoped = query;
-      if (activePaisId) scoped = scoped.eq("pais_id", activePaisId);
-      if (activeSucursalId) scoped = scoped.eq("sucursal_id", activeSucursalId);
-      return scoped;
-    };
-    await scopeOperation(supabase.from("stock_movimientos").delete().eq("producto_id", user_id));
-    await scopeOperation(supabase.from("productos_historial").delete().eq("producto_id", user_id));
-    await scopeOperation(supabase.from("producto_variantes").delete().eq("producto_id", user_id));
-    await scopeOperation(supabase.from("producto_imagenes").delete().eq("producto_id", user_id));
-    await scopeOperation(supabase.from("promociones").delete().eq("producto_id", user_id));
-    await scopeOperation(supabase.from("pack_productos").delete().eq("producto_id", user_id));
-    await scopeOperation(supabase.from("ventas_detalle").delete().eq("producto_id", user_id));
-    // Finalmente, eliminar el producto
-    await scopeOperation(supabase.from("productos").delete().eq("user_id", user_id));
-    setEliminando(null);
   };
 
   // --- Filtros y ordenamiento ---

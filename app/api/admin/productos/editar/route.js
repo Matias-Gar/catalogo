@@ -90,9 +90,6 @@ export async function POST(request) {
 
     const productHasConversion = hasUnitConversion(productoActual);
     const hasVariantsAfterSave = nuevasVariantes.length > 0;
-    const stockTotal = hasVariantsAfterSave
-      ? nuevasVariantes.reduce((acc, variant) => acc + getEffectiveVariantStock(variant), 0)
-      : Math.max(0, Number(productoActual.stock || 0));
     const variantesActualesById = new Map((variantesBD || []).map((variant) => [String(variant.id), variant]));
 
     for (const variant of variantesBD || []) {
@@ -116,8 +113,8 @@ export async function POST(request) {
       precio: parseDecimalInput(cambios.precio, parseDecimalInput(productoActual.precio, 0)),
       vista_producto: normalizeProductView(cambios.vista_producto ?? productoActual.vista_producto),
       category_id: cambios.category_id ? parseInt(cambios.category_id, 10) : productoActual.category_id ?? null,
-      codigo_barra: cambios.codigo_barra ?? productoActual.codigo_barra,
-      stock: hasVariantsAfterSave ? stockTotal : Math.max(0, Number(productoActual.stock || 0)),
+      codigo_barra: productoActual.codigo_barra,
+      stock: Math.max(0, Number(productoActual.stock || 0)),
       imagen_url: imagenPrincipal,
     };
 
@@ -144,74 +141,42 @@ export async function POST(request) {
     }
 
     for (const variant of nuevasVariantes) {
+      const existingVariant = variant.id ? variantesActualesById.get(String(variant.id)) : null;
+      const preservedStock = existingVariant ? getEffectiveVariantStock(existingVariant) : 0;
       const payload = {
         color: variant.color,
-        stock: Math.max(0, Math.floor(Number(variant.stock) || 0)),
-        stock_decimal: Number(variant.stock) || 0,
-        sku: variant.sku || variant.codigo_barra || null,
+        stock: Math.max(0, Math.floor(preservedStock)),
+        stock_decimal: preservedStock,
+        sku: existingVariant?.sku || (!variant.id ? (variant.sku || variant.codigo_barra || null) : null),
         precio: parseDecimalInput(variant.precio, null),
         imagen_url: variant.imagen_url || null,
         activo: variant.activo !== undefined ? variant.activo : true,
       };
 
       if (variant.id) {
-        const stockAntes = getEffectiveVariantStock(variantesActualesById.get(String(variant.id)));
-        const stockDespues = getEffectiveVariantStock(payload);
         const { error } = await supabaseAdmin.from("producto_variantes").update(payload).eq("id", variant.id);
         if (error) throw error;
-        const delta = stockDespues - stockAntes;
-        if (Math.abs(delta) > 0.0001) {
-          const { error: movementError } = await supabaseAdmin.from("stock_movimientos").insert([{
-            producto_id: productoActual.user_id,
-            variante_id: variant.id,
-            tipo: delta > 0 ? "ajuste_positivo" : "ajuste_negativo",
-            cantidad: Math.abs(delta),
-            cantidad_base: Math.abs(delta),
-            unidad: productoActual.unidad_base || "unidad",
-            pais_id: productoActual.pais_id || null,
-            sucursal_id: productoActual.sucursal_id || null,
-            usuario_id: auth.userId,
-            usuario_email: auth.email,
-            stock_antes: stockAntes,
-            stock_despues: stockDespues,
-            motivo: "edicion_producto",
-            observaciones: "Ajuste de stock desde edicion de producto",
-          }]);
-          if (movementError) throw movementError;
-        }
       } else {
         const { data: insertedVariant, error } = await supabaseAdmin.from("producto_variantes").insert({
           ...payload,
           producto_id: productoActual.user_id,
           pais_id: productoActual.pais_id,
           sucursal_id: productoActual.sucursal_id,
-          stock_inicial_decimal: Number(variant.stock) || 0,
+          stock_inicial_decimal: 0,
         }).select("id").single();
         if (error) throw error;
-        const stockNuevo = getEffectiveVariantStock(payload);
-        if (stockNuevo > 0.0001) {
-          const { error: movementError } = await supabaseAdmin.from("stock_movimientos").insert([{
-            producto_id: productoActual.user_id,
-            variante_id: insertedVariant?.id || null,
-            tipo: "ajuste_positivo",
-            cantidad: stockNuevo,
-            cantidad_base: stockNuevo,
-            unidad: productoActual.unidad_base || "unidad",
-            pais_id: productoActual.pais_id || null,
-            sucursal_id: productoActual.sucursal_id || null,
-            usuario_id: auth.userId,
-            usuario_email: auth.email,
-            stock_antes: 0,
-            stock_despues: stockNuevo,
-            motivo: "edicion_producto",
-            observaciones: `Stock inicial de nueva variante ${variant.color || ""}`.trim(),
-          }]);
-          if (movementError) throw movementError;
-        }
       }
     }
 
     if (hasVariantsAfterSave) {
+      let savedVariantsQuery = supabaseAdmin
+        .from("producto_variantes")
+        .select("stock, stock_decimal")
+        .eq("producto_id", productoActual.user_id);
+      if (activeSucursalId) savedVariantsQuery = savedVariantsQuery.eq("sucursal_id", activeSucursalId);
+      const { data: savedVariants, error: savedVariantsError } = await savedVariantsQuery;
+      if (savedVariantsError) throw savedVariantsError;
+      const stockTotal = (savedVariants || []).reduce((sum, variant) => sum + getEffectiveVariantStock(variant), 0);
       let resyncQuery = supabaseAdmin
         .from("productos")
         .update({ stock: stockTotal })
