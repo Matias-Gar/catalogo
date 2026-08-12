@@ -8,6 +8,10 @@ export const revalidate = 0;
 export async function POST(request) {
   try {
     const body = await request.json();
+    const idempotencyKey = request.headers.get("idempotency-key")?.trim();
+    if (!idempotencyKey) {
+      return NextResponse.json({ success: false, error: "Idempotency-Key obligatoria" }, { status: 400 });
+    }
     const originId = body?.p_sucursal_origen_id;
     const destinationId = body?.p_sucursal_destino_id;
     if (!originId || !destinationId || originId === destinationId) {
@@ -43,6 +47,7 @@ export async function POST(request) {
       p_usuario_id: auth.userId,
       p_usuario_email: auth.email,
       p_observaciones: body.p_observaciones || null,
+      p_idempotency_key: idempotencyKey,
     });
     if (error) throw error;
     return NextResponse.json({ success: true, transferencia_id: data });

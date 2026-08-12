@@ -11,11 +11,11 @@ function cleanNumber(value, decimals = 2) {
 }
 
 function isIngreso(tipo) {
-  return ["ingreso", "entrada", "aumento", "ajuste_positivo", "anulacion_venta", "transferencia_entrada"].includes(String(tipo || "").toLowerCase());
+  return ["ingreso", "entrada", "aumento", "ajuste_positivo", "anulacion_venta"].includes(String(tipo || "").toLowerCase());
 }
 
 function isSalida(tipo) {
-  return ["salida", "venta", "venta_anulada", "ajuste_negativo", "transferencia_salida"].includes(String(tipo || "").toLowerCase());
+  return ["salida", "venta", "venta_anulada", "ajuste_negativo"].includes(String(tipo || "").toLowerCase());
 }
 
 function stockValue(row) {
@@ -102,6 +102,7 @@ export default function AuditoriaStockPage() {
   const [detalles, setDetalles] = useState([]);
   const [variantes, setVariantes] = useState([]);
   const [movimientos, setMovimientos] = useState([]);
+  const [transferenciasSucursal, setTransferenciasSucursal] = useState([]);
   const [historial, setHistorial] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [loading, setLoading] = useState(true);
@@ -115,6 +116,10 @@ export default function AuditoriaStockPage() {
       .sort((a, b) => String(a.color || "").localeCompare(String(b.color || ""), "es", { sensitivity: "base" }));
     const ventasProducto = detalles.filter((d) => String(d.producto_id) === String(producto.user_id));
     const movimientosProducto = movimientos.filter((m) => String(m.producto_id) === String(producto.user_id));
+    const transferenciasProducto = transferenciasSucursal.filter((t) =>
+      String(t.producto_origen_id) === String(producto.user_id) ||
+      String(t.producto_destino_id) === String(producto.user_id)
+    );
     const converted = hasConversion(producto);
     const hasVariants = vars.length > 0;
 
@@ -134,7 +139,13 @@ export default function AuditoriaStockPage() {
     const salidasMovimientos = movimientosProducto.filter((m) => isSalida(m.tipo)).reduce((sum, m) => sum + qtyBase(m), 0);
     const ventasTotalDetalle = ventasProducto.reduce((sum, d) => sum + qtyBase(d), 0);
     const salidas = salidasMovimientos > 0 ? salidasMovimientos : ventasTotalDetalle;
-    const stockCalculadoTotal = stockInicialTotal + ingresos - salidas;
+    const transferenciaPositiva = transferenciasProducto
+      .filter((t) => String(t.sucursal_destino_id) === String(activeSucursalId) && String(t.producto_destino_id) === String(producto.user_id))
+      .reduce((sum, t) => sum + qtyBase(t), 0);
+    const transferenciaNegativa = transferenciasProducto
+      .filter((t) => String(t.sucursal_origen_id) === String(activeSucursalId) && String(t.producto_origen_id) === String(producto.user_id))
+      .reduce((sum, t) => sum + qtyBase(t), 0);
+    const stockCalculadoTotal = stockInicialTotal + ingresos - salidas + transferenciaPositiva - transferenciaNegativa;
     const diferenciaTotal = stockActualTotal - stockCalculadoTotal;
 
     const ventasPorVariante = vars.map((v) => ({
@@ -152,8 +163,18 @@ export default function AuditoriaStockPage() {
       const entradasVariante = movimientosVariante.filter((m) => isIngreso(m.tipo)).reduce((sum, m) => sum + qtyBase(m), 0);
       const salidasVarianteMov = movimientosVariante.filter((m) => isSalida(m.tipo)).reduce((sum, m) => sum + qtyBase(m), 0);
       const salidasVariante = salidasVarianteMov > 0 ? salidasVarianteMov : ventas;
+      const correspondeVariante = (transferencia, campo) => (
+        String(transferencia[campo]) === String(v.id) ||
+        (transferencia[campo] == null && vars.length === 1)
+      );
+      const transferenciaPositivaVariante = transferenciasProducto
+        .filter((t) => String(t.sucursal_destino_id) === String(activeSucursalId) && correspondeVariante(t, "variante_destino_id"))
+        .reduce((sum, t) => sum + qtyBase(t), 0);
+      const transferenciaNegativaVariante = transferenciasProducto
+        .filter((t) => String(t.sucursal_origen_id) === String(activeSucursalId) && correspondeVariante(t, "variante_origen_id"))
+        .reduce((sum, t) => sum + qtyBase(t), 0);
       const actual = stockValue(v);
-      const calculado = inicial + entradasVariante - salidasVariante;
+      const calculado = inicial + entradasVariante - salidasVariante + transferenciaPositivaVariante - transferenciaNegativaVariante;
       return {
         id: v.id,
         color: v.color || "Unico",
@@ -161,6 +182,8 @@ export default function AuditoriaStockPage() {
         ventas,
         entradas: entradasVariante,
         salidas: salidasVariante,
+        transferenciaPositiva: transferenciaPositivaVariante,
+        transferenciaNegativa: transferenciaNegativaVariante,
         actual,
         calculado,
         diferencia: actual - calculado,
@@ -175,6 +198,8 @@ export default function AuditoriaStockPage() {
       ingresos,
       salidas,
       ventas: ventasTotalDetalle,
+      transferenciaPositiva,
+      transferenciaNegativa,
       stockActual: stockActualTotal,
       stockCalculado: stockCalculadoTotal,
       diferencia: diferenciaTotal,
@@ -186,7 +211,18 @@ export default function AuditoriaStockPage() {
   const getEventos = (productoId, productoForFormat = selected) => {
     const eventos = [];
 
-    movimientos.filter((m) => String(m.producto_id) === String(productoId)).forEach((m) => {
+    const movimientosProducto = movimientos.filter((m) => String(m.producto_id) === String(productoId));
+    const transferenciasAuditadas = new Set(
+      movimientosProducto
+        .filter((m) => String(m.tipo || "").toLowerCase().endsWith("_auditada"))
+        .map((m) => String(m.metadata?.transferencia_id || ""))
+        .filter(Boolean)
+    );
+    movimientosProducto.filter((m) => {
+      const tipo = String(m.tipo || "").toLowerCase();
+      const transferenciaId = String(m.metadata?.transferencia_id || "");
+      return !(["transferencia_entrada", "transferencia_salida"].includes(tipo) && transferenciasAuditadas.has(transferenciaId));
+    }).forEach((m) => {
       eventos.push({
         tipo: m.tipo,
         fecha: m.created_at,
@@ -246,17 +282,22 @@ export default function AuditoriaStockPage() {
     async function fetchData() {
       setLoading(true);
       const scopeSucursal = (query) => activeSucursalId ? query.eq("sucursal_id", activeSucursalId) : query;
-      const [prodsRes, detsRes, varsRes, movsRes] = await Promise.all([
+      const transfersQuery = activeSucursalId
+        ? supabase.from("transferencias_sucursal").select("*").or(`sucursal_origen_id.eq.${activeSucursalId},sucursal_destino_id.eq.${activeSucursalId}`)
+        : supabase.from("transferencias_sucursal").select("*");
+      const [prodsRes, detsRes, varsRes, movsRes, transfersRes] = await Promise.all([
         scopeSucursal(supabase.from("productos").select("user_id, nombre, stock, stock_inicial, unidad_base, unidades_alternativas, factor_conversion").eq("archivado", false)),
         scopeSucursal(supabase.from("ventas_detalle").select("id, producto_id, cantidad, cantidad_base, unidad, variante_id, created_at, usuario_email")),
         scopeSucursal(supabase.from("producto_variantes").select("*")),
         scopeSucursal(supabase.from("stock_movimientos").select("*")),
+        transfersQuery,
       ]);
 
       setProductos(prodsRes.data || []);
       setDetalles(detsRes.data || []);
       setVariantes(varsRes.data || []);
       setMovimientos(movsRes.data || []);
+      setTransferenciasSucursal(transfersRes.data || []);
       setLoading(false);
     }
 
@@ -288,7 +329,7 @@ export default function AuditoriaStockPage() {
       : productos;
     return base.map(auditarProducto);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productos, variantes, detalles, movimientos, busqueda, historial]);
+  }, [productos, variantes, detalles, movimientos, transferenciasSucursal, busqueda, historial, activeSucursalId]);
 
   const alertas = auditoria.filter((p) => statusForDifference(p.diferencia) === "revisar");
   const okCount = auditoria.length - alertas.length;
@@ -322,7 +363,7 @@ export default function AuditoriaStockPage() {
           </span>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6">
           <div className="rounded-lg border border-slate-200 bg-white p-3">
             <p className="text-xs font-bold uppercase text-slate-500">Stock actual</p>
             <p className="mt-1 text-lg font-black">{formatQuantity(product, product.stockActual)}</p>
@@ -341,19 +382,35 @@ export default function AuditoriaStockPage() {
             <p className="text-xs font-bold uppercase text-slate-500">Unidad</p>
             <p className="mt-1 text-lg font-black">{hasConversion(product) ? `${unitNames(product).base} / ${unitNames(product).alt}` : unitNames(product).base}</p>
           </div>
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+            <p className="text-xs font-bold uppercase text-emerald-700">Transferencia positiva</p>
+            <p className="mt-1 text-lg font-black text-emerald-700">
+              +{formatQuantity(product, product.transferenciaPositiva, { compact: true })}
+            </p>
+            <p className="mt-1 text-xs text-emerald-700">Stock recibido en esta sucursal</p>
+          </div>
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+            <p className="text-xs font-bold uppercase text-red-700">Transferencia negativa</p>
+            <p className="mt-1 text-lg font-black text-red-700">
+              -{formatQuantity(product, product.transferenciaNegativa, { compact: true })}
+            </p>
+            <p className="mt-1 text-xs text-red-700">Stock enviado desde esta sucursal</p>
+          </div>
         </div>
 
         {product.detallePorVariante.length > 0 && (
           <div className="mt-5">
             <h3 className="font-black">Detalle por color</h3>
             <div className="mt-2 overflow-x-auto">
-              <table className="w-full min-w-[760px] text-sm">
+              <table className="w-full min-w-[1040px] text-sm">
                 <thead className="bg-white text-left">
                   <tr>
                     <th className="px-3 py-2">Color</th>
                     <th className="px-3 py-2">Actual</th>
                     <th className="px-3 py-2">Calculado</th>
                     <th className="px-3 py-2">Ventas</th>
+                    <th className="px-3 py-2 text-emerald-700">Transferencia positiva</th>
+                    <th className="px-3 py-2 text-red-700">Transferencia negativa</th>
                     <th className="px-3 py-2">Diferencia</th>
                   </tr>
                 </thead>
@@ -364,6 +421,8 @@ export default function AuditoriaStockPage() {
                       <td className="px-3 py-2">{formatQuantity(product, v.actual)}</td>
                       <td className="px-3 py-2">{formatQuantity(product, v.calculado)}</td>
                       <td className="px-3 py-2">{formatQuantity(product, v.ventas, { compact: true })}</td>
+                      <td className="px-3 py-2 font-bold text-emerald-700">+{formatQuantity(product, v.transferenciaPositiva, { compact: true })}</td>
+                      <td className="px-3 py-2 font-bold text-red-700">-{formatQuantity(product, v.transferenciaNegativa, { compact: true })}</td>
                       <td className={`px-3 py-2 font-black ${statusForDifference(v.diferencia) === "ok" ? "text-emerald-700" : "text-red-700"}`}>
                         {formatQuantity(product, v.diferencia, { compact: true })}
                       </td>
@@ -496,7 +555,7 @@ export default function AuditoriaStockPage() {
             </section>
 
             <section className="overflow-x-auto rounded-lg bg-white shadow">
-              <table className="w-full min-w-[980px] text-left text-sm">
+              <table className="w-full min-w-[1240px] text-left text-sm">
                 <thead className="bg-slate-900 text-white">
                   <tr>
                     <th className="px-3 py-3">Estado</th>
@@ -507,12 +566,14 @@ export default function AuditoriaStockPage() {
                     <th className="px-3 py-3">Entradas</th>
                     <th className="px-3 py-3">Salidas</th>
                     <th className="px-3 py-3">Ventas</th>
+                    <th className="px-3 py-3">Transferencia positiva</th>
+                    <th className="px-3 py-3">Transferencia negativa</th>
                   </tr>
                 </thead>
                 <tbody>
                   {auditoria.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-3 py-8 text-center text-slate-500">No se encontraron productos.</td>
+                      <td colSpan={10} className="px-3 py-8 text-center text-slate-500">No se encontraron productos.</td>
                     </tr>
                   ) : auditoria.map((p) => {
                     const status = statusForDifference(p.diferencia);
@@ -540,10 +601,12 @@ export default function AuditoriaStockPage() {
                           <td className="px-3 py-3">{formatQuantity(p, p.ingresos, { compact: true })}</td>
                           <td className="px-3 py-3">{formatQuantity(p, p.salidas, { compact: true })}</td>
                           <td className="px-3 py-3">{formatQuantity(p, p.ventas, { compact: true })}</td>
+                          <td className="px-3 py-3 font-bold text-emerald-700">+{formatQuantity(p, p.transferenciaPositiva, { compact: true })}</td>
+                          <td className="px-3 py-3 font-bold text-red-700">-{formatQuantity(p, p.transferenciaNegativa, { compact: true })}</td>
                         </tr>
                         {isExpanded && (
                           <tr>
-                            <td colSpan={8} className="bg-white px-3 py-4">
+                            <td colSpan={10} className="bg-white px-3 py-4">
                               {renderAuditDetails(selectedAudit)}
                             </td>
                           </tr>

@@ -125,6 +125,7 @@ function isMissingSchemaError(error, fields = []) {
 export default function TransferenciaSucursalPage() {
   const { activeSucursalId, activeSucursal, sucursales, loading: sucursalesLoading } = useSucursalActiva();
   const scanRef = useRef(null);
+  const transferRequestRef = useRef({ fingerprint: "", key: "" });
 
   const [productos, setProductos] = useState([]);
   const [variantesByProducto, setVariantesByProducto] = useState({});
@@ -374,6 +375,12 @@ export default function TransferenciaSucursalPage() {
       showToast("Cantidad invalida o stock insuficiente", "error");
       return;
     }
+    const activeVariants = variantesByProducto[String(selectedItem.productId)] || [];
+    const effectiveVariantId = selectedItem.variantId || (activeVariants.length === 1 ? activeVariants[0].id : null);
+    if (activeVariants.length > 0 && !effectiveVariantId) {
+      showToast("Selecciona obligatoriamente el color/variante antes de transferir", "error");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -382,7 +389,7 @@ export default function TransferenciaSucursalPage() {
 
       const rpcPayload = {
         p_producto_origen_id: Number(selectedItem.productId),
-        p_variante_origen_id: selectedItem.variantId ? Number(selectedItem.variantId) : null,
+        p_variante_origen_id: effectiveVariantId ? Number(effectiveVariantId) : null,
         p_sucursal_origen_id: activeSucursalId,
         p_sucursal_destino_id: effectiveDestinoId,
         p_cantidad: Number(cantidad),
@@ -392,6 +399,10 @@ export default function TransferenciaSucursalPage() {
         p_usuario_email: user?.email || "",
         p_observaciones: motivo || null,
       };
+      const requestFingerprint = JSON.stringify(rpcPayload);
+      if (transferRequestRef.current.fingerprint !== requestFingerprint) {
+        transferRequestRef.current = { fingerprint: requestFingerprint, key: crypto.randomUUID() };
+      }
 
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
@@ -399,6 +410,7 @@ export default function TransferenciaSucursalPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Idempotency-Key": transferRequestRef.current.key,
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(rpcPayload),
@@ -417,6 +429,7 @@ export default function TransferenciaSucursalPage() {
       }
 
       showToast("Transferencia registrada y stock actualizado");
+      transferRequestRef.current = { fingerprint: "", key: "" };
       setCantidad("");
       setMotivo("");
       setSelectedItem(null);
