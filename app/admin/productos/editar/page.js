@@ -14,6 +14,34 @@ import { sincronizarStockProducto, validarProducto } from "@/lib/utils";
 import { getProductViewMeta, normalizeProductView } from "@/lib/productViews";
 import { productMatchesSearch } from "@/lib/searchMatching";
 import { useSucursalActiva } from "@/components/admin/SucursalContext";
+import { optimizeImageForUpload } from "@/lib/imageUploadOptimization";
+import { v4 as uuidv4 } from "uuid";
+
+const uploadProductImages = async (files) => {
+  const uploadedImages = [];
+
+  for (const file of files) {
+    const { file: preparedFile } = await optimizeImageForUpload(file, {
+      maxDimension: 2600,
+      targetMaxBytes: 2.8 * 1024 * 1024,
+      hardMaxBytes: 4.2 * 1024 * 1024,
+      preferredQuality: 0.98,
+      minQuality: 0.9,
+    });
+    const extension = preparedFile.name.split(".").pop() || "jpg";
+    const filePath = `public/${uuidv4()}.${extension}`;
+    const { error: uploadError } = await supabase.storage
+      .from("product_images")
+      .upload(filePath, preparedFile, { cacheControl: "3600", upsert: false });
+    if (uploadError) throw new Error(`No se pudo subir la imagen: ${uploadError.message}`);
+
+    const { data } = supabase.storage.from("product_images").getPublicUrl(filePath);
+    if (!data?.publicUrl) throw new Error("No se pudo obtener la URL de la imagen subida");
+    uploadedImages.push({ imagen_url: data.publicUrl });
+  }
+
+  return uploadedImages;
+};
 
 export default function EditarCatalogo() {
     const { activeSucursalId } = useSucursalActiva();
@@ -313,7 +341,16 @@ export default function EditarCatalogo() {
 
       // Variantes e imágenes editadas
       const nuevasVariantes = cambios.variantes !== undefined ? cambios.variantes : variantes[prodId] || [];
-      const nuevasImagenes = cambios.imagenes !== undefined ? cambios.imagenes : imagenes[prodId] || [];
+      let nuevasImagenes = cambios.imagenes !== undefined ? cambios.imagenes : imagenes[prodId] || [];
+
+      const archivosNuevos = nuevasImagenes.filter((image) => image instanceof File);
+      if (archivosNuevos.length > 0) {
+        const imagenesSubidas = await uploadProductImages(archivosNuevos);
+        let uploadedIndex = 0;
+        nuevasImagenes = nuevasImagenes.map((image) =>
+          image instanceof File ? imagenesSubidas[uploadedIndex++] : image
+        );
+      }
 
       const erroresApi = validarProducto({
         nombre: cambios.nombre ?? productoActual?.nombre,

@@ -11,6 +11,11 @@ export default function ImageManager({
   handleReplaceImage,
   handleReorderImages,
 }) {
+  const getImageSource = (image) => {
+    if (typeof File !== "undefined" && image instanceof File) return URL.createObjectURL(image);
+    return image?.imagen_url || "";
+  };
+
   const onDragStart = (event, index) => {
     event.dataTransfer.setData("text/plain", String(index));
   };
@@ -35,8 +40,8 @@ export default function ImageManager({
             className="relative border rounded-lg overflow-hidden"
           >
             <img
-              src={getOptimizedImageUrl(imgObj.imagen_url, 420)}
-              srcSet={buildImageSrcSet(imgObj.imagen_url, [210, 420, 840], { quality: 95, format: "origin" })}
+              src={imgObj instanceof File ? getImageSource(imgObj) : getOptimizedImageUrl(imgObj.imagen_url, 420)}
+              srcSet={imgObj instanceof File ? undefined : buildImageSrcSet(imgObj.imagen_url, [210, 420, 840], { quality: 95, format: "origin" })}
               sizes="(max-width: 768px) 33vw, 210px"
               loading="lazy"
               decoding="async"

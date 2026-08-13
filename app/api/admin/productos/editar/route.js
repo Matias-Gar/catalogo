@@ -168,6 +168,7 @@ export async function POST(request) {
       }
     }
 
+    let stockTotal = updatePayload.stock;
     if (hasVariantsAfterSave) {
       let savedVariantsQuery = supabaseAdmin
         .from("producto_variantes")
@@ -176,7 +177,7 @@ export async function POST(request) {
       if (activeSucursalId) savedVariantsQuery = savedVariantsQuery.eq("sucursal_id", activeSucursalId);
       const { data: savedVariants, error: savedVariantsError } = await savedVariantsQuery;
       if (savedVariantsError) throw savedVariantsError;
-      const stockTotal = (savedVariants || []).reduce((sum, variant) => sum + getEffectiveVariantStock(variant), 0);
+      stockTotal = (savedVariants || []).reduce((sum, variant) => sum + getEffectiveVariantStock(variant), 0);
       let resyncQuery = supabaseAdmin
         .from("productos")
         .update({ stock: stockTotal })
