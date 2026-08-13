@@ -1549,6 +1549,7 @@ export default function AdminProductosPage() {
         duplicateQuery = duplicateQuery.eq('pais_id', scopePaisId).eq('sucursal_id', scopeSucursalId);
         const { data: productosConNombre, error: errorNombre } = await duplicateQuery;
         if (!errorNombre && productosConNombre && productosConNombre.length > 0) {
+            setMessage('Error: Ya existe un producto con ese nombre en esta sucursal.');
             setShowNameRepeatModal(true);
             setLoading(false);
             return;
@@ -1619,6 +1620,7 @@ export default function AdminProductosPage() {
             const result = await response.json().catch(() => null);
             if (!response.ok || !result?.success) {
                 if (result?.duplicateName) {
+                    setMessage(result?.error || 'Error: Ya existe un producto con ese nombre en esta sucursal.');
                     setShowNameRepeatModal(true);
                     return;
                 }
@@ -2085,6 +2087,33 @@ export default function AdminProductosPage() {
     // Retorno del JSX del componente
     return (
         <div className="p-4 sm:p-6 md:p-10 bg-gray-100 min-h-screen">
+            {showNameRepeatModal && (
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-4">
+                    <div
+                        role="alertdialog"
+                        aria-modal="true"
+                        aria-labelledby="duplicate-product-title"
+                        className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"
+                    >
+                        <h2 id="duplicate-product-title" className="text-xl font-bold text-red-700">
+                            Producto repetido
+                        </h2>
+                        <p className="mt-3 text-gray-700">
+                            Ya existe un producto llamado <strong>{newProduct.nombre.trim()}</strong> en esta sucursal. Usa otro nombre o edita el producto existente.
+                        </p>
+                        <div className="mt-6 flex justify-end">
+                            <button
+                                type="button"
+                                autoFocus
+                                onClick={() => setShowNameRepeatModal(false)}
+                                className="rounded-lg bg-indigo-600 px-5 py-2 font-semibold text-white hover:bg-indigo-700"
+                            >
+                                Entendido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <h1 className="text-3xl font-extrabold mb-8 text-indigo-700">{currentViewMeta.adminTitle}</h1>
             
             {/* Seccion de Mensajes (exito/Error) */} 
