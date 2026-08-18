@@ -93,18 +93,28 @@ export default function AdminCategorias() {
 
   async function handleEliminar(id) {
     if (!confirm("¿Eliminar esta categoría?")) return;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const response = await fetch("/api/admin/categorias", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionData?.session?.access_token || ""}`,
+      },
+      body: JSON.stringify({
+        categoryId: id,
+        paisId: activePaisId,
+        sucursalId: effectiveSucursalId,
+      }),
+    });
+    const result = await response.json().catch(() => null);
 
-    let query = supabase.from("categorias").delete().eq("id", id);
-    if (activePaisId) query = query.eq("pais_id", activePaisId);
-    if (effectiveSucursalId) query = query.eq("sucursal_id", effectiveSucursalId);
-    const { error } = await query;
-
-    if (error) {
-      showToast("Error al eliminar la categoría", "error");
-    } else {
-      fetchCategorias();
-      showToast("Categoría eliminada");
+    if (!response.ok || !result?.success) {
+      showToast(result?.error || "Error al eliminar la categoría", "error");
+      return;
     }
+
+    fetchCategorias();
+    showToast("Categoría eliminada");
   }
 
   async function handleGuardarEdit(id) {
@@ -210,7 +220,7 @@ export default function AdminCategorias() {
               <div className="col-span-full text-center text-gray-500 p-8 bg-white rounded shadow">No hay categorías. Añade la primera categoría para organizar tu catálogo.</div>
             ) : (
               categorias.map((cat) => {
-                const count = productos.filter(p => p.categoria === cat.categori).length;
+                const count = productos.filter(p => Number(p.category_id) === Number(cat.id)).length;
                 return (
                   <div key={cat.id} className="bg-white rounded-lg shadow p-4 flex flex-col justify-between">
                     <div>

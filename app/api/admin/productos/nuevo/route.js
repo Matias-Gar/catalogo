@@ -120,6 +120,7 @@ export async function POST(request) {
       .ilike("nombre", String(product.nombre).trim())
       .eq("pais_id", paisId)
       .eq("sucursal_id", sucursalId)
+      .eq("archivado", false)
       .limit(1);
 
     if (duplicateQuery.error) throw duplicateQuery.error;

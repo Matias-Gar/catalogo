@@ -1545,7 +1545,8 @@ export default function AdminProductosPage() {
         let duplicateQuery = supabase
             .from("productos")
             .select("user_id")
-            .ilike("nombre", newProduct.nombre.trim());
+            .ilike("nombre", newProduct.nombre.trim())
+            .eq("archivado", false);
         duplicateQuery = duplicateQuery.eq('pais_id', scopePaisId).eq('sucursal_id', scopeSucursalId);
         const { data: productosConNombre, error: errorNombre } = await duplicateQuery;
         if (!errorNombre && productosConNombre && productosConNombre.length > 0) {
