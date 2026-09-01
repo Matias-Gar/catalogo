@@ -107,6 +107,10 @@ export default function CatalogoPage() {
             const [cart, setCart] = useState([]);
             const pendingOrderRequestKeyRef = useRef(null);
         const [usuario, setUsuario] = useState(null);
+    useEffect(() => {
+        const categoryFromUrl = new URLSearchParams(window.location.search).get('categoria') || '';
+        setCategoriaSeleccionada(categoryFromUrl);
+    }, [pathname]);
     const getAvailableUnits = (producto, stockBaseInput = null) => {
         const unidadBase = String(producto?.unidad_base || 'unidad').trim() || 'unidad';
         const alternativas = Array.isArray(producto?.unidades_alternativas)
@@ -356,7 +360,23 @@ export default function CatalogoPage() {
             .from('v_productos_catalogo')
             .select('producto_id, nombre, descripcion, precio_base, imagen_base, category_id, categoria, stock_total, codigo_barra, variantes');
         if (activeSucursalId) catalogQuery = catalogQuery.eq('sucursal_id', activeSucursalId);
-        const { data: productosData, error: productosError } = await catalogQuery;
+
+        let categoriasQuery = supabase
+            .from('categorias')
+            .select('*');
+        if (activeSucursalId) categoriasQuery = categoriasQuery.eq('sucursal_id', activeSucursalId);
+
+        let imagenesQuery = supabase
+            .from('producto_imagenes')
+            .select('producto_id, imagen_url');
+        if (activeSucursalId) imagenesQuery = imagenesQuery.eq('sucursal_id', activeSucursalId);
+
+        // Estas consultas son independientes: ejecutarlas juntas reduce varias esperas de red a una sola.
+        const [
+            { data: productosData, error: productosError },
+            { data: categoriasData, error: categoriasError },
+            { data: imagenesData, error: imagenesError },
+        ] = await Promise.all([catalogQuery, categoriasQuery, imagenesQuery]);
         if (productosError || !productosData) {
             setProductos([]);
             setImagenesProductos({});
@@ -396,22 +416,10 @@ export default function CatalogoPage() {
             .filter((p) => normalizeProductView(p.vista_producto) === currentPublicView));
         setProductos(normalizedProducts);
 
-        // Traer categorías
-        let categoriasQuery = supabase
-            .from('categorias')
-            .select('*');
-        if (activeSucursalId) categoriasQuery = categoriasQuery.eq('sucursal_id', activeSucursalId);
-        const { data: categoriasData, error: categoriasError } = await categoriasQuery;
         if (!categoriasError && categoriasData) {
             setCategorias(categoriasData);
         }
 
-        // Traer imágenes asociadas
-        let imagenesQuery = supabase
-            .from('producto_imagenes')
-            .select('producto_id, imagen_url');
-        if (activeSucursalId) imagenesQuery = imagenesQuery.eq('sucursal_id', activeSucursalId);
-        const { data: imagenesData, error: imagenesError } = await imagenesQuery;
         if (imagenesError || !imagenesData) {
             setImagenesProductos({});
             return;
@@ -441,7 +449,7 @@ export default function CatalogoPage() {
         return () => {
             document.removeEventListener('visibilitychange', handleVisibility);
         };
-    }, [activeSucursalId, sucursalesLoading]);
+    }, [activeSucursalId, sucursalesLoading, currentPublicView]);
 
     // Obtener usuario y perfil
     useEffect(() => {
@@ -496,22 +504,6 @@ export default function CatalogoPage() {
             mounted = false;
         };
     }, [activePais?.direccion, activePais?.id, activePais?.slug, activePais?.whatsapp]);
-
-    // --- Recarga productos e imágenes al volver a la pestaña ---
-    useEffect(() => {
-        const handleVisibility = () => {
-            if (document.visibilityState === 'visible') {
-                // Re-ejecutar el fetch de productos e imágenes
-                if (typeof fetchProductosYCategoriasYImagenes === 'function') {
-                    fetchProductosYCategoriasYImagenes();
-                }
-            }
-        };
-        document.addEventListener('visibilitychange', handleVisibility);
-        return () => {
-            document.removeEventListener('visibilitychange', handleVisibility);
-        };
-    }, []);
 
     // Auto-llenar datos del cliente cuando el usuario esté logueado
     useEffect(() => {
@@ -1342,11 +1334,11 @@ export default function CatalogoPage() {
                                         {Array.isArray(imagenes) && imagenes.length > 0 && typeof imagenes[0] === 'string' ? (
                                             <div className={`w-full ${agotado ? 'h-24 sm:h-32 mb-1' : 'h-28 sm:h-36 mb-1.5'} overflow-hidden rounded-lg relative group cursor-pointer`}>
                                                 <Image
-                                                    src={getOptimizedImageUrl(imagenes[0], 900, { quality: 96, format: 'origin' })}
+                                                    src={getOptimizedImageUrl(imagenes[0], 480, { quality: 78, format: 'webp' })}
                                                     alt={producto.nombre}
                                                     width={300}
                                                     height={200}
-                                                    quality={96}
+                                                    quality={78}
                                                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                                                     className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-105 ${agotado ? 'grayscale' : ''}`}
                                                     onClick={() => setModalImg({ urls: imagenes, index: 0, nombre: producto.nombre })}

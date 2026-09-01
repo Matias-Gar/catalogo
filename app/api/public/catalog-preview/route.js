@@ -40,5 +40,8 @@ export async function GET(request) {
     category.imageUrl ||= product.imagen_url || galleryByProduct[String(product.user_id)] || null;
   }
   Object.values(previews).forEach((preview) => preview.categories.sort((a, b) => a.name.localeCompare(b.name, "es")));
-  return NextResponse.json({ success: true, previews });
+  return NextResponse.json(
+    { success: true, previews },
+    { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } }
+  );
 }

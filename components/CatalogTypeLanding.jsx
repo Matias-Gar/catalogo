@@ -7,6 +7,7 @@ import { ArrowRight, Boxes, Headphones, ImageIcon, Package, ShieldCheck, Shoppin
 import { useProductViews } from "@/hooks/useProductViews";
 import { buildCountryPath, getCountrySlugFromPath } from "@/lib/countryRoutes";
 import { getProductViewPublicPath } from "@/lib/productViews";
+import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 import { usePublicSucursal } from "@/components/PublicSucursalSelector";
 
 const CARD_STYLES = [
@@ -33,7 +34,7 @@ export default function CatalogTypeLanding() {
   useEffect(() => {
     if (!activeSucursalId) return;
     let mounted = true;
-    fetch(`/api/public/catalog-preview?sucursalId=${encodeURIComponent(activeSucursalId)}`, { cache: "no-store" })
+    fetch(`/api/public/catalog-preview?sucursalId=${encodeURIComponent(activeSucursalId)}`)
       .then((response) => response.json())
       .then((result) => { if (mounted && result?.success) setPreviews(result.previews || {}); })
       .catch(() => { if (mounted) setPreviews({}); });
@@ -53,8 +54,9 @@ export default function CatalogTypeLanding() {
             {productViews.map((view, index) => {
               const style = CARD_STYLES[index % CARD_STYLES.length];
               const preview = previews[view.value] || { count: 0, categories: [] };
+              const productsPath = buildCountryPath(countrySlug, getProductViewPublicPath(view.value, true));
               return (
-                <Link key={view.value} href={buildCountryPath(countrySlug, getProductViewPublicPath(view.value))}
+                <article key={view.value}
                   className="group flex min-h-[255px] flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-2xl"
                   style={{ border: `1px solid ${style.border}` }}>
                   <div className="flex items-start gap-4">
@@ -68,22 +70,22 @@ export default function CatalogTypeLanding() {
 
                   <div className="mt-4 flex min-h-[76px] gap-2.5 overflow-x-auto pb-2">
                     {preview.categories.length ? preview.categories.map((category) => (
-                      <div key={category.id} className="w-[58px] shrink-0 text-center">
+                      <Link key={category.id} href={`${productsPath}?categoria=${encodeURIComponent(category.id)}`} className="w-[58px] shrink-0 text-center focus:outline-none" aria-label={`Ver ${category.name}`}>
                         <div className="mx-auto flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 shadow-sm">
-                          {category.imageUrl ? <img src={category.imageUrl} alt={category.name} loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" /> : <ImageIcon className="h-5 w-5 text-slate-300" />}
+                          {category.imageUrl ? <img src={getOptimizedImageUrl(category.imageUrl, 128, { quality: 72, format: "webp" })} alt={category.name} loading="lazy" decoding="async" width="48" height="48" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" /> : <ImageIcon className="h-5 w-5 text-slate-300" />}
                         </div>
                         <p className="mt-1 truncate text-[10px] font-bold text-slate-700" title={category.name}>{category.name}</p>
-                      </div>
+                      </Link>
                     )) : <div className="flex w-full items-center justify-center rounded-2xl border border-dashed border-slate-200 text-xs font-semibold text-slate-400" style={{ background: style.soft }}>Próximamente nuevas categorías</div>}
                   </div>
 
                   <div className="mt-auto border-t border-slate-200 pt-3">
-                    <div className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold text-white" style={{ background: style.accent }}>
+                    <Link href={productsPath} className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold text-white" style={{ background: style.accent }}>
                       <span>Ver productos de {view.label.toLowerCase()}</span>
                       <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white" style={{ color: style.accent }}><ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" /></span>
-                    </div>
+                    </Link>
                   </div>
-                </Link>
+                </article>
               );
             })}
           </div>
