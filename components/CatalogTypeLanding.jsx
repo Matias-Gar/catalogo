@@ -54,6 +54,7 @@ export default function CatalogTypeLanding() {
             {productViews.map((view, index) => {
               const style = CARD_STYLES[index % CARD_STYLES.length];
               const preview = previews[view.value] || { count: 0, categories: [] };
+              const viewPath = buildCountryPath(countrySlug, getProductViewPublicPath(view.value));
               const productsPath = buildCountryPath(countrySlug, getProductViewPublicPath(view.value, true));
               return (
                 <article key={view.value}
@@ -80,7 +81,7 @@ export default function CatalogTypeLanding() {
                   </div>
 
                   <div className="mt-auto border-t border-slate-200 pt-3">
-                    <Link href={productsPath} className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold text-white" style={{ background: style.accent }}>
+                    <Link href={viewPath} className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold text-white" style={{ background: style.accent }}>
                       <span>Ver productos de {view.label.toLowerCase()}</span>
                       <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white" style={{ color: style.accent }}><ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" /></span>
                     </Link>
