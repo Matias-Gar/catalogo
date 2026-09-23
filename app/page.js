@@ -511,7 +511,7 @@ function CatalogHome() {
     const match = Number(p.category_id) === Number(filtroCategoria);
     // console.log('🔍 Filtro categoria PRINCIPAL:', { producto: p.nombre, categoria_producto: p.category_id, categoria_seleccionada: filtroCategoria, match });
     return match;
-  }).sort((a, b) => Number(getProductStockInfo(a).agotado) - Number(getProductStockInfo(b).agotado));
+  }).sort((a, b) => Number(getStockBreakdown(a).agotado) - Number(getStockBreakdown(b).agotado));
 
   const categoriasVisibles = categorias.filter((cat) =>
     productos.some((p) => Number(p.category_id) === Number(cat.id))
