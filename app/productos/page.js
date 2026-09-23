@@ -1301,7 +1301,7 @@ export default function CatalogoPage() {
                             if (!matchesBusqueda) return false;
                             if (!categoriaSeleccionada) return true;
                             return Number(producto.category_id) === Number(categoriaSeleccionada);
-                        });
+                        }).sort((a, b) => Number(isProductoAgotado(a)) - Number(isProductoAgotado(b)));
                         
                         // ...existing code...
                         
