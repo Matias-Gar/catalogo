@@ -2,6 +2,9 @@
 
 // --- IMPORTS Y HOOKS NECESARIOS ---
 import React, { useState, useEffect, useRef } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { getBrowserItem, setBrowserItem, removeBrowserItem } from "@/lib/browserStorage";
+import { getCarritoToken } from "@/lib/carritoToken";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { usePromociones } from "@/lib/usePromociones";
@@ -525,9 +528,9 @@ export default function CatalogoPage() {
 
     // 2. Cargar carrito desde localStorage al inicio
     useEffect(() => {
-        const stored = localStorage.getItem(cartStorageKey);
+        const stored = getBrowserItem(cartStorageKey);
         const legacyInsumosKey = `carrito_temporal_insumos_${activeSucursalId || 'global'}`;
-        const legacyInsumos = localStorage.getItem(legacyInsumosKey);
+        const legacyInsumos = getBrowserItem(legacyInsumosKey);
         const parseCart = (value) => {
             try {
                 const parsed = value ? JSON.parse(value) : [];
@@ -544,12 +547,12 @@ export default function CatalogoPage() {
             return acc;
         }, []);
         setCart(merged);
-        if (legacyInsumosKey !== cartStorageKey) localStorage.removeItem(legacyInsumosKey);
+        if (legacyInsumosKey !== cartStorageKey) removeBrowserItem(legacyInsumosKey);
     }, [cartStorageKey, activeSucursalId]);
 
     // 3. Guardar carrito en localStorage cada vez que cambia
     useEffect(() => {
-        localStorage.setItem(cartStorageKey, JSON.stringify(cart));
+        setBrowserItem(cartStorageKey, JSON.stringify(cart));
     }, [cart, cartStorageKey]);
 
     // --- Funciones del Carrito ---
@@ -893,15 +896,10 @@ export default function CatalogoPage() {
             alert("Esta sucursal no tiene WhatsApp configurado. Revisa el telefono de la sucursal o el WhatsApp del pais.");
             return;
         }
-        pendingOrderRequestKeyRef.current ||= crypto.randomUUID();
+        pendingOrderRequestKeyRef.current ||= uuidv4();
 
         // Importar el token anónimo
-        let carritoToken = null;
-        if (typeof window !== 'undefined') {
-            try {
-                carritoToken = localStorage.getItem('carrito_token');
-            } catch {}
-        }
+        const carritoToken = getCarritoToken();
 
         // Insertar y obtener el número de pedido (id)
         if (!activePais?.id || !activeSucursalId) {
@@ -997,7 +995,7 @@ export default function CatalogoPage() {
         setShowConfirmOrder(false);
         setCart([]);
         setCustomerData({ nombre: '', nit_ci: '' });
-        localStorage.removeItem(cartStorageKey);
+        removeBrowserItem(cartStorageKey);
         
         // Mensaje de éxito
         alert("¡Pedido enviado exitosamente! Se ha abierto WhatsApp para completar tu pedido.");

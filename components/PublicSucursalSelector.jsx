@@ -6,12 +6,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { buildCountryPath, getCountrySlugFromPath, getSavedPublicCountrySlug, hasCountrySlugInPath, savePublicCountrySlug, stripCountryFromPath } from "../lib/countryRoutes";
 import { getProductViewPublicPath } from "../lib/productViews";
 import { useProductViews } from "../hooks/useProductViews";
+import { getBrowserItem, setBrowserItem } from "../lib/browserStorage";
 
 const STORAGE_KEY = "streetwear.public_sucursal_id";
 
 function getSavedSucursalId(countrySlug = "bo") {
   if (typeof window === "undefined") return "";
-  return window.localStorage.getItem(`${STORAGE_KEY}_${countrySlug}`) || "";
+  return getBrowserItem(`${STORAGE_KEY}_${countrySlug}`) || "";
 }
 
 export function usePublicSucursal() {
@@ -33,7 +34,7 @@ export function usePublicSucursal() {
     setActiveSucursalIdState(id);
     if (typeof window !== "undefined") {
       savePublicCountrySlug(activeCountrySlug);
-      window.localStorage.setItem(`${STORAGE_KEY}_${activeCountrySlug}`, id);
+      setBrowserItem(`${STORAGE_KEY}_${activeCountrySlug}`, id);
       window.dispatchEvent(new CustomEvent("public-sucursal:changed", { detail: { sucursalId: id, countrySlug: activeCountrySlug } }));
     }
   }, [activeCountrySlug]);
