@@ -7,7 +7,7 @@ import { ArrowRight, Boxes, Headphones, ImageIcon, Package, ShieldCheck, Shoppin
 import { useProductViews } from "@/hooks/useProductViews";
 import { buildCountryPath, getCountrySlugFromPath } from "@/lib/countryRoutes";
 import { getProductViewPublicPath } from "@/lib/productViews";
-import { getOptimizedImageUrl } from "@/lib/imageOptimization";
+import CatalogImage from "@/components/CatalogImage";
 import { usePublicSucursal } from "@/components/PublicSucursalSelector";
 
 const CARD_STYLES = [
@@ -73,7 +73,7 @@ export default function CatalogTypeLanding() {
                     {preview.categories.length ? preview.categories.map((category) => (
                       <Link key={category.id} href={`${productsPath}?categoria=${encodeURIComponent(category.id)}`} className="w-[58px] shrink-0 text-center focus:outline-none" aria-label={`Ver ${category.name}`}>
                         <div className="mx-auto flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 shadow-sm">
-                          {category.imageUrl ? <img src={getOptimizedImageUrl(category.imageUrl, 128, { quality: 72, format: "webp" })} alt={category.name} loading="lazy" decoding="async" width="48" height="48" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" /> : <ImageIcon className="h-5 w-5 text-slate-300" />}
+                          {category.imageUrl ? <CatalogImage sources={[category.imageUrl]} alt={category.name} loading="lazy" decoding="async" sizes="48px" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" /> : <ImageIcon className="h-5 w-5 text-slate-300" />}
                         </div>
                         <p className="mt-1 truncate text-[10px] font-bold text-slate-700" title={category.name}>{category.name}</p>
                       </Link>

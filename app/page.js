@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '../lib/SupabaseClient';
 import { PrecioConPromocion, calcularPrecioConPromocion, PromoCompactBanner } from '../lib/promociones';
@@ -14,6 +14,8 @@ import { productMatchesSearch } from '../lib/searchMatching';
 import PublicSucursalSelector, { usePublicSucursal } from '../components/PublicSucursalSelector';
 import { buildCountryPath, stripCountryFromPath } from '../lib/countryRoutes';
 import CatalogTypeLanding from '../components/CatalogTypeLanding';
+import CatalogImage from '../components/CatalogImage';
+import { runCatalogQuery } from '../lib/catalogRequest';
 
 // Componente principal de la página (Tienda)
 // Utilidad para obtener nombre de categoría por id
@@ -316,6 +318,7 @@ function CatalogHome() {
   const [busqueda, setBusqueda] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const catalogRequestId = useRef(0);
   
   // Usar el hook para promociones
   const { promociones } = usePromociones(activeSucursalId);
@@ -339,6 +342,7 @@ function CatalogHome() {
   };
 
   const fetchProductos = async () => {
+    const requestId = ++catalogRequestId.current;
     if (sucursalesLoading) return;
     if (!activeSucursalId) {
       setProductos([]);
@@ -353,7 +357,8 @@ function CatalogHome() {
         .from('v_productos_catalogo')
         .select('producto_id, nombre, descripcion, precio_base, imagen_base, category_id, categoria, stock_total, codigo_barra, variantes');
       if (activeSucursalId) catalogQuery = catalogQuery.eq('sucursal_id', activeSucursalId);
-      const { data, error } = await catalogQuery;
+      const { data, error } = await runCatalogQuery(catalogQuery);
+      if (requestId !== catalogRequestId.current) return;
 
       if (error) {
         throw new Error(`Error al cargar productos: ${error.message}`);
@@ -399,10 +404,13 @@ function CatalogHome() {
           productDetailsQuery = productDetailsQuery.eq('sucursal_id', activeSucursalId);
           variantsQuery = variantsQuery.eq('sucursal_id', activeSucursalId);
         }
-        const [{ data: viewRows }, { data: variantRows }] = await Promise.all([
-          productDetailsQuery,
-          variantsQuery,
+        const [{ data: viewRows, error: detailsError }, { data: variantRows, error: variantsError }] = await Promise.all([
+          runCatalogQuery(productDetailsQuery),
+          runCatalogQuery(variantsQuery),
         ]);
+        if (requestId !== catalogRequestId.current) return;
+        if (detailsError) throw detailsError;
+        if (variantsError) throw variantsError;
         viewsById = Object.fromEntries(
           (Array.isArray(viewRows) ? viewRows : []).map((row) => [
             String(row.user_id),
@@ -454,6 +462,7 @@ function CatalogHome() {
       });
       const visibleProducts = dedupeCatalogProducts(filteredProducts);
       setProductos(visibleProducts);
+      setLoading(false);
       // Buscar imágenes
       const visibleIds = visibleProducts.map(p => p.user_id);
       if (visibleIds.length > 0) {
@@ -462,7 +471,9 @@ function CatalogHome() {
           .select('producto_id, imagen_url')
           .in('producto_id', visibleIds);
         if (activeSucursalId) imgsQuery = imgsQuery.eq('sucursal_id', activeSucursalId);
-        const { data: imgs, error: imgsError } = await imgsQuery;
+        const { data: imgs, error: imgsError } = await runCatalogQuery(imgsQuery);
+        if (requestId !== catalogRequestId.current) return;
+        if (imgsError) throw imgsError;
         if (!imgsError && imgs) {
           const agrupadas = {};
           imgs.forEach(img => {
@@ -475,9 +486,9 @@ function CatalogHome() {
         setImagenesProductos({});
       }
     } catch (e) {
-      setError(`Error al cargar productos: ${e.message}. (Verifique RLS y nombre de tabla)`);
+      if (requestId === catalogRequestId.current) setError(e.message || 'No se pudo completar la carga del catálogo. Inténtalo de nuevo.');
     } finally {
-      setLoading(false);
+      if (requestId === catalogRequestId.current) setLoading(false);
     }
   };
 
@@ -497,6 +508,7 @@ function CatalogHome() {
         )
         .subscribe();
       return () => {
+        catalogRequestId.current += 1;
         supabase.removeChannel(channel);
       };
     }
@@ -804,13 +816,13 @@ function CatalogHome() {
         )}
         {error && (
           <div className="text-center p-6 bg-red-50 border border-red-200 text-red-800 rounded-lg mt-10 max-w-2xl mx-auto">
-            <p className="font-bold text-lg mb-2">Error de Conexión o Datos:</p>
+            <p className="font-bold text-lg mb-2">No se pudo completar la carga</p>
             <p className="text-sm mb-2">{error}</p>
-            <p className="text-xs">Asegúrate de que las claves de Supabase y las políticas RLS permitan la lectura.</p>
+            <button type="button" onClick={fetchProductos} disabled={loading} className="mt-2 rounded-lg bg-indigo-600 px-4 py-2 font-bold text-white disabled:opacity-50">Reintentar</button>
           </div>
         )}
         {/* Contenedor de Productos */}
-        {!loading && productosFiltrados.length === 0 && (
+        {!loading && !error && productosFiltrados.length === 0 && (
           <div className="text-center mt-10 p-8 bg-gray-50 rounded-lg">
             <p className="text-xl font-medium text-gray-800 mb-2">
               No se encontraron productos
@@ -822,7 +834,7 @@ function CatalogHome() {
         )}
         {/* Grid de productos */}
   <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
-          {productosFiltrados.map((p) => {
+          {productosFiltrados.map((p, productIndex) => {
             const stockInfo = getStockBreakdown(p);
             const agotado = stockInfo.agotado;
             const conversionInfo = !agotado ? getConversionPriceInfo(p, promociones) : null;
@@ -842,11 +854,10 @@ function CatalogHome() {
                 <div className={`w-full ${agotado ? 'h-28 sm:h-44 mb-1' : 'h-32 sm:h-48 mb-1.5'} flex items-center justify-center cursor-pointer relative group`}>
                   {galeria.length > 0 ? (
                     <>
-                      <img
-                        src={getOptimizedImageUrl(galeria[0], 800, { quality: 96, format: 'origin' })}
-                        srcSet={buildImageSrcSet(galeria[0], [400, 800, 1200], { quality: 96, format: 'origin' })}
+                      <CatalogImage
+                        sources={galeria}
                         sizes="(max-width: 640px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                        loading="lazy"
+                        loading={productIndex < 4 ? 'eager' : 'lazy'}
                         decoding="async"
                         alt={p.nombre}
                         className={`w-full h-full object-contain rounded-lg bg-gray-50 group-hover:opacity-80 transition ${agotado ? 'grayscale' : ''}`}

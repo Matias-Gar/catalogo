@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { getBrowserItem, setBrowserItem, removeBrowserItem } from "@/lib/browserStorage";
 import { getCarritoToken } from "@/lib/carritoToken";
+import CatalogImage from "@/components/CatalogImage";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { usePromociones } from "@/lib/usePromociones";
@@ -1331,16 +1332,12 @@ export default function CatalogoPage() {
                                     <div className="relative">
                                         {Array.isArray(imagenes) && imagenes.length > 0 && typeof imagenes[0] === 'string' ? (
                                             <div className={`w-full ${agotado ? 'h-24 sm:h-32 mb-1' : 'h-28 sm:h-36 mb-1.5'} overflow-hidden rounded-lg relative group cursor-pointer`}>
-                                                <Image
-                                                    src={getOptimizedImageUrl(imagenes[0], 480, { quality: 78, format: 'webp' })}
+                                                <CatalogImage
+                                                    sources={imagenes}
                                                     alt={producto.nombre}
-                                                    width={300}
-                                                    height={200}
-                                                    quality={78}
                                                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                                                     className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-105 ${agotado ? 'grayscale' : ''}`}
                                                     onClick={() => setModalImg({ urls: imagenes, index: 0, nombre: producto.nombre })}
-                                                    onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/300x200/cccccc/333333?text=Sin+Imagen'; }}
                                                 />
                                                 {/* Miniaturas si hay más de una imagen */}
                                                 {imagenes.length > 1 && (
