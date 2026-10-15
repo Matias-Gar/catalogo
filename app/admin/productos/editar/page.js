@@ -338,6 +338,12 @@ export default function EditarCatalogo() {
         cambios.precio,
         parseDecimalInput(productoActual?.precio, 0)
       );
+      const precioCompraNormalizado = cambios.precio_compra === undefined
+        ? parseDecimalInput(productoActual?.precio_compra, 0)
+        : parseDecimalInput(cambios.precio_compra, null);
+      if (precioCompraNormalizado === null || precioCompraNormalizado < 0) {
+        throw new Error('Ingresa un precio de compra valido, mayor o igual a cero.');
+      }
 
       // Variantes e imágenes editadas
       const nuevasVariantes = cambios.variantes !== undefined ? cambios.variantes : variantes[prodId] || [];
@@ -379,6 +385,7 @@ export default function EditarCatalogo() {
           cambios: {
             ...cambios,
             precio: precioNormalizado,
+            precio_compra: precioCompraNormalizado,
           },
           variantes: nuevasVariantes,
           imagenes: nuevasImagenes,

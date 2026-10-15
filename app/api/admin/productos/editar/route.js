@@ -71,6 +71,13 @@ export async function POST(request) {
     });
     if (auth.error) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
 
+    const precioCompra = cambios.precio_compra === undefined
+      ? parseDecimalInput(productoActual.precio_compra, 0)
+      : parseDecimalInput(cambios.precio_compra, null);
+    if (precioCompra === null || precioCompra < 0) {
+      return NextResponse.json({ success: false, error: 'Ingresa un precio de compra valido, mayor o igual a cero.' }, { status: 400 });
+    }
+
     const imageUrlsAfterSave = nuevasImagenes.map(cleanImageUrl).filter(Boolean);
     const requestedPrimaryImageUrl = String(cambios.primaryImageUrl || "").trim();
     const imagenPrincipal =
@@ -111,6 +118,7 @@ export async function POST(request) {
       nombre: cambios.nombre ?? productoActual.nombre,
       descripcion: cambios.descripcion ?? productoActual.descripcion,
       precio: parseDecimalInput(cambios.precio, parseDecimalInput(productoActual.precio, 0)),
+      precio_compra: precioCompra,
       vista_producto: normalizeProductView(cambios.vista_producto ?? productoActual.vista_producto),
       category_id: cambios.category_id ? parseInt(cambios.category_id, 10) : productoActual.category_id ?? null,
       codigo_barra: productoActual.codigo_barra,

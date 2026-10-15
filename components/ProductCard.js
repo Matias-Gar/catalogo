@@ -128,7 +128,7 @@ export default function ProductCard({
         </div>
 
         <div className="flex flex-col">
-          <label className="font-semibold text-gray-700">Precio</label>
+          <label className="font-semibold text-gray-700">Precio de venta</label>
           <Input
             type="number"
             value={editData.precio ?? prod.precio}
@@ -136,6 +136,19 @@ export default function ProductCard({
               setEditDataField(productId, "precio", e.target.value)
             }
           />
+        </div>
+
+        <div className="flex flex-col">
+          <label htmlFor={`precio-compra-${productId}`} className="font-semibold text-gray-700">Precio de compra</label>
+          <Input
+            id={`precio-compra-${productId}`}
+            type="number"
+            min="0"
+            step="0.01"
+            value={editData.precio_compra ?? prod.precio_compra ?? 0}
+            onChange={(e) => setEditDataField(productId, "precio_compra", e.target.value)}
+          />
+          <span className="mt-1 text-xs text-slate-500">Costo por {prod.unidad_base || 'unidad'}. Se usa para calcular ganancias y el limite de rebaja.</span>
         </div>
 
       </div>
