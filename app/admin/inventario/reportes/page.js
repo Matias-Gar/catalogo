@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/SupabaseClient';
 import { useSucursalActiva } from '@/components/admin/SucursalContext';
@@ -96,6 +97,7 @@ function ReportContent() {
   return <div className="mx-auto max-w-7xl space-y-5 p-4 text-slate-900 sm:p-8">
     <style>{`@media print { @page { size: A4 ${orientation}; margin: 10mm; } html, body, main { overflow: visible !important; height: auto !important; } body * { visibility: hidden !important; } #inventory-report, #inventory-report * { visibility: visible !important; } #inventory-report { position: absolute; left: 0; top: 0; width: 100%; font-size: 9pt; } #inventory-report .report-scroll { overflow: visible !important; } #inventory-report table { font-size: 8pt; width: 100%; } #inventory-report th, #inventory-report td { padding: 5px; } #inventory-report tr { break-inside: avoid; } #inventory-report thead { display: table-header-group; } .report-controls { display: none !important; } }`}</style>
     <header className="report-controls"><h1 className="text-3xl font-bold">Imprimir reportes</h1><p className="mt-2 text-slate-600">Elige fechas, tipo y categoría para preparar tu reporte de inventario.</p></header>
+    <Link href="/admin/inventario/ubicaciones" className="report-controls inline-block rounded-lg border bg-white px-4 py-2 font-semibold text-emerald-800">Imprimir stock con fotos y cajas</Link>
     <section className="report-controls rounded-2xl border bg-white p-5 shadow-sm">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <label>Reporte<select className={inputClass} value={mode} onChange={e => setMode(e.target.value)}>{Object.entries(modes).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>

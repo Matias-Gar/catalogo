@@ -19,6 +19,7 @@ function normalizeExtraCosts(costosExtra) {
 
   if (!costosExtra || typeof costosExtra !== 'object') return normalized;
 
+  normalized.descuentos_productos = Array.isArray(costosExtra.descuentos_productos) ? costosExtra.descuentos_productos : [];
   normalized.envio = toNumber(costosExtra.envio);
   normalized.comision = toNumber(costosExtra.comision);
   normalized.impuestos = toNumber(costosExtra.impuestos);
@@ -105,6 +106,7 @@ export function useVentasDashboard(sucursalId = null) {
             color,
             tipo,
             descripcion,
+            variante_id,
             producto_id,
             pack_id,
             productos (
@@ -264,7 +266,12 @@ export function useVentasDashboard(sucursalId = null) {
               ? 'packs'
               : (item?.productos?.vista_producto || productInfo?.vista_producto || 'articulos');
 
+          const snapshot = (normalizeExtraCosts(venta?.costos_extra).descuentos_productos || []).find(d =>
+            String(d.producto_id) === String(item?.producto_id) &&
+            String(d.variante_id ?? '') === String(item?.variante_id ?? ''));
           items.push({
+            descuento: snapshot ? toNumber(snapshot.descuento) : 0,
+            precioOriginal: snapshot ? toNumber(snapshot.precioOriginal) : precioUnitario,
             productoId: item?.producto_id != null ? String(item.producto_id) : '',
             nombre: itemName,
             cantidad: qtyDisplay,

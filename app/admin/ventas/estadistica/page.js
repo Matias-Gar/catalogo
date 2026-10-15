@@ -65,9 +65,9 @@ export default function VentasEstadisticaPage() {
       }
 
       const descuentos = Number(v.descuentos || 0);
-      const costos = Object.values(costosExtras).reduce((a,b) => a + (Number(b) || 0), 0);
+      const costos = Number(costosExtras.impuestos) || 0;
       const gananciaBruta = ventaPrice - inversion;
-      const gananciaNeta = gananciaBruta - descuentos - costos;
+      const gananciaNeta = gananciaBruta - costos;
       const porcentajeUtilidad = inversion > 0 ? (gananciaNeta / inversion * 100) : 0;
       const items = detsThis.map(d => {
         const cantidad = Number(d.cantidad) || 0;

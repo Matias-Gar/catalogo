@@ -129,7 +129,7 @@ export default function SalesTable({ rows }) {
                                   <div>Publicidad: {money(row.publicidad)}</div>
                                   <div>Rebajas: {money(row.rebajas)}</div>
                                   <div>Impuestos: {money(row.impuestos)}</div>
-                                  <div>Descuentos promo: {money(row.descuentos)}</div>
+                                  <div>Descuentos: {money(row.descuentos)}</div>
                                 </div>
                               </div>
                               <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
@@ -183,7 +183,9 @@ export default function SalesTable({ rows }) {
                                             <div className="text-[11px] text-slate-500">Base: {Number(item.cantidadBase).toFixed(3)}</div>
                                           ) : null}
                                         </td>
-                                        <td className="px-2 py-2">{money(item.precio)}</td>
+                                        <td className="px-2 py-2">{money(item.precio)}
+                                          {item.descuento > 0 && <div className="text-xs text-rose-700">Antes: {money(item.precioOriginal)} ? Rebaja total: {money(item.descuento)}</div>}
+                                        </td>
                                         <td className="px-2 py-2">{money(item.costoUnitario)}</td>
                                         <td className="px-2 py-2">{money(item.costo)}</td>
                                         <td className="px-2 py-2">{money(item.ingreso)}</td>

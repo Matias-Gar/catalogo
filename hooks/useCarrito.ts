@@ -1,3 +1,4 @@
+import { calcularLineaVenta } from '../lib/cartPricing';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { calcularPrecioConPromocion } from '../lib/promociones';
 import { usePacks, calcularDescuentoPack } from '../lib/packs';
@@ -76,6 +77,7 @@ export interface PromocionAplicada {
 }
 
 export interface CartItem extends Producto {
+  descuento_manual?: number;
   cantidad: number;
   cantidad_base?: number;
   cantidad_display?: number;
@@ -311,8 +313,7 @@ export function useCarrito(promociones: unknown[]) {
         const pack = packs.find(p => p.id === item.pack_id);
         return acc + (pack ? pack.precio_pack * item.cantidad : 0);
       }
-      const precioInfo = calcularPrecioConPromocion(item, promociones);
-      return acc + precioInfo.precioFinal * getBaseQuantity(item);
+      return acc + calcularLineaVenta(item, promociones).total;
     }, 0);
   }, [carrito, packs, promociones]);
 
@@ -323,10 +324,9 @@ export function useCarrito(promociones: unknown[]) {
         const packDescuento = pack && pack.precio_individual ? (Number(pack.precio_individual) - pack.precio_pack) * item.cantidad : 0;
         return acc + Math.max(0, packDescuento);
       }
-      const itemDescuento = item.descuento_item || (item.precio_original ? Number(item.precio_original) - Number(item.precio) : 0);
-      return acc + (itemDescuento * getBaseQuantity(item));
+      return acc + calcularLineaVenta(item, promociones).descuento;
     }, 0);
-  }, [carrito, packs]);
+  }, [carrito, packs, promociones]);
 
   const total = Math.max(0, subtotal);
 
@@ -338,6 +338,10 @@ export function useCarrito(promociones: unknown[]) {
     quitar,
     cambiarCantidad,
     cambiarUnidadYCantidad,
+    cambiarDescuento: (itemKey: string | number, valor: number) => {
+      setCarrito(prev => prev.map(item => getItemKey(item) === String(itemKey)
+        ? { ...item, descuento_manual: Math.round(Math.min(calcularLineaVenta(item, promociones).maxManual, Math.max(0, Number.isFinite(valor) ? valor : 0)) * 100) / 100 } : item));
+    },
     subtotal,
     totalDescuento,
     total,

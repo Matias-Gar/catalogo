@@ -1,11 +1,11 @@
 "use client";
+import { calcularLineaVenta } from '../../../../lib/cartPricing';
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useCarrito } from '../../../../hooks/useCarrito';
 import { useCliente } from '../../../../hooks/useCliente';
 import { useProductos } from '../../../../hooks/useProductos';
 import { usePromociones } from '../../../../lib/usePromociones';
 import { usePacks } from '../../../../lib/packs';
-import { calcularPrecioConPromocion } from '../../../../lib/promociones';
 import ClienteForm from '../../../../components/venta/ClienteForm';
 import BuscadorProductos from '../../../../components/venta/BuscadorProductos';
 import { calcularDescuentoPack } from '../../../../lib/packs';
@@ -163,6 +163,7 @@ export default function NuevaVenta() {
     agregar,
     quitar,
     cambiarCantidad,
+    cambiarDescuento,
     cambiarUnidadYCantidad,
     subtotal,
     totalDescuento,
@@ -878,7 +879,11 @@ export default function NuevaVenta() {
         cobrar_impuestos: cobrarImpuestos,
         publicidad: Number(publicidad) || 0,
         rebajas: Number(rebajas) || 0,
-        descuento: Number(totalDescuento) || 0
+        descuento: Number(totalDescuento) || 0,
+        descuentos_productos: carrito.filter(p => p.tipo !== 'pack').map(p => ({
+          producto_id: String(p.user_id), variante_id: p.variante_id == null ? null : String(p.variante_id),
+          ...calcularLineaVenta(p, promociones)
+        }))
       };
 
       const ventaPayload = {
@@ -947,7 +952,7 @@ export default function NuevaVenta() {
           cantidad: cantidadVisible,
           cantidad_base: cantidadBase,
           unidad: unidadVenta,
-          precio_unitario: Number(p.precio ?? variante?.precio ?? productoCompleto.precio ?? 0),
+          precio_unitario: calcularLineaVenta(p, promociones).precio,
           costo_unitario: Number(productoCompleto.precio_compra || 0),
           color: variante?.color || p.color || null,
           descripcion: descripcionItem,
@@ -1009,7 +1014,7 @@ export default function NuevaVenta() {
       setEfectivizando(false);
       saleInFlightRef.current = false;
     }
-  }, [carrito, cliente, pagos, cambio, totalCobrar, subtotal, totalDescuento, packs, setCarrito, cambiarCampo, envio, comision, publicidad, rebajas, impuestosCalculados, cobrarImpuestos, activePaisId, effectiveSucursalId]);
+  }, [promociones, carrito, cliente, pagos, cambio, totalCobrar, subtotal, totalDescuento, packs, setCarrito, cambiarCampo, envio, comision, publicidad, rebajas, impuestosCalculados, cobrarImpuestos, activePaisId, effectiveSucursalId]);
 
   // ...continued building UI mostly replicates previous layout using components
 
@@ -1164,6 +1169,7 @@ export default function NuevaVenta() {
             quitar={quitar}
             cambiarCantidad={cambiarCantidad}
             cambiarUnidadYCantidad={cambiarUnidadYCantidad}
+            cambiarDescuento={cambiarDescuento}
             subtotal={subtotal}
             totalDescuento={totalDescuento}
             total={total}
@@ -1224,7 +1230,12 @@ export default function NuevaVenta() {
 
       <TicketPrinter
         ref={printerRef}
-        carrito={carrito}
+        carrito={carrito.map(item => item.tipo === 'pack' ? item : {
+          ...item,
+          precio: calcularLineaVenta(item, promociones).precio,
+          precio_original: calcularLineaVenta(item, promociones).precioOriginal,
+          descuento_item: calcularLineaVenta(item, promociones).descuentoUnitario
+        })}
         clienteNombre={cliente.nombre}
         clienteNIT={cliente.nit}
         modoPago={pagos.map(p=>`${p.metodo}: Bs ${p.monto}`).join(' + ')}

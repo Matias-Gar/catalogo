@@ -1,4 +1,5 @@
 "use client";
+import { calcularLineaVenta } from '../../lib/cartPricing';
 import React from 'react';
 import Image from 'next/image';
 import { PrecioConPromocion, calcularPrecioConPromocion } from '../../lib/promociones';
@@ -13,6 +14,7 @@ interface Props {
   quitar: (user_id: string | number) => void;
   cambiarCantidad: (user_id: string | number, cant: number) => void;
   cambiarUnidadYCantidad: (user_id: string | number, cantBase: number, unidad?: string, cantidadDisplay?: number) => void;
+  cambiarDescuento: (key: string | number, valor: number) => void;
   subtotal: number;
   totalDescuento: number;
   total: number;
@@ -36,6 +38,7 @@ export default function CarritoPanel({
   quitar,
   cambiarCantidad,
   cambiarUnidadYCantidad,
+  cambiarDescuento,
   subtotal,
   totalDescuento,
   total,
@@ -124,6 +127,7 @@ export default function CarritoPanel({
                   );
                 }
                 const precioInfo = calcularPrecioConPromocion(item, promociones);
+                const linea = calcularLineaVenta(item, promociones);
                 const itemKey = item.cart_key || `prod:${String(item.user_id)}:${String(item.variante_id ?? 'default')}`;
                 // Lógica para imagen: variante > item.imagen_url > imagenes[1] > imagenes[0]
                 let imagenUrl = null;
@@ -203,6 +207,14 @@ export default function CarritoPanel({
                       />
                     </td>
                     <td className="p-2">
+                      <label className="block text-xs text-gray-700">
+                        Rebaja Bs (total)
+                        <input type="number" min={0} max={linea.maxManual} step="0.01"
+                          aria-label={`Descuento en Bs de ${item.nombre}`}
+                          value={Math.min(item.descuento_manual || 0, linea.maxManual)}
+                          onChange={e => cambiarDescuento(itemKey, Number(e.target.value))}
+                          className="mt-1 w-24 border border-gray-900 rounded px-2 py-2 text-base text-gray-900" />
+                      </label>
                       {precioInfo.tienePromocion ? (
                         <div className="text-center">
                           <div className="text-red-600 font-bold">-Bs {((precioInfo?.descuento||0) * getBaseQuantity(item)).toFixed(2)}</div>
@@ -210,11 +222,11 @@ export default function CarritoPanel({
                           <div className="text-red-600 text-sm">-{precioInfo.porcentajeDescuento}%</div>
                         </div>
                       ) : (
-                        <span className="text-gray-500">-</span>
+                        <span className="text-gray-500 text-xs">Sin promocion</span>
                       )}
                     </td>
                     <td className="p-2 text-gray-900 font-bold">
-                      Bs {(precioInfo.precioFinal * getBaseQuantity(item)).toFixed(2)}
+                      Bs {linea.total.toFixed(2)}
                     </td>
                     <td className="p-2">
                       <button 
