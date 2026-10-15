@@ -472,6 +472,10 @@ export default function FlujoCajaPage() {
   }
 
   async function handleCloseCash() {
+    if (!activePaisId || !activeSucursalId) {
+      showToast('Selecciona un pais y una sucursal antes de cerrar caja', 'info');
+      return;
+    }
     if (realCashInput === "") {
       showToast("Ingresa el efectivo contado en caja", "info");
       return;

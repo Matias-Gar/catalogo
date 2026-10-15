@@ -9,6 +9,14 @@ function parseAmount(value, fieldName = "amount") {
   return Number(numeric.toFixed(2));
 }
 
+function parseCountedBalance(value, fieldName) {
+  const numeric = Number(value);
+  if (value === null || value === undefined || value === '' || !Number.isFinite(numeric) || numeric < 0) {
+    throw new Error(`Invalid ${fieldName}: must be a number greater than or equal to 0`);
+  }
+  return Number(numeric.toFixed(2));
+}
+
 function normalizeDateInput(value, fieldName) {
   if (!value || typeof value !== "string") {
     throw new Error(`Missing ${fieldName}`);
@@ -677,12 +685,12 @@ export async function createCashClosure(supabase, payload) {
 
   const openingBalance = Number(summary.opening_balance);
   const openingQr = Number(summary.opening_qr || 0);
-  const realCash = parseAmount(payload?.real_cash, "real_cash");
+  const realCash = parseCountedBalance(payload?.real_cash, "real_cash");
   const expectedBank = Number((summary.expected_bank ?? summary.expected_qr) || 0);
   const realQrRaw = payload?.real_qr;
   const realQr = realQrRaw === undefined || realQrRaw === null || realQrRaw === ""
     ? expectedBank
-    : parseAmount(realQrRaw, "real_qr");
+    : parseCountedBalance(realQrRaw, "real_qr");
   const expectedCash = Number(summary.expected_cash);
   const expectedQr = Number(summary.expected_qr || 0);
   const difference = Number((realCash - expectedCash).toFixed(2));
@@ -720,31 +728,19 @@ export async function createCashClosure(supabase, payload) {
     sucursal_id: sucursalId,
   };
 
-  if (existing?.length) {
-    const existingClosureIds = existing
-      .map((row) => row?.id)
-      .filter(Boolean);
-
-    const { error: deleteError } = await supabase
-      .from("cash_closures")
-      .delete()
-      .in("id", existingClosureIds);
-
-    if (deleteError) {
-      const dbError = new Error(deleteError.message || "Failed to replace existing closure");
-      dbError.statusCode = 500;
-      throw dbError;
-    }
+  function saveClosure(row) {
+    // Si falla el guardado se conserva el cierre anterior.
+    let query = supabase.from('cash_closures');
+    query = existing?.[0]?.id
+      ? query.update({ ...row, created_at: new Date().toISOString() }).eq('id', existing[0].id)
+      : query.insert(row);
+    return query.select('*').single();
   }
 
   let closure = null;
   let insertError = null;
 
-  const withQr = await supabase
-    .from("cash_closures")
-    .insert(closureRow)
-    .select("*")
-    .single();
+  const withQr = await saveClosure(closureRow);
 
   closure = withQr.data;
   insertError = withQr.error;
@@ -770,11 +766,7 @@ export async function createCashClosure(supabase, payload) {
         sucursal_id: sucursalId,
       };
 
-      const fallbackInsert = await supabase
-        .from("cash_closures")
-        .insert(fallbackRow)
-        .select("*")
-        .single();
+      const fallbackInsert = await saveClosure(fallbackRow);
 
       closure = fallbackInsert.data;
       insertError = fallbackInsert.error;
