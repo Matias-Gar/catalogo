@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import ProductThumbnail from '@/components/venta/ProductThumbnail';
 import { supabase } from '@/lib/SupabaseClient';
 import { useSucursalActiva } from '@/components/admin/SucursalContext';
 
@@ -73,7 +74,9 @@ function Content() {
     await Promise.allSettled([...document.querySelectorAll('#box-report img')].map(img => img.decode()));
     window.print();
   }
-  const photo = p => image(p) ? <img src={image(p)} alt={p.nombre} width="64" height="64" className="h-16 w-16 object-contain" /> : <span className="text-xs text-slate-500">Sin imagen</span>;
+  const photo = p => <ProductThumbnail name={p.nombre} size={64} sources={[
+    image(p), ...[...(p.producto_imagenes || [])].sort((a, b) => a.id - b.id).map(i => i.imagen_url)
+  ]} />;
   return <div className="mx-auto max-w-6xl space-y-5 p-4 text-slate-900">
     <style>{`#box-report { display: none; } @media print { @page { size: A4 portrait; margin: 12mm; } body * { visibility: hidden !important; } #box-report, #box-report * { visibility: visible !important; } #box-report { display: block; position: absolute; left: 0; top: 0; width: 100%; background: white; } #box-report table { width: 100%; border-collapse: collapse; font-size: 10pt; } #box-report td, #box-report th { border: 1px solid #bbb; padding: 6px; text-align: left; } #box-report tr { break-inside: avoid; } #box-report thead { display: table-header-group; } .box-controls { display: none !important; } }`}</style>
     <div className="box-controls space-y-5">

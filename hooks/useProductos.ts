@@ -5,6 +5,7 @@ interface Producto {
   user_id: string;
   nombre: string;
   precio: number;
+  imagen_url?: string;
   precio_base?: number;
   precio_compra?: number;
   stock?: number;
@@ -77,7 +78,7 @@ async function enriquecerUnidades(productos: Producto[], sucursalId?: string) {
 
   let productosQuery = supabase
       .from('productos')
-      .select('user_id, unidad_base, unidades_alternativas, factor_conversion, stock')
+      .select('user_id, unidad_base, unidades_alternativas, factor_conversion, stock, precio_compra, imagen_url')
       .in('user_id', ids);
   let variantesQuery = supabase
       .from('producto_variantes')
@@ -97,6 +98,8 @@ async function enriquecerUnidades(productos: Producto[], sucursalId?: string) {
         unidad_base: String(row.unidad_base || '').trim() || 'unidad',
         unidades_alternativas: Array.isArray(row.unidades_alternativas) ? row.unidades_alternativas : [],
         factor_conversion: Number(row.factor_conversion || 0) || undefined,
+        precio_compra: row.precio_compra == null ? undefined : Number(row.precio_compra),
+        imagen_url: row.imagen_url,
         stock: Number(row.stock ?? 0)
       }
     ])
@@ -136,6 +139,8 @@ async function enriquecerUnidades(productos: Producto[], sucursalId?: string) {
     return {
       ...producto,
       variantes,
+      precio_compra: extra.precio_compra,
+      imagen_url: extra.imagen_url,
       unidad_base: extra.unidad_base,
       unidades_alternativas: extra.unidades_alternativas,
       unidades_disponibles: buildUnidadesDisponibles(extra.unidad_base, extra.unidades_alternativas),
@@ -191,7 +196,7 @@ export function useProductos(_includeCost = false, sucursalId?: string) {
       if (ids.length) {
         let imgsQuery = supabase
           .from('producto_imagenes')
-          .select('producto_id, imagen_url')
+          .select('producto_id, imagen_url').order('id')
           .in('producto_id', ids);
         if (sucursalId) imgsQuery = imgsQuery.eq('sucursal_id', sucursalId);
         const { data: imgs } = await imgsQuery;
@@ -399,7 +404,7 @@ export function useProductos(_includeCost = false, sucursalId?: string) {
       if (ids.length) {
         let imgsQuery = supabase
           .from('producto_imagenes')
-          .select('producto_id, imagen_url')
+          .select('producto_id, imagen_url').order('id')
           .in('producto_id', ids);
         if (sucursalId) imgsQuery = imgsQuery.eq('sucursal_id', sucursalId);
         const { data: imgs } = await imgsQuery;

@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
-import { getOptimizedImageUrl } from "@/lib/imageOptimization";
+import ProductThumbnail from "./ProductThumbnail";
 import { calcularPrecioConPromocion } from "@/lib/promociones";
 import type { Pack, Producto } from "@/hooks/useCarrito";
 
@@ -180,22 +179,10 @@ export default function BuscadorProductos({
                   >
                   <div className="flex items-center gap-3 truncate">
                     <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-gray-50">
-                      {imagenes[String(p.user_id)]?.[0] ? (
-                        <Image
-                          src={getOptimizedImageUrl(imagenes[String(p.user_id)][0], 120, {
-                            quality: 94,
-                            format: "origin",
-                          })}
-                          width={40}
-                          height={40}
-                          alt="thumb"
-                          quality={94}
-                          sizes="40px"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="text-xs text-gray-300">No img</div>
-                      )}
+                      <ProductThumbnail name={p.nombre} size={40} sources={[
+                        p.variantes?.find(v => String(v.id ?? v.variante_id) === String(p.variante_id))?.imagen_url,
+                        p.imagen_url, ...(imagenes[String(p.user_id)] || [])
+                      ]} />
                     </div>
                     <div className="truncate">
                       <div className="truncate text-sm font-medium">{p.nombre}</div>

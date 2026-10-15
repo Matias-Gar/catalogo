@@ -171,7 +171,7 @@ export default function NuevaVenta() {
     setCarrito,
     stockWarning,
     clearStockWarning
-  } = useCarrito(promociones);
+  } = useCarrito(promociones, effectiveSucursalId);
 
   const {
     productos,
@@ -206,7 +206,7 @@ export default function NuevaVenta() {
   const [envio, setEnvio] = React.useState(0);
   const [comision, setComision] = React.useState(0);
   const [publicidad, setPublicidad] = React.useState(0);
-  const [rebajas, setRebajas] = React.useState(0);
+  const rebajas = 0;
   const [showInsufficientPaymentWarning, setShowInsufficientPaymentWarning] = React.useState(false);
 
   const totalBaseOperacion = Math.max(0, Number(total) + Number(envio) + Number(comision) - Number(publicidad) - Number(rebajas));
@@ -489,7 +489,12 @@ export default function NuevaVenta() {
       const next = prev.map((item) => {
         if (item.tipo === 'pack' || item.user_id == null) return item;
         const product = productos.find((p) => String(p.user_id) === String(item.user_id));
-        if (!product || !hasUnitConversion(product)) return item;
+        if (!product) return item;
+        if (!hasUnitConversion(product)) {
+          if (item.precio_compra === product.precio_compra && item.imagen_url === product.imagen_url) return item;
+          changed = true;
+          return { ...item, precio_compra: product.precio_compra, imagen_url: product.imagen_url };
+        }
 
         const unidadBase = String(product.unidad_base || item.unidad_base || 'unidad');
         const alternativas = Array.isArray(product.unidades_alternativas)
@@ -521,6 +526,8 @@ export default function NuevaVenta() {
         const patched = {
           ...item,
           stock: stockBase,
+          precio_compra: product.precio_compra,
+          imagen_url: product.imagen_url,
           unidad_base: unidadBase,
           unidades_alternativas: alternativas,
           unidades_disponibles: unidadesDisponibles,
@@ -532,6 +539,8 @@ export default function NuevaVenta() {
         };
 
         const same =
+          item.precio_compra === patched.precio_compra &&
+          item.imagen_url === patched.imagen_url &&
           Number(item.stock || 0) === stockBase &&
           item.unidad_base === patched.unidad_base &&
           item.unidad === patched.unidad &&
@@ -882,7 +891,7 @@ export default function NuevaVenta() {
         descuento: Number(totalDescuento) || 0,
         descuentos_productos: carrito.filter(p => p.tipo !== 'pack').map(p => ({
           producto_id: String(p.user_id), variante_id: p.variante_id == null ? null : String(p.variante_id),
-          ...calcularLineaVenta(p, promociones)
+          ...calcularLineaVenta(p, promociones, packs)
         }))
       };
 
@@ -926,6 +935,8 @@ export default function NuevaVenta() {
               cantidad_base: cantidadTotal,
               unidad: 'unidad',
               precio_unitario: 0,
+              pack_id: p.pack_id,
+              pack_cantidad: cantidadPack,
               costo_unitario: 0,
               color: variante?.color || null,
               descripcion: `Pack: ${pack.nombre || p.nombre || 'Pack'} - ${productoPack.nombre || 'Producto'}`,
@@ -952,7 +963,7 @@ export default function NuevaVenta() {
           cantidad: cantidadVisible,
           cantidad_base: cantidadBase,
           unidad: unidadVenta,
-          precio_unitario: calcularLineaVenta(p, promociones).precio,
+          precio_unitario: calcularLineaVenta(p, promociones, packs).precio,
           costo_unitario: Number(productoCompleto.precio_compra || 0),
           color: variante?.color || p.color || null,
           descripcion: descripcionItem,
@@ -991,7 +1002,7 @@ export default function NuevaVenta() {
       setCarrito([]);
       setPagos([{ metodo: '', monto: 0 }]);
       setMostrarSegundoPago(false);
-      setEnvio(0); setComision(0); setPublicidad(0); setRebajas(0); setCobrarImpuestos(false);
+      setEnvio(0); setComision(0); setPublicidad(0); setCobrarImpuestos(false);
       cambiarCampo('nombre',''); cambiarCampo('carnet',''); cambiarCampo('telefono',''); cambiarCampo('email',''); cambiarCampo('nit',''); cambiarCampo('guardado',false); cambiarCampo('requiereFactura',false);
       setEfectivizando(false);
       saleInFlightRef.current = false;
@@ -1052,7 +1063,7 @@ export default function NuevaVenta() {
               </div>
               <div>
                 <label className="block text-gray-700">Rebajas</label>
-                <input type="number" step="0.01" min="0" value={rebajas} onChange={e=>setRebajas(parsePositiveNumber(e.target.value))} className="w-full border p-2 rounded" />
+                <p className="text-sm text-gray-600">Aplica la rebaja en cada producto (maximo 25% y sin bajar del costo).</p>
               </div>
             </div>
             <label className="inline-flex items-center gap-2 text-sm font-semibold text-gray-800">
@@ -1232,9 +1243,9 @@ export default function NuevaVenta() {
         ref={printerRef}
         carrito={carrito.map(item => item.tipo === 'pack' ? item : {
           ...item,
-          precio: calcularLineaVenta(item, promociones).precio,
-          precio_original: calcularLineaVenta(item, promociones).precioOriginal,
-          descuento_item: calcularLineaVenta(item, promociones).descuentoUnitario
+          precio: calcularLineaVenta(item, promociones, packs).precio,
+          precio_original: calcularLineaVenta(item, promociones, packs).precioOriginal,
+          descuento_item: calcularLineaVenta(item, promociones, packs).descuentoUnitario
         })}
         clienteNombre={cliente.nombre}
         clienteNIT={cliente.nit}

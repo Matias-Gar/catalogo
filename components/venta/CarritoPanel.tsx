@@ -1,11 +1,10 @@
 "use client";
 import { calcularLineaVenta } from '../../lib/cartPricing';
 import React from 'react';
-import Image from 'next/image';
+import ProductThumbnail from './ProductThumbnail';
 import { PrecioConPromocion, calcularPrecioConPromocion } from '../../lib/promociones';
 import { calcularDescuentoPack } from '../../lib/packs';
 import { CartItem, Pack, PackProduct } from '../../hooks/useCarrito';
-import { getOptimizedImageUrl } from '../../lib/imageOptimization';
 import CantidadConUnidadInput from '../CantidadConUnidadInput';
 
 interface Props {
@@ -127,7 +126,7 @@ export default function CarritoPanel({
                   );
                 }
                 const precioInfo = calcularPrecioConPromocion(item, promociones);
-                const linea = calcularLineaVenta(item, promociones);
+                const linea = calcularLineaVenta(item, promociones, packs);
                 const itemKey = item.cart_key || `prod:${String(item.user_id)}:${String(item.variante_id ?? 'default')}`;
                 // Lógica para imagen: variante > item.imagen_url > imagenes[1] > imagenes[0]
                 let imagenUrl = null;
@@ -136,7 +135,6 @@ export default function CarritoPanel({
                   if (variante && variante.imagen_url) imagenUrl = variante.imagen_url;
                 }
                 if (!imagenUrl && item.imagen_url) imagenUrl = item.imagen_url;
-                if (!imagenUrl && imagenes[String(item.user_id)]?.[1]) imagenUrl = imagenes[String(item.user_id)][1];
                 if (!imagenUrl && imagenes[String(item.user_id)]?.[0]) imagenUrl = imagenes[String(item.user_id)][0];
                 const unidadesDisponibles = Array.isArray(item.unidades_disponibles) && item.unidades_disponibles.length > 0
                   ? item.unidades_disponibles
@@ -147,20 +145,9 @@ export default function CarritoPanel({
                 return (
                   <tr key={itemKey}>
                     <td className="p-2 text-center align-middle">
-                      {imagenUrl ? (
-                        <Image
-                          src={getOptimizedImageUrl(imagenUrl, 120, { quality: 94, format: 'origin' })}
-                          alt="img"
-                          width={56}
-                          height={56}
-                          quality={94}
-                          sizes="56px"
-                          className="object-cover rounded-lg border mx-auto shadow-sm"
-                          style={{ maxWidth: '56px', maxHeight: '56px' }}
-                        />
-                      ) : (
-                        <span className="text-gray-400">Sin imagen</span>
-                      )}
+                      <ProductThumbnail name={item.nombre} sources={[
+                        imagenUrl, item.imagen_url, ...(imagenes[String(item.user_id)] || [])
+                      ]} />
                     </td>
                     <td className="p-2 text-left font-bold text-gray-900">
                       <div>{item.nombre}</div>
@@ -211,10 +198,15 @@ export default function CarritoPanel({
                         Rebaja Bs (total)
                         <input type="number" min={0} max={linea.maxManual} step="0.01"
                           aria-label={`Descuento en Bs de ${item.nombre}`}
-                          value={Math.min(item.descuento_manual || 0, linea.maxManual)}
+                          value={linea.manual}
+                          disabled={linea.maxManual <= 0}
+                          title={linea.motivoLimite}
                           onChange={e => cambiarDescuento(itemKey, Number(e.target.value))}
                           className="mt-1 w-24 border border-gray-900 rounded px-2 py-2 text-base text-gray-900" />
                       </label>
+                      <p className="mt-1 text-xs text-gray-600">
+                        {linea.maxManual > 0 ? `Max. Bs ${linea.maxManual.toFixed(2)} (25% / costo)` : linea.motivoLimite}
+                      </p>
                       {precioInfo.tienePromocion ? (
                         <div className="text-center">
                           <div className="text-red-600 font-bold">-Bs {((precioInfo?.descuento||0) * getBaseQuantity(item)).toFixed(2)}</div>

@@ -22,6 +22,8 @@ export interface Producto {
   codigo?: string;
   nombre: string;
   precio: number;
+  precio_compra?: number;
+  imagen_url?: string;
   precio_pack?: number;
   precio_individual?: number;
   precio_original?: number;
@@ -136,8 +138,8 @@ const getItemKey = (item: { tipo?: 'pack' | 'producto'; user_id?: string | numbe
 };
 
 // Este hook centraliza todo lo relacionado al carrito: estado, operaciones y totales.
-export function useCarrito(promociones: unknown[]) {
-  const { packs, loading: loadingPacks } = usePacks() as { packs: Pack[]; loading: boolean; };
+export function useCarrito(promociones: unknown[], sucursalId?: string) {
+  const { packs, loading: loadingPacks } = usePacks(sucursalId) as { packs: Pack[]; loading: boolean; };
   const [carrito, setCarrito] = useState<CartItem[]>([]);
   const [stockWarning, setStockWarning] = useState('');
 
@@ -206,6 +208,8 @@ export function useCarrito(promociones: unknown[]) {
         }
         return prev.map(p => getItemKey(p) === cartKey ? {
           ...p,
+          precio_compra: prodBase.precio_compra ?? p.precio_compra,
+          imagen_url: prodBase.imagen_url ?? p.imagen_url,
           unidad_base: prodBase.unidad_base ?? p.unidad_base,
           unidades_alternativas: prodBase.unidades_alternativas ?? p.unidades_alternativas,
           unidades_disponibles: prodBase.unidades_disponibles ?? p.unidades_disponibles,
@@ -313,7 +317,7 @@ export function useCarrito(promociones: unknown[]) {
         const pack = packs.find(p => p.id === item.pack_id);
         return acc + (pack ? pack.precio_pack * item.cantidad : 0);
       }
-      return acc + calcularLineaVenta(item, promociones).total;
+      return acc + calcularLineaVenta(item, promociones, packs).total;
     }, 0);
   }, [carrito, packs, promociones]);
 
@@ -324,7 +328,7 @@ export function useCarrito(promociones: unknown[]) {
         const packDescuento = pack && pack.precio_individual ? (Number(pack.precio_individual) - pack.precio_pack) * item.cantidad : 0;
         return acc + Math.max(0, packDescuento);
       }
-      return acc + calcularLineaVenta(item, promociones).descuento;
+      return acc + calcularLineaVenta(item, promociones, packs).descuento;
     }, 0);
   }, [carrito, packs, promociones]);
 
@@ -340,7 +344,7 @@ export function useCarrito(promociones: unknown[]) {
     cambiarUnidadYCantidad,
     cambiarDescuento: (itemKey: string | number, valor: number) => {
       setCarrito(prev => prev.map(item => getItemKey(item) === String(itemKey)
-        ? { ...item, descuento_manual: Math.round(Math.min(calcularLineaVenta(item, promociones).maxManual, Math.max(0, Number.isFinite(valor) ? valor : 0)) * 100) / 100 } : item));
+        ? { ...item, descuento_manual: Math.round(Math.min(calcularLineaVenta(item, promociones, packs).maxManual, Math.max(0, Number.isFinite(valor) ? valor : 0)) * 100) / 100 } : item));
     },
     subtotal,
     totalDescuento,
