@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import ConfirmModal from '@/components/ConfirmModal';
 import ProductThumbnail from '@/components/venta/ProductThumbnail';
 import { supabase } from '@/lib/SupabaseClient';
 import { useSucursalActiva } from '@/components/admin/SucursalContext';
@@ -39,6 +40,10 @@ function Content() {
   const [search, setSearch] = useState('');
   const [box, setBox] = useState('');
   const [page, setPage] = useState(0);
+  const [exporting, setExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState('');
+  const [pendingChange, setPendingChange] = useState(null);
+  const saveInFlight = useRef(false);
   useEffect(() => {
     const controller = new AbortController();
     (async () => {
@@ -59,20 +64,51 @@ function Content() {
   const visible = filtered.slice(page * 40, (page + 1) * 40);
   const dirty = rows.some(p => drafts[p.user_id] !== undefined && drafts[p.user_id].trim() !== location(p));
 
-  async function save(product) {
+  function cancelEdit(product) {
+    setDrafts(prev => {
+      const next = { ...prev };
+      delete next[product.user_id];
+      return next;
+    });
+  }
+  function validateChange(product) {
+    const caja = drafts[product.user_id]?.trim();
+    if (!canEdit || saving !== null || caja === undefined || caja === location(product)) return;
+    if (caja.length > 80) { setError('La caja debe tener como maximo 80 caracteres.'); return; }
+    setError('');
+    setPendingChange({ product, caja });
+  }
+  async function save() {
+    if (!pendingChange || !canEdit || saveInFlight.current) return;
+    const { product, caja } = pendingChange;
+    saveInFlight.current = true;
+    setPendingChange(null);
     setSaving(product.user_id); setError(''); setMessage('');
     try {
       const result = await request('', { method: 'PUT', body: JSON.stringify({ paisId: activePaisId,
-        sucursalId: activeSucursalId, productoId: product.user_id, caja: drafts[product.user_id] ?? location(product) }) });
+        sucursalId: activeSucursalId, productoId: product.user_id, caja }) });
       setRows(prev => prev.map(p => p.user_id === product.user_id ? { ...p, producto_ubicaciones: { caja: result.caja } } : p));
-      setDrafts(prev => ({ ...prev, [product.user_id]: result.caja }));
+      cancelEdit(product);
       setMessage(`${product.nombre}: ${result.caja || 'sin caja asignada'}.`);
     } catch (err) { setError(err.message); }
-    finally { setSaving(null); }
+    finally { saveInFlight.current = false; setSaving(null); }
   }
   async function print() {
     await Promise.allSettled([...document.querySelectorAll('#box-report img')].map(img => img.decode()));
     window.print();
+  }
+  async function downloadExcel() {
+    setExporting(true); setError(''); setMessage(''); setExportProgress('Preparando Excel...');
+    try {
+      const { exportBoxInventory } = await import('@/lib/exportBoxInventory');
+      const { missing } = await exportBoxInventory({
+        products: filtered, branch: activeSucursal?.nombre, box, search, getLocation: location,
+        getSources: p => [image(p), ...[...(p.producto_imagenes || [])].sort((a, b) => a.id - b.id).map(i => i.imagen_url)],
+        onProgress: (done, total) => setExportProgress(`Preparando fotos: ${done}/${total}`),
+      });
+      setMessage(`Excel descargado con ${filtered.length} productos.${missing ? ` ${missing} productos sin foto disponible; están señalados en el archivo.` : ''}`);
+    } catch { setError('No se pudo generar el Excel. Intenta descargarlo nuevamente.'); }
+    finally { setExporting(false); setExportProgress(''); }
   }
   const photo = p => <ProductThumbnail name={p.nombre} size={64} sources={[
     image(p), ...[...(p.producto_imagenes || [])].sort((a, b) => a.id - b.id).map(i => i.imagen_url)
@@ -85,19 +121,45 @@ function Content() {
         <label className="flex-1">Buscar producto, codigo o caja<input className={`${input} mt-1 w-full`} value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} placeholder="Ej.: ABC de Gatitos" /></label>
         <label>Caja<select className={`${input} mt-1 block`} value={box} onChange={e => { setBox(e.target.value); setPage(0); }}><option value="">Todas</option><option value="__none">Sin caja asignada</option>{boxes.map(b => <option key={b} value={b}>{b}</option>)}</select></label>
         <button onClick={print} disabled={loading || !!error || !filtered.length || dirty || saving !== null} className="self-end rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white disabled:opacity-40">Imprimir / Guardar PDF</button>
+        <button onClick={downloadExcel} disabled={loading || !filtered.length || dirty || saving !== null || exporting} className="self-end rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white disabled:opacity-40">{exporting ? 'Generando Excel...' : 'Descargar Excel con fotos'}</button>
       </div>
       <p>{filtered.length} productos · {rows.filter(p => !location(p)).length} sin caja asignada</p>
-      {dirty && <p className="text-amber-800">Guarda los cambios antes de imprimir. El reporte incluye todos los resultados del filtro.</p>}
+      {canEdit && <p className="text-sm text-slate-600">Pulsa Modificar para editar una caja. Luego valida el cambio y confirma para guardarlo.</p>}
+      {dirty && <p className="text-amber-800">Guarda los cambios antes de imprimir o descargar Excel. El reporte incluye todos los resultados del filtro.</p>}
+      {exporting && <p role="status" className="text-emerald-800">{exportProgress}</p>}
       {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-700">{error}</p>}
       {message && <p role="status" className="text-emerald-800">{message}</p>}
       {!activeSucursalId && <p>Selecciona una sucursal.</p>}
       {loading && <p role="status">Cargando productos...</p>}
       <datalist id="box-names">{boxes.map(b => <option key={b} value={b} />)}</datalist>
       <div className="overflow-x-auto rounded-xl border bg-white"><table className="w-full text-left"><thead className="bg-slate-100"><tr>{['Foto', 'Producto', 'Stock total', 'Caja', ...(canEdit ? [''] : [])].map((h, i) => <th key={i} className="p-3">{h}</th>)}</tr></thead><tbody>
-        {visible.map(p => <tr key={p.user_id} className="border-t"><td className="p-3">{photo(p)}</td><td className="p-3 font-semibold">{p.nombre}<div className="text-xs font-normal text-slate-500">{p.codigo_barra}</div></td><td className="p-3">{Number(p.stock || 0)} {p.unidad_base || 'unidad'}</td><td className="p-3">{canEdit ? <input aria-label={`Caja de ${p.nombre}`} list="box-names" maxLength={80} className={`${input} w-44`} placeholder="Ej.: Caja 1" value={drafts[p.user_id] ?? location(p)} onChange={e => setDrafts(prev => ({ ...prev, [p.user_id]: e.target.value }))} /> : location(p) || 'Sin caja asignada'}</td>{canEdit && <td className="p-3"><button disabled={saving !== null || drafts[p.user_id] === undefined || drafts[p.user_id].trim() === location(p)} onClick={() => save(p)} className="rounded-lg bg-slate-900 px-3 py-2 text-white disabled:opacity-40">{saving === p.user_id ? 'Guardando...' : 'Guardar'}</button></td>}</tr>)}
+        {visible.map(p => {
+          const editing = canEdit && drafts[p.user_id] !== undefined;
+          return <tr key={p.user_id} className="border-t">
+            <td className="p-3">{photo(p)}</td>
+            <td className="p-3 font-semibold">{p.nombre}<div className="text-xs font-normal text-slate-500">{p.codigo_barra}</div></td>
+            <td className="p-3">{Number(p.stock || 0)} {p.unidad_base || 'unidad'}</td>
+            <td className="p-3">{editing ? <input aria-label={`Caja de ${p.nombre}`} disabled={saving !== null} list="box-names" maxLength={80} className={`${input} w-44`} placeholder="Ej.: Caja 1" value={drafts[p.user_id]} onChange={e => setDrafts(prev => ({ ...prev, [p.user_id]: e.target.value }))} /> : location(p) || 'Sin caja asignada'}</td>
+            {canEdit && <td className="p-3">{editing ? <div className="flex gap-2">
+              <button disabled={saving !== null || drafts[p.user_id].trim() === location(p)} onClick={() => validateChange(p)} className="rounded-lg bg-slate-900 px-3 py-2 text-white disabled:opacity-40">{saving === p.user_id ? 'Guardando...' : 'Validar cambio'}</button>
+              <button disabled={saving !== null} onClick={() => cancelEdit(p)} className={`${input} disabled:opacity-40`}>Cancelar</button>
+            </div> : <button disabled={saving !== null || exporting} onClick={() => { setDrafts(prev => ({ ...prev, [p.user_id]: location(p) })); setMessage(''); }} className={`${input} disabled:opacity-40`}>Modificar</button>}</td>}
+          </tr>;
+        })}
       </tbody></table>{!loading && !visible.length && <p className="p-6">No hay productos para estos filtros.</p>}</div>
       <div className="flex items-center gap-4"><button className={input} disabled={page === 0} onClick={() => setPage(p => p - 1)}>Anterior</button><span>Pagina {page + 1} de {Math.max(1, Math.ceil(filtered.length / 40))}</span><button className={input} disabled={(page + 1) * 40 >= filtered.length} onClick={() => setPage(p => p + 1)}>Siguiente</button></div>
     </div>
+    <ConfirmModal visible={!!pendingChange} title="Validar cambio de caja"
+      message={pendingChange ? `Producto: ${pendingChange.product.nombre}` : ''}
+      detail="Revisa la caja anterior y la nueva antes de confirmar. Todas las variantes comparten esta ubicacion."
+      confirmLabel="Confirmar y guardar" cancelLabel="Seguir editando"
+      onCancel={() => setPendingChange(null)} onConfirm={save}>
+      {pendingChange && <div className="rounded-lg bg-slate-100 p-3 text-sm">
+        <p><strong>Caja actual:</strong> {location(pendingChange.product) || 'Sin caja asignada'}</p>
+        <p><strong>Nueva caja:</strong> {pendingChange.caja || 'Sin caja asignada'}</p>
+        {!pendingChange.caja && <p className="mt-2 text-amber-800">Se quitara la caja asignada a este producto.</p>}
+      </div>}
+    </ConfirmModal>
     <article id="box-report"><h1>Stock y ubicacion de productos</h1><p>{activeSucursal?.nombre} · {new Date().toLocaleString('es-BO', { timeZone: 'America/La_Paz' })}</p><p>Caja: {box === '__none' ? 'Sin asignar' : box || 'Todas'} · Busqueda: {search || 'Todas'} · {filtered.length} productos</p><table><thead><tr>{['Imagen principal', 'Producto', 'Caja', 'Stock total', 'Unidad'].map(h => <th key={h}>{h}</th>)}</tr></thead><tbody>{filtered.map(p => <tr key={p.user_id}><td>{photo(p)}</td><td>{p.nombre}</td><td>{location(p) || 'Sin caja asignada'}</td><td>{Number(p.stock || 0)}</td><td>{p.unidad_base || 'unidad'}</td></tr>)}</tbody></table></article>
   </div>;
 }
