@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
+import { Printer, FileSpreadsheet, LoaderCircle } from 'lucide-react';
 import { normalizeProductView, getProductViewMeta } from '@/lib/productViews';
 import ConfirmModal from '@/components/ConfirmModal';
 import ProductThumbnail from '@/components/venta/ProductThumbnail';
@@ -14,6 +15,7 @@ const location = product => {
 const image = product => product.imagen_url && product.imagen_url !== '/sin-imagen.png'
   ? product.imagen_url : [...(product.producto_imagenes || [])].sort((a, b) => a.id - b.id)[0]?.imagen_url;
 const input = 'rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900';
+const iconButton = 'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white transition-colors hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40';
 
 async function request(params, options = {}) {
   const { data } = await supabase.auth.getSession();
@@ -132,8 +134,10 @@ function Content() {
         <label>Tipo de producto<select className={`${input} mt-1 block`} value={productView} onChange={e => { setProductView(e.target.value); setCategory(''); setPage(0); }}><option value="">Todos los tipos</option>{views.map(v => <option key={v} value={v}>{getProductViewMeta(v).title}</option>)}</select></label>
         <label>Categoría<select className={`${input} mt-1 block`} value={category} onChange={e => { setCategory(e.target.value); setPage(0); }}><option value="">Todas las categorías</option><option value="__none">Sin categoría</option>{categories.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
         <label>Caja<select className={`${input} mt-1 block`} value={box} onChange={e => { setBox(e.target.value); setPage(0); }}><option value="">Todas</option><option value="__none">Sin caja asignada</option>{boxes.map(b => <option key={b} value={b}>{b}</option>)}</select></label>
-        <button onClick={print} disabled={loading || !!error || !filtered.length || dirty || saving !== null} className="self-end rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white disabled:opacity-40">Imprimir / Guardar PDF</button>
-        <button onClick={downloadExcel} disabled={loading || !filtered.length || dirty || saving !== null || exporting} className="self-end rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white disabled:opacity-40">{exporting ? 'Generando Excel...' : 'Descargar Excel con fotos'}</button>
+        <div className="flex shrink-0 items-center gap-2 self-end">
+          <button type="button" onClick={print} disabled={loading || !!error || !filtered.length || dirty || saving !== null} className={iconButton} aria-label="Imprimir o guardar PDF" title="Imprimir / Guardar PDF"><Printer size={22} strokeWidth={1.75} aria-hidden="true" /></button>
+          <button type="button" onClick={downloadExcel} disabled={loading || !filtered.length || dirty || saving !== null || exporting} className={iconButton} aria-label={exporting ? 'Generando Excel' : 'Descargar Excel con fotos'} title={exporting ? 'Generando Excel...' : 'Descargar Excel con fotos'} aria-busy={exporting}>{exporting ? <LoaderCircle size={22} strokeWidth={1.75} className="animate-spin" aria-hidden="true" /> : <FileSpreadsheet size={22} strokeWidth={1.75} aria-hidden="true" />}</button>
+        </div>
       </div>
       <p>{filtered.length} productos · {rows.filter(p => !location(p)).length} sin caja asignada</p>
       {canEdit && <p className="text-sm text-slate-600">En los productos sin caja, escribe el número de caja y pulsa Guardar. Para cambiar una caja asignada, pulsa Modificar y confirma el cambio.</p>}
