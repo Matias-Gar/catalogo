@@ -32,7 +32,7 @@ export async function GET(request) {
     const rows = [];
     for (let offset = 0; ; offset += 500) {
       const { data, error } = await supabaseAdmin.from('productos')
-        .select('user_id,nombre,codigo_barra,imagen_url,stock,unidad_base,vista_producto,categorias(categori),producto_imagenes(id,imagen_url),producto_ubicaciones(caja,updated_at)')
+        .select('user_id,nombre,codigo_barra,imagen_url,vista_producto,categorias(categori),producto_imagenes(id,imagen_url),producto_ubicaciones(caja,updated_at)')
         .eq('pais_id', paisId).eq('sucursal_id', sucursalId).eq('archivado', false)
         .order('user_id').range(offset, offset + 499);
       if (error) throw error;

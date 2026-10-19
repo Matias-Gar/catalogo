@@ -66,7 +66,7 @@ function Content() {
   const views = [...new Set(rows.map(p => normalizeProductView(p.vista_producto)))].sort();
   const categoryName = p => (Array.isArray(p.categorias) ? p.categorias[0] : p.categorias)?.categori || '';
   const categories = [...new Set(rows.filter(p => !productView || normalizeProductView(p.vista_producto) === productView).map(categoryName).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
-  const filtered = rows.filter(p => `${p.nombre} ${p.codigo_barra || ''} ${location(p)}`.toLocaleLowerCase('es').includes(search.trim().toLocaleLowerCase('es'))
+  const filtered = rows.filter(p => `${p.nombre} ${p.codigo_barra || p.user_id} ${location(p)}`.toLocaleLowerCase('es').includes(search.trim().toLocaleLowerCase('es'))
     && (!productView || normalizeProductView(p.vista_producto) === productView)
     && (!category || (category === '__none' ? !categoryName(p) : categoryName(p) === category))
     && (!box || (box === '__none' ? !location(p) : location(p) === box)))
@@ -148,14 +148,14 @@ function Content() {
       {!activeSucursalId && <p>Selecciona una sucursal.</p>}
       {loading && <p role="status">Cargando productos...</p>}
       <datalist id="box-names">{boxes.map(b => <option key={b} value={b} />)}</datalist>
-      <div className="overflow-x-auto rounded-xl border bg-white"><table className="w-full text-left"><thead className="bg-slate-100"><tr>{['Foto', 'Producto', 'Stock total', 'Caja', ...(canEdit ? [''] : [])].map((h, i) => <th key={i} className="p-3">{h}</th>)}</tr></thead><tbody>
+      <div className="overflow-x-auto rounded-xl border bg-white"><table className="w-full text-left"><thead className="bg-slate-100"><tr>{['Foto', 'Producto', 'Código', 'Caja', ...(canEdit ? [''] : [])].map((h, i) => <th key={i} className="p-3">{h}</th>)}</tr></thead><tbody>
         {visible.map(p => {
           const editing = canEdit && (!location(p) || drafts[p.user_id] !== undefined);
           const draft = drafts[p.user_id] ?? '';
           return <tr key={p.user_id} className="border-t">
             <td className="p-3">{photo(p)}</td>
-            <td className="p-3 font-semibold">{p.nombre}<div className="text-xs font-normal text-slate-500">{p.codigo_barra}</div></td>
-            <td className="p-3">{Number(p.stock || 0)} {p.unidad_base || 'unidad'}</td>
+            <td className="p-3 font-semibold">{p.nombre}</td>
+            <td className="p-3">{p.codigo_barra || p.user_id}</td>
             <td className="p-3">{editing ? <input aria-label={`Caja de ${p.nombre}`} disabled={saving !== null} list="box-names" maxLength={80} className={`${input} w-44`} placeholder="Ej.: 12 o Caja 12" value={draft} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); validateChange(p); } }} onChange={e => setDrafts(prev => ({ ...prev, [p.user_id]: e.target.value }))} /> : location(p) || 'Sin caja asignada'}</td>
             {canEdit && <td className="p-3">{editing ? <div className="flex gap-2">
               <button disabled={saving !== null || exporting || draft.trim() === location(p)} onClick={() => validateChange(p)} className="rounded-lg bg-slate-900 px-3 py-2 text-white disabled:opacity-40">{saving === p.user_id ? 'Guardando...' : location(p) ? 'Validar cambio' : 'Guardar'}</button>
@@ -177,6 +177,6 @@ function Content() {
         {!pendingChange.caja && <p className="mt-2 text-amber-800">Se quitara la caja asignada a este producto.</p>}
       </div>}
     </ConfirmModal>
-    <article id="box-report"><h1>Stock y ubicacion de productos</h1><p>{activeSucursal?.nombre} · {new Date().toLocaleString('es-BO', { timeZone: 'America/La_Paz' })}</p><p>Tipo: {productView ? getProductViewMeta(productView).title : 'Todos'} · Categoría: {category === '__none' ? 'Sin categoría' : category || 'Todas'} · Caja: {box === '__none' ? 'Sin asignar' : box || 'Todas'} · Busqueda: {search || 'Todas'} · {filtered.length} productos</p><table><thead><tr>{['Imagen principal', 'Producto', 'Caja', 'Stock total', 'Unidad'].map(h => <th key={h}>{h}</th>)}</tr></thead><tbody>{filtered.map(p => <tr key={p.user_id}><td>{photo(p)}</td><td>{p.nombre}</td><td>{location(p) || 'Sin caja asignada'}</td><td>{Number(p.stock || 0)}</td><td>{p.unidad_base || 'unidad'}</td></tr>)}</tbody></table></article>
+    <article id="box-report"><h1>Códigos y cajas de productos</h1><p>{activeSucursal?.nombre} · {new Date().toLocaleString('es-BO', { timeZone: 'America/La_Paz' })}</p><p>Tipo: {productView ? getProductViewMeta(productView).title : 'Todos'} · Categoría: {category === '__none' ? 'Sin categoría' : category || 'Todas'} · Caja: {box === '__none' ? 'Sin asignar' : box || 'Todas'} · Busqueda: {search || 'Todas'} · {filtered.length} productos</p><table><thead><tr>{['Imagen principal', 'Producto', 'Código', 'Caja'].map(h => <th key={h}>{h}</th>)}</tr></thead><tbody>{filtered.map(p => <tr key={p.user_id}><td>{photo(p)}</td><td>{p.nombre}</td><td>{p.codigo_barra || p.user_id}</td><td>{location(p) || 'Sin caja asignada'}</td></tr>)}</tbody></table></article>
   </div>;
 }
