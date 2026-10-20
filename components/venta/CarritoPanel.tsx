@@ -195,18 +195,19 @@ export default function CarritoPanel({
                     </td>
                     <td className="p-2">
                       <label className="block text-xs text-gray-700">
-                        Rebaja Bs (total)
+                        Rebaja Bs por unidad
                         <input type="number" min={0} max={linea.maxManual} step="0.01"
                           aria-label={`Descuento en Bs de ${item.nombre}`}
-                          value={linea.manual}
+                          value={linea.manualUnitario}
                           disabled={linea.maxManual <= 0}
                           title={linea.motivoLimite}
                           onChange={e => cambiarDescuento(itemKey, Number(e.target.value))}
                           className="mt-1 w-24 border border-gray-900 rounded px-2 py-2 text-base text-gray-900" />
                       </label>
                       <p className="mt-1 text-xs text-gray-600">
-                        {linea.maxManual > 0 ? `Max. Bs ${linea.maxManual.toFixed(2)} (25% / costo)` : linea.motivoLimite}
+                        {linea.maxManual > 0 ? `Max. Bs ${linea.maxManual.toFixed(2)} por unidad (25% / costo)` : linea.motivoLimite}
                       </p>
+                      {linea.manual > 0 && <p className="text-xs text-blue-700">Rebaja total: Bs {linea.manual.toFixed(2)}</p>}
                       {precioInfo.tienePromocion ? (
                         <div className="text-center">
                           <div className="text-red-600 font-bold">-Bs {((precioInfo?.descuento||0) * getBaseQuantity(item)).toFixed(2)}</div>

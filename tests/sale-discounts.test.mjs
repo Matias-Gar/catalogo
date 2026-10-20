@@ -79,9 +79,13 @@ test('productos incluidos en pack vigente tampoco admiten rebaja individual', ()
   input.packs = [{ id: 3, pack_productos: [{ producto_id: 1 }] }];
   assert.throws(() => validateSaleDiscounts(input), /promocion o pack/);
 });
-test('no se puede eludir la regla con rebaja global o total manipulado', () => {
-  const global = sale(); global.venta.costos_extra.rebajas = 1;
-  assert.throws(() => validateSaleDiscounts(global), /por producto/);
+test('rebaja general sin limite porcentual y total verificado', () => {
+  const global = sale(); global.venta.costos_extra.rebajas = 300;
+  global.venta.total = 37.5;
+  validateSaleDiscounts(global);
+  global.venta.costos_extra.rebajas = 500;
+  global.venta.total = 0;
+  validateSaleDiscounts(global);
   const total = sale(); total.venta.total = 1;
   assert.throws(() => validateSaleDiscounts(total), /total no coincide/);
 });
@@ -100,4 +104,32 @@ test('solo una promocion vigente bloquea las rebajas', () => {
   const promos = [{ producto_id: 1, activa: true, tipo: 'descuento', valor: 10, fecha_inicio: '2030-01-01' }];
   assert.equal(getPromotionPrice(p, promos, new Date('2026-10-14')).tienePromocion, false);
   assert.equal(getPromotionPrice(p, promos, new Date('2031-01-01')).precioFinal, 405);
+});
+
+
+test('70 Bs por unidad en 10 productos de 450 cobra 3800', () => {
+  const cart = calculateCart({ user_id: 1, precio: 450, precio_compra: 150, cantidad: 10, descuento_manual: 70 }, []);
+  assert.equal(cart.manualUnitario, 70);
+  assert.equal(cart.manual, 700);
+  assert.equal(cart.total, 3800);
+  const input = sale(cart.precio);
+  input.items[0].cantidad_base = 10;
+  input.venta.total = 3800;
+  assert.equal(validateSaleDiscounts(input)[0].manual, 700);
+});
+
+test('el limite por unidad no crece al aumentar cantidad', () => {
+  const cart = calculateCart({ user_id: 1, precio: 450, precio_compra: 150, cantidad: 10, descuento_manual: 200 }, []);
+  assert.equal(cart.maxManual, 112.5);
+  assert.equal(cart.manualUnitario, 112.5);
+  assert.equal(cart.manual, 1125);
+  assert.equal(cart.total, 3375);
+});
+
+test('rebaja por producto y general se aplican juntas', () => {
+  const input = sale(380);
+  input.items[0].cantidad_base = 10;
+  input.venta.costos_extra.rebajas = 1500;
+  input.venta.total = 2300;
+  validateSaleDiscounts(input);
 });

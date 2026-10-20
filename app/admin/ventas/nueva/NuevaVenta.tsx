@@ -206,7 +206,7 @@ export default function NuevaVenta() {
   const [envio, setEnvio] = React.useState(0);
   const [comision, setComision] = React.useState(0);
   const [publicidad, setPublicidad] = React.useState(0);
-  const rebajas = 0;
+  const [rebajas, setRebajas] = React.useState(0);
   const [showInsufficientPaymentWarning, setShowInsufficientPaymentWarning] = React.useState(false);
 
   const totalBaseOperacion = Math.max(0, Number(total) + Number(envio) + Number(comision) - Number(publicidad) - Number(rebajas));
@@ -1002,7 +1002,7 @@ export default function NuevaVenta() {
       setCarrito([]);
       setPagos([{ metodo: '', monto: 0 }]);
       setMostrarSegundoPago(false);
-      setEnvio(0); setComision(0); setPublicidad(0); setCobrarImpuestos(false);
+      setEnvio(0); setComision(0); setPublicidad(0); setRebajas(0); setCobrarImpuestos(false);
       cambiarCampo('nombre',''); cambiarCampo('carnet',''); cambiarCampo('telefono',''); cambiarCampo('email',''); cambiarCampo('nit',''); cambiarCampo('guardado',false); cambiarCampo('requiereFactura',false);
       setEfectivizando(false);
       saleInFlightRef.current = false;
@@ -1063,7 +1063,8 @@ export default function NuevaVenta() {
               </div>
               <div>
                 <label className="block text-gray-700">Rebajas</label>
-                <p className="text-sm text-gray-600">Aplica la rebaja en cada producto (maximo 25% y sin bajar del costo).</p>
+                <input aria-label="Rebaja general en Bs" type="number" step="0.01" min="0" value={rebajas} onChange={e=>setRebajas(parsePositiveNumber(e.target.value))} className="w-full border p-2 rounded" />
+                <p className="text-sm text-gray-600">Rebaja sobre el total, sin limite porcentual ni de costo.</p>
               </div>
             </div>
             <label className="inline-flex items-center gap-2 text-sm font-semibold text-gray-800">
