@@ -8,13 +8,14 @@ import { usePromociones } from '../lib/usePromociones';
 import { usePacks, calcularDescuentoPack } from '../lib/packs';
 import { PacksDisponibles } from '../lib/packs';
 import ExpandableDescription from '../components/ui/ExpandableDescription';
-import { getOptimizedImageUrl, buildImageSrcSet } from '../lib/imageOptimization';
 import { getProductViewMeta, getProductViewPublicPath, normalizeProductView } from '../lib/productViews';
 import { productMatchesSearch } from '../lib/searchMatching';
 import PublicSucursalSelector, { usePublicSucursal } from '../components/PublicSucursalSelector';
 import { buildCountryPath, stripCountryFromPath } from '../lib/countryRoutes';
 import CatalogTypeLanding from '../components/CatalogTypeLanding';
 import CatalogImage from '../components/CatalogImage';
+import ProductImageViewer from '../components/ProductImageViewer';
+import { getProductGallery } from '../lib/productGallery';
 import { runCatalogQuery } from '../lib/catalogRequest';
 
 // Componente principal de la página (Tienda)
@@ -196,71 +197,6 @@ function UnitPricePanel({ conversionInfo, factor }) {
   );
 }
 
-function ImageGalleryModal({ isOpen, onClose, imageList, imageIndex, productName, onPrev, onNext }) {
-  if (!isOpen || !imageList || imageList.length === 0) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={onClose}>
-      <div className="relative max-w-2xl w-full mx-4" onClick={e => e.stopPropagation()}>
-        <button
-          className="absolute top-2 right-2 bg-white/80 hover:bg-white text-gray-700 rounded-full w-9 h-9 flex items-center justify-center text-2xl font-bold shadow-lg z-10"
-          onClick={onClose}
-          title="Cerrar"
-        >
-          ×
-        </button>
-        {/* Flechas de navegación */}
-        {imageList.length > 1 && (
-          <>
-            <button
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 rounded-full w-10 h-10 flex items-center justify-center text-2xl font-bold shadow-lg z-10"
-              onClick={onPrev}
-              title="Anterior"
-            >
-              &#8592;
-            </button>
-            <button
-              className="absolute right-12 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 rounded-full w-10 h-10 flex items-center justify-center text-2xl font-bold shadow-lg z-10"
-              onClick={onNext}
-              title="Siguiente"
-            >
-              &#8594;
-            </button>
-          </>
-        )}
-        <img
-          src={getOptimizedImageUrl(imageList[imageIndex], 2000, { quality: 98, format: 'origin' })}
-          srcSet={buildImageSrcSet(imageList[imageIndex], [800, 1200, 2000], { quality: 98, format: 'origin' })}
-          sizes="(max-width: 768px) 100vw, 80vw"
-          loading="lazy"
-          decoding="async"
-          alt={productName}
-          className="w-full max-h-[80vh] object-contain rounded-xl bg-white"
-        />
-        <div className="text-center text-white font-bold mt-2 text-lg drop-shadow-lg">{productName} ({imageIndex + 1} / {imageList.length})</div>
-        {/* Miniaturas */}
-        {imageList.length > 1 && (
-          <div className="flex justify-center gap-2 mt-2">
-            {imageList.map((img, idx) => (
-              <img
-                key={idx}
-                src={getOptimizedImageUrl(img, 200, { quality: 95, format: 'origin' })}
-                srcSet={buildImageSrcSet(img, [100, 200, 400], { quality: 95, format: 'origin' })}
-                sizes="56px"
-                loading="lazy"
-                decoding="async"
-                alt={productName + ' miniatura ' + (idx + 1)}
-                className={`w-14 h-14 object-cover rounded border-2 cursor-pointer ${idx === imageIndex ? 'border-green-600' : 'border-gray-300'}`}
-                onClick={() => onPrev(idx - imageIndex < 0 ? imageList.length - 1 : idx)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-    </div>
-  );
-}
-
 export default function Home() {
   const pathname = usePathname();
   const cleanPathname = stripCountryFromPath(pathname);
@@ -303,12 +239,6 @@ function CatalogHome() {
     setSelectedImageList([]);
     setSelectedImageIndex(0);
     setSelectedImageName('');
-  };
-  const nextImage = () => {
-    setSelectedImageIndex((prev) => (prev + 1) % selectedImageList.length);
-  };
-  const prevImage = () => {
-    setSelectedImageIndex((prev) => (prev - 1 + selectedImageList.length) % selectedImageList.length);
   };
   const [productos, setProductos] = useState([]);
   const [imagenesProductos, setImagenesProductos] = useState({});
@@ -667,7 +597,7 @@ function CatalogHome() {
                                 type="button"
                                 className="w-8 h-8 rounded border border-gray-300 bg-white flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-purple-400 transition"
                                 title={`Ver imagen de ${prod?.nombre}`}
-                                onClick={() => openImageModal([imgUrl], 0, prod?.nombre)}
+                                onClick={(event) => { event.currentTarget.focus({ preventScroll: true }); event.stopPropagation(); openImageModal(getProductGallery(imgUrl, imagenesProductos[prod?.user_id] || []), 0, prod?.nombre); }}
                               >
                                 <img
                                   src={imgUrl}
@@ -840,20 +770,13 @@ function CatalogHome() {
             const conversionInfo = !agotado ? getConversionPriceInfo(p, promociones) : null;
             // Unificar: siempre mostrar imagen_base primero si existe, aunque no esté en imagenesProductos
             const imgs = Array.isArray(imagenesProductos[p.user_id]) ? imagenesProductos[p.user_id] : [];
-            let galeria = imgs;
-            if (p.imagen_base) {
-              const idx = imgs.indexOf(p.imagen_base);
-              if (idx > -1) {
-                galeria = [p.imagen_base, ...imgs.slice(0, idx), ...imgs.slice(idx + 1)];
-              } else {
-                galeria = [p.imagen_base, ...imgs];
-              }
-            }
+            const galeria = getProductGallery(p.imagen_base || p.imagen_url, imgs);
             return (
               <div key={p.user_id} className={`relative overflow-hidden rounded-lg border bg-white p-1.5 sm:p-3 shadow-md flex flex-col items-center ${agotado ? 'border-gray-900' : 'border-transparent'}`}>
                 <div className={`w-full ${agotado ? 'h-28 sm:h-44 mb-1' : 'h-32 sm:h-48 mb-1.5'} flex items-center justify-center cursor-pointer relative group`}>
                   {galeria.length > 0 ? (
                     <>
+                      <button type="button" className="w-full h-full" aria-label={`Ampliar imagen de ${p.nombre}`} onClick={(event) => { event.currentTarget.focus({ preventScroll: true }); event.stopPropagation(); openImageModal(galeria, 0, p.nombre); }}>
                       <CatalogImage
                         sources={galeria}
                         sizes="(max-width: 640px) 50vw, (max-width: 1200px) 33vw, 25vw"
@@ -861,8 +784,8 @@ function CatalogHome() {
                         decoding="async"
                         alt={p.nombre}
                         className={`w-full h-full object-contain rounded-lg bg-gray-50 group-hover:opacity-80 transition ${agotado ? 'grayscale' : ''}`}
-                        onClick={() => openImageModal(galeria, 0, p.nombre)}
                       />
+                      </button>
                       {galeria.length > 1 && (
                         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
                           {galeria.map((img, idx2) => (
@@ -870,7 +793,7 @@ function CatalogHome() {
                               key={img + '-' + idx2}
                               className={`w-2 h-2 rounded-full border ${idx2 === 0 ? 'bg-green-600 border-green-700' : 'bg-white border-gray-400'} focus:outline-none`}
                               title={`Ver imagen ${idx2 + 1}`}
-                              onClick={e => { e.stopPropagation(); openImageModal(galeria, idx2, p.nombre); }}
+                              onClick={e => { e.currentTarget.focus({ preventScroll: true }); e.stopPropagation(); openImageModal(galeria, idx2, p.nombre); }}
                             />
                           ))}
                         </div>
@@ -963,15 +886,13 @@ function CatalogHome() {
           })}
         </div>
         {/* Modal de galería de imágenes */}
-        <ImageGalleryModal
-          isOpen={isImageModalOpen}
+        {isImageModalOpen && <ProductImageViewer
           onClose={closeImageModal}
           imageList={selectedImageList}
           imageIndex={selectedImageIndex}
           productName={selectedImageName}
-          onPrev={prevImage}
-          onNext={nextImage}
-        />
+          onSelect={setSelectedImageIndex}
+        />}
 
         {/* Botón flotante para invitar a hacer pedido */}
         <a

@@ -8,7 +8,7 @@ export default function CatalogImage({ sources = [], ...props }) {
   return <CatalogImageContent key={urls.join("|")} urls={urls} {...props} />;
 }
 
-function CatalogImageContent({ urls, alt, ...props }) {
+function CatalogImageContent({ urls, alt, unoptimized = false, ...props }) {
   const [index, setIndex] = useState(0);
   const [useOriginal, setUseOriginal] = useState(false);
   const src = urls[index];
@@ -25,7 +25,7 @@ function CatalogImageContent({ urls, alt, ...props }) {
     width={600}
     height={400}
     quality={75}
-    unoptimized={!canOptimize || useOriginal}
+    unoptimized={unoptimized || !canOptimize || useOriginal}
     onError={() => {
       if (canOptimize && !useOriginal) setUseOriginal(true);
       else { setIndex((value) => value + 1); setUseOriginal(false); }

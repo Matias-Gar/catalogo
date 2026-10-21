@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from "uuid";
 import { getBrowserItem, setBrowserItem, removeBrowserItem } from "@/lib/browserStorage";
 import { getCarritoToken } from "@/lib/carritoToken";
 import CatalogImage from "@/components/CatalogImage";
+import ProductImageViewer from "@/components/ProductImageViewer";
+import { getProductGallery } from "@/lib/productGallery";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { usePromociones } from "@/lib/usePromociones";
@@ -13,7 +15,6 @@ import { usePacks, calcularDescuentoPack } from "@/lib/packs";
 import { supabase } from "@/lib/SupabaseClient";
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from "@/lib/storeSettings";
 import { PrecioConPromocion, calcularPrecioConPromocion, PromoCompactBanner } from "@/lib/promociones";
-import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 import { normalizeProductView } from "@/lib/productViews";
 import { productMatchesSearch } from "@/lib/searchMatching";
 import PublicSucursalSelector, { usePublicSucursal } from "@/components/PublicSucursalSelector";
@@ -1212,7 +1213,7 @@ export default function CatalogoPage() {
                                                             type="button"
                                                             className="w-8 h-8 rounded border border-gray-300 bg-white flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-purple-400 transition"
                                                             title={`Ver imagen de ${prod?.nombre}`}
-                                                            onClick={() => setModalImg({ urls: [imgUrl], index: 0, nombre: prod?.nombre })}
+                                                            onClick={(event) => { event.currentTarget.focus({ preventScroll: true }); event.stopPropagation(); setModalImg({ urls: getProductGallery(imgUrl, imagenesProductos[prod?.user_id] || []), index: 0, nombre: prod?.nombre }); }}
                                                         >
                                                             <img
                                                                 src={imgUrl}
@@ -1311,17 +1312,8 @@ export default function CatalogoPage() {
                             const isInCart = quantityInCart > 0;
                             const agotado = isProductoAgotado(producto);
                             const conversionInfo = !agotado ? getConversionPriceInfo(producto) : null;
-                            const imagenes = (() => {
-                                const imgs = Array.isArray(imagenesProductos[producto.user_id]) ? imagenesProductos[producto.user_id] : [];
-                                // Si hay más de una imagen, la segunda es la principal (como miniatura portada)
-                                if (imgs.length > 1) {
-                                    return [imgs[1], imgs[0], ...imgs.slice(2)];
-                                } else if (imgs.length === 1) {
-                                    return [imgs[0]];
-                                } else {
-                                    return [];
-                                }
-                            })();
+                            const imgs = imagenesProductos[producto.user_id] || [];
+                            const imagenes = getProductGallery(producto.imagen_base || producto.imagen_url, imgs.length > 1 ? [imgs[1], imgs[0], ...imgs.slice(2)] : imgs);
                             // Definir la variable categoria justo antes del return
                             const categoria = Array.isArray(categorias) ? categorias.find(c => c.id === producto.category_id) : null;
                             return (
@@ -1332,13 +1324,14 @@ export default function CatalogoPage() {
                                     <div className="relative">
                                         {Array.isArray(imagenes) && imagenes.length > 0 && typeof imagenes[0] === 'string' ? (
                                             <div className={`w-full ${agotado ? 'h-24 sm:h-32 mb-1' : 'h-28 sm:h-36 mb-1.5'} overflow-hidden rounded-lg relative group cursor-pointer`}>
+                                                <button type="button" className="w-full h-full" aria-label={`Ampliar imagen de ${producto.nombre}`} onClick={(event) => { event.currentTarget.focus({ preventScroll: true }); event.stopPropagation(); setModalImg({ urls: imagenes, index: 0, nombre: producto.nombre }); }}>
                                                 <CatalogImage
                                                     sources={imagenes}
                                                     alt={producto.nombre}
                                                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                                                     className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-105 ${agotado ? 'grayscale' : ''}`}
-                                                    onClick={() => setModalImg({ urls: imagenes, index: 0, nombre: producto.nombre })}
                                                 />
+                                                </button>
                                                 {/* Miniaturas si hay más de una imagen */}
                                                 {imagenes.length > 1 && (
                                                     <div className="absolute bottom-2 left-2 flex gap-1">
@@ -1347,7 +1340,7 @@ export default function CatalogoPage() {
                                                                 key={img + '-' + idx2}
                                                                 className={`w-3 h-3 rounded-full border-2 ${idx2 === 0 ? 'bg-green-600 border-green-700' : 'bg-white border-gray-400'} focus:outline-none`}
                                                                 title={`Ver imagen ${idx2 + 1}`}
-                                                                onClick={e => { e.stopPropagation(); setModalImg({ urls: imagenes, index: idx2, nombre: producto.nombre }); }}
+                                                                onClick={e => { e.currentTarget.focus({ preventScroll: true }); e.stopPropagation(); setModalImg({ urls: imagenes, index: idx2, nombre: producto.nombre }); }}
                                                             />
                                                         ))}
                                                     </div>
@@ -1459,66 +1452,10 @@ export default function CatalogoPage() {
             </div>
 
             {/* MODAL DE IMAGEN COMPLETA CON CARRUSEL */}
-            {modalImg && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setModalImg(null)}>
-                    <div className="relative max-w-2xl w-full mx-4" onClick={e => e.stopPropagation()}>
-                        <button
-                            className="absolute top-2 right-2 bg-white/80 hover:bg-white text-gray-700 rounded-full w-9 h-9 flex items-center justify-center text-2xl font-bold shadow-lg z-10"
-                            onClick={() => setModalImg(null)}
-                            title="Cerrar"
-                        >
-                            ×
-                        </button>
-                        {/* Flechas de navegación */}
-                        {modalImg.urls.length > 1 && (
-                            <>
-                                <button
-                                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 rounded-full w-10 h-10 flex items-center justify-center text-2xl font-bold shadow-lg z-10"
-                                    onClick={() => setModalImg(m => ({ ...m, index: (m.index - 1 + m.urls.length) % m.urls.length }))}
-                                    title="Anterior"
-                                >
-                                    &#8592;
-                                </button>
-                                <button
-                                    className="absolute right-12 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 rounded-full w-10 h-10 flex items-center justify-center text-2xl font-bold shadow-lg z-10"
-                                    onClick={() => setModalImg(m => ({ ...m, index: (m.index + 1) % m.urls.length }))}
-                                    title="Siguiente"
-                                >
-                                    &#8594;
-                                </button>
-                            </>
-                        )}
-                        <Image
-                            src={getOptimizedImageUrl(modalImg.urls[modalImg.index], 2200, { quality: 99, format: 'origin' })}
-                            alt={modalImg.nombre}
-                            width={800}
-                            height={600}
-                            quality={99}
-                            sizes="(max-width: 768px) 100vw, 80vw"
-                            className="w-full max-h-[80vh] object-contain rounded-xl bg-white"
-                        />
-                        <div className="text-center text-white font-bold mt-2 text-lg drop-shadow-lg">{modalImg.nombre}</div>
-                        {/* Miniaturas */}
-                        {modalImg.urls.length > 1 && (
-                            <div className="flex justify-center gap-2 mt-2">
-                                {modalImg.urls.map((img, idx) => (
-                                    <Image
-                                        key={img + '-' + idx}
-                                        src={getOptimizedImageUrl(img, 180, { quality: 95, format: 'origin' })}
-                                        alt={modalImg.nombre + ' miniatura ' + (idx + 1)}
-                                        width={56}
-                                        height={56}
-                                        quality={95}
-                                        sizes="56px"
-                                        className={`w-14 h-14 object-cover rounded border-2 cursor-pointer ${idx === modalImg.index ? 'border-green-600' : 'border-gray-300'}`}
-                                        onClick={() => setModalImg(m => ({ ...m, index: idx }))}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+            {modalImg && <ProductImageViewer
+                imageList={modalImg.urls} imageIndex={modalImg.index} productName={modalImg.nombre}
+                onClose={() => setModalImg(null)} onSelect={(index) => setModalImg((current) => ({ ...current, index }))}
+            />}
 
             {/* MODAL PARA AGREGAR PRODUCTO (COLOR + CANTIDAD) */}
             {addToCartModal && (

@@ -19,6 +19,7 @@ function load(relative) {
 }
 const { runCatalogQuery } = load('../lib/catalogRequest.js');
 const CatalogImage = load('../components/CatalogImage.jsx').default;
+const { getProductGallery } = load('../lib/productGallery.js');
 const { ImageConfigContext } = require('next/dist/shared/lib/image-config-context.shared-runtime');
 const { imageConfigDefault } = require('next/dist/shared/lib/image-config');
 const imageConfig = { ...imageConfigDefault, ...load('../next.config.ts').default.images };
@@ -51,4 +52,16 @@ test('missing images have a local visible placeholder', () => {
   const html = renderToStaticMarkup(React.createElement(CatalogImage, { sources: [null, ''], alt: 'Gafas' }));
   assert.match(html, /Sin imagen/);
   assert.doesNotMatch(html, /https?:/);
+});
+
+test('viewer loads the original image even when the optimizer quota is exhausted', () => {
+  const src = 'https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/photo.png';
+  const html = renderToStaticMarkup(React.createElement(CatalogImage, { sources: [src], alt: 'Producto', unoptimized: true }));
+  assert.ok(html.includes(`src="${src}"`));
+  assert.doesNotMatch(html, /\/_next\/image\?/);
+});
+
+test('gallery includes primary-only products and removes invalid and duplicate photos', () => {
+  assert.deepEqual(Array.from(getProductGallery('/primary.jpg')), ['/primary.jpg']);
+  assert.deepEqual(Array.from(getProductGallery('/primary.jpg', [null, '', '  ', '/second.jpg', '/primary.jpg', ' /second.jpg '])), ['/primary.jpg', '/second.jpg']);
 });

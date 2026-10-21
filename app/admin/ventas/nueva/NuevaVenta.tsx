@@ -1064,7 +1064,6 @@ export default function NuevaVenta() {
               <div>
                 <label className="block text-gray-700">Rebajas</label>
                 <input aria-label="Rebaja general en Bs" type="number" step="0.01" min="0" value={rebajas} onChange={e=>setRebajas(parsePositiveNumber(e.target.value))} className="w-full border p-2 rounded" />
-                <p className="text-sm text-gray-600">Rebaja sobre el total, sin limite porcentual ni de costo.</p>
               </div>
             </div>
             <label className="inline-flex items-center gap-2 text-sm font-semibold text-gray-800">
