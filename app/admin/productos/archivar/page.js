@@ -14,7 +14,7 @@ function getCategoryName(prod) {
 }
 
 export default function ArchivarProductos() {
-  const { activePaisId, activeSucursalId } = useSucursalActiva();
+  const { activePaisId, activeSucursalId, activePais, activeSucursal, loading: contextLoading, error: contextError } = useSucursalActiva();
   const [productos, setProductos] = useState([]);
   const [imagenes, setImagenes] = useState({});
   const [variantes, setVariantes] = useState({});
@@ -28,89 +28,109 @@ export default function ArchivarProductos() {
   const inputRef = useRef();
 
   useEffect(() => {
-    fetchProductos();
-  }, [activePaisId, activeSucursalId]);
-
-  async function fetchProductos() {
-    setLoading(true);
-    setError("");
-
-    let query = supabase
-      .from("productos")
-      .select("user_id, nombre, precio, stock, categoria, category_id, codigo_barra, created_at, archivado, categorias (categori)")
-      .order("nombre", { ascending: true })
-      .limit(1500);
-    if (activePaisId) query = query.eq("pais_id", activePaisId);
-    if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
-
-    const { data, error: loadError } = await query;
-    if (loadError) {
-      const message = String(loadError?.message || "");
+    let cancelled = false;
+    async function fetchProductos() {
+      // Clear the previous operation before querying the newly selected scope.
       setProductos([]);
       setImagenes({});
       setVariantes({});
-      setError(
-        message.includes("archivado")
-          ? "Falta la columna archivado en Supabase. Ejecuta scripts/archive_products.sql y vuelve a cargar."
-          : `Error cargando productos: ${message}`
-      );
+      setCategoria("");
+      if (contextLoading || !activePaisId || !activeSucursalId) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      setError("");
+
+      let query = supabase
+        .from("productos")
+        .select("user_id, pais_id, sucursal_id, nombre, precio, stock, categoria, category_id, codigo_barra, created_at, archivado, categorias (categori)")
+        .order("nombre", { ascending: true })
+        .limit(1500);
+      if (activePaisId) query = query.eq("pais_id", activePaisId);
+      if (activeSucursalId) query = query.eq("sucursal_id", activeSucursalId);
+
+      const { data, error: loadError } = await query;
+      if (cancelled) return;
+      if (loadError) {
+        const message = String(loadError?.message || "");
+        setProductos([]);
+        setImagenes({});
+        setVariantes({});
+        setError(
+          message.includes("archivado")
+            ? "Falta la columna archivado en Supabase. Ejecuta scripts/archive_products.sql y vuelve a cargar."
+            : `Error cargando productos: ${message}`
+        );
+        setLoading(false);
+        return;
+      }
+
+      const productosData = Array.isArray(data) ? data : [];
+      setProductos(productosData);
+
+      const ids = productosData.map((p) => p.user_id).filter(Boolean);
+      if (ids.length === 0) {
+        setImagenes({});
+        setVariantes({});
+        setLoading(false);
+        return;
+      }
+
+      let imgsQuery = supabase
+        .from("producto_imagenes")
+        .select("producto_id, imagen_url")
+        .in("producto_id", ids);
+      if (activePaisId) imgsQuery = imgsQuery.eq("pais_id", activePaisId);
+      if (activeSucursalId) imgsQuery = imgsQuery.eq("sucursal_id", activeSucursalId);
+      const { data: imgs } = await imgsQuery;
+      if (cancelled) return;
+      const groupedImages = {};
+      (imgs || []).forEach((img) => {
+        if (!groupedImages[img.producto_id]) groupedImages[img.producto_id] = [];
+        if (img.imagen_url) groupedImages[img.producto_id].push(img.imagen_url);
+      });
+      setImagenes(groupedImages);
+
+      let variantesQuery = supabase
+        .from("producto_variantes")
+        .select("producto_id, color, sku")
+        .in("producto_id", ids);
+      if (activePaisId) variantesQuery = variantesQuery.eq("pais_id", activePaisId);
+      if (activeSucursalId) variantesQuery = variantesQuery.eq("sucursal_id", activeSucursalId);
+      const { data: variantesData } = await variantesQuery;
+      if (cancelled) return;
+      const groupedVariants = {};
+      (variantesData || []).forEach((variant) => {
+        const key = String(variant.producto_id);
+        if (!groupedVariants[key]) groupedVariants[key] = [];
+        groupedVariants[key].push(variant);
+      });
+      setVariantes(groupedVariants);
       setLoading(false);
-      return;
     }
-
-    const productosData = Array.isArray(data) ? data : [];
-    setProductos(productosData);
-
-    const ids = productosData.map((p) => p.user_id).filter(Boolean);
-    if (ids.length === 0) {
-      setImagenes({});
-      setVariantes({});
+    fetchProductos().catch((loadError) => {
+      if (cancelled) return;
+      setError(`Error cargando productos: ${loadError.message || loadError}`);
       setLoading(false);
-      return;
-    }
-
-    let imgsQuery = supabase
-      .from("producto_imagenes")
-      .select("producto_id, imagen_url")
-      .in("producto_id", ids);
-    if (activePaisId) imgsQuery = imgsQuery.eq("pais_id", activePaisId);
-    if (activeSucursalId) imgsQuery = imgsQuery.eq("sucursal_id", activeSucursalId);
-    const { data: imgs } = await imgsQuery;
-    const groupedImages = {};
-    (imgs || []).forEach((img) => {
-      if (!groupedImages[img.producto_id]) groupedImages[img.producto_id] = [];
-      if (img.imagen_url) groupedImages[img.producto_id].push(img.imagen_url);
     });
-    setImagenes(groupedImages);
-
-    let variantesQuery = supabase
-      .from("producto_variantes")
-      .select("producto_id, color, sku")
-      .in("producto_id", ids);
-    if (activePaisId) variantesQuery = variantesQuery.eq("pais_id", activePaisId);
-    if (activeSucursalId) variantesQuery = variantesQuery.eq("sucursal_id", activeSucursalId);
-    const { data: variantesData } = await variantesQuery;
-    const groupedVariants = {};
-    (variantesData || []).forEach((variant) => {
-      const key = String(variant.producto_id);
-      if (!groupedVariants[key]) groupedVariants[key] = [];
-      groupedVariants[key].push(variant);
-    });
-    setVariantes(groupedVariants);
-    setLoading(false);
-  }
+    return () => { cancelled = true; };
+  }, [activePaisId, activeSucursalId, contextLoading]);
 
   async function toggleArchivado(prod) {
+    if (contextLoading || !activePaisId || !activeSucursalId || savingId ||
+        String(prod.pais_id) !== String(activePaisId) || String(prod.sucursal_id) !== String(activeSucursalId)) return;
     const nextArchived = !Boolean(prod.archivado);
     const verb = nextArchived ? "archivar" : "desarchivar";
-    if (!window.confirm(`Seguro que deseas ${verb} "${prod.nombre}"?`)) return;
+    if (!window.confirm(`¿Deseas ${verb} "${prod.nombre}" en ${activePais?.nombre || "el país seleccionado"} / ${activeSucursal?.nombre || "la sucursal seleccionada"}?`)) return;
 
     setSavingId(prod.user_id);
     try {
       let currentQuery = supabase.from("productos").select("*").eq("user_id", prod.user_id);
       if (activePaisId) currentQuery = currentQuery.eq("pais_id", activePaisId);
       if (activeSucursalId) currentQuery = currentQuery.eq("sucursal_id", activeSucursalId);
-      const { data: previousData } = await currentQuery.single();
+      const { data: previousData, error: currentError } = await currentQuery.single();
+      if (currentError) throw currentError;
 
       let updateQuery = supabase
         .from("productos")
@@ -119,7 +139,7 @@ export default function ArchivarProductos() {
       if (activePaisId) updateQuery = updateQuery.eq("pais_id", activePaisId);
       if (activeSucursalId) updateQuery = updateQuery.eq("sucursal_id", activeSucursalId);
 
-      const { error: updateError } = await updateQuery;
+      const { error: updateError } = await updateQuery.select("user_id").single();
       if (updateError) throw updateError;
 
       try {
@@ -139,7 +159,7 @@ export default function ArchivarProductos() {
 
       setProductos((prev) =>
         prev.map((item) =>
-          String(item.user_id) === String(prod.user_id)
+          String(item.user_id) === String(prod.user_id) && String(item.pais_id) === String(prod.pais_id) && String(item.sucursal_id) === String(prod.sucursal_id)
             ? { ...item, archivado: nextArchived }
             : item
         )
@@ -159,6 +179,7 @@ export default function ArchivarProductos() {
   const productosFiltrados = useMemo(() => {
     const term = busqueda.trim().toLowerCase();
     const filtered = productos.filter((p) => {
+      if (String(p.pais_id) !== String(activePaisId) || String(p.sucursal_id) !== String(activeSucursalId)) return false;
       const categoryName = getCategoryName(p);
       const matchesState =
         estado === "todos" ||
@@ -172,12 +193,13 @@ export default function ArchivarProductos() {
       if (orden === "stock") return Number(b.stock || 0) - Number(a.stock || 0);
       return String(a.nombre || "").localeCompare(String(b.nombre || ""), "es");
     });
-  }, [productos, variantes, busqueda, categoria, estado, orden]);
+  }, [productos, variantes, busqueda, categoria, estado, orden, activePaisId, activeSucursalId]);
 
   const totals = useMemo(() => {
-    const archived = productos.filter((p) => Boolean(p.archivado)).length;
-    return { archived, active: productos.length - archived };
-  }, [productos]);
+    const scoped = productos.filter((p) => String(p.pais_id) === String(activePaisId) && String(p.sucursal_id) === String(activeSucursalId));
+    const archived = scoped.filter((p) => Boolean(p.archivado)).length;
+    return { archived, active: scoped.length - archived };
+  }, [productos, activePaisId, activeSucursalId]);
 
   return (
     <div className="p-4">
@@ -188,6 +210,11 @@ export default function ArchivarProductos() {
         </p>
       </div>
 
+      <p className="mb-4 rounded-lg border border-indigo-200 bg-indigo-50 p-3 font-semibold text-indigo-950" role="status">
+        {contextLoading ? "Cargando país y sucursal..." : `País: ${activePais?.nombre || "Sin seleccionar"} / Sucursal: ${activeSucursal?.nombre || "Sin seleccionar"}`}
+      </p>
+      {contextError && <p role="alert" className="mb-4 text-red-700">{contextError}</p>}
+      {!contextLoading && (!activePaisId || !activeSucursalId) && <p className="mb-4 text-gray-900">Selecciona un país y una sucursal para administrar sus productos.</p>}
       <div className="mb-4 grid gap-2 rounded-lg border bg-white p-3 shadow-sm md:grid-cols-4">
         <div className="rounded border p-3">
           <p className="text-xs font-bold uppercase text-gray-500">Activos</p>
@@ -248,7 +275,7 @@ export default function ArchivarProductos() {
       )}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-        {loading ? (
+        {loading || contextLoading ? (
           <div className="col-span-full text-gray-700">Cargando productos...</div>
         ) : productosFiltrados.length === 0 ? (
           <div className="col-span-full text-gray-700">No hay productos con esos filtros.</div>
@@ -260,7 +287,7 @@ export default function ArchivarProductos() {
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
                     <CardTitle className="text-gray-900">{prod.nombre}</CardTitle>
-                    <span className={`rounded-full px-2 py-1 text-xs font-bold ${archived ? "bg-gray-800 text-white" : "bg-green-100 text-green-800"}`}>
+                    <span className={`rounded-full px-2 py-1 text-xs font-bold ${archived ? "bg-gray-800 !text-white" : "bg-green-100 text-green-800"}`}>
                       {archived ? "Archivado" : "Activo"}
                     </span>
                   </div>
@@ -280,7 +307,7 @@ export default function ArchivarProductos() {
                     ) : (
                       <span className="text-gray-400">Sin imagen</span>
                     )}
-                    <div className="mt-2 text-sm font-semibold text-gray-900">Precio: Bs {Number(prod.precio || 0).toFixed(2)}</div>
+                    <div className="mt-2 text-sm font-semibold text-gray-900">Precio: {activePais?.moneda_simbolo || activePais?.moneda_codigo || ""} {Number(prod.precio || 0).toFixed(2)}</div>
                     <div className="text-gray-900">Stock: <span className={Number(prod.stock || 0) < 3 ? "font-bold text-red-600" : ""}>{prod.stock || 0}</span></div>
                     <div className="text-gray-900">Categoria: {getCategoryName(prod) || "-"}</div>
                   </div>
@@ -288,8 +315,8 @@ export default function ArchivarProductos() {
                 <CardFooter>
                   <Button
                     onClick={() => toggleArchivado(prod)}
-                    className={`w-full font-bold text-white ${archived ? "bg-green-700 hover:bg-green-800" : "bg-gray-800 hover:bg-gray-900"}`}
-                    disabled={savingId === prod.user_id}
+                    className={`w-full font-bold !text-white disabled:!text-white ${archived ? "bg-green-700 hover:bg-green-800" : "bg-gray-800 hover:bg-gray-900"}`}
+                    disabled={Boolean(savingId) || contextLoading || !activePaisId || !activeSucursalId}
                   >
                     {savingId === prod.user_id ? "Guardando..." : archived ? "Desarchivar" : "Archivar"}
                   </Button>
