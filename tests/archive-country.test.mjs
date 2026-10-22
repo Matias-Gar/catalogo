@@ -1,4 +1,4 @@
-﻿import test from 'node:test';
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -12,9 +12,9 @@ function harness(context, resolveQuery = table => ({ data: table === 'productos'
   const states = [], effects = [], queries = [], alerts = [];
   let cursor = 0;
   const react = { useState(initial) { const i = cursor++; if (!(i in states)) states[i] = initial; return [states[i], value => { states[i] = typeof value === 'function' ? value(states[i]) : value; }]; }, useMemo: fn => fn(), useRef: () => ({}), useEffect: fn => effects.push(fn) };
-  const client = { from(table) { const query = { table, filters: [], mutation: null, select() { return this; }, order() { return this; }, limit() { return this; }, in() { return this; }, eq(...args) { this.filters.push(args); return this; }, update(value) { this.mutation = value; return this; }, single() { return this; }, then(ok, fail) { return Promise.resolve(resolveQuery(table, this)).then(ok, fail); } }; queries.push(query); return query; } };
+  const client = { auth: { getSession: async () => ({ data: { session: { access_token: 'test-token' } } }) }, from(table) { const query = { table, filters: [], mutation: null, select() { return this; }, order() { return this; }, limit() { return this; }, in() { return this; }, eq(...args) { this.filters.push(args); return this; }, update(value) { this.mutation = value; return this; }, single() { return this; }, then(ok, fail) { return Promise.resolve(resolveQuery(table, this)).then(ok, fail); } }; queries.push(query); return query; } };
   const exports = {};
-  vm.runInNewContext(code, { exports, console, window: { confirm: () => true }, alert: message => alerts.push(message), require(name) {
+  vm.runInNewContext(code, { exports, console, fetch: async () => ({ ok: false, json: async () => ({ success: false, error: 'No matching row' }) }), window: { confirm: () => true }, alert: message => alerts.push(message), require(name) {
     if (name === 'react') return react;
     if (name === 'react/jsx-runtime') return require(name);
     if (name.includes('SupabaseClient')) return { supabase: client };
@@ -51,7 +51,7 @@ test('ignores a response that arrives after the country changes or the page unmo
   resolve({ data: [product], error: null }); await flush();
   assert.equal(h.states[0].length, 0); assert.equal(h.queries.length, 1);
 });
-test('hides stale country products and does not report an archive update affecting no row as success', async () => {
+test('hides stale country products and does not report a rejected server archive as success', async () => {
   const h = harness(scope, (table, query) => query.mutation ? { data: null, error: new Error('No matching row') } : { data: product, error: null });
   h.states[0] = [product]; h.states[4] = false;
   const action = buttons(h.render()).find(button => button.props.children === 'Archivar');

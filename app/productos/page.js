@@ -1,7 +1,8 @@
 "use client";
 
 // --- IMPORTS Y HOOKS NECESARIOS ---
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { priceCatalogItem } from "@/lib/catalogCartPricing.mjs";
 import { v4 as uuidv4 } from "uuid";
 import { getBrowserItem, setBrowserItem, removeBrowserItem } from "@/lib/browserStorage";
 import { getCarritoToken } from "@/lib/carritoToken";
@@ -101,7 +102,7 @@ export default function CatalogoPage() {
     const [showConfirmOrder, setShowConfirmOrder] = useState(false);
     const [customerData, setCustomerData] = useState({ nombre: '', nit_ci: '' });
     // --- Declarar promociones usando el hook personalizado ---
-    const { promociones } = usePromociones(activeSucursalId);
+    const { promociones, loading: loadingPromociones, error: errorPromociones } = usePromociones(activeSucursalId);
                                 const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
                                 const [busqueda, setBusqueda] = useState('');
                                 const [imagenesProductos, setImagenesProductos] = useState({});
@@ -109,7 +110,9 @@ export default function CatalogoPage() {
                         const { packs, loading: loadingPacks } = usePacks(activeSucursalId);
                     const [categorias, setCategorias] = useState([]);
                 const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
-            const [cart, setCart] = useState([]);
+            const [storedCart, setCart] = useState([]);
+            const [loadedCartKey, setLoadedCartKey] = useState(null);
+            const cart = useMemo(() => storedCart.map(item => priceCatalogItem(item, promociones, productos)), [storedCart, promociones, productos]);
             const pendingOrderRequestKeyRef = useRef(null);
         const [usuario, setUsuario] = useState(null);
     useEffect(() => {
@@ -549,47 +552,18 @@ export default function CatalogoPage() {
             return acc;
         }, []);
         setCart(merged);
+        setLoadedCartKey(cartStorageKey);
         if (legacyInsumosKey !== cartStorageKey) removeBrowserItem(legacyInsumosKey);
     }, [cartStorageKey, activeSucursalId]);
 
     // 3. Guardar carrito en localStorage cada vez que cambia
     useEffect(() => {
-        setBrowserItem(cartStorageKey, JSON.stringify(cart));
-    }, [cart, cartStorageKey]);
+        if (loadedCartKey !== cartStorageKey) return;
+        setBrowserItem(cartStorageKey, JSON.stringify(storedCart));
+    }, [storedCart, cartStorageKey, loadedCartKey]);
 
     // --- Funciones del Carrito ---
     
-    // Función helper para obtener el precio final de un producto (con promoción si aplica)
-    const getPrecioFinal = (producto) => {
-        const promocion = promociones.find(function(promo) {
-            return (
-                promo.producto_id === producto.user_id &&
-                promo.activa === true &&
-                (!promo.fecha_fin || new Date(promo.fecha_fin) >= new Date())
-            );
-        });
-
-        if (!promocion) {
-            return producto.precio;
-        }
-
-        let precioFinal = producto.precio;
-        switch (promocion.tipo) {
-            case 'descuento':
-                precioFinal = producto.precio * (1 - promocion.valor / 100);
-                break;
-            case 'precio_fijo':
-                precioFinal = promocion.valor;
-                break;
-            case 'descuento_absoluto':
-                precioFinal = Math.max(0, producto.precio - promocion.valor);
-                break;
-            default:
-                precioFinal = producto.precio;
-        }
-        return Math.max(0, precioFinal);
-    };
-
     const getCartKey = (producto) => `prod:${String(producto.user_id)}:${String(producto.variante_id ?? 'default')}`;
 
     // Buscar producto en el carrito por id y variante
@@ -762,6 +736,7 @@ export default function CatalogoPage() {
             return;
         } else {
             stockDisponible = Math.max(0, Number(productoDB.stock || 0));
+            varianteSeleccionada.precio = Number(productoDB.precio ?? producto.precio ?? 0);
         }
 
         const productoConVariante = {
@@ -776,7 +751,7 @@ export default function CatalogoPage() {
             precio: varianteSeleccionada.precio
         };
 
-        const precioFinal = getPrecioFinal(productoConVariante);
+        const productoConPrecio = priceCatalogItem(productoConVariante, promociones);
         const selectedUnit = String(unidad || productoConVariante.unidad_base || 'unidad');
         const quantity = normalizeQuantityForUnit(cantidad, selectedUnit);
         const unidadesVenta = getAvailableUnits(productoConVariante, stockDisponible);
@@ -813,6 +788,7 @@ export default function CatalogoPage() {
                 const updated = [...prev];
                 updated[idxPrev] = {
                     ...updated[idxPrev],
+                    ...productoConPrecio,
                     unidad: selectedUnit,
                     cantidad: getItemDisplayQuantity(updated[idxPrev]) + quantity,
                     cantidad_display: getItemDisplayQuantity(updated[idxPrev]) + quantity,
@@ -821,13 +797,13 @@ export default function CatalogoPage() {
                 return updated;
             }
             return [...prev, {
-                ...productoConVariante,
+                ...productoConPrecio,
                 cart_key: cartKey,
                 unidad: selectedUnit,
                 cantidad: quantity,
                 cantidad_display: quantity,
                 cantidad_base: requestedBaseQuantity,
-                precio: precioFinal
+                precio: productoConPrecio.precio
             }];
         });
         setAddToCartModal(null);
@@ -882,6 +858,15 @@ export default function CatalogoPage() {
 
     // --- Función de WhatsApp (MEJORADA) ---
     const confirmAndSendWhatsapp = async () => {
+        if (loadingPromociones || errorPromociones) {
+            alert('No se pudieron verificar las promociones. Espera o recarga la página antes de enviar el pedido.');
+            return;
+        }
+        if (loadedCartKey !== cartStorageKey || storedCart.some(item => item.tipo !== 'pack'
+            && item.precio_original == null && !productos.some(p => String(p.user_id) === String(item.user_id)))) {
+            alert('Espera a que cargue el catálogo para verificar los precios de tu cesta.');
+            return;
+        }
         if (cart.length === 0) {
             alert("Tu cesta está vacía. Agrega productos para enviar un pedido.");
             return;
@@ -978,7 +963,10 @@ export default function CatalogoPage() {
         const itemsList = cart.map(item => {
             const cantidadTexto = getItemQuantityText(item);
             const subtotal = getItemSubtotal(item).toFixed(2); 
-            return `*${cantidadTexto}* ${item.nombre} - (Bs ${subtotal})`;
+            const promoText = item.promocion_aplicada
+                ? ` [Promoción: antes Bs ${(Number(item.precio_original) * getItemBaseQuantity(item)).toFixed(2)}]`
+                : '';
+            return `*${cantidadTexto}* ${item.nombre} - (Bs ${subtotal})${promoText}`;
         }).join('\n');
         
         const total = cart.reduce((sum, item) => sum + getItemSubtotal(item), 0).toFixed(2);

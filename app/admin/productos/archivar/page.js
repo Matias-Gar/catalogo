@@ -5,7 +5,6 @@ import { supabase } from "../../../../lib/SupabaseClient";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
 import { getOptimizedImageUrl, buildImageSrcSet } from "../../../../lib/imageOptimization";
-import { registrarHistorialProducto } from "../../../../lib/productosHistorial";
 import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
 import { productMatchesSearch } from "../../../../lib/searchMatching";
 
@@ -126,36 +125,17 @@ export default function ArchivarProductos() {
 
     setSavingId(prod.user_id);
     try {
-      let currentQuery = supabase.from("productos").select("*").eq("user_id", prod.user_id);
-      if (activePaisId) currentQuery = currentQuery.eq("pais_id", activePaisId);
-      if (activeSucursalId) currentQuery = currentQuery.eq("sucursal_id", activeSucursalId);
-      const { data: previousData, error: currentError } = await currentQuery.single();
-      if (currentError) throw currentError;
-
-      let updateQuery = supabase
-        .from("productos")
-        .update({ archivado: nextArchived })
-        .eq("user_id", prod.user_id);
-      if (activePaisId) updateQuery = updateQuery.eq("pais_id", activePaisId);
-      if (activeSucursalId) updateQuery = updateQuery.eq("sucursal_id", activeSucursalId);
-
-      const { error: updateError } = await updateQuery.select("user_id").single();
-      if (updateError) throw updateError;
-
-      try {
-        const user = (await supabase.auth.getUser())?.data?.user;
-        await registrarHistorialProducto({
-          producto_id: Number(prod.user_id),
-          accion: nextArchived ? "ARCHIVE" : "UNARCHIVE",
-          datos_anteriores: previousData || prod,
-          datos_nuevos: { ...(previousData || prod), archivado: nextArchived },
-          usuario_email: user?.email || null,
-          pais_id: activePaisId || null,
-          sucursal_id: activeSucursalId || null,
-        });
-      } catch (historyError) {
-        console.warn("No se pudo registrar historial de archivo:", historyError);
-      }
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) throw new Error("Tu sesi\u00f3n ha expirado. Vuelve a iniciar sesi\u00f3n.");
+      const response = await fetch("/api/admin/productos/archivar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ productId: Number(prod.user_id), paisId: activePaisId, sucursalId: activeSucursalId, archivado: nextArchived }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.error || "No se pudo guardar el estado");
+      if (result.warning) alert(result.warning);
 
       setProductos((prev) =>
         prev.map((item) =>
