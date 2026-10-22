@@ -1,0 +1,51 @@
+{
+  "solo_lectura": true,
+  "revisados": {
+    "ventas": 50,
+    "detalles": 97,
+    "productos": 362,
+    "promociones": 13,
+    "pedidos": 7
+  },
+  "limitacion": "Precios y promociones actuales evaluados a la fecha de cada venta; no sustituyen un historial de cambios ni prueban por sí solos una pérdida.",
+  "ventas_a_revisar": [],
+  "pedidos_pendientes": [
+    {
+      "pedido_id": 1,
+      "total_guardado": 40,
+      "referencias_originales_incorrectas": []
+    },
+    {
+      "pedido_id": 2,
+      "total_guardado": 20,
+      "referencias_originales_incorrectas": []
+    },
+    {
+      "pedido_id": 4,
+      "total_guardado": 505,
+      "referencias_originales_incorrectas": []
+    },
+    {
+      "pedido_id": 5,
+      "total_guardado": 710,
+      "referencias_originales_incorrectas": [
+        204,
+        223
+      ]
+    },
+    {
+      "pedido_id": 6,
+      "total_guardado": 150,
+      "referencias_originales_incorrectas": []
+    },
+    {
+      "pedido_id": 8,
+      "total_guardado": 925,
+      "referencias_originales_incorrectas": [
+        203,
+        227,
+        223
+      ]
+    }
+  ]
+}

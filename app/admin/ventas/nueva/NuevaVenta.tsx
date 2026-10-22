@@ -1,5 +1,6 @@
 "use client";
 import { calcularLineaVenta } from '../../../../lib/cartPricing';
+import { restorePendingOrderPricing } from '../../../../lib/pendingOrderPricing.mjs';
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useCarrito } from '../../../../hooks/useCarrito';
 import { useCliente } from '../../../../hooks/useCliente';
@@ -156,8 +157,11 @@ export default function NuevaVenta() {
   const { activePaisId, activeSucursal } = useSucursalActiva() as any;
   const effectiveSucursalId = activeSucursal?.id || "";
   const { cliente, cambiarCampo, buscarPorCarnet, guardar, buscarEmailHistorico } = useCliente(effectiveSucursalId, activePaisId);
-  const { promociones } = usePromociones(effectiveSucursalId);
+  const { promociones, loading: loadingPromociones, error: errorPromociones } = usePromociones(effectiveSucursalId);
   const { packs } = usePacks(effectiveSucursalId) as { packs: Pack[] };
+  const {
+    productos, imagenes, searchResults, searchLoading, fetchProductos, searchProductos
+  } = useProductos(false, effectiveSucursalId);
   const {
     carrito,
     agregar,
@@ -171,16 +175,7 @@ export default function NuevaVenta() {
     setCarrito,
     stockWarning,
     clearStockWarning
-  } = useCarrito(promociones, effectiveSucursalId);
-
-  const {
-    productos,
-    imagenes,
-    searchResults,
-    searchLoading,
-    fetchProductos,
-    searchProductos
-  } = useProductos(false, effectiveSucursalId); // no incluir precio de compra para vendedores
+  } = useCarrito(promociones, effectiveSucursalId, productos);
 
   const [busqueda, setBusqueda] = React.useState('');
   const [showSuggestions, setShowSuggestions] = React.useState(false);
@@ -231,11 +226,17 @@ export default function NuevaVenta() {
   // Carga robusta: siempre consulta productos y packs desde la base de datos
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (!activePaisId || !effectiveSucursalId) return;
     const pedido = sessionStorage.getItem('pedido_a_efectivizar');
     if (!pedido) return;
     (async () => {
       try {
         const pedidoObj = JSON.parse(pedido);
+        if ((pedidoObj.pais_id && String(pedidoObj.pais_id) !== String(activePaisId))
+          || (pedidoObj.sucursal_id && String(pedidoObj.sucursal_id) !== String(effectiveSucursalId))) {
+          showToast('Selecciona el país y la sucursal del pedido antes de efectivizarlo.', 'error');
+          return;
+        }
         pendingPedidoIdRef.current = pedidoObj?.id || null;
         if (!Array.isArray(pedidoObj.productos)) return;
         // Agrupar productos por producto_id, variante_id y color
@@ -287,11 +288,12 @@ export default function NuevaVenta() {
 
           let unidadesQuery = supabaseClient
             .from('productos')
-            .select('user_id, stock, unidad_base, unidades_alternativas, factor_conversion')
+            .select('user_id, precio, precio_compra, stock, unidad_base, unidades_alternativas, factor_conversion')
             .in('user_id', productosIds);
           if (activePaisId) unidadesQuery = unidadesQuery.eq('pais_id', activePaisId);
           if (effectiveSucursalId) unidadesQuery = unidadesQuery.eq('sucursal_id', effectiveSucursalId);
-          const { data: unidadesData } = await unidadesQuery;
+          const { data: unidadesData, error: unidadesError } = await unidadesQuery;
+          if (unidadesError) throw unidadesError;
           unidadesByProducto = Object.fromEntries((Array.isArray(unidadesData) ? unidadesData : []).map((row) => [String(row.user_id), row]));
 
           // Traer imágenes asociadas
@@ -386,9 +388,8 @@ export default function NuevaVenta() {
             cart_key: `prod:${productoCompleto.producto_id}:${p.variante_id || 'default'}:${p.unidad || unidadBase}`,
             variante_id: p.variante_id || productoCompleto.variante_id,
             color: p.color || productoCompleto.color,
-            precio: p.precio_unitario || productoCompleto.precio,
-            precio_original: p.precio_original ?? p.precio_unitario ?? productoCompleto.precio,
-            promocion_aplicada: p.promocion_aplicada || null,
+            ...restorePendingOrderPricing(p, { ...productoCompleto, precio: unidadesProducto.precio ?? productoCompleto.precio_base }, varianteSeleccionada),
+            precio_compra: unidadesProducto.precio_compra,
             nombre: productoCompleto.nombre || 'Producto sin nombre',
             stock: varianteSeleccionada ? getVariantStock(varianteSeleccionada) : Number(unidadesProducto.stock ?? productoCompleto.stock ?? 0),
             categoria: productoCompleto.categoria,
@@ -430,7 +431,7 @@ export default function NuevaVenta() {
     })();
     // Solo dependencias estables para evitar warning de React
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setCarrito, cambiarCampo]);
+  }, [setCarrito, cambiarCampo, activePaisId, effectiveSucursalId]);
 
   // shortcuts
   useEffect(() => {
@@ -751,6 +752,10 @@ export default function NuevaVenta() {
 
   const efectivizarVenta = useCallback(async () => {
     if (saleInFlightRef.current) return;
+    if (loadingPromociones || errorPromociones) {
+      showToast('Espera a que se verifiquen las promociones antes de efectivizar.', 'error');
+      return;
+    }
     saleRequestKeyRef.current ||= crypto.randomUUID();
       // ...existing code...
     if (carrito.length === 0) { showToast('El carrito esta vacio', 'error'); return; }
@@ -1025,7 +1030,7 @@ export default function NuevaVenta() {
       setEfectivizando(false);
       saleInFlightRef.current = false;
     }
-  }, [promociones, carrito, cliente, pagos, cambio, totalCobrar, subtotal, totalDescuento, packs, setCarrito, cambiarCampo, envio, comision, publicidad, rebajas, impuestosCalculados, cobrarImpuestos, activePaisId, effectiveSucursalId]);
+  }, [promociones, loadingPromociones, errorPromociones, carrito, cliente, pagos, mostrarSegundoPago, sumaPagos, tienePagoEnEfectivo, cambio, totalCobrar, subtotal, totalDescuento, packs, setCarrito, cambiarCampo, envio, comision, publicidad, rebajas, impuestosCalculados, cobrarImpuestos, activePaisId, effectiveSucursalId]);
 
   // ...continued building UI mostly replicates previous layout using components
 
@@ -1216,7 +1221,7 @@ export default function NuevaVenta() {
             aria-label="efectivizar-venta"
             onClick={efectivizarVenta}
             className="mt-4 w-full bg-black hover:bg-gray-900 text-white font-bold py-3 rounded-lg text-lg disabled:opacity-60"
-            disabled={efectivizando || showInsufficientPaymentWarning}
+            disabled={efectivizando || showInsufficientPaymentWarning || loadingPromociones || !!errorPromociones}
           >
             {efectivizando ? "Procesando..." : "Efectivizar venta"}
           </button>

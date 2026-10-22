@@ -3,6 +3,7 @@
 // --- IMPORTS Y HOOKS NECESARIOS ---
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { priceCatalogItem } from "@/lib/catalogCartPricing.mjs";
+import { buildOrderWhatsappMessage, money } from "@/lib/orderPricing.mjs";
 import { v4 as uuidv4 } from "uuid";
 import { getBrowserItem, setBrowserItem, removeBrowserItem } from "@/lib/browserStorage";
 import { getCarritoToken } from "@/lib/carritoToken";
@@ -114,6 +115,8 @@ export default function CatalogoPage() {
             const [loadedCartKey, setLoadedCartKey] = useState(null);
             const cart = useMemo(() => storedCart.map(item => priceCatalogItem(item, promociones, productos)), [storedCart, promociones, productos]);
             const pendingOrderRequestKeyRef = useRef(null);
+            const sendingOrderRef = useRef(false);
+            const [sendingOrder, setSendingOrder] = useState(false);
         const [usuario, setUsuario] = useState(null);
     useEffect(() => {
         const categoryFromUrl = new URLSearchParams(window.location.search).get('categoria') || '';
@@ -252,7 +255,7 @@ export default function CatalogoPage() {
     };
     const getItemDisplayQuantity = (item) => Number(item?.cantidad_display ?? item?.cantidad ?? 0);
     const getItemBaseQuantity = (item) => Number(item?.cantidad_base ?? item?.cantidad ?? 0);
-    const getItemSubtotal = (item) => Number(item?.precio || 0) * getItemBaseQuantity(item);
+    const getItemSubtotal = (item) => money(Number(item?.precio || 0) * getItemBaseQuantity(item));
     const getItemQuantityText = (item) => item?.tipo === 'pack'
         ? `x${getItemDisplayQuantity(item)}`
         : `${getItemDisplayQuantity(item)} ${item?.unidad || item?.unidad_base || 'unidad'}`;
@@ -858,6 +861,10 @@ export default function CatalogoPage() {
 
     // --- Función de WhatsApp (MEJORADA) ---
     const confirmAndSendWhatsapp = async () => {
+        if (sendingOrderRef.current) return;
+        sendingOrderRef.current = true;
+        setSendingOrder(true);
+        try {
         if (loadingPromociones || errorPromociones) {
             alert('No se pudieron verificar las promociones. Espera o recarga la página antes de enviar el pedido.');
             return;
@@ -895,6 +902,7 @@ export default function CatalogoPage() {
         }
 
         const pendingOrderPayload = {
+                total_esperado: money(cart.reduce((sum, item) => sum + getItemSubtotal(item), 0)),
                 cliente_nombre: nombreFinal || null,
                 cliente_telefono: nitciLlenado || null, // Usar NIT/CI en lugar de teléfono
                 usuario_id: usuario ? usuario.id : null,
@@ -952,6 +960,10 @@ export default function CatalogoPage() {
             return;
         }
 
+        if (!Array.isArray(result.productos) || result.productos.length === 0) {
+            alert('No se pudo verificar el detalle guardado del pedido. Conservamos tu cesta para reintentar.');
+            return;
+        }
         const pedidoId = data.id;
         pendingOrderRequestKeyRef.current = null;
 
@@ -960,23 +972,8 @@ export default function CatalogoPage() {
         // trackPurchase(totalValue, 'BOB');
 
         // 2. Preparar mensaje WhatsApp
-        const itemsList = cart.map(item => {
-            const cantidadTexto = getItemQuantityText(item);
-            const subtotal = getItemSubtotal(item).toFixed(2); 
-            const promoText = item.promocion_aplicada
-                ? ` [Promoción: antes Bs ${(Number(item.precio_original) * getItemBaseQuantity(item)).toFixed(2)}]`
-                : '';
-            return `*${cantidadTexto}* ${item.nombre} - (Bs ${subtotal})${promoText}`;
-        }).join('\n');
-        
-        const total = cart.reduce((sum, item) => sum + getItemSubtotal(item), 0).toFixed(2);
-        const nombreTexto = nombreFinal ? `Nombre: ${nombreFinal}\n` : '';
-        const nitciTexto = nitciLlenado ? `NIT/CI: ${nitciLlenado}\n` : '';
-        const pedidoTexto = `N° Pedido: ${pedidoId}`;
-        
-        const message = encodeURIComponent(
-            `¡Hola! Me gustaría hacer el siguiente pedido:\n\n${pedidoTexto}\n${nombreTexto}${nitciTexto}\n${itemsList}\n\n*Total:* Bs ${total}\n\n¡Gracias!`
-        );
+        const message = encodeURIComponent(buildOrderWhatsappMessage({ id: pedidoId,
+            productos: result.productos, nombre: nombreFinal, nit: nitciLlenado }));
         
         const whatsappURL = `https://wa.me/${whatsappNumber}?text=${message}`;
         window.open(whatsappURL, '_blank');
@@ -989,6 +986,12 @@ export default function CatalogoPage() {
         
         // Mensaje de éxito
         alert("¡Pedido enviado exitosamente! Se ha abierto WhatsApp para completar tu pedido.");
+        } catch (error) {
+            alert(`No se pudo completar el envío del pedido. Conservamos tu cesta para reintentar. ${error?.message || ''}`);
+        } finally {
+            sendingOrderRef.current = false;
+            setSendingOrder(false);
+        }
     };
 
     const normalizeColorName = (colorName) =>
@@ -2025,7 +2028,7 @@ export default function CatalogoPage() {
                                 </button>
                                 <button
                                     onClick={confirmAndSendWhatsapp}
-                                    disabled={false}
+                                    disabled={sendingOrder || loadingPromociones || !!errorPromociones}
                                     className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">

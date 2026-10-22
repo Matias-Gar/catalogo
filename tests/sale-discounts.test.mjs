@@ -24,6 +24,26 @@ test('el costo es un piso mas estricto que el 25%', () => {
 test('cantidades fraccionarias y centavos no exceden el limite', () => {
   assert.equal(discountLimit({ price: 99.99, cost: 10, quantity: 0.5 }).max, 12.49);
 });
+
+test('la cesta y el servidor coinciden en los centavos de la rebaja máxima fraccionaria', () => {
+  for (const quantity of [0.1, 0.3, 0.5, 0.333333, 1.01]) {
+    const line = calculateCart({ user_id: 1, precio: 99.99, precio_compra: 10, cantidad_base: quantity, descuento_manual: 100 }, []);
+    assert.ok(line.manual <= discountLimit({ price: 99.99, cost: 10, quantity }).max);
+    const input = sale(line.precio);
+    input.products[0].precio = 99.99;
+    input.products[0].precio_compra = 10;
+    input.items[0].cantidad_base = quantity;
+    input.venta.total = line.total;
+    validateSaleDiscounts(input);
+  }
+});
+
+test('el precio unitario no cambia al redondear una cantidad convertida', () => {
+  const line = calculateCart({ user_id: 1, precio: 100, cantidad_base: 0.333333 },
+    [{ producto_id: 1, activa: true, tipo: 'descuento', valor: 25 }]);
+  assert.equal(line.precio, 75);
+  assert.equal(line.total, 25);
+});
 test('carrito y servidor coinciden al limitar un descuento heredado excesivo', () => {
   const cart = calculateCart({ user_id: 1, precio: 450, precio_compra: 150, cantidad: 1, descuento_manual: 400 }, []);
   assert.equal(cart.manual, 112.5);

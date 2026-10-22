@@ -497,6 +497,13 @@ begin
     raise exception 'Venta no encontrada (%)', p_venta_id;
   end if;
 
+  -- El bloqueo anterior serializa las anulaciones de esta venta. Reintentar
+  -- una anulación completada no puede volver a aumentar el inventario.
+  if v_sale.estado = 'anulada' then
+    return jsonb_build_object('id', p_venta_id, 'deleted', true,
+      'stock_restored_rows', 0, 'already_annulled', true);
+  end if;
+
   if exists (
     select 1
     from public.stock_movimientos sm

@@ -1,5 +1,6 @@
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
+import { quotePendingOrder, orderTotal } from '../lib/orderPricing.mjs';
 
 // Run against the local development server. All business APIs are intercepted.
 const browser = await chromium.launch({ headless: true });
@@ -19,6 +20,7 @@ try {
     { name: 'fallo al guardar conserva cesta', discount: 25, quantity: 1, expected: 75, failSave: true },
     { name: 'centavos coinciden con precio visible', discount: 25, quantity: 3, productBase: 99.99, expected: 224.97 },
     { name: 'descuento del 100%', discount: 100, quantity: 1, expected: 0 },
+    { name: 'cambio de precio requiere revisar antes de enviar', discount: 25, quantity: 1, expected: 75, serverDiscount: 30, priceChange: true },
   ]) {
     const context = await browser.newContext({ viewport: process.env.CATALOG_MOBILE
       ? { width: 390, height: 844 } : { width: 1440, height: 900 } });
@@ -37,8 +39,14 @@ try {
       const url = new URL(route.request().url());
       if (url.pathname === '/api/carritos-pendientes-service-role') {
         orders.push(route.request().postDataJSON());
-        return route.fulfill({ status: scenario.failSave ? 500 : 200,
-          json: scenario.failSave ? { success: false, error: 'Fallo simulado' } : { success: true, id: 123 } });
+        const quoted = quotePendingOrder(orders.at(-1).productos,
+          [{ user_id: 12, nombre: 'Producto prueba', precio: scenario.productBase || 100,
+            producto_variantes: scenario.variant ? [{ id: 3, precio: 200, color: 'Rojo' }] : [] }],
+          scenario.discount ? [{ producto_id: 12, activa: true, tipo: scenario.type || 'descuento', valor: scenario.serverDiscount ?? scenario.discount,
+            fecha_inicio: scenario.start, fecha_fin: scenario.end }] : []);
+        return route.fulfill({ status: scenario.failSave ? 500 : scenario.priceChange ? 409 : 200,
+          json: scenario.failSave || scenario.priceChange ? { success: false, error: scenario.priceChange ? 'Los precios o promociones cambiaron' : 'Fallo simulado' } : { success: true, id: 123,
+            productos: quoted, total: orderTotal(quoted) } });
       }
       if (url.pathname.startsWith('/api/public/')) {
         const json = url.pathname.endsWith('sucursales')
@@ -89,11 +97,11 @@ try {
     await page.getByRole('heading', { name: 'Confirmar Pedido' }).waitFor();
     assert.ok((await page.locator('body').innerText()).includes(`Bs ${scenario.expected.toFixed(2)}`), `${scenario.name}: total visible`);
     await page.getByRole('button', { name: 'Enviar por WhatsApp' }).click();
-    if (scenario.failSave) {
+    if (scenario.failSave || scenario.priceChange) {
       await page.waitForFunction(() => document.body.innerText.includes('Enviar por WhatsApp'));
       await page.waitForTimeout(300);
       assert.equal(await page.evaluate(() => window.__orderUrl), undefined);
-      assert.ok(dialogs.some(text => text.includes('Fallo simulado')));
+      assert.ok(dialogs.some(text => text.includes(scenario.priceChange ? 'Los precios o promociones cambiaron' : 'Fallo simulado')));
       assert.ok(await page.evaluate(() => localStorage.getItem('carrito_temporal_bo_test').includes('Producto prueba')));
       console.log(`PASS ${scenario.name}: no abre WhatsApp ni borra el pedido`);
       await context.close();

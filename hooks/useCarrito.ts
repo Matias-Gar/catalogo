@@ -2,6 +2,8 @@ import { calcularLineaVenta } from '../lib/cartPricing';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { calcularPrecioConPromocion } from '../lib/promociones';
 import { usePacks, calcularDescuentoPack } from '../lib/packs';
+import { priceCatalogItem } from '../lib/catalogCartPricing.mjs';
+import { getBrowserItem, setBrowserItem, removeBrowserItem } from '../lib/browserStorage';
 
 export interface Producto {
   user_id: string | number | null; // For packs, this should be null
@@ -138,40 +140,36 @@ const getItemKey = (item: { tipo?: 'pack' | 'producto'; user_id?: string | numbe
 };
 
 // Este hook centraliza todo lo relacionado al carrito: estado, operaciones y totales.
-export function useCarrito(promociones: unknown[], sucursalId?: string) {
+export function useCarrito(promociones: unknown[], sucursalId?: string, catalogo: Producto[] = []) {
   const { packs, loading: loadingPacks } = usePacks(sucursalId) as { packs: Pack[]; loading: boolean; };
-  const [carrito, setCarrito] = useState<CartItem[]>([]);
+  const [storedCarrito, setCarrito] = useState<CartItem[]>([]);
+  const [loadedStorageKey, setLoadedStorageKey] = useState<string | null>(null);
+  const storageKey = sucursalId ? `carrito_venta_${sucursalId}` : null;
+  const carrito = useMemo(() => storedCarrito.map(item => priceCatalogItem(item, promociones, catalogo)) as CartItem[],
+    [storedCarrito, promociones, catalogo]);
   const [stockWarning, setStockWarning] = useState('');
 
-  // recalculate cart if promociones change (fixed new promo detect)
+  // Cada sucursal conserva su propia cesta. No trasladar la cesta antigua global
+  // a otra sucursal; un pedido se recupera desde su detalle y ámbito verificados.
   useEffect(() => {
-    setCarrito(prev => prev.map(item => {
-      if (item.tipo === 'pack') return item;
-      const precioInfo = calcularPrecioConPromocion(item, promociones);
-      return {
-        ...item,
-        precio: precioInfo.precioFinal,
-        precio_original: precioInfo.precioOriginal,
-        descuento_item: precioInfo.descuento,
-        promocion_aplicada: precioInfo.promocion
-      };
-    }));
-  }, [promociones]);
-
-  // cargar/guardar localstorage
-  useEffect(() => {
-    const stored = typeof window !== 'undefined' && localStorage.getItem('carrito_temporal');
+    if (!storageKey) return;
+    const stored = getBrowserItem(storageKey);
     if (stored) {
-      try { setCarrito(JSON.parse(stored)); } catch (e) { console.error('load carrito', e); }
-    }
-  }, []);
-  useEffect(() => {
-    if (carrito.length) {
-      localStorage.setItem('carrito_temporal', JSON.stringify(carrito));
+      try { const parsed = JSON.parse(stored); setCarrito(Array.isArray(parsed) ? parsed : []); }
+      catch { setCarrito([]); }
     } else {
-      localStorage.removeItem('carrito_temporal');
+      setCarrito([]);
     }
-  }, [carrito]);
+    setLoadedStorageKey(storageKey);
+  }, [storageKey]);
+  useEffect(() => {
+    if (!storageKey || loadedStorageKey !== storageKey) return;
+    if (carrito.length) {
+      setBrowserItem(storageKey, JSON.stringify(carrito));
+    } else {
+      removeBrowserItem(storageKey);
+    }
+  }, [carrito, storageKey, loadedStorageKey]);
 
   const clearStockWarning = useCallback(() => {
     setStockWarning('');

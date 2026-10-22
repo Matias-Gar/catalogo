@@ -1,5 +1,17 @@
 # Verificación de promociones — 22 de octubre de 2026
 
+La revisión ampliada y el estado actual se documentan en [order-sale-audit.md](reports/order-sale-audit.md). Los resultados siguientes conservan la verificación inicial; no sustituyen ese informe posterior.
+
+## Incidencia posterior: convertir un pedido en venta
+
+La primera verificación no cubría convertir un pedido existente cuyo campo `precio_original` ya estaba incorrecto. Se confirmó mediante lectura del pedido 5: el producto 204 tenía `precio_unitario=142.50` y `precio_original=142.50`, mientras el precio de BD era 190 y la promoción vigente 25%. Eso producía una segunda aplicación de 25%, enviando 106.88 por unidad y provocando el rechazo del servidor.
+
+La reconstrucción del pedido ahora recupera la base de la BD, incluyendo el precio propio de la variante cuando existe. También se recupera la base del catálogo por encima de metadatos incorrectos en cestas antiguas.
+
+Se agregaron nueve pruebas en `tests/sale-order-conversion.test.mjs`, todas aprobadas. Cubren la reproducción del fallo, metadatos incorrectos/ausentes/correctos, variantes, precio fijo, descuento 100%, falta de precio verificable, rechazo de rebajas extra y la ruta real de creación con autenticación y guardado simulados. La prueba de la ruta comprueba respuesta 200 y llamada a `crear_venta_completa_segura` con total 285 y precio unitario 142.50; no ejecuta el procedimiento de producción. TypeScript aprobado.
+
+Se agregó también una regresión de cesta con `precio_original` incorrecto, aprobada junto con las otras cinco pruebas de cesta y las 17 pruebas de descuentos de venta. La verificación original de navegador descrita abajo antecede a esta incidencia.
+
 ## Resultado
 
 58 verificaciones aprobadas: 30 pruebas automatizadas de cálculo/API/almacenamiento y 28 recorridos en Chromium (14 en escritorio y 14 en tamaño móvil). `npm run typecheck` aprobado.

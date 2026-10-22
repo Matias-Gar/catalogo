@@ -12,49 +12,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 });
 
-// Función para calcular precio con promoción (copiada localmente)
-function calcularPrecioConPromocion(producto, promociones) {
-  const promocionActiva = promociones.find(
-    promo => 
-      promo.producto_id === producto.user_id && 
-      promo.activa === true &&
-      (!promo.fecha_fin || new Date(promo.fecha_fin) >= new Date())
-  );
-
-  if (!promocionActiva) {
-    return {
-      precioOriginal: producto.precio,
-      precioFinal: producto.precio,
-      tienePromocion: false,
-      promocion: null
-    };
-  }
-
-  let precioFinal = producto.precio;
-
-  switch (promocionActiva.tipo) {
-    case 'descuento':
-      precioFinal = producto.precio * (1 - promocionActiva.valor / 100);
-      break;
-    case 'precio_fijo':
-      precioFinal = promocionActiva.valor;
-      break;
-    case 'descuento_absoluto':
-      precioFinal = Math.max(0, producto.precio - promocionActiva.valor);
-      break;
-    default:
-      precioFinal = producto.precio;
-  }
-
-  return {
-    precioOriginal: producto.precio,
-    precioFinal: Math.max(0, precioFinal),
-    tienePromocion: true,
-    promocion: promocionActiva,
-    descuento: producto.precio - precioFinal,
-    porcentajeDescuento: ((producto.precio - precioFinal) / producto.precio * 100).toFixed(0)
-  };
-}
+import { getPromotionPrice as calcularPrecioConPromocion } from '@/lib/saleDiscountPolicy.mjs';
 
 export async function GET() {
   try {
@@ -86,7 +44,7 @@ export async function GET() {
       .eq('activa', true);
 
     if (promocionesError) {
-      console.warn('Error al obtener promociones:', promocionesError.message);
+      throw new Error('No se pudieron verificar las promociones del catálogo.');
     }
 
     // 3. Obtener imágenes de productos

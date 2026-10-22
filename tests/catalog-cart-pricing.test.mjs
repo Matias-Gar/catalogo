@@ -16,6 +16,13 @@ test('el precio cobrado usa los mismos centavos que el precio publicado', () => 
   assert.equal((item.precio * 3).toFixed(2), '224.97');
 });
 
+test('corrige el precio original descontado de una cesta antigua usando el catálogo', () => {
+  const item = priceCatalogItem({ user_id: 204, precio: 142.5, precio_original: 142.5 },
+    [{ producto_id: 204, activa: true, tipo: 'descuento', valor: 25 }], [{ user_id: 204, precio: 190 }]);
+  assert.equal(item.precio_original, 190);
+  assert.equal(item.precio, 142.5);
+});
+
 test('la cesta y el pedido respetan el 25% con identificadores de distinto tipo', () => {
   const item = priceCatalogItem({ user_id: 12, precio: 100, cantidad_base: 2 }, promotions);
   assert.equal(item.precio, 75);

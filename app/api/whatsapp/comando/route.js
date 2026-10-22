@@ -11,7 +11,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
   }
 });
-import { calcularPrecioConPromocion } from '../../../../lib/promociones';
+import { getPromotionPrice as calcularPrecioConPromocion } from '../../../../lib/saleDiscountPolicy.mjs';
 
 export async function GET(request) {
   try {
@@ -74,10 +74,11 @@ async function obtenerProductosConDatos() {
   if (productosError) throw new Error(`Error al obtener productos: ${productosError.message}`);
 
   // Obtener promociones
-  const { data: promociones } = await supabase
+  const { data: promociones, error: promocionesError } = await supabase
     .from('promociones')
     .select('*')
     .eq('activa', true);
+  if (promocionesError) throw new Error('No se pudieron verificar las promociones del catálogo.');
 
   // Obtener imágenes
   const productIds = productos.map(p => p.user_id);
