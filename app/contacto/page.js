@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 const BACKGROUND_SRC = "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/imagenes/descarga.jpeg";
-const LOGO_SRC = "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/imagenes/StreetWear.png.jpg";
+const LOGO_SRC = "/brand/garblac-contacto.png";
 
 const LINKS = {
   whatsapp: "https://wa.me/59177434023?text=Hola,%20quiero%20más%20información%20sobre%20sus%20productos.",
@@ -141,8 +141,8 @@ export default function ContactoPage() {
               <div className="mb-7 flex h-[8.3rem] w-[8.3rem] items-center justify-center overflow-hidden rounded-[1.55rem] border border-white/25 bg-black shadow-2xl shadow-black/70">
                 <img
                   src={LOGO_SRC}
-                  alt="Logo STREET WEAR"
-                  className="h-full w-full rounded-[1.45rem] object-cover"
+                  alt="Logo Importadora Garblac, Cochabamba - Bolivia"
+                  className="h-full w-full rounded-[1.45rem] object-contain"
                 />
               </div>
 
