@@ -16,7 +16,7 @@ function CatalogImageContent({ urls, alt, unoptimized = false, ...props }) {
   let canOptimize = src.startsWith("/") && !src.startsWith("//");
   try {
     const url = new URL(src);
-    canOptimize = url.protocol === "https:" && url.hostname === "gzvtuenpwndodnetnmzi.supabase.co" && url.pathname.startsWith("/storage/v1/object/public/");
+    canOptimize = ["http:", "https:"].includes(url.protocol) && url.hostname === "garblac.duckdns.org" && url.pathname.startsWith("/storage/v1/object/public/");
   } catch { /* Local images use their relative URL. */ }
   return <Image
     {...props}

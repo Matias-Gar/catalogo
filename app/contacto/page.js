@@ -8,7 +8,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 
-const BACKGROUND_SRC = "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/imagenes/descarga.jpeg";
+const BACKGROUND_SRC = "https://garblac.duckdns.org/storage/v1/object/public/imagenes/descarga.jpeg";
 const LOGO_SRC = "/brand/garblac-contacto.png";
 
 const LINKS = {
