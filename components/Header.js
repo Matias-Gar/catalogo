@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import { resolveStorageImageUrl } from '../lib/storageImageUrl.mjs';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { supabase } from '../lib/SupabaseClient'; // Asegúrate que esta ruta es correcta
@@ -116,7 +117,7 @@ function HeaderContent({ pathname }) {
             <div className="flex items-center justify-center gap-2 text-2xl font-extrabold text-white cursor-pointer hover:text-indigo-400 transition duration-200">
               {storeSettings.store_logo_url ? (
                 <img
-                  src={storeSettings.store_logo_url}
+                  src={resolveStorageImageUrl(storeSettings.store_logo_url)}
                   alt="Logo tienda"
                   className="h-9 w-9 rounded-full object-cover border border-white/20"
                 />
@@ -187,7 +188,7 @@ function HeaderContent({ pathname }) {
           <div className="flex items-center gap-3 text-3xl font-extrabold text-white cursor-pointer hover:text-indigo-400 transition duration-200">
             {storeSettings.store_logo_url ? (
               <img
-                src={storeSettings.store_logo_url}
+                src={resolveStorageImageUrl(storeSettings.store_logo_url)}
                 alt="Logo tienda"
                 className="h-10 w-10 rounded-full object-cover border border-white/20"
               />

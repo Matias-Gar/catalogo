@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { resolveStorageImageUrl } from '../../lib/storageImageUrl.mjs';
 
 const views = ['articulos', 'insumos', 'productos', 'moldes', 'equipos-de-produccion', 'papeleria', 'insumos-para-velas', 'categoria-futura'];
 const photo = 'https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/test.jpg';
@@ -38,7 +39,7 @@ test('all country and dynamic catalog routes share the touch viewer', async ({ p
       const viewer = page.getByRole('dialog');
       await expect(viewer).toBeVisible();
       await expect(viewer.getByRole('img').first()).toBeVisible();
-      await expect(viewer.locator('.viewer-image')).toHaveAttribute('src', photo);
+      await expect(viewer.locator('.viewer-image')).toHaveAttribute('src', resolveStorageImageUrl(photo));
       await expect.poll(() => viewer.locator('.viewer-image').evaluate(img => img.naturalWidth)).toBeGreaterThan(0);
       await viewer.getByRole('button', { name: 'Ver imagen 2', exact: true }).tap();
       await expect(viewer.getByText(/\(2 \/ 2\)/)).toBeVisible();

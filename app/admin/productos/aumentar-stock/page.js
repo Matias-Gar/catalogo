@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { resolveStorageImageUrl } from '../../../../lib/storageImageUrl.mjs';
 import { supabase } from "@/lib/SupabaseClient";
 
 import Toast, { showToast } from '../../../../components/ui/Toast';
@@ -887,7 +888,7 @@ export function StockControlPage({ operation = "increase" }) {
                       <div className="h-14 w-14 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
                         {imagenPrincipalByProducto[pid] ? (
                           <img
-                            src={imagenPrincipalByProducto[pid]}
+                            src={resolveStorageImageUrl(imagenPrincipalByProducto[pid])}
                             alt={prod.nombre}
                             className="h-full w-full object-cover"
                             loading="lazy"

@@ -1,3 +1,5 @@
+import { resolveStorageImageUrl } from './storageImageUrl.mjs'
+
 type ImageFormat = 'origin' | 'webp' | 'avif' | 'jpg' | 'png'
 
 type OptimizeOptions = {
@@ -22,28 +24,11 @@ export function isSupabaseStorageUrl(url: string): boolean {
 
 export function getOptimizedImageUrl(
   url?: string,
-  width = 800,
-  options: OptimizeOptions = {}
+  _width = 800,
+  _options: OptimizeOptions = {}
 ): string {
-  if (!url) return ""
-
-  if (!isSupabaseStorageUrl(url)) {
-    return url
-  }
-
-  try {
-    const parsed = new URL(url)
-    const quality = options.quality ?? 95
-    const format = options.format ?? 'origin'
-
-    parsed.searchParams.set('width', String(width))
-    parsed.searchParams.set('quality', String(quality))
-    parsed.searchParams.set('format', format)
-
-    return parsed.toString()
-  } catch {
-    return url
-  }
+  // Storage object endpoints serve originals. Next/image owns actual resizing.
+  return resolveStorageImageUrl(url)
 }
 
 export function buildImageSrcSet(

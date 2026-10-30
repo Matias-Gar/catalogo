@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { resolveStorageImageUrl } from '../lib/storageImageUrl.mjs';
 import { supabase } from '../lib/SupabaseClient';
 import { useRouter } from 'next/navigation';
 
@@ -269,7 +270,7 @@ export default function UserProfile() {
                 <h3 className="text-sm font-medium text-gray-700 mb-3">Foto de Perfil</h3>
                 {perfil?.foto_perfil ? (
                   <Image
-                    src={perfil.foto_perfil}
+                    src={resolveStorageImageUrl(perfil.foto_perfil)}
                     alt="Foto de perfil"
                     width={128}
                     height={128}
@@ -370,7 +371,7 @@ export default function UserProfile() {
                 <div className="mb-4">
                   {fotoPerfil ? (
                     <Image
-                      src={fotoPerfil}
+                      src={resolveStorageImageUrl(fotoPerfil)}
                       alt="Foto de perfil"
                       width={128}
                       height={128}

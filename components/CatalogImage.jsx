@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { resolveStorageImageUrl } from "../lib/storageImageUrl.mjs";
 
 export default function CatalogImage({ sources = [], ...props }) {
-  const urls = [...new Set(sources.filter((url) => typeof url === "string" && url.trim()))];
+  const urls = [...new Set(sources.map((url) => resolveStorageImageUrl(url)).filter(Boolean))];
   return <CatalogImageContent key={urls.join("|")} urls={urls} {...props} />;
 }
 

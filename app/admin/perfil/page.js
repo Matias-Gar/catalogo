@@ -1,5 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
+import { resolveStorageImageUrl } from '../../../lib/storageImageUrl.mjs';
 const SafeImage = dynamic(() => import("../../../components/SafeImage"), { ssr: false });
 const PerfilForm = dynamic(() => import("../../../components/PerfilForm.client"), { ssr: false });
 import { useEffect, useState } from "react";
@@ -160,7 +161,7 @@ export default function PerfilPage() {
                 <h3 className="text-sm font-medium text-gray-700 mb-3">Foto de Perfil</h3>
                 {perfil?.foto_perfil ? (
                   <SafeImage
-                    src={perfil.foto_perfil}
+                    src={resolveStorageImageUrl(perfil.foto_perfil)}
                     alt="Foto de perfil"
                     width={128}
                     height={128}

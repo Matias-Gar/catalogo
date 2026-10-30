@@ -14,7 +14,7 @@ function load(relative) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
   }).outputText;
   const exports = {};
-  vm.runInNewContext(code, { exports, require, process, URL, AbortController, setTimeout, clearTimeout });
+  vm.runInNewContext(code, { exports, require: createRequire(new URL(relative, import.meta.url)), process, URL, AbortController, setTimeout, clearTimeout });
   return exports;
 }
 const { runCatalogQuery } = load('../lib/catalogRequest.js');
@@ -57,7 +57,7 @@ test('missing images have a local visible placeholder', () => {
 test('viewer loads the original image even when the optimizer quota is exhausted', () => {
   const src = 'https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/photo.png';
   const html = renderToStaticMarkup(React.createElement(CatalogImage, { sources: [src], alt: 'Producto', unoptimized: true }));
-  assert.ok(html.includes(`src="${src}"`));
+  assert.ok(html.includes('src="https://garblac.duckdns.org/storage/v1/object/public/product_images/public/photo.png"'));
   assert.doesNotMatch(html, /\/_next\/image\?/);
 });
 

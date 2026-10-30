@@ -2,6 +2,7 @@
 
 // --- IMPORTS Y HOOKS NECESARIOS ---
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { resolveStorageImageUrl } from '../../lib/storageImageUrl.mjs';
 import { priceCatalogItem } from "@/lib/catalogCartPricing.mjs";
 import { buildOrderWhatsappMessage, money } from "@/lib/orderPricing.mjs";
 import { v4 as uuidv4 } from "uuid";
@@ -1103,7 +1104,7 @@ export default function CatalogoPage() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-extrabold text-gray-900 text-center flex items-center gap-2">
                     {storeSettings?.store_logo_url ? (
-                                <Image src={storeSettings.store_logo_url} alt="logo tienda" width={36} height={36} className="h-9 w-9 inline-block align-middle mr-2 rounded-full object-cover" />
+                                <Image src={resolveStorageImageUrl(storeSettings.store_logo_url)} alt="logo tienda" width={36} height={36} className="h-9 w-9 inline-block align-middle mr-2 rounded-full object-cover" />
                             ) : (
                                 <Image src="/free-shopping-icons-vector.jpg" alt="icono pedido" width={36} height={36} className="inline-block align-middle mr-2 rounded" />
                             )}

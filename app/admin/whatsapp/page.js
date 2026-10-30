@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
+import { resolveStorageImageUrl } from '../../../lib/storageImageUrl.mjs';
 import { supabase } from '../../../lib/SupabaseClient';
 import { optimizeImageForUpload } from '../../../lib/imageUploadOptimization';
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings, saveStoreSettings } from '../../../lib/storeSettings';
@@ -230,7 +231,7 @@ export default function StoreSettingsPage() {
           <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
             {form.store_logo_url ? (
               <img
-                src={form.store_logo_url}
+                src={resolveStorageImageUrl(form.store_logo_url)}
                 alt="Logo de tienda"
                 className="h-14 w-14 rounded-full border border-gray-200 object-cover"
               />

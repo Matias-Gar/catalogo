@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { resolveStorageImageUrl } from '../lib/storageImageUrl.mjs';
 import { supabase } from "../lib/SupabaseClient";
 
 export default function PerfilForm({ userId, perfilActual, onSave, isAdminEdit = false }) {
@@ -218,7 +219,7 @@ export default function PerfilForm({ userId, perfilActual, onSave, isAdminEdit =
         <div className="mb-4">
           {fotoPerfil ? (
             <Image 
-              src={fotoPerfil} 
+              src={resolveStorageImageUrl(fotoPerfil)}
               alt="Foto de perfil" 
               width={128}
               height={128}

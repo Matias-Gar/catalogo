@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/SupabaseClient";
 import Image from "next/image";
+import { resolveStorageImageUrl } from '../../lib/storageImageUrl.mjs';
 import { useSucursalActiva } from "@/components/admin/SucursalContext";
 import { productMatchesSearch } from "@/lib/searchMatching";
 
@@ -326,7 +327,7 @@ export default function PacksClient({ initialPacks = [] }) {
               <div className="flex items-center gap-2 mb-2 w-full justify-between">
                 <div className="flex items-center gap-2">
                   {p.imagen_url ? (
-                    <Image src={p.imagen_url} alt={p.nombre} width={48} height={48} className="rounded border border-purple-400 bg-white" />
+                    <Image src={resolveStorageImageUrl(p.imagen_url)} alt={p.nombre} width={48} height={48} className="rounded border border-purple-400 bg-white" />
                   ) : collageImgs.length > 0 ? (
                     <div className="grid grid-cols-2 grid-rows-2 w-12 h-12 rounded overflow-hidden border border-purple-400 bg-white">
                       {collageImgs.map((img, idx) => (
@@ -465,7 +466,7 @@ export default function PacksClient({ initialPacks = [] }) {
                   <div className="mb-4">
                     <label className="block text-sm font-bold text-gray-700 mb-1">Imagen del pack</label>
                     {editPack.imagen_url && (
-                      <Image src={editPack.imagen_url} alt="Imagen actual del pack" width={96} height={96} className="w-24 h-24 object-cover rounded mb-2 border" />
+                      <Image src={resolveStorageImageUrl(editPack.imagen_url)} alt="Imagen actual del pack" width={96} height={96} className="w-24 h-24 object-cover rounded mb-2 border" />
                     )}
                     <input name="imagen" type="file" accept="image/*" className="w-full" />
                   </div>
