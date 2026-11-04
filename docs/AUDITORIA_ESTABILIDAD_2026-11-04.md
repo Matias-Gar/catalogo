@@ -85,4 +85,13 @@ npm audit
 
 ## Publicación y comprobación final
 
-Pendiente de completar después del push y de la comprobación del despliegue automático. No se considera desplegado por el mero hecho de compilar localmente.
+- Commit de aplicación: `19ea75c87ddc30c0d8f1e5861a469ce9ba250a99` — `Fix public catalog isolation from Auth locks and enforce image limits`.
+- Push confirmado a `origin/main`; el remoto pasó de `db6a6ad` a `19ea75c`.
+- Vercel comunicó `success` / `Deployment has completed` para ese commit. [Despliegue](https://vercel.com/matias-projects-9f6961d9/catalogo/2JdBDXxcmhZkPNGxVjwt3qxsiUBM).
+- [Aplicación publicada](https://catalogo-sigma-one.vercel.app): `/bo`, `/bo/productos` y `/login` devolvieron HTTP 200. Cero errores de página y cero desbordamientos horizontales en la captura móvil de Chromium.
+- Las respuestas observadas de productos, variantes, categorías, imágenes, promociones, packs, configuración y sucursales fueron HTTP 200 con los servicios reales.
+- Las tres regresiones ejecutadas sobre el JavaScript publicado aprobaron: bloqueo retenido, sesión expirada/Auth indisponible y fallo/reintento de catálogo. Duración conjunta: 23,8 segundos. Son pruebas con datos comerciales simulados; no se presentan como una compra real.
+- La observación ampliada de las primeras cuatro fotografías de productos reales comprobó las cuatro cargadas en la primera muestra, diez segundos después de aparecer las tarjetas. Permanecieron cargadas en las muestras de 20, 30 y 40 segundos. Las cuatro solicitudes de miniatura de 256 píxeles devolvieron HTTP 200.
+- La captura general posterior registró aproximadamente 13,8 / 12,5 / 12,5 segundos por ruta **incluyendo los doce segundos de espera fija**. Las imágenes muestreadas tuvieron latencias variables, hasta unos 5,8 segundos; no se demuestra una mejora general de latencia ni se garantiza carga instantánea desde el Dell.
+
+El estado resultante es: causas reproducidas corregidas y regresiones evaluadas aprobadas, código publicado y comprobado. Los límites y pendientes enumerados arriba siguen abiertos. Este informe se completa en un commit documental posterior, sin cambios adicionales de aplicación.
