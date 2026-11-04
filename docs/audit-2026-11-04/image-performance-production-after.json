@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-11-04T15:43:01.042Z",
+  "status": 200,
+  "imageRequestsBeforeScrolling": 8,
+  "errors": [],
+  "cards": 62,
+  "priorityImages": 4,
+  "visibleProductImages": [
+    {
+      "loaded": true
+    },
+    {
+      "loaded": true
+    },
+    {
+      "loaded": true
+    },
+    {
+      "loaded": true
+    }
+  ]
+}
