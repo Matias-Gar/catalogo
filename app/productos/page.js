@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getBrowserItem, setBrowserItem, removeBrowserItem } from "@/lib/browserStorage";
 import { getCarritoToken } from "@/lib/carritoToken";
 import CatalogImage from "@/components/CatalogImage";
-import { Check, Minus, Plus, ShoppingCart, Trash2, X } from "lucide-react";
+import { Check, Minus, Plus, ShoppingCart, X } from "lucide-react";
 import ProductImageViewer from "@/components/ProductImageViewer";
 import { getProductGallery } from "@/lib/productGallery";
 import Image from "@/components/SafeImage";
@@ -1862,7 +1862,7 @@ function CatalogoContent() {
                                                 </div>
                                                 <div className="flex h-full min-h-20 flex-col items-end justify-between gap-3">
                                                     <button className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-700 hover:bg-red-50 hover:text-red-700" title="Eliminar" aria-label={`Eliminar ${item.nombre}`} onClick={() => removeFromCart(item.cart_key || getCartKey(item))}>
-                                                        <Trash2 size={18} aria-hidden="true" />
+                                                        <span className="text-lg leading-none" aria-hidden="true">🗑️</span>
                                                     </button>
                                                     <div className="flex w-full items-center justify-between gap-1">
                                                         <button className="catalog-cart-quantity flex h-7 w-7 shrink-0 items-center justify-center rounded-md disabled:cursor-not-allowed disabled:opacity-60 sm:h-8 sm:w-8" title="Disminuir" aria-label={`Disminuir cantidad de ${item.nombre}`} onClick={() => updateCartQty(item.cart_key || getCartKey(item), Math.max(0.01, getItemDisplayQuantity(item) - 1))} disabled={getItemDisplayQuantity(item) <= 1}>
