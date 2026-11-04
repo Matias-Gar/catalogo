@@ -295,3 +295,20 @@
 .garblac-theme .catalog-promo-banner .bg-rose-50 { background-color: #FFFFFF; }
 .garblac-theme .catalog-promo-banner .text-rose-600 { color: #EF003E !important; }
 .garblac-theme .catalog-promo-banner .border-b-rose-700 { border-bottom-color: #C90035; }
+
+/* Match the catalogue palette while keeping quantity controls easy to see. */
+.garblac-theme .catalog-cart {
+  background: var(--catalog-card);
+  border-color: var(--catalog-border);
+  color: var(--catalog-text);
+}
+.garblac-theme .catalog-cart .catalog-cart-quantity {
+  background: #64F2E8;
+  color: #071C22 !important;
+}
+.garblac-theme .catalog-cart .catalog-cart-quantity:hover { background: #A3FFF6; }
+.garblac-theme .catalog-cart .catalog-cart-availability {
+  background: rgb(0 214 210 / 10%);
+  color: var(--catalog-accent) !important;
+}
+.garblac-theme .catalog-cart .text-teal-700 { color: var(--catalog-accent); }

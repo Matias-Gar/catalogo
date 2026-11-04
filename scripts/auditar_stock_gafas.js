@@ -4,10 +4,14 @@
 // Busca ventas, detalles y stock actual para detectar duplicaciones o errores
 
 import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env', quiet: true });
+dotenv.config({ path: '.env.local', override: true, quiet: true });
 
 // Configura tus claves aquí (solo para uso local seguro)
-const supabaseUrl = 'https://gzvtuenpwndodnetnmzi.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6dnR1ZW5wd25kb2RuZXRubXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1MDUwODIsImV4cCI6MjA3NDA4MTA4Mn0.94z7ObbDdYydDTLtp5qZxIsB3XqFgGUBTxdP9pcf8z4';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+if (!supabaseUrl || !supabaseAnonKey) throw new Error('Faltan variables publicas de Supabase');
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const NOMBRE_PRODUCTO = 'Gafas Lentes Vintage Oval Slim';

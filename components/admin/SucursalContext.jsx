@@ -4,6 +4,7 @@ import { scheduleEffect } from '../../lib/scheduleEffect';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/SupabaseClient";
 import { savePublicCountrySlug } from "@/lib/countryRoutes";
+import { getBrowserItem, setBrowserItem } from '@/lib/browserStorage';
 
 const STORAGE_KEY = "streetwear.active_sucursal_id";
 const COUNTRY_STORAGE_KEY = "streetwear.active_pais_id";
@@ -15,12 +16,12 @@ function scopedStorageKey(key, userId) {
 
 function getSavedValue(key, userId) {
   if (typeof window === "undefined") return "";
-  return window.localStorage.getItem(scopedStorageKey(key, userId)) || "";
+  return getBrowserItem(scopedStorageKey(key, userId)) || "";
 }
 
 function saveValue(key, userId, value) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(scopedStorageKey(key, userId), value);
+  setBrowserItem(scopedStorageKey(key, userId), value);
 }
 
 function getSavedSucursalId(userId) {
@@ -128,6 +129,7 @@ export function SucursalProvider({ children, showShell = true }) {
   );
 
   useEffect(() => {
+    return scheduleEffect(() => {
     if (!activePaisId) return;
     if (sucursalesActivas.length === 0) {
       if (activeSucursalId) setActiveSucursalId("");
@@ -136,6 +138,7 @@ export function SucursalProvider({ children, showShell = true }) {
     if (!sucursalesActivas.some((branch) => branch.id === activeSucursalId)) {
       setActiveSucursalId(sucursalesActivas[0].id);
     }
+    });
   }, [activePaisId, activeSucursalId, setActiveSucursalId, sucursalesActivas]);
 
   const value = useMemo(

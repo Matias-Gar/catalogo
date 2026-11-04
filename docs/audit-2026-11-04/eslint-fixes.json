@@ -1,0 +1,240 @@
+[
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\inventario\\stock\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'productById' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 289,
+        "column": 11,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 289,
+        "endColumn": 22
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'hasUnitConversion' is defined but never used. Allowed unused vars must match /^_/u.",
+        "line": 352,
+        "column": 12,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 352,
+        "endColumn": 29
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'state' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 365,
+        "column": 11,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 365,
+        "endColumn": 16
+      },
+      {
+        "ruleId": "react-hooks/set-state-in-effect",
+        "severity": 2,
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n  867 |\n  868 |   useEffect(() => {\n> 869 |     fetchProductos();\n      |     ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  870 |     // eslint-disable-next-line react-hooks/exhaustive-deps\n  871 |   }, [orden, page, activePaisId, activeSucursalId, search, categoryFilter, stockFilter]);\n  872 |",
+        "line": 869,
+        "column": 5,
+        "nodeType": null,
+        "endLine": 869,
+        "endColumn": 19
+      },
+      {
+        "ruleId": "react-hooks/set-state-in-effect",
+        "severity": 2,
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n  873 |\n  874 |   useEffect(() => {\n> 875 |     fetchCategorias();\n      |     ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  876 |   }, [activePaisId, activeSucursalId]);\n  877 |\n  878 |",
+        "line": 875,
+        "column": 5,
+        "nodeType": null,
+        "endLine": 875,
+        "endColumn": 20
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a missing dependency: 'fetchCategorias'. Either include it or remove the dependency array.",
+        "line": 876,
+        "column": 6,
+        "nodeType": "ArrayExpression",
+        "endLine": 876,
+        "endColumn": 38,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [activePaisId, activeSucursalId, fetchCategorias]",
+            "fix": {
+              "range": [
+                34073,
+                34105
+              ],
+              "text": "[activePaisId, activeSucursalId, fetchCategorias]"
+            }
+          }
+        ]
+      },
+      {
+        "ruleId": "react-hooks/set-state-in-effect",
+        "severity": 2,
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n  891 |\n  892 |   useEffect(() => {\n> 893 |     setPage(0);\n      |     ^^^^^^^ Avoid calling setState() directly within an effect\n  894 |   }, [search, categoryFilter, stockFilter]);\n  895 |\n  896 |",
+        "line": 893,
+        "column": 5,
+        "nodeType": null,
+        "endLine": 893,
+        "endColumn": 12
+      }
+    ],
+    "errorCount": 3,
+    "fatalErrorCount": 0,
+    "warningCount": 4,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\perfiles\\page.js",
+    "messages": [
+      {
+        "ruleId": "react-hooks/rules-of-hooks",
+        "severity": 2,
+        "message": "React Hook \"useEffect\" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?",
+        "line": 248,
+        "column": 3,
+        "nodeType": "Identifier",
+        "endLine": 248,
+        "endColumn": 12
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a missing dependency: 'cargarPermisosPais'. Either include it or remove the dependency array.",
+        "line": 271,
+        "column": 6,
+        "nodeType": "ArrayExpression",
+        "endLine": 271,
+        "endColumn": 8,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [cargarPermisosPais]",
+            "fix": {
+              "range": [
+                8809,
+                8811
+              ],
+              "text": "[cargarPermisosPais]"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 1,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\promociones\\descuentos\\page.js",
+    "messages": [
+      {
+        "ruleId": "react-hooks/set-state-in-effect",
+        "severity": 2,
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n  181 |   // Cargar productos que tienen promociones activas\n  182 |   useEffect(() => {\n> 183 |     fetchProductosConPromociones();\n      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  184 |   }, [activePaisId, activeSucursalId]);\n  185 |\n  186 |",
+        "line": 183,
+        "column": 5,
+        "nodeType": null,
+        "endLine": 183,
+        "endColumn": 33
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a missing dependency: 'fetchProductosConPromociones'. Either include it or remove the dependency array.",
+        "line": 184,
+        "column": 6,
+        "nodeType": "ArrayExpression",
+        "endLine": 184,
+        "endColumn": 38,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [activePaisId, activeSucursalId, fetchProductosConPromociones]",
+            "fix": {
+              "range": [
+                6425,
+                6457
+              ],
+              "text": "[activePaisId, activeSucursalId, fetchProductosConPromociones]"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 1,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\promociones\\productos\\page.js",
+    "messages": [
+      {
+        "ruleId": "react-hooks/set-state-in-effect",
+        "severity": 2,
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n  257 |   useEffect(() => {\n  258 |     if (!activePaisId || !activeSucursalId) return;\n> 259 |     fetchDatos();\n      |     ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  260 |   }, [activePaisId, activeSucursalId]);\n  261 |\n  262 |",
+        "line": 259,
+        "column": 5,
+        "nodeType": null,
+        "endLine": 259,
+        "endColumn": 15
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a missing dependency: 'fetchDatos'. Either include it or remove the dependency array.",
+        "line": 260,
+        "column": 6,
+        "nodeType": "ArrayExpression",
+        "endLine": 260,
+        "endColumn": 38,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [activePaisId, activeSucursalId, fetchDatos]",
+            "fix": {
+              "range": [
+                8678,
+                8710
+              ],
+              "text": "[activePaisId, activeSucursalId, fetchDatos]"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 1,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\admin\\SucursalContext.jsx",
+    "messages": [
+      {
+        "ruleId": null,
+        "fatal": false,
+        "severity": 1,
+        "message": "File ignored because no matching configuration was supplied.",
+        "nodeType": null
+      }
+    ],
+    "errorCount": 0,
+    "warningCount": 1,
+    "fatalErrorCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  }
+]

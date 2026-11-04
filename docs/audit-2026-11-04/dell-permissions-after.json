@@ -1,0 +1,36 @@
+{
+  "origin": "https://garblac.duckdns.org",
+  "timestamp": "2026-11-04T14:55:25.254Z",
+  "checks": [
+    {
+      "table": "productos",
+      "status": 200,
+      "contentRange": "*/*"
+    },
+    {
+      "table": "categorias",
+      "status": 200,
+      "contentRange": "*/*"
+    },
+    {
+      "table": "producto_variantes",
+      "status": 200,
+      "contentRange": "*/*"
+    },
+    {
+      "table": "ventas_pagos",
+      "status": 401,
+      "contentRange": null
+    },
+    {
+      "table": "stock_movimientos",
+      "status": 401,
+      "contentRange": null
+    },
+    {
+      "table": "password_resets",
+      "status": 401,
+      "contentRange": null
+    }
+  ]
+}

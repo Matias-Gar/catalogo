@@ -10,9 +10,10 @@ import { v4 as uuidv4 } from "uuid";
 import { getBrowserItem, setBrowserItem, removeBrowserItem } from "@/lib/browserStorage";
 import { getCarritoToken } from "@/lib/carritoToken";
 import CatalogImage from "@/components/CatalogImage";
+import { Check, Minus, Plus, ShoppingCart, Trash2, X } from "lucide-react";
 import ProductImageViewer from "@/components/ProductImageViewer";
 import { getProductGallery } from "@/lib/productGallery";
-import Image from "next/image";
+import Image from "@/components/SafeImage";
 import { usePathname, useSearchParams } from "next/navigation";
 import { usePromociones } from "@/lib/usePromociones";
 import { usePacks, calcularDescuentoPack } from "@/lib/packs";
@@ -108,6 +109,19 @@ function CatalogoContent() {
     const [modalImg, setModalImg] = useState(null);
     const [addToCartModal, setAddToCartModal] = useState(null);
     const [showCart, setShowCart] = useState(false);
+    useEffect(() => {
+        if (!showCart) return;
+        const closeOutsideCart = event => {
+            if (event.target instanceof Element && !event.target.closest('.catalog-cart, [aria-label="Ver cesta"]')) setShowCart(false);
+        };
+        const closeOnEscape = event => { if (event.key === 'Escape') setShowCart(false); };
+        document.addEventListener('pointerdown', closeOutsideCart);
+        document.addEventListener('keydown', closeOnEscape);
+        return () => {
+            document.removeEventListener('pointerdown', closeOutsideCart);
+            document.removeEventListener('keydown', closeOnEscape);
+        };
+    }, [showCart]);
     const [showConfirmOrder, setShowConfirmOrder] = useState(false);
     const [customerData, setCustomerData] = useState({ nombre: '', nit_ci: '' });
     // --- Declarar promociones usando el hook personalizado ---
@@ -645,6 +659,7 @@ function CatalogoContent() {
     };
 
     const openAddToCartModal = (producto) => {
+        setShowCart(false);
         const variantes = getVariantes(producto);
         const defaultVariante = variantes.find(function(v) { return getEffectiveVariantStock(v) > 0; }) || null;
         const defaultVarianteId = defaultVariante ? (defaultVariante.variante_id ?? defaultVariante.id) : null;
@@ -1416,17 +1431,14 @@ function CatalogoContent() {
                                     </div>
                                     <button
                                         disabled={agotado}
-                                        className={`mt-2 sm:mt-3 w-full sm:w-auto sm:self-end ${agotado ? 'bg-gray-400 cursor-not-allowed' : isInCart ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-600 hover:bg-green-700'} text-white rounded-lg sm:rounded-full px-3 py-1.5 sm:w-8 sm:h-8 flex items-center justify-center text-sm sm:text-xl font-bold shadow-xl focus:outline-none transition-colors duration-150`}
+                                        className={`mt-2 self-end ${agotado ? 'bg-gray-400 cursor-not-allowed' : isInCart ? 'bg-orange-600 hover:bg-orange-700' : 'bg-teal-700 hover:bg-teal-800'} !text-white rounded-full w-11 h-11 flex items-center justify-center shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 transition-colors duration-150`}
                                         onClick={() => {
                                             if (agotado) return;
                                             openAddToCartModal(producto);
                                         }}
                                         title={agotado ? 'Producto agotado' : isInCart ? `Agregar más unidades (actual: ${quantityInCart})` : 'Agregar a la cesta'}
                                     >
-                                        <span className="sm:hidden">
-                                            {agotado ? 'Agotado' : isInCart ? `+ Agregar (${quantityInCart} en cesta)` : '🛒 Agregar al carrito'}
-                                        </span>
-                                        <span className="hidden sm:inline">{agotado ? '×' : '+'}</span>
+                                        {agotado ? <X size={24} stroke="white" aria-hidden="true" /> : <Plus size={26} stroke="white" strokeWidth={3} aria-hidden="true" />}
                                     </button>
                                     {agotado && (
                                         <>
@@ -1816,76 +1828,68 @@ function CatalogoContent() {
 
             {/* MODAL DE CESTA */}
             {showCart && (
-                <div className="fixed bottom-20 right-4 z-50 w-full max-w-xs bg-white border border-gray-300 rounded-xl shadow-2xl p-4 transition-all duration-300 transform animate-fade-in-up">
-                    <div className="flex items-center justify-between mb-4 pb-2 border-b">
-                        <h2 className="text-xl font-bold">🛒 Tu cesta</h2>
-                        <button className="text-gray-500 hover:text-red-600 text-2xl font-bold ml-2 transition-colors" onClick={() => setShowCart(false)} title="Cerrar">&times;</button>
-                    </div>
-
-                    {cart.length === 0 ? (
-                        <div className="text-gray-400 text-sm text-center py-4">La cesta está vacía.</div>
-                    ) : (
-                        <>
-                            <ul className="divide-y divide-gray-200 max-h-60 overflow-y-auto mb-4">
-                                {cart.length > 0 ? (
-                                    cart.map(item => (
-                                        <li key={item.cart_key || getCartKey(item)} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
-                                            <div className="flex-1">
-                                                <h4 className="font-semibold text-gray-800">{item.nombre}</h4>
-                                                <p className="text-sm text-gray-600">Bs {item.precio.toFixed(2)} c/u</p>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full w-7 h-7 flex items-center justify-center font-bold text-lg"
-                                                    title="Disminuir"
-                                                    onClick={() => updateCartQty(item.cart_key || getCartKey(item), Math.max(0.01, getItemDisplayQuantity(item) - 1))}
-                                                    disabled={getItemDisplayQuantity(item) <= 1}
-                                                >
-                                                    −
-                                                </button>
-                                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-semibold min-w-[2.5rem] text-center">
-                                                    {getItemQuantityText(item)}
-                                                </span>
-                                                <button
-                                                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full w-7 h-7 flex items-center justify-center font-bold text-lg"
-                                                    title="Aumentar"
-                                                    onClick={() => updateCartQty(item.cart_key || getCartKey(item), getItemDisplayQuantity(item) + 1)}
-                                                >
-                                                    +
-                                                </button>
-                                                <span className="font-bold text-green-600 ml-2">
-                                                    Bs {getItemSubtotal(item).toFixed(2)}
-                                                </span>
-                                                <button
-                                                    className="ml-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full w-7 h-7 flex items-center justify-center font-bold text-lg"
-                                                    title="Eliminar"
-                                                    onClick={() => removeFromCart(item.cart_key || getCartKey(item))}
-                                                >
-                                                    🗑️
-                                                </button>
-                                            </div>
-                                        </li>
-                                    ))
-        ) : null}
-                            </ul>
-                            <div className="flex justify-between items-center mb-3 pt-2 border-t-2 border-green-600 font-extrabold">
-                                <span className="text-lg text-green-800">Total:</span>
-                                <span className="text-2xl text-blue-800 bg-yellow-200 px-3 py-1 rounded-lg shadow">Bs {cart.reduce((sum, item) => sum + getItemSubtotal(item), 0).toFixed(2)}</span>
-                            </div>
-                        </>
-                    )}
-
-                    <button
-                        className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white py-2 rounded-xl font-bold shadow-xl transition-colors duration-150 flex items-center justify-center gap-2 text-base disabled:bg-gray-400"
-                        onClick={openOrderConfirmation}
-                        disabled={cart.length === 0}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Revisar y confirmar pedido
-                    </button>
-                </div>
+                    <section role="region" aria-labelledby="cart-title" className="catalog-cart fixed bottom-20 right-3 z-[60] flex max-h-[75dvh] w-[calc(100%-1.5rem)] max-w-lg flex-col rounded-2xl border p-4 text-left shadow-2xl">
+                        <div className="mx-auto mb-2 h-1 w-10 shrink-0 rounded-full bg-gray-300" aria-hidden="true" />
+                        <div className="mb-3 flex shrink-0 items-center justify-between gap-2">
+                            <h2 id="cart-title" className="flex items-center gap-2 text-lg font-bold">
+                                <ShoppingCart size={22} aria-hidden="true" /> Tu cesta ({cart.length})
+                            </h2>
+                            <button className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100" onClick={() => setShowCart(false)} title="Cerrar" aria-label="Cerrar cesta"><X size={20} aria-hidden="true" /></button>
+                        </div>
+                        {cart.length === 0 ? (
+                            <div className="py-6 text-center text-gray-500">La cesta está vacía.</div>
+                        ) : (
+                            <>
+                                <ul className="min-h-0 overflow-y-auto divide-y divide-gray-100">
+                                    {cart.map(item => {
+                                        const product = productos.find(producto => String(producto.user_id) === String(item.user_id));
+                                        const packProduct = item.pack_data?.pack_productos?.[0]?.productos;
+                                        const images = getProductGallery(item.imagen_url || item.imagen_base || product?.imagen_url || product?.imagen_base || packProduct?.imagen_url,
+                                            imagenesProductos[item.user_id] || []);
+                                        return (
+                                            <li key={item.cart_key || getCartKey(item)} className="grid grid-cols-[12px_64px_minmax(0,1fr)_96px] items-center gap-x-2 py-3 sm:grid-cols-[16px_104px_minmax(0,1fr)_100px]">
+                                                <span className="flex h-3.5 w-3.5 items-center justify-center rounded bg-teal-700 text-white" aria-hidden="true"><Check size={12} stroke="white" strokeWidth={3} /></span>
+                                                <div className="aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                                                    <CatalogImage sources={images} alt={item.nombre} sizes="(min-width: 640px) 104px, 64px" className="h-full w-full object-contain" />
+                                                </div>
+                                                <div className="min-w-0 self-start pt-0.5">
+                                                    {item.categoria && <p className="text-[10px] leading-tight text-slate-600">{item.categoria}</p>}
+                                                    <h3 className="break-words text-[13px] font-bold leading-tight sm:text-sm">{item.nombre}</h3>
+                                                    {item.color && <p className="mt-0.5 break-words text-[11px] text-slate-600">{item.color}</p>}
+                                                    {item.tipo !== 'pack' && item.unidad && !['unidad', 'unidades'].includes(item.unidad) && <p className="mt-0.5 text-[11px] text-slate-600">{item.unidad}</p>}
+                                                    <p className="mt-1 text-[14px] font-bold text-teal-700">Bs {getItemSubtotal(item).toFixed(2)}</p>
+                                                    <span className="catalog-cart-availability mt-1 inline-block rounded-md px-1.5 py-0.5 text-[10px] font-bold">Disponible</span>
+                                                </div>
+                                                <div className="flex h-full min-h-20 flex-col items-end justify-between gap-3">
+                                                    <button className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-700 hover:bg-red-50 hover:text-red-700" title="Eliminar" aria-label={`Eliminar ${item.nombre}`} onClick={() => removeFromCart(item.cart_key || getCartKey(item))}>
+                                                        <Trash2 size={18} aria-hidden="true" />
+                                                    </button>
+                                                    <div className="flex w-full items-center justify-between gap-1">
+                                                        <button className="catalog-cart-quantity flex h-7 w-7 shrink-0 items-center justify-center rounded-md disabled:cursor-not-allowed disabled:opacity-60 sm:h-8 sm:w-8" title="Disminuir" aria-label={`Disminuir cantidad de ${item.nombre}`} onClick={() => updateCartQty(item.cart_key || getCartKey(item), Math.max(0.01, getItemDisplayQuantity(item) - 1))} disabled={getItemDisplayQuantity(item) <= 1}>
+                                                            <Minus size={20} stroke="#071C22" strokeWidth={3} aria-hidden="true" />
+                                                        </button>
+                                                        <span className="min-w-0 whitespace-nowrap text-center text-[12px] font-semibold tabular-nums sm:text-sm">{getItemDisplayQuantity(item)}</span>
+                                                        <button className="catalog-cart-quantity flex h-7 w-7 shrink-0 items-center justify-center rounded-md sm:h-8 sm:w-8" title="Aumentar" aria-label={`Aumentar cantidad de ${item.nombre}`} onClick={() => updateCartQty(item.cart_key || getCartKey(item), getItemDisplayQuantity(item) + 1)}>
+                                                            <Plus size={20} stroke="#071C22" strokeWidth={3} aria-hidden="true" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                                <div className="my-3 flex shrink-0 items-center justify-between border-t border-gray-200 pt-3 text-lg font-bold">
+                                    <span>Total</span>
+                                    <span className="text-teal-700">Bs {cart.reduce((sum, item) => sum + getItemSubtotal(item), 0).toFixed(2)}</span>
+                                </div>
+                            </>
+                        )}
+                        <button className="flex w-full shrink-0 items-center justify-center gap-2 rounded-lg bg-teal-700 py-2.5 !text-white font-semibold transition-colors hover:bg-teal-800 disabled:opacity-40" onClick={openOrderConfirmation} disabled={cart.length === 0}>
+                            <ShoppingCart size={20} stroke="white" aria-hidden="true" />
+                            Revisar y confirmar pedido
+                        </button>
+                        <button className="mt-2 w-full shrink-0 rounded-lg border border-slate-300 py-2 font-semibold text-slate-700 hover:bg-gray-50" onClick={() => setShowCart(false)}>Seguir comprando</button>
+                    </section>
             )}
 
             {/* MODAL DE CONFIRMACIÓN DE PEDIDO */}

@@ -4,7 +4,7 @@
 import { scheduleEffect } from '../../lib/scheduleEffect';
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/SupabaseClient";
-import Image from "next/image";
+import Image from "@/components/SafeImage";
 import { resolveStorageImageUrl } from '../../lib/storageImageUrl.mjs';
 import { useSucursalActiva } from "@/components/admin/SucursalContext";
 import { productMatchesSearch } from "@/lib/searchMatching";

@@ -1,0 +1,19 @@
+{
+  "engine": "PGlite isolated in-memory PostgreSQL",
+  "passed": true,
+  "checks": {
+    "reset_anon": false,
+    "payment_anon": false,
+    "ledger_anon_insert": false,
+    "auth_read": true,
+    "auth_insert": true,
+    "auth_delete": false,
+    "service_delete": true,
+    "reset_count": 1,
+    "payment_count": 1,
+    "ledger_count": 1
+  },
+  "rpcAnonymousBlocked": 6,
+  "rpcAuthenticatedPreserved": 6,
+  "productionChanged": false
+}

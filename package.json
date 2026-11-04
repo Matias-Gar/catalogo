@@ -31,7 +31,7 @@
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.544.0",
     "next": "^16.2.3",
-    "nodemailer": "^8.0.5",
+    "nodemailer": "10.3.1",
     "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-barcode": "^1.6.1",
@@ -42,6 +42,7 @@
     "react-toastify": "^11.0.5",
     "recharts": "^3.8.1",
     "resend": "^6.10.0",
+    "sharp": "0.35.5",
     "tailwind-merge": "^3.3.1",
     "tar": "^7.5.7",
     "uuid": "^13.0.0"
@@ -59,5 +60,12 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "tailwindcss": "^4",
     "typescript": "5.9.3"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.13.6",
+    "brace-expansion@1": "^1.1.21",
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
   }
 }

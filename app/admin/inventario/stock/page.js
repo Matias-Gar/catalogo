@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 
+import { scheduleEffect } from '../../../../lib/scheduleEffect';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 import { CONFIG, whatsappUtils } from "../../../../lib/config";
@@ -9,6 +10,12 @@ import { Toast, showToast } from "../../../../components/ui/Toast";
 import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
 import { productMatchesSearch } from "../../../../lib/searchMatching";
 import { buildImageSrcSet, getOptimizedImageUrl } from "../../../../lib/imageOptimization";
+
+function formatQuantity(value) {
+  const parsed = Number(value || 0);
+  if (!Number.isFinite(parsed)) return "0";
+  return Number(parsed.toFixed(2)).toString();
+}
 
 function getEffectiveVariantStock(variant) {
     const decimal = Number(variant?.stock_decimal);
@@ -122,31 +129,6 @@ export default function StockPage() {
   const [printing, setPrinting] = useState(false);
   const [notifying, setNotifying] = useState(false);
   const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
-
-  useEffect(() => {
-    fetchProductos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orden, page, activePaisId, activeSucursalId, search, categoryFilter, stockFilter]);
-
-  useEffect(() => {
-    fetchCategorias();
-  }, [activePaisId, activeSucursalId]);
-
-  useEffect(() => {
-    let mounted = true;
-    const loadStoreSettings = async () => {
-      const settings = await fetchStoreSettings();
-      if (mounted) setStoreSettings(settings);
-    };
-    loadStoreSettings();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    setPage(0);
-  }, [search, categoryFilter, stockFilter]);
 
   async function fetchProductos() {
     setLoading(true);
@@ -364,11 +346,6 @@ export default function StockPage() {
     return variants.map((v) => `${v.color}: ${getReadableStockText(prod, v.stock)}`).join(", ");
   }
 
-  function formatQuantity(value) {
-    const parsed = Number(value || 0);
-    if (!Number.isFinite(parsed)) return "0";
-    return Number(parsed.toFixed(2)).toString();
-  }
 
   
 
@@ -888,6 +865,36 @@ export default function StockPage() {
   }, [filteredProductos, getStockState]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
+
+  useEffect(() => {
+    return scheduleEffect(() => { fetchProductos(); });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orden, page, activePaisId, activeSucursalId, search, categoryFilter, stockFilter]);
+
+
+  useEffect(() => {
+    return scheduleEffect(() => { fetchCategorias(); });
+  }, [activePaisId, activeSucursalId]);
+
+
+  useEffect(() => {
+    let mounted = true;
+    const loadStoreSettings = async () => {
+      const settings = await fetchStoreSettings();
+      if (mounted) setStoreSettings(settings);
+    };
+    loadStoreSettings();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+
+  useEffect(() => {
+    return scheduleEffect(() => { setPage(0); });
+  }, [search, categoryFilter, stockFilter]);
+
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-white via-slate-50 to-gray-100 px-4 py-10 sm:px-6 lg:px-8">

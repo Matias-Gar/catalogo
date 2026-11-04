@@ -1,5 +1,6 @@
 "use client";
 
+import { scheduleEffect } from '../../../../lib/scheduleEffect';
 import { useEffect, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 import { Card, CardHeader, CardTitle, CardContent } from "../../../../components/ui/card";
@@ -25,12 +26,6 @@ export default function PromocionesProductosPage() {
   const [filtroCategoria, setFiltroCategoria] = useState("");
   const [filtroStock, setFiltroStock] = useState("");
   const [busqueda, setBusqueda] = useState("");
-
-  // Cargar datos iniciales
-  useEffect(() => {
-    if (!activePaisId || !activeSucursalId) return;
-    fetchDatos();
-  }, [activePaisId, activeSucursalId]);
 
   const fetchDatos = async () => {
     setLoading(true);
@@ -257,6 +252,14 @@ export default function PromocionesProductosPage() {
       )
     );
   };
+
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    if (!activePaisId || !activeSucursalId) return;
+    return scheduleEffect(() => { fetchDatos(); });
+  }, [activePaisId, activeSucursalId]);
+
 
   return (
     <div className="p-6 bg-white min-h-screen">

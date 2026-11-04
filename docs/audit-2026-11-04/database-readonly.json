@@ -1,0 +1,267 @@
+{
+  "origin": "https://gzvtuenpwndodnetnmzi.supabase.co",
+  "timestamp": "2026-11-04T14:54:27.192Z",
+  "checks": [
+    {
+      "path": "/auth/v1/health",
+      "status": 200
+    },
+    {
+      "path": "/auth/v1/settings",
+      "status": 200
+    },
+    {
+      "table": "productos",
+      "role": "anon",
+      "status": 206,
+      "contentRange": "*/362",
+      "durationMs": 752
+    },
+    {
+      "table": "productos",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/362",
+      "durationMs": 324
+    },
+    {
+      "table": "categorias",
+      "role": "anon",
+      "status": 206,
+      "contentRange": "*/66",
+      "durationMs": 288
+    },
+    {
+      "table": "categorias",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/66",
+      "durationMs": 233
+    },
+    {
+      "table": "producto_variantes",
+      "role": "anon",
+      "status": 206,
+      "contentRange": "*/411",
+      "durationMs": 279
+    },
+    {
+      "table": "producto_variantes",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/411",
+      "durationMs": 213
+    },
+    {
+      "table": "producto_imagenes",
+      "role": "anon",
+      "status": 206,
+      "contentRange": "*/778",
+      "durationMs": 278
+    },
+    {
+      "table": "producto_imagenes",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/778",
+      "durationMs": 218
+    },
+    {
+      "table": "promociones",
+      "role": "anon",
+      "status": 206,
+      "contentRange": "*/13",
+      "durationMs": 215
+    },
+    {
+      "table": "promociones",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/13",
+      "durationMs": 253
+    },
+    {
+      "table": "packs",
+      "role": "anon",
+      "status": 200,
+      "contentRange": "*/0",
+      "durationMs": 215
+    },
+    {
+      "table": "packs",
+      "role": "service_role",
+      "status": 200,
+      "contentRange": "*/0",
+      "durationMs": 222
+    },
+    {
+      "table": "paises",
+      "role": "anon",
+      "status": 200,
+      "contentRange": "*/0",
+      "durationMs": 247
+    },
+    {
+      "table": "paises",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/2",
+      "durationMs": 200
+    },
+    {
+      "table": "sucursales",
+      "role": "anon",
+      "status": 200,
+      "contentRange": "*/0",
+      "durationMs": 228
+    },
+    {
+      "table": "sucursales",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/3",
+      "durationMs": 221
+    },
+    {
+      "table": "perfiles",
+      "role": "anon",
+      "status": 200,
+      "contentRange": "*/0",
+      "durationMs": 261
+    },
+    {
+      "table": "perfiles",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/6",
+      "durationMs": 225
+    },
+    {
+      "table": "clientes",
+      "role": "anon",
+      "status": 200,
+      "contentRange": "*/0",
+      "durationMs": 229
+    },
+    {
+      "table": "clientes",
+      "role": "service_role",
+      "status": 200,
+      "contentRange": "*/0",
+      "durationMs": 220
+    },
+    {
+      "table": "ventas",
+      "role": "anon",
+      "status": 200,
+      "contentRange": "*/0",
+      "durationMs": 227
+    },
+    {
+      "table": "ventas",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/53",
+      "durationMs": 221
+    },
+    {
+      "table": "ventas_detalle",
+      "role": "anon",
+      "status": 200,
+      "contentRange": "*/0",
+      "durationMs": 242
+    },
+    {
+      "table": "ventas_detalle",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/101",
+      "durationMs": 217
+    },
+    {
+      "table": "ventas_pagos",
+      "role": "anon",
+      "status": 206,
+      "contentRange": "*/53",
+      "durationMs": 239
+    },
+    {
+      "table": "ventas_pagos",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/53",
+      "durationMs": 248
+    },
+    {
+      "table": "stock_movimientos",
+      "role": "anon",
+      "status": 206,
+      "contentRange": "*/1019",
+      "durationMs": 279
+    },
+    {
+      "table": "stock_movimientos",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/1019",
+      "durationMs": 225
+    },
+    {
+      "table": "carritos_pendientes",
+      "role": "anon",
+      "status": 200,
+      "contentRange": "*/0",
+      "durationMs": 209
+    },
+    {
+      "table": "carritos_pendientes",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/10",
+      "durationMs": 232
+    },
+    {
+      "table": "password_resets",
+      "role": "anon",
+      "status": 206,
+      "contentRange": "*/2",
+      "durationMs": 232
+    },
+    {
+      "table": "password_resets",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/2",
+      "durationMs": 217
+    },
+    {
+      "table": "cash_closures",
+      "role": "anon",
+      "status": 200,
+      "contentRange": "*/0",
+      "durationMs": 198
+    },
+    {
+      "table": "cash_closures",
+      "role": "service_role",
+      "status": 200,
+      "contentRange": "*/0",
+      "durationMs": 203
+    },
+    {
+      "table": "cash_movements",
+      "role": "anon",
+      "status": 200,
+      "contentRange": "*/0",
+      "durationMs": 198
+    },
+    {
+      "table": "cash_movements",
+      "role": "service_role",
+      "status": 206,
+      "contentRange": "*/53",
+      "durationMs": 191
+    }
+  ],
+  "openApiStatus": 401
+}

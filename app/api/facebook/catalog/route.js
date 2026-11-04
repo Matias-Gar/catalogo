@@ -2,9 +2,12 @@
 import { supabase } from '@/lib/SupabaseClient';
 import { FacebookCatalogAPI } from '@/lib/FacebookCatalogAPI';
 import { NextResponse } from 'next/server';
+import { requireAdminAccess } from '@/lib/adminAccess';
 
 export async function POST(request) {
   try {
+    const auth = await requireAdminAccess(request);
+    if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
     const body = await request.json();
     const { action } = body;
     const fbCatalog = new FacebookCatalogAPI();

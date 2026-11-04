@@ -1,5 +1,6 @@
 "use client";
 
+import { scheduleEffect } from '../../../../lib/scheduleEffect';
 import { useEffect, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 import { Card, CardHeader, CardTitle, CardContent } from "../../../../components/ui/card";
@@ -13,12 +14,7 @@ export default function PromocionesDescuentosPage() {
   const [loading, setLoading] = useState(false);
   const [editandoPromo, setEditandoPromo] = useState(null);
   const [busqueda, setBusqueda] = useState("");
-  const [filtroEstado, setFiltroEstado] = useState("todas"); // todas, activas, pausadas
-
-  // Cargar productos que tienen promociones activas
-  useEffect(() => {
-    fetchProductosConPromociones();
-  }, [activePaisId, activeSucursalId]);
+  const [filtroEstado, setFiltroEstado] = useState("todas");
 
   const fetchProductosConPromociones = async () => {
     setLoading(true);
@@ -181,6 +177,13 @@ export default function PromocionesDescuentosPage() {
       )
     );
   };
+ // todas, activas, pausadas
+
+  // Cargar productos que tienen promociones activas
+  useEffect(() => {
+    return scheduleEffect(() => { fetchProductosConPromociones(); });
+  }, [activePaisId, activeSucursalId]);
+
 
   return (
     <div className="p-6 bg-white min-h-screen">

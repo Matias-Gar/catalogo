@@ -1,0 +1,701 @@
+﻿{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\saita\\catalogo\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "tests/browser/guest-cart-permissions.spec.mjs",
+      "tests/browser/auth-lock.spec.mjs",
+      "tests/browser/printing-lifecycle.spec.mjs",
+      "--reporter=json"
+    ],
+    "configFile": "C:\\Users\\saita\\catalogo\\playwright.config.mjs",
+    "rootDir": "C:/Users/saita/catalogo/tests/browser",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/saita/catalogo/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/saita/catalogo/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 240000
+      },
+      {
+        "outputDir": "C:/Users/saita/catalogo/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "C:/Users/saita/catalogo/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 240000
+      },
+      {
+        "outputDir": "C:/Users/saita/catalogo/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "C:/Users/saita/catalogo/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 240000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\saita\\catalogo\\test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "chromium",
+        "testDir": "C:\\Users\\saita\\catalogo\\tests\\browser",
+        "snapshotDir": "C:\\Users\\saita\\catalogo\\tests\\browser",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 240000,
+        "use": {
+          "actionTimeout": 15000,
+          "navigationTimeout": 30000,
+          "baseURL": "http://127.0.0.1:3000",
+          "hasTouch": true,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "browserName": "chromium"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "chromium"
+      },
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\saita\\catalogo\\test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "webkit",
+        "testDir": "C:\\Users\\saita\\catalogo\\tests\\browser",
+        "snapshotDir": "C:\\Users\\saita\\catalogo\\tests\\browser",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 240000,
+        "use": {
+          "actionTimeout": 15000,
+          "navigationTimeout": 30000,
+          "baseURL": "http://127.0.0.1:3000",
+          "hasTouch": true,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "browserName": "webkit"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "webkit"
+      },
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\saita\\catalogo\\test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "firefox",
+        "testDir": "C:\\Users\\saita\\catalogo\\tests\\browser",
+        "snapshotDir": "C:\\Users\\saita\\catalogo\\tests\\browser",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 240000,
+        "use": {
+          "actionTimeout": 15000,
+          "navigationTimeout": 30000,
+          "baseURL": "http://127.0.0.1:3000",
+          "hasTouch": false,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "browserName": "firefox"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "firefox"
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run start -- --hostname 127.0.0.1",
+      "url": "http://127.0.0.1:3000",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "auth-lock.spec.mjs",
+      "file": "auth-lock.spec.mjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Auth lock preserves exclusion across tabs and reports failures only to its caller",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1093,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T15:18:28.537Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b3304c052bfad671b970-ae37114308df2bdb168a",
+          "file": "auth-lock.spec.mjs",
+          "line": 4,
+          "column": 1
+        },
+        {
+          "title": "Auth lock preserves exclusion across tabs and reports failures only to its caller",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1432,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T15:18:39.097Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b3304c052bfad671b970-5be667a633056df8bd05",
+          "file": "auth-lock.spec.mjs",
+          "line": 4,
+          "column": 1
+        },
+        {
+          "title": "Auth lock preserves exclusion across tabs and reports failures only to its caller",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6743,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T15:18:57.114Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b3304c052bfad671b970-14964ff510906df0252b",
+          "file": "auth-lock.spec.mjs",
+          "line": 4,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "guest-cart-permissions.spec.mjs",
+      "file": "guest-cart-permissions.spec.mjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "guest cart CRUD and checkout survive denied financial permissions at 390px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2708,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T15:18:32.000Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "guest-permission-proof",
+                      "contentType": "application/json",
+                      "body": "eyJ3aWR0aCI6MzkwLCJjaGVja291dEF1dGgiOltudWxsXSwib3BlcmF0aW9ucyI6W3sidGFibGUiOiJzdWN1cnNhbGVzIiwibWV0aG9kIjoiU0VMRUNUIn0seyJ0YWJsZSI6ImNhcnJpdG9zX3BlbmRpZW50ZXMiLCJtZXRob2QiOiJTRUxFQ1QifSx7InRhYmxlIjoicHJvZHVjdG9zIiwibWV0aG9kIjoiU0VMRUNUIn0seyJ0YWJsZSI6InByb21vY2lvbmVzIiwibWV0aG9kIjoiU0VMRUNUIn0seyJ0YWJsZSI6ImNhcnJpdG9zX3BlbmRpZW50ZXMiLCJtZXRob2QiOiJJTlNFUlQifV0sImZvcmJpZGRlbiI6W10sImRpcmVjdFdyaXRlcyI6W10sImF1dGhSZXF1ZXN0cyI6W10sImVycm9ycyI6W119"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6c0f3dbabfd342358c65-33eb8386b1850d207765",
+          "file": "guest-cart-permissions.spec.mjs",
+          "line": 4,
+          "column": 34
+        },
+        {
+          "title": "guest cart CRUD and checkout survive denied financial permissions at 1440px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2272,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T15:18:34.753Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "guest-permission-proof",
+                      "contentType": "application/json",
+                      "body": "eyJ3aWR0aCI6MTQ0MCwiY2hlY2tvdXRBdXRoIjpbbnVsbF0sIm9wZXJhdGlvbnMiOlt7InRhYmxlIjoic3VjdXJzYWxlcyIsIm1ldGhvZCI6IlNFTEVDVCJ9LHsidGFibGUiOiJjYXJyaXRvc19wZW5kaWVudGVzIiwibWV0aG9kIjoiU0VMRUNUIn0seyJ0YWJsZSI6InByb2R1Y3RvcyIsIm1ldGhvZCI6IlNFTEVDVCJ9LHsidGFibGUiOiJwcm9tb2Npb25lcyIsIm1ldGhvZCI6IlNFTEVDVCJ9LHsidGFibGUiOiJjYXJyaXRvc19wZW5kaWVudGVzIiwibWV0aG9kIjoiSU5TRVJUIn1dLCJmb3JiaWRkZW4iOltdLCJkaXJlY3RXcml0ZXMiOltdLCJhdXRoUmVxdWVzdHMiOltdLCJlcnJvcnMiOltdfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6c0f3dbabfd342358c65-548fa54481618404472c",
+          "file": "guest-cart-permissions.spec.mjs",
+          "line": 4,
+          "column": 34
+        },
+        {
+          "title": "guest cart CRUD and checkout survive denied financial permissions at 390px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6011,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T15:18:41.263Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "guest-permission-proof",
+                      "contentType": "application/json",
+                      "body": "eyJ3aWR0aCI6MzkwLCJjaGVja291dEF1dGgiOltudWxsXSwib3BlcmF0aW9ucyI6W3sidGFibGUiOiJzdWN1cnNhbGVzIiwibWV0aG9kIjoiU0VMRUNUIn0seyJ0YWJsZSI6ImNhcnJpdG9zX3BlbmRpZW50ZXMiLCJtZXRob2QiOiJTRUxFQ1QifSx7InRhYmxlIjoicHJvZHVjdG9zIiwibWV0aG9kIjoiU0VMRUNUIn0seyJ0YWJsZSI6InByb21vY2lvbmVzIiwibWV0aG9kIjoiU0VMRUNUIn0seyJ0YWJsZSI6ImNhcnJpdG9zX3BlbmRpZW50ZXMiLCJtZXRob2QiOiJJTlNFUlQifV0sImZvcmJpZGRlbiI6W10sImRpcmVjdFdyaXRlcyI6W10sImF1dGhSZXF1ZXN0cyI6W10sImVycm9ycyI6W119"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6c0f3dbabfd342358c65-66a5d5034a00113938a3",
+          "file": "guest-cart-permissions.spec.mjs",
+          "line": 4,
+          "column": 34
+        },
+        {
+          "title": "guest cart CRUD and checkout survive denied financial permissions at 1440px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6314,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T15:18:47.311Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "guest-permission-proof",
+                      "contentType": "application/json",
+                      "body": "eyJ3aWR0aCI6MTQ0MCwiY2hlY2tvdXRBdXRoIjpbbnVsbF0sIm9wZXJhdGlvbnMiOlt7InRhYmxlIjoic3VjdXJzYWxlcyIsIm1ldGhvZCI6IlNFTEVDVCJ9LHsidGFibGUiOiJjYXJyaXRvc19wZW5kaWVudGVzIiwibWV0aG9kIjoiU0VMRUNUIn0seyJ0YWJsZSI6InByb2R1Y3RvcyIsIm1ldGhvZCI6IlNFTEVDVCJ9LHsidGFibGUiOiJwcm9tb2Npb25lcyIsIm1ldGhvZCI6IlNFTEVDVCJ9LHsidGFibGUiOiJjYXJyaXRvc19wZW5kaWVudGVzIiwibWV0aG9kIjoiSU5TRVJUIn1dLCJmb3JiaWRkZW4iOltdLCJkaXJlY3RXcml0ZXMiOltdLCJhdXRoUmVxdWVzdHMiOltdLCJlcnJvcnMiOltdfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6c0f3dbabfd342358c65-02f535326c58b48f9f0d",
+          "file": "guest-cart-permissions.spec.mjs",
+          "line": 4,
+          "column": 34
+        },
+        {
+          "title": "guest cart CRUD and checkout survive denied financial permissions at 390px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5005,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T15:19:06.654Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "guest-permission-proof",
+                      "contentType": "application/json",
+                      "body": "eyJ3aWR0aCI6MzkwLCJjaGVja291dEF1dGgiOltudWxsXSwib3BlcmF0aW9ucyI6W3sidGFibGUiOiJzdWN1cnNhbGVzIiwibWV0aG9kIjoiU0VMRUNUIn0seyJ0YWJsZSI6ImNhcnJpdG9zX3BlbmRpZW50ZXMiLCJtZXRob2QiOiJTRUxFQ1QifSx7InRhYmxlIjoicHJvZHVjdG9zIiwibWV0aG9kIjoiU0VMRUNUIn0seyJ0YWJsZSI6InByb21vY2lvbmVzIiwibWV0aG9kIjoiU0VMRUNUIn0seyJ0YWJsZSI6ImNhcnJpdG9zX3BlbmRpZW50ZXMiLCJtZXRob2QiOiJJTlNFUlQifV0sImZvcmJpZGRlbiI6W10sImRpcmVjdFdyaXRlcyI6W10sImF1dGhSZXF1ZXN0cyI6W10sImVycm9ycyI6W119"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6c0f3dbabfd342358c65-393620e23c4968574b9c",
+          "file": "guest-cart-permissions.spec.mjs",
+          "line": 4,
+          "column": 34
+        },
+        {
+          "title": "guest cart CRUD and checkout survive denied financial permissions at 1440px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3977,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T15:19:11.684Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "guest-permission-proof",
+                      "contentType": "application/json",
+                      "body": "eyJ3aWR0aCI6MTQ0MCwiY2hlY2tvdXRBdXRoIjpbbnVsbF0sIm9wZXJhdGlvbnMiOlt7InRhYmxlIjoic3VjdXJzYWxlcyIsIm1ldGhvZCI6IlNFTEVDVCJ9LHsidGFibGUiOiJjYXJyaXRvc19wZW5kaWVudGVzIiwibWV0aG9kIjoiU0VMRUNUIn0seyJ0YWJsZSI6InByb2R1Y3RvcyIsIm1ldGhvZCI6IlNFTEVDVCJ9LHsidGFibGUiOiJwcm9tb2Npb25lcyIsIm1ldGhvZCI6IlNFTEVDVCJ9LHsidGFibGUiOiJjYXJyaXRvc19wZW5kaWVudGVzIiwibWV0aG9kIjoiSU5TRVJUIn1dLCJmb3JiaWRkZW4iOltdLCJkaXJlY3RXcml0ZXMiOltdLCJhdXRoUmVxdWVzdHMiOltdLCJlcnJvcnMiOltdfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6c0f3dbabfd342358c65-201810f2b283dfd28e7d",
+          "file": "guest-cart-permissions.spec.mjs",
+          "line": 4,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "title": "printing-lifecycle.spec.mjs",
+      "file": "printing-lifecycle.spec.mjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "public catalog defers the printer library and admin navigation loads it once",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 891,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T15:18:37.079Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1fc1d3f6d13f5d3194fa-bd08b35daca7b1fc2a9b",
+          "file": "printing-lifecycle.spec.mjs",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "public catalog defers the printer library and admin navigation loads it once",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1453,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"/127.0.0.1:3000/bo/tipo/articulos?_rsc=hZrtY1mPWMH41wv6 due to access control checks.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"/127.0.0.1:3000/bo/tipo/articulos?_rsc=hZrtY1mPWMH41wv6 due to access control checks.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at C:\\Users\\saita\\catalogo\\tests\\browser\\printing-lifecycle.spec.mjs:22:18",
+                    "location": {
+                      "file": "C:\\Users\\saita\\catalogo\\tests\\browser\\printing-lifecycle.spec.mjs",
+                      "column": 18,
+                      "line": 22
+                    },
+                    "snippet": "  20 |   expect(requests).toHaveLength(1);\n  21 |   await expect(page.locator('#qz-tray-script')).toHaveCount(1);\n> 22 |   expect(errors).toEqual([]);\n     |                  ^\n  23 | });\n  24 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\Users\\saita\\catalogo\\tests\\browser\\printing-lifecycle.spec.mjs",
+                        "column": 18,
+                        "line": 22
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"/127.0.0.1:3000/bo/tipo/articulos?_rsc=hZrtY1mPWMH41wv6 due to access control checks.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  20 |   expect(requests).toHaveLength(1);\n  21 |   await expect(page.locator('#qz-tray-script')).toHaveCount(1);\n> 22 |   expect(errors).toEqual([]);\n     |                  ^\n  23 | });\n  24 |\n    at C:\\Users\\saita\\catalogo\\tests\\browser\\printing-lifecycle.spec.mjs:22:18"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T15:18:53.668Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\saita\\catalogo\\test-results\\printing-lifecycle-public--9652e-in-navigation-loads-it-once-webkit\\error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\Users\\saita\\catalogo\\tests\\browser\\printing-lifecycle.spec.mjs",
+                    "column": 18,
+                    "line": 22
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1fc1d3f6d13f5d3194fa-c7914cab30dca6c3ba32",
+          "file": "printing-lifecycle.spec.mjs",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "public catalog defers the printer library and admin navigation loads it once",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1521,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T15:19:15.695Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1fc1d3f6d13f5d3194fa-f4bfd103496daf7700b1",
+          "file": "printing-lifecycle.spec.mjs",
+          "line": 3,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-04T15:18:26.647Z",
+    "duration": 51543.827000000005,
+    "expected": 11,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

@@ -45,14 +45,6 @@ export function usePublicSucursal() {
       setLoading(true);
       setError("");
       try {
-        if (!hasCountrySlugInPath(pathname)) {
-          const savedCountrySlug = getSavedPublicCountrySlug();
-          if (savedCountrySlug && savedCountrySlug !== activeCountrySlug) {
-            setActiveCountrySlug(savedCountrySlug);
-            return;
-          }
-        }
-
         const response = await fetch(`/api/public/sucursales?pais=${encodeURIComponent(activeCountrySlug)}`);
         const result = await response.json();
         if (!response.ok || !result.success) {

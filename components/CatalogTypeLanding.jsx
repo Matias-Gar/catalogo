@@ -40,7 +40,9 @@ export default function CatalogTypeLanding() {
           <p className="mt-2 text-sm text-slate-600 sm:text-base">Explora nuestras categorías y descubre todo lo que tenemos para ti.</p>
         </div>
 
-        {loadingProductViews || loadingSucursal ? <div className="py-16 text-center font-semibold text-slate-500">Cargando catálogos...</div> : (
+        {loadingProductViews || loadingSucursal ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" role="status" aria-label="Cargando catálogos">
+          {productViews.map(view => <div key={view.value} className="min-h-[255px] animate-pulse rounded-3xl bg-white/80 p-5 shadow-md"><div className="h-14 w-14 rounded-2xl bg-slate-100" /><div className="mt-4 h-20 rounded-xl bg-slate-100" /><div className="mt-5 h-12 rounded-xl bg-slate-100" /></div>)}
+        </div> : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {productViews.map((view, index) => {
               const preview = previews[view.value] || { count: 0, categories: [] };

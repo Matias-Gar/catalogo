@@ -37,7 +37,7 @@ export default function RootLayout({
         <title>Catalogo</title>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <QZTrayLoader />
+        {pathname.startsWith('/admin') ? <QZTrayLoader /> : null}
         <div className={isCatalog ? "garblac-theme" : undefined}>
           <Header />
           {children}

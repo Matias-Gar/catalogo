@@ -70,7 +70,7 @@ export default function ProductImageViewer({ imageList, imageIndex = 0, productN
         {count > 1 && <div className="flex gap-2 mt-2 overflow-x-auto pb-1">
           {imageList.map((src, i) => <button type="button" key={`${src}-${i}`} aria-label={`Ver imagen ${i + 1}`} aria-pressed={i === index}
             className={`shrink-0 rounded border-2 ${i === index ? 'border-green-600' : 'border-gray-300'}`} onClick={() => onSelect(i)}>
-            <CatalogImage unoptimized sources={[src]} alt={`${productName} miniatura ${i + 1}`} sizes="56px" className="w-14 h-14 object-cover rounded" />
+            <CatalogImage sources={[src]} alt={`${productName} miniatura ${i + 1}`} sizes="56px" className="w-14 h-14 object-cover rounded" />
           </button>)}
         </div>}
       </div>

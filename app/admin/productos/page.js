@@ -1,6 +1,6 @@
 "use client";
 import { scheduleEffect } from '../../../lib/scheduleEffect';
-import Image from "next/image";
+import Image from "@/components/SafeImage";
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef } from 'react';

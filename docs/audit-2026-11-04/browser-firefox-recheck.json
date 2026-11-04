@@ -1,0 +1,285 @@
+﻿{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\saita\\catalogo\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--project=firefox",
+      "--reporter=json"
+    ],
+    "configFile": "C:\\Users\\saita\\catalogo\\playwright.config.mjs",
+    "rootDir": "C:/Users/saita/catalogo/tests/browser",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/saita/catalogo/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/saita/catalogo/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 240000
+      },
+      {
+        "outputDir": "C:/Users/saita/catalogo/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "C:/Users/saita/catalogo/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 240000
+      },
+      {
+        "outputDir": "C:/Users/saita/catalogo/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "C:/Users/saita/catalogo/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 240000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\saita\\catalogo\\test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "firefox",
+        "testDir": "C:\\Users\\saita\\catalogo\\tests\\browser",
+        "snapshotDir": "C:\\Users\\saita\\catalogo\\tests\\browser",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 240000,
+        "use": {
+          "actionTimeout": 15000,
+          "navigationTimeout": 30000,
+          "baseURL": "http://127.0.0.1:3000",
+          "hasTouch": false,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "browserName": "firefox"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "firefox"
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run start -- --hostname 127.0.0.1",
+      "url": "http://127.0.0.1:3000",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "product-image-viewer.spec.mjs",
+      "file": "product-image-viewer.spec.mjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "all country and dynamic catalog routes share the touch viewer",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 97727,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 62\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 62\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at C:\\Users\\saita\\catalogo\\tests\\browser\\product-image-viewer.spec.mjs:96:18",
+                    "location": {
+                      "file": "C:\\Users\\saita\\catalogo\\tests\\browser\\product-image-viewer.spec.mjs",
+                      "column": 18,
+                      "line": 96
+                    },
+                    "snippet": "  94 |     }\n  95 |   }\n> 96 |   expect(errors).toEqual([]);\n     |                  ^\n  97 | });\n  98 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\Users\\saita\\catalogo\\tests\\browser\\product-image-viewer.spec.mjs",
+                        "column": 18,
+                        "line": 96
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 62\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  94 |     }\n  95 |   }\n> 96 |   expect(errors).toEqual([]);\n     |                  ^\n  97 | });\n  98 |\n    at C:\\Users\\saita\\catalogo\\tests\\browser\\product-image-viewer.spec.mjs:96:18"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T04:52:04.864Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\saita\\catalogo\\test-results\\product-image-viewer-all-c-7336e-utes-share-the-touch-viewer-firefox\\error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\Users\\saita\\catalogo\\tests\\browser\\product-image-viewer.spec.mjs",
+                    "column": 18,
+                    "line": 96
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "38fa1290f9411c97da98-586f8198202e8c673ea5",
+          "file": "product-image-viewer.spec.mjs",
+          "line": 9,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "responsive-catalog.spec.mjs",
+      "file": "responsive-catalog.spec.mjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "catalog layout and branch navigation fit all requested widths",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5080,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at C:\\Users\\saita\\catalogo\\tests\\browser\\responsive-catalog.spec.mjs:22:18",
+                    "location": {
+                      "file": "C:\\Users\\saita\\catalogo\\tests\\browser\\responsive-catalog.spec.mjs",
+                      "column": 18,
+                      "line": 22
+                    },
+                    "snippet": "  20 |     await expect(link).toBeVisible();\n  21 |   }\n> 22 |   expect(errors).toEqual([]);\n     |                  ^\n  23 | });\n  24 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\Users\\saita\\catalogo\\tests\\browser\\responsive-catalog.spec.mjs",
+                        "column": 18,
+                        "line": 22
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Acquiring an exclusive Navigator LockManager lock \\\"lock:sb-gzvtuenpwndodnetnmzi-auth-token\\\" immediately failed\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  20 |     await expect(link).toBeVisible();\n  21 |   }\n> 22 |   expect(errors).toEqual([]);\n     |                  ^\n  23 | });\n  24 |\n    at C:\\Users\\saita\\catalogo\\tests\\browser\\responsive-catalog.spec.mjs:22:18"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T04:53:45.766Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\saita\\catalogo\\test-results\\responsive-catalog-catalog-7e072-on-fit-all-requested-widths-firefox\\error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\Users\\saita\\catalogo\\tests\\browser\\responsive-catalog.spec.mjs",
+                    "column": 18,
+                    "line": 22
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "573a573af64431e86d6e-3558ce1fac3cda4bf9e4",
+          "file": "responsive-catalog.spec.mjs",
+          "line": 3,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-04T04:52:03.792Z",
+    "duration": 109135.62,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

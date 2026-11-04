@@ -1,0 +1,554 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "timestamp": "2026-11-04T04:40:58.626Z",
+  "images": [
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/1a0d21b0-5152-44c7-b313-2d0323e7666d.png",
+      "status": 200,
+      "durationMs": 3220,
+      "bytes": 1418,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/e28307af-46b5-422d-872b-4afebd5d7af6.jfif",
+      "status": 200,
+      "durationMs": 100,
+      "bytes": 3516,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/29b752d8-4842-4cca-b670-9ae077a750fb.png",
+      "status": 200,
+      "durationMs": 1805,
+      "bytes": 524,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/55c0c9d8-171b-4cb5-be96-9110ce50e809.png",
+      "status": 200,
+      "durationMs": 5223,
+      "bytes": 1082,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/5578a54f-881e-4bf1-881e-668b16e16163.jpg",
+      "status": 200,
+      "durationMs": 1105,
+      "bytes": 798,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/a8e66462-a24b-4612-b79f-3e810d172601.png",
+      "status": 200,
+      "durationMs": 6721,
+      "bytes": 2102,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/d5820cb5-e8f0-4e4d-a6a5-a5570181b0b3.png",
+      "status": 200,
+      "durationMs": 2488,
+      "bytes": 2152,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/66680b78-adb8-4e7c-890b-1b1124e532e5.png",
+      "status": 200,
+      "durationMs": 4109,
+      "bytes": 1622,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/ff4093c2-122b-4164-af2d-50d204bcbe72.png",
+      "status": 200,
+      "durationMs": 5830,
+      "bytes": 2568,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/7d09b757-b298-4e03-bb50-1987036dfe1b.png",
+      "status": 200,
+      "durationMs": 2538,
+      "bytes": 1410,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/f6b4520a-3139-41db-bafd-e5ce7f3b4261.png",
+      "status": 200,
+      "durationMs": 3563,
+      "bytes": 1900,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/b66043f8-f692-4231-932d-492acd24827e.png",
+      "status": 200,
+      "durationMs": 4234,
+      "bytes": 700,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/d5acad15-a458-4ca9-93f1-44ed78394833.png",
+      "status": 200,
+      "durationMs": 5675,
+      "bytes": 1918,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/45b14f87-a9bd-46c7-bfad-95666d2aec4b.png",
+      "status": 200,
+      "durationMs": 2306,
+      "bytes": 676,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/7d58c573-f628-40ac-8e65-b1abf2f3b889.png",
+      "status": 200,
+      "durationMs": 3398,
+      "bytes": 1048,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/140c8147-c499-414e-8fff-ee24a84cd1fe.png",
+      "status": 200,
+      "durationMs": 3670,
+      "bytes": 1576,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/d513cc14-28b4-4f05-a3f3-035ad0ab8402.png",
+      "status": 200,
+      "durationMs": 4383,
+      "bytes": 3532,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/56c7e0c5-18fe-48ec-b880-c2e6b4565a1b.png",
+      "status": 200,
+      "durationMs": 3720,
+      "bytes": 880,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/a13e806d-bd84-4654-8221-8253f6809aaf.png",
+      "status": 200,
+      "durationMs": 2280,
+      "bytes": 756,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/d4264d93-805c-431c-a34c-de8f09f10458.png",
+      "status": 200,
+      "durationMs": 5741,
+      "bytes": 1554,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/777e8830-c3ca-4388-bee3-5aabc8b221d2.png",
+      "status": 200,
+      "durationMs": 2225,
+      "bytes": 830,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/112db714-3c8e-4897-a14d-3e0c642ca228.jpg",
+      "status": 200,
+      "durationMs": 242,
+      "bytes": 896,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/15b99f98-cada-445d-8d80-0173417504c0.png",
+      "status": 200,
+      "durationMs": 5064,
+      "bytes": 2402,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/c34a1515-b413-4a36-8787-daca64c464b9.jpg",
+      "status": 200,
+      "durationMs": 1209,
+      "bytes": 1524,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/a8fe2fe2-b19c-4788-a281-ce77681e7393.png",
+      "status": 200,
+      "durationMs": 3596,
+      "bytes": 1100,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/0395040a-3f27-4dfe-a525-733e4b9d812a.png",
+      "status": 200,
+      "durationMs": 4582,
+      "bytes": 988,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/a04d1556-300a-43c0-b0a4-c156fd98ed90.png",
+      "status": 200,
+      "durationMs": 3270,
+      "bytes": 2886,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/f3ac76c8-ca31-4348-9b60-aac9a912951d.png",
+      "status": 200,
+      "durationMs": 3456,
+      "bytes": 1492,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/c4c6af3b-323d-4344-acd1-fb3a5844064f.png",
+      "status": 200,
+      "durationMs": 4038,
+      "bytes": 1544,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/391a7554-e2ba-48b7-838d-f7b49ea5ec57.png",
+      "status": 200,
+      "durationMs": 5510,
+      "bytes": 1904,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/a51e5045-0932-4bcd-9c5d-e3d7a7f3ea15.png",
+      "status": 200,
+      "durationMs": 2647,
+      "bytes": 1314,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/8dfbb43e-db76-4847-badc-1251801bf7c6.png",
+      "status": 200,
+      "durationMs": 3883,
+      "bytes": 1202,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/f2d7d9d2-8560-437c-8085-ad80554c0edf.png",
+      "status": 200,
+      "durationMs": 3435,
+      "bytes": 1346,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/488ac74d-a4ae-4fdc-b266-2fd629e58a66.png",
+      "status": 200,
+      "durationMs": 5335,
+      "bytes": 3640,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/9807325f-765d-4c1c-8bb2-83bd6b9f5700.jfif",
+      "status": 200,
+      "durationMs": 1263,
+      "bytes": 1370,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/965aea8a-fc45-4352-b937-6107f2de1bcd.png",
+      "status": 200,
+      "durationMs": 4483,
+      "bytes": 1564,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/0d0579e8-a306-4522-b417-4f038db5785b.png",
+      "status": 200,
+      "durationMs": 4332,
+      "bytes": 1266,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/0a3862c8-2607-461a-a5c6-3a427931716c.png",
+      "status": 200,
+      "durationMs": 3767,
+      "bytes": 1646,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/f22fb305-887c-4e2f-abf4-29e31625540c.png",
+      "status": 200,
+      "durationMs": 3102,
+      "bytes": 1434,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/be7c07bf-94fc-443e-b74f-90a53902c187.jfif",
+      "status": 200,
+      "durationMs": 1263,
+      "bytes": 1858,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/dc39af55-4384-433c-9a26-58e01859a7f7.png",
+      "status": 200,
+      "durationMs": 2876,
+      "bytes": 788,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/61ca24cc-125a-4b84-adf4-e295aded05e5.png",
+      "status": 200,
+      "durationMs": 3701,
+      "bytes": 1408,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/e1b1ee12-8a85-43ed-b1d7-19df3d87c12d.png",
+      "status": 200,
+      "durationMs": 3209,
+      "bytes": 1358,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/1e3916fd-e63e-4527-ac44-6100fd88084f.png",
+      "status": 200,
+      "durationMs": 4871,
+      "bytes": 1558,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/47b9321d-46d8-479d-b7c5-747640e5b617.png",
+      "status": 200,
+      "durationMs": 5195,
+      "bytes": 2756,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/ebe32071-083a-46b1-ad11-8b6241b0d11a.png",
+      "status": 200,
+      "durationMs": 3535,
+      "bytes": 1418,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/95acfb2a-fbec-4acf-b1bf-01fd00303302.png",
+      "status": 200,
+      "durationMs": 4463,
+      "bytes": 1276,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/a434c0d9-286f-4ff8-87ae-c385e5bc957f.png",
+      "status": 200,
+      "durationMs": 3799,
+      "bytes": 1500,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/c43d8fdf-7bd7-48b4-a972-d0877fb534f0.png",
+      "status": 200,
+      "durationMs": 3895,
+      "bytes": 1464,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/eb8e4607-c6af-49db-a890-8abe24a9fb50.png",
+      "status": 200,
+      "durationMs": 4049,
+      "bytes": 1406,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/7142bbb3-56f8-49ec-bf17-9061e5ca1614.png",
+      "status": 200,
+      "durationMs": 3595,
+      "bytes": 1064,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/785ba6aa-c2be-44a9-9848-639ba2106285.png",
+      "status": 200,
+      "durationMs": 3536,
+      "bytes": 1056,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/e65a72ae-7810-4fad-a400-67b50501e15f.png",
+      "status": 200,
+      "durationMs": 4035,
+      "bytes": 2848,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/1a0d0d6e-2408-44c8-8594-2195c30b36c7.png",
+      "status": 200,
+      "durationMs": 3688,
+      "bytes": 1694,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/74be4721-f275-462a-9eb6-8677a54606a8.png",
+      "status": 200,
+      "durationMs": 3493,
+      "bytes": 1578,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/f5d4287f-f4ae-4106-bf74-55a7fac616df.png",
+      "status": 200,
+      "durationMs": 3571,
+      "bytes": 1610,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/e9ae981f-98b9-4369-abe6-2d8751ea1c59.png",
+      "status": 200,
+      "durationMs": 3642,
+      "bytes": 1618,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/f35cfa34-b39c-4249-b08e-7c3b6fdefd6d.png",
+      "status": 200,
+      "durationMs": 3226,
+      "bytes": 1602,
+      "format": "webp",
+      "width": 96,
+      "cache": "public, max-age=3600, s-maxage=86400"
+    }
+  ],
+  "originalSamples": [
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/55c0c9d8-171b-4cb5-be96-9110ce50e809.png",
+      "status": 200,
+      "bytes": 1644302,
+      "durationMs": 1550
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/a8e66462-a24b-4612-b79f-3e810d172601.png",
+      "status": 200,
+      "bytes": 1652337,
+      "durationMs": 1505
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/1a0d21b0-5152-44c7-b313-2d0323e7666d.png",
+      "status": 200,
+      "bytes": 2234910,
+      "durationMs": 1816
+    },
+    {
+      "source": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/e28307af-46b5-422d-872b-4afebd5d7af6.jfif",
+      "status": 200,
+      "bytes": 61064,
+      "durationMs": 203
+    }
+  ]
+}

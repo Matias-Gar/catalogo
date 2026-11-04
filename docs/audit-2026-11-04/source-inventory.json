@@ -1,0 +1,2788 @@
+[
+  {
+    "file": "app/[pais]/insumos/page.js",
+    "lines": 3,
+    "sha256": "827585a4456741e812e5bb25bc0ea08d60b2a0fc0d9503f8825d563745bb3fbf",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/[pais]/insumos/productos/page.js",
+    "lines": 3,
+    "sha256": "a0fb3e3873234f6d42517122cda624e99ef052ae3882216fca2baffa78fbdb25",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/[pais]/page.js",
+    "lines": 3,
+    "sha256": "61d3b74437beeea76dd23495c84f641a89b4d40c808f80f2267bfe025ec1d47f",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/[pais]/productos/page.js",
+    "lines": 3,
+    "sha256": "a80e6dc4d0e545da696dd5ddf4879bbc8660eca1890adaed535ec4a4cba20e35",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/[pais]/tipo/[vista]/page.js",
+    "lines": 1,
+    "sha256": "cede01803533feed35cf2b9ac8279a406335d219e8e50acec00fc6987598faaf",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/[pais]/tipo/[vista]/productos/page.js",
+    "lines": 1,
+    "sha256": "982dda3e6febf4f952c8f9c55e559e2348f22b43b2434e87c753fbbd4cf13ea9",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/_global-error/page.js",
+    "lines": 18,
+    "sha256": "23c8340c7b82d1425563ffa80f6d04835b1db2c1a9c884d947ae63bee2d0a9ca",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/categorias/page.js",
+    "lines": 260,
+    "sha256": "86c303fe5592deff4d1552e0bf3e09f8e835e8da5a6ac40ecf6b0a90a5176a74",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "categorias",
+      "productos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/configuracion/cambiar-categoria/page.js",
+    "lines": 112,
+    "sha256": "c3b895573be5ffdb42e909ae4b11df1e5f8476e4aaee1fad2a85b13a751cccf1",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/configuracion/cambiar-seccion/page.js",
+    "lines": 109,
+    "sha256": "dbc555cd844daf718e831d3c5081ced3616ed20554f0fdafa6d810426c3fca73",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/configuracion/generador-qr/page.js",
+    "lines": 619,
+    "sha256": "e5c7028975ee3a4cee6b52e51c72745b9696d52053e6dfe9f55675308526db37",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/configuracion/herramientas-imagen/page.js",
+    "lines": 560,
+    "sha256": "4f43c67be785c44a092a62c0b39d7eaab0ffe5075b8049481fbf7f5c72234675",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/configuracion/sucursales/page.js",
+    "lines": 517,
+    "sha256": "ff427e21416add571b4e2b11416289b7399c375c147e3cc0a103bf12a1d8d9a1",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/configuracion/tipos-producto/page.js",
+    "lines": 104,
+    "sha256": "c3f551ccc25365ab41cb6ad3796644bebc978c5011fadfeae12ce2c42851f6b4",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/flujo-caja/page.js",
+    "lines": 1418,
+    "sha256": "8a24452925ebcc3e17872a34cd674c68556eab8e80655140ab32708236afadd3",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/insumos/editar/page.js",
+    "lines": 2,
+    "sha256": "1b426b748339cbae074706c83e4569a297486bc45d7086ce0bc53df4a1072dca",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/insumos/nuevo/page.js",
+    "lines": 2,
+    "sha256": "8678294c0f3f8233860eee0aedcafbf87ac3a0b4a65ecd4a0839e5857353dadc",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/insumos/page.js",
+    "lines": 2,
+    "sha256": "6a98ae967b03aa7e38479d8775edbf36e96e3133662f15d9d0218fcb030c401d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/inventario/estadistica/page.js",
+    "lines": 309,
+    "sha256": "661d295e3b2e68620e84013cf41413bf5ecb2abff5e2f0ed3e3c00d735ecf820",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "productos",
+      "ventas",
+      "ventas_detalle"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/inventario/proximo-a-compra/page.js",
+    "lines": 101,
+    "sha256": "063e0252e2528fcc88dbb5d912cd59618dd9ea0f2db556b96ec190e2f0ea6039",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "producto_imagenes",
+      "productos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/inventario/reportes/page.js",
+    "lines": 138,
+    "sha256": "064d9f712d25f2e1a062e4c1fae1dd0554186a2a4f932811e24c44532b46964c",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/inventario/stock/page.js",
+    "lines": 1232,
+    "sha256": "9cb1deccdfc5c27a0043f465226fc72bfea27bece35dcade8ad79e5b39c0115a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "categorias",
+      "producto_imagenes",
+      "producto_variantes",
+      "productos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/inventario/ubicaciones/page.js",
+    "lines": 183,
+    "sha256": "22b1a0afedfc0cb05544055f58ac20a0ec0b91a74b4a3e9fd7fbdc37de3a6622",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/layout.tsx",
+    "lines": 132,
+    "sha256": "2241e330c4f73f25b80ee1ef026056bab0c6792e351c10cda6c6a471d07b657a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/page.js",
+    "lines": 160,
+    "sha256": "7643da9d5729c2b69e2b8d53a33792606ade1669001361eab2232d42c4dc91c0",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/pagos/efectivo/page.js",
+    "lines": 126,
+    "sha256": "d3a229646f2a246b61f486cf00907c0c6594cc64c9c6738623d103dbb01b8fb1",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/pagos/estadistica/BusinessDashboardPro.jsx",
+    "lines": 265,
+    "sha256": "2615bf73664b195435dd2751cf4119baa17c5d488b0d04a8ed95fe0d412a72f0",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/pagos/estadistica/page.js",
+    "lines": 240,
+    "sha256": "3f76873360dbbaf07e0f4ace346ea438970d8ad5a436342be57b1d188d9bd1f8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/pagos/qr/page.js",
+    "lines": 126,
+    "sha256": "7eefb23dac1ced5ff603ae3257d99d7c2edb75a61e9007bc1efef21a1c27b7de",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/pagos/tarjeta/page.js",
+    "lines": 127,
+    "sha256": "5534fa46225bd13f06803af51b65830f3a7099844a52af318e09f476b8221ece",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/pagos/transferencias/page.js",
+    "lines": 127,
+    "sha256": "e0dc7057b49da21fb78ef93a807f5c83737dd37035b888e245d9c4990857e88a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/pedidos/page.js",
+    "lines": 103,
+    "sha256": "21e063c7832b89b3a162ff0b7c4282e06d0c6e7b522e3c0eb2b91e3a38bf4bf6",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "carritos_pendientes"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/perfil/layout.tsx",
+    "lines": 78,
+    "sha256": "00a6eb43297f4edd509970fef2c500b44728fdcecb77ffaa12fd85197043aa85",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/perfil/page.js",
+    "lines": 273,
+    "sha256": "128feb880cc006096dce1a897d49ea8fdd6c9f8babc4c723519605ad6e6d71d2",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/perfiles/page.js",
+    "lines": 619,
+    "sha256": "3d48120c651bc31e14bef0045b7c5b631b2bab6322aa9993fd80b8655f68643d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/productos/archivar/page.js",
+    "lines": 311,
+    "sha256": "99f8d66e7665148c29b67d1d6d16e08b331aee9126aa8834c4ed13895cf01c48",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "producto_imagenes",
+      "producto_variantes",
+      "productos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/productos/aumentar-stock/page.js",
+    "lines": 1192,
+    "sha256": "f7badcdb676d170a536683f36498780fa758964b74de681766b7b7ff2c706998",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "producto_imagenes",
+      "producto_variantes",
+      "productos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/productos/catalogo/page.js",
+    "lines": 740,
+    "sha256": "7702c56a8b25a7bc8073b82018f3413d66470c56ab4ff4da8363193a78a576eb",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "categorias",
+      "perfiles",
+      "producto_imagenes",
+      "producto_variantes",
+      "productos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/productos/editar/page.js",
+    "lines": 688,
+    "sha256": "eb2cd336945ea656e3bc6ea31a409926d1795e2ceb077e66a59ad403bb92027d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "categorias",
+      "product_images",
+      "producto_imagenes",
+      "producto_variantes",
+      "productos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/productos/eliminar/page.js",
+    "lines": 217,
+    "sha256": "381f509cca2f3bc41fecba5c4550bd3909935b81dd0ae328918f4fdf66a2264a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "producto_imagenes",
+      "producto_variantes",
+      "productos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/productos/nuevo/page.js",
+    "lines": 2807,
+    "sha256": "0c07bb35fccb4856b6c61fcae1f98ef04815bb3c132dd756fb27d33ae861a72d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "categorias",
+      "perfiles",
+      "product_images",
+      "producto_imagenes",
+      "producto_variantes",
+      "productos",
+      "productos_historial",
+      "promociones",
+      "stock_movimientos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/productos/page.js",
+    "lines": 1083,
+    "sha256": "519b1b5846b4d89ddb62d645ccae7edd6e9f4754bc9c977a6e756b3cb9287fa8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "categorias",
+      "perfiles",
+      "producto_imagenes",
+      "productos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/productos/reducir-stock/page.js",
+    "lines": 7,
+    "sha256": "abdb6cd4b3d253359f9ea912b867959298d1350cd2c65083d6269411b733e230",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/productos/transferencia-sucursal/page.js",
+    "lines": 653,
+    "sha256": "d79563b598f28601853c678d2046c5fc9f188ed6e56893f96652bcfa1fd7a268",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "producto_variantes",
+      "productos",
+      "transferencias_sucursal"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/promociones/descuentos/page.js",
+    "lines": 587,
+    "sha256": "5f58e6a4a64587dae8579fb1ef42b69f736aec6cae48461ad7dac83d8d27df85",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "promociones"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/promociones/packs/page.js",
+    "lines": 10,
+    "sha256": "902296a94532b82a97b2c75f516a48446f349800c0f93bc45dc908474d543ce7",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/promociones/productos/page.js",
+    "lines": 741,
+    "sha256": "161a487b3efb88ce878e382cb75552d5b4cd079fb8d7f9d5ac0b5d2c3cb221a8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "productos",
+      "promociones"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/Sidebar.js",
+    "lines": 101,
+    "sha256": "78b8438562c87b9f8a6196178b3994d9dd37d5a1fe90e23c6c5930a0e04aa17c",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/ventas/auditoria/page.js",
+    "lines": 562,
+    "sha256": "a0c6e35b009977c39f0b5c20f40de2ca89785da6a16296ef5790eb4b5df4de7e",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "producto_variantes",
+      "productos",
+      "productos_historial",
+      "stock_movimientos",
+      "ventas_detalle"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/ventas/estadistica/page.js",
+    "lines": 468,
+    "sha256": "77ec8ed6e02df18dffef359a1a3b126f66ad704c1dfd7b684e59522e5c521829",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "ventas",
+      "ventas_detalle"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/ventas/limpieza/page.js",
+    "lines": 337,
+    "sha256": "03b53f062e6b901c1e8f707779e7b55b286464c851791702448d7ac39c141670",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles",
+      "stock_movimientos",
+      "ventas",
+      "ventas_detalle",
+      "ventas_pagos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/ventas/nueva/NuevaVenta.tsx",
+    "lines": 1275,
+    "sha256": "4c47c3c08e07ad97f1ea2ff4df59c83ae9d0eccb7cdd0a473d8f85b4cf32778b",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "packs",
+      "producto_imagenes",
+      "productos",
+      "v_productos_catalogo"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/ventas/nueva/page.js",
+    "lines": 7,
+    "sha256": "caeaf729495db0689b531653ef59a8b916e771d84d582493f3482902b0b85050",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/ventas/page.js",
+    "lines": 7,
+    "sha256": "ff577d7a2056e20d2cbd2168a931326acfd5578273a7bf65d4984f9ac135f6d8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/ventas/todas/page.js",
+    "lines": 546,
+    "sha256": "f5518dd470dc23772a37572764be37f4470bcefed4120d7f6680187cbf90746f",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "categorias",
+      "productos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/admin/whatsapp/page.js",
+    "lines": 257,
+    "sha256": "c89e131e05695e5949ec3110b631b5083ffd0ab53c2c1b71d74d1badb865eed4",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/api/admin/categorias/route.js",
+    "lines": 119,
+    "sha256": "83d4b96b85e756fbecf0a8f4d588f26d7b06ab80fd45e18b5a1b2330c0c214fa",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "categorias",
+      "productos",
+      "sucursales"
+    ],
+    "rpc": [],
+    "methods": [
+      "POST",
+      "DELETE"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/clientes/route.js",
+    "lines": 126,
+    "sha256": "8bd3dddd31a9253ec3949a3fa50392f3ae493b0cb4b2ec3b91e44a4cb451c478",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "clientes",
+      "perfiles",
+      "sucursales"
+    ],
+    "rpc": [],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/inventario/reportes/route.js",
+    "lines": 41,
+    "sha256": "db53a33bc5b0a5504f5cf63842cf299060905efdebd5593d3152ee311f367c18",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "sucursales"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/inventario/ubicaciones/route.js",
+    "lines": 65,
+    "sha256": "526d91efaa87ddcc0a7c48d1a9a9944bb18a048eb1c44ce09e59f2046a225803",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "producto_ubicaciones",
+      "productos",
+      "sucursales"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET",
+      "PUT"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/pais-settings/route.js",
+    "lines": 100,
+    "sha256": "65ece46edcbbea262d9064d5e8aacdcc5fa47eaf1031a7fcdd817057777be9e6",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "pais_settings",
+      "paises",
+      "perfiles",
+      "usuario_paises"
+    ],
+    "rpc": [],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/pedidos/descartar/route.js",
+    "lines": 31,
+    "sha256": "3e46748376572343110d4e1e3f66466f9c8fd3c3711133d054d325b8fd70b4db",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": [
+      "discard_pending_order"
+    ],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/perfiles-permisos/route.js",
+    "lines": 100,
+    "sha256": "9085d8fe46ab9c3d4bab2d4f8803337cdfd88f49e4cc3806c6acd6167c322b55",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "paises",
+      "perfiles",
+      "usuario_paises"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/productos/archivar/route.js",
+    "lines": 38,
+    "sha256": "8c4720b9ef827080b7b47085b4cb08202cf88de47524262fbe2dc59af897fb10",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "productos",
+      "productos_historial",
+      "sucursales"
+    ],
+    "rpc": [],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/productos/aumentar-stock/route.js",
+    "lines": 54,
+    "sha256": "f888625ccd64dc6fab0759c61596a68c56d60578b77735fe843da5efd07b36f2",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": [
+      "increase_inventory_stock",
+      "reduce_inventory_stock"
+    ],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/productos/cambiar-categoria/route.js",
+    "lines": 79,
+    "sha256": "d3cf545982ea1572daf46938b5bb54be5b2045d3d46ef3bc11477d217313b475",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "categorias",
+      "productos",
+      "sucursales"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/productos/cambiar-seccion/route.js",
+    "lines": 65,
+    "sha256": "b51b45487234781b841bf0fff21a738c1f0236b1b663136b9dad26a46d1a69d2",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "productos",
+      "sucursales",
+      "tipos_producto"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/productos/editar/route.js",
+    "lines": 239,
+    "sha256": "42c1e0b86a1e4f2c3dc68179a74b6f03a6b70105c2c10591850a875b2a0d26ea",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "producto_imagenes",
+      "producto_variantes",
+      "productos",
+      "tipos_producto"
+    ],
+    "rpc": [],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/productos/eliminar/route.js",
+    "lines": 31,
+    "sha256": "b465d8ea3c457450066b06e627f41c6b45f0cb809192f9888b1510fd4e54960b",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": [
+      "soft_delete_product"
+    ],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/productos/nuevo/route.js",
+    "lines": 287,
+    "sha256": "d2a7a44225b3228272ed31ac7909c4e431b84a20643d9717abf3c3d921b75336",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "producto_imagenes",
+      "producto_variantes",
+      "productos",
+      "productos_historial",
+      "stock_movimientos",
+      "sucursales",
+      "tipos_producto"
+    ],
+    "rpc": [],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/productos/transferir/route.js",
+    "lines": 52,
+    "sha256": "56f48a867e8934098fb56f996ebf3fdcb6c6ac8dc62179d8ab8785a955d66d66",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "sucursales"
+    ],
+    "rpc": [
+      "transferir_stock_sucursal"
+    ],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/sucursal-context/route.js",
+    "lines": 159,
+    "sha256": "ea8eec7ee57e7329274afb75b4f49ac49499b500615151e6ba6e0b7df613b97a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "paises",
+      "perfiles",
+      "sucursales",
+      "usuario_paises",
+      "usuario_sucursales"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/sucursales/route.js",
+    "lines": 157,
+    "sha256": "d25db726313ed4b8fb53c443689b5cd1e813125a2b8ac8d5c1fb7261b5edb548",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "paises",
+      "perfiles",
+      "sucursales",
+      "usuario_paises",
+      "usuario_sucursales"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/tipos-producto/route.js",
+    "lines": 51,
+    "sha256": "8ec9517348f89dbf801f88a19fb73164747355d4cc52970987bd2d7bf92b476d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "tipos_producto"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET",
+      "POST",
+      "PATCH"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/admin/ventas/crear/route.js",
+    "lines": 90,
+    "sha256": "c9b13ac6c33e20ea5fcfe70bdf30a04bf460cce3ba4e76cec090579a655185ad",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "packs",
+      "productos",
+      "promociones"
+    ],
+    "rpc": [
+      "crear_venta_completa_segura"
+    ],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/auth/check-email/route.ts",
+    "lines": 32,
+    "sha256": "a6bfae25544e5edf540a295aa7b45aff77b28d104c9ce00a92e1d1fcbd033848",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles"
+    ],
+    "rpc": [],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": false
+  },
+  {
+    "file": "app/api/auth/forgot-password/route.ts",
+    "lines": 9,
+    "sha256": "1d59f5fed706907a30aa4af3699082a1ba4fb0d2d186212e052282815a07bf1e",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": [],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": false
+  },
+  {
+    "file": "app/api/auth/validate-reset-code/route.ts",
+    "lines": 9,
+    "sha256": "1d59f5fed706907a30aa4af3699082a1ba4fb0d2d186212e052282815a07bf1e",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": [],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": false
+  },
+  {
+    "file": "app/api/auth/validate-reset-code.js",
+    "lines": 4,
+    "sha256": "883be611cc670944b04e585094b692a88c21bc0305cb7ed3978069c4e8cbaa75",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/api/carritos-pendientes-service-role/route.js",
+    "lines": 143,
+    "sha256": "eb02ba7d0b367574f899e64b8c7222c6d212eccb6a7712c7bf3975e3a498cdb5",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "carritos_pendientes",
+      "sucursales"
+    ],
+    "rpc": [],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": false
+  },
+  {
+    "file": "app/api/cash/closure/route.js",
+    "lines": 38,
+    "sha256": "7bbac8994fd1f05b5fd7a462c324a186f132b3561a7e32a46a327f262841e080",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "sucursales"
+    ],
+    "rpc": [],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/cash/closures/route.js",
+    "lines": 42,
+    "sha256": "144e058afb92915f69a2d0cea7a36ed8129f9edc45426f72db58f8dae69a9543",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": [],
+    "methods": [
+      "GET"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/cash/movements/route.js",
+    "lines": 137,
+    "sha256": "16d6ba43dede23b3f02b30bdcb9d9d676c9dd03ac6f4c1e7dad03526b5a9f4c5",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "cash_movements"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET",
+      "POST",
+      "DELETE",
+      "PATCH"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/cash/summary/route.js",
+    "lines": 34,
+    "sha256": "6a0250da8acdd870b0d575669ac8c086c4e7dc6e5e25f4bbaae093df94ea81b3",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": [],
+    "methods": [
+      "GET"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/facebook/catalog/route.js",
+    "lines": 84,
+    "sha256": "e09e9d4edf694b2fe672ee22aa0832eb9b4b07652e6a50d6814cfe6bf9280c8a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "productos"
+    ],
+    "rpc": [],
+    "methods": [
+      "POST",
+      "GET"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/api/image-proxy/route.js",
+    "lines": 46,
+    "sha256": "cd055e900f480f534fd6fca4d3a3eb76f293341f6a3445b0a8dc9c7de6b32af2",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": [],
+    "methods": [
+      "GET"
+    ],
+    "access_guard": false
+  },
+  {
+    "file": "app/api/public/catalog-image/route.js",
+    "lines": 83,
+    "sha256": "2f0b6161a5d335a797150abd0edb075ffb49d0b645b4bb39419e5b10616ecc3a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": [],
+    "methods": [
+      "GET"
+    ],
+    "access_guard": false
+  },
+  {
+    "file": "app/api/public/catalog-preview/route.js",
+    "lines": 47,
+    "sha256": "b2c6f17c46f92039b8709d48043eef39056e64da8170ed6ed90bf58309af75a3",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "producto_imagenes",
+      "productos"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET"
+    ],
+    "access_guard": false
+  },
+  {
+    "file": "app/api/public/store-settings/route.js",
+    "lines": 57,
+    "sha256": "592bf28015c8ff03600fc4dee9fc2b14642dbc40e4dd3fb72289ec6745ccb206",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "pais_settings",
+      "paises"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET"
+    ],
+    "access_guard": false
+  },
+  {
+    "file": "app/api/public/sucursales/route.js",
+    "lines": 31,
+    "sha256": "e1c06f397d1b5704ef03cd8e40ae890bb4f812bad941c6c4c4edd29196fc0c90",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "paises",
+      "sucursales"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET"
+    ],
+    "access_guard": false
+  },
+  {
+    "file": "app/api/public/tipos-producto/route.js",
+    "lines": 16,
+    "sha256": "b6912c144ff708dca51185983615121caf4eb93831b370a962278029902fabb8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "tipos_producto"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET"
+    ],
+    "access_guard": false
+  },
+  {
+    "file": "app/api/whatsapp/catalogo/route.js",
+    "lines": 172,
+    "sha256": "891c5a698477d204cd05e30eff040644b0d75e540f6aadbe69c59cdc46895c77",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "producto_imagenes",
+      "productos",
+      "promociones"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET"
+    ],
+    "access_guard": false
+  },
+  {
+    "file": "app/api/whatsapp/comando/route.js",
+    "lines": 277,
+    "sha256": "ed611545063d08727df40065fbfb3c086bd9ed16e299d3a4b16becbae54defb7",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "categorias",
+      "producto_imagenes",
+      "productos",
+      "promociones"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET"
+    ],
+    "access_guard": false
+  },
+  {
+    "file": "app/api/whatsapp/notificar/route.js",
+    "lines": 147,
+    "sha256": "f9a13fe503261ca15c65042f7d0a20e93bde6f373f9b00189ea6a74663adc79e",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "productos"
+    ],
+    "rpc": [],
+    "methods": [
+      "POST"
+    ],
+    "access_guard": false
+  },
+  {
+    "file": "app/api/whatsapp/webhook/route.js",
+    "lines": 304,
+    "sha256": "3ef832ad05b8256700f7ba6a890707417b53e17689bc2e5b2b53284d51d3f145",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "mensajes_whatsapp",
+      "productos"
+    ],
+    "rpc": [],
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "access_guard": true
+  },
+  {
+    "file": "app/contacto/page.js",
+    "lines": 160,
+    "sha256": "7b62964d1280d484c36ee94225fa98c5e4711b9415a5604385f368ad67fdb94d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/insumos/page.js",
+    "lines": 2,
+    "sha256": "c367b1cb3f775badba6f406a33acb85246960256d99e064e09c48c4aa73f6b86",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/insumos/productos/page.js",
+    "lines": 1,
+    "sha256": "1aa9898600c98071952a2f07e09b7944b363de90494cc8c333333d9d28429fb1",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/layout.tsx",
+    "lines": 50,
+    "sha256": "0b371ea69e91edec026351eb509fdbe365f23a748e56cf3137d5f12fe7c36c17",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/login/page.js",
+    "lines": 80,
+    "sha256": "2b028022974ea9985c091ca21f418c4d0d0f62bfb40cf988a27c4d51dd3b3ea4",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/page.js",
+    "lines": 917,
+    "sha256": "895f8fcb705b273ecbd6e66e0a0784dee5a739db78c6a0ff153dd488ed208598",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "categorias",
+      "producto_imagenes",
+      "producto_variantes",
+      "productos",
+      "v_productos_catalogo"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/perfil/page.js",
+    "lines": 95,
+    "sha256": "5dfefda3505442a095193c582ce6a71087ededa9d6b915df6d17d704058e8f34",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/productos/page.js",
+    "lines": 2056,
+    "sha256": "099041267ce71463fc64ee43cdf904a074b4c85992d8d31ea169cf45deb3cde4",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "categorias",
+      "perfiles",
+      "producto_imagenes",
+      "producto_variantes",
+      "productos",
+      "v_productos_catalogo"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "app/reset-password/page.js",
+    "lines": 122,
+    "sha256": "bd60ea25c0f336f1c93c10331e4030192606960e9c87bc1671ada42e74d17be4",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/tipo/[vista]/page.js",
+    "lines": 1,
+    "sha256": "fabf37ff86685d6b5c073e4602ca842c13c866596297e3cdb0956d27a3ef46e7",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "app/tipo/[vista]/productos/page.js",
+    "lines": 1,
+    "sha256": "5e194abb80fa3e98dbd5c66118cb071300e381ee58530d00a3591d754b1b20f4",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/admin/SucursalContext.jsx",
+    "lines": 315,
+    "sha256": "9ca7707fb468b127049cb4009e0bb2df4943b2b31d9078bdd0eee265eb134cc4",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/AuthDebug.js",
+    "lines": 120,
+    "sha256": "013d5a1720a1568d8efd0b7b0abc6ba9d99a9e54f7abf4cd58edcf862fd2594c",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "components/AuthForm.js",
+    "lines": 217,
+    "sha256": "6b3c8a56f0cdcc13f6cd33dfb71cba4d6f212e492817f163e75cbb2ad75b9671",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/CantidadConUnidadInput.jsx",
+    "lines": 260,
+    "sha256": "6d905031d51b558261bfd5c448c4c9975b0f1a6b52b019edbf15b1fec849e3ed",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/CatalogImage.jsx",
+    "lines": 37,
+    "sha256": "68dba628687760d568de371e405c5d36bd30d4a1fd0ff89d42463186e43e9581",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/CatalogTypeLanding.jsx",
+    "lines": 130,
+    "sha256": "3c9d319ad6bd5b5a0546d99277133ecba641c74c723a77c115dad867586d33a4",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/CodigoYContrasenaForm.js",
+    "lines": 68,
+    "sha256": "aa59a1e6da30a01bc91f43514cc4f80dd62d49464a1481bac22ee972f1537acf",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/ConfirmModal.js",
+    "lines": 52,
+    "sha256": "21cfbd013522f2d69d653f00eaf55ae120ddf4fb504eb9fa714f1824c0fccf80",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/FacebookPixel.js",
+    "lines": 114,
+    "sha256": "6b956b65312cd5116b4c11e21ff04f5cdad007a6f73cc144b1579e0fa88a2c3c",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/Header.js",
+    "lines": 250,
+    "sha256": "3c1203de0020e8238051bc7ba48b37fac66c7351f9662d6e89615547fa78462c",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "components/ImageManager.js",
+    "lines": 120,
+    "sha256": "9ad2ab6fe77c1106cdb4e8f18704710f634019d6d59c69de720930b7884dd7b4",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/PerfilForm.client.js",
+    "lines": 3,
+    "sha256": "7e591f033413d4080bea818222b2f6126c47e3d7e840ba585cf9438e4e3310aa",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/PerfilForm.js",
+    "lines": 313,
+    "sha256": "cc2522b264c30c7c6bd1c132148e000eb4494903cfd9be66aab460e9a133b7a1",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "components/ProductCard.js",
+    "lines": 283,
+    "sha256": "cc74a5faa650f7fa703da6688de329bcae7bdfafab7abf46db92fa4501cd0341",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/ProductImageViewer.js",
+    "lines": 78,
+    "sha256": "74488601095dbe3ad7088e0d54fead7d2bd1c3512e06d247d9d1bb7402f9d30d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/promociones/PacksClient.jsx",
+    "lines": 526,
+    "sha256": "77d8a59577b269fdedb8e9a92c69bad84eeaba6b6049bbf6b5d55eefc49f4636",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "pack_productos",
+      "packs",
+      "productos",
+      "public"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "components/PublicSucursalSelector.jsx",
+    "lines": 200,
+    "sha256": "078f9503fb91a40bd995ae2395f4c01c1a736dc43fa8972e97042f3b26595fbd",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/QZTrayLoader.tsx",
+    "lines": 29,
+    "sha256": "a7696f68572c8f0159dc20092c98d59354e0c90b8b810d740bf8e0524e651830",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/RecuperarContrasenaForm.js",
+    "lines": 70,
+    "sha256": "912afd4202e4be55df2d68349c0dfcdedb9317ee18b5eb4055d83e789d73208b",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/SafeImage.js",
+    "lines": 10,
+    "sha256": "c7b36e3f861144f66e263d5b3510f2457ea6555546085b47714e728296f4d8ac",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/StoreFooter.js",
+    "lines": 77,
+    "sha256": "7f70790ac4b639729028e3d50c43df7e81e650512c5a382cd583cb7ad444a65c",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/ui/button.tsx",
+    "lines": 58,
+    "sha256": "fbbed3cba591c2214859ec590a76aaa0d3dce696943f08fedc872c7fa880f649",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/ui/card.tsx",
+    "lines": 92,
+    "sha256": "78cdb63dff3ec7ef074ada630ff20a5d8004768b6cbe24ed134a8bfba12bafbb",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/ui/ExpandableDescription.js",
+    "lines": 65,
+    "sha256": "4d32585eed095027eee46418606a49909bc51d8c5b0a08d6e97f9ce1e89eedf7",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/ui/GlobalErrorClient.jsx",
+    "lines": 14,
+    "sha256": "54cc4fb1c8a56a018bfc21d19b26c96166fcd116a954f60ed8ea77ceae7311e4",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/ui/input.tsx",
+    "lines": 34,
+    "sha256": "dec50ab67fb32f750660c30a60857714014817558d03a708277c19c32de6cf8d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/ui/Toast.js",
+    "lines": 39,
+    "sha256": "73668d5b1fe0d9c676477dddafa6ccb39151ffcfa9aeb5095c51781b83fcd0b9",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/ui/ToastProvider.jsx",
+    "lines": 20,
+    "sha256": "d6863001ade2f3da80421f3a2705b1e277f9b0c6e1f4477412d8ecba2a73869a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/UserNavigation.js",
+    "lines": 214,
+    "sha256": "0c1ef123de1152fd5a36f715e9b481f7efe59b18b565f0e49e4b239dd0df7d31",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "profiles"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "components/UserProfile.js",
+    "lines": 483,
+    "sha256": "70da79f4ceb6a2e0bcdd683346db83c8a29792f6c2446b17dc5dc843a066a7c0",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "components/venta/BuscadorProductos.tsx",
+    "lines": 330,
+    "sha256": "2c1697fe34bbc40cea0546cf11d9acf5279b60fd9d41afed4e51b626159ce218",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/venta/CarritoPanel.tsx",
+    "lines": 252,
+    "sha256": "af5ab6944cf895c3815f3c86fa7cf80ff4c1907845c5958823f9f918f62f73bf",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/venta/ClienteForm.tsx",
+    "lines": 111,
+    "sha256": "19457d7f8833d2dce19b30d156818d72b4ef5a089107142c479cf35c498222b3",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/venta/dashboard/DateFilterBar.jsx",
+    "lines": 59,
+    "sha256": "54cf08971cdd061f494aa63ddbc78d5ebb4d56ba95c15f8c9fa07446ca9338b2",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/venta/dashboard/KpiCard.jsx",
+    "lines": 16,
+    "sha256": "2b5b9bc61d940f92278acf42343a45101c269857f25a456a8e216706093c2a52",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/venta/dashboard/SalesChart.jsx",
+    "lines": 45,
+    "sha256": "f5400b6a2594265337e3473b05b93c24b873c9afcf68fadb266d907c6034965d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/venta/dashboard/SalesTable.jsx",
+    "lines": 215,
+    "sha256": "bfbd059377b0ec211d9d45a34972ac2066cae133ddc16703000cb5dd2c99567a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/venta/dashboard/TopProductsCard.jsx",
+    "lines": 31,
+    "sha256": "0e06b2fa841555ddf53495885b067ce3569066a43688dfc363c4a81a648ff24d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/venta/ProductThumbnail.tsx",
+    "lines": 20,
+    "sha256": "e83a1da0eb18544e980d74b3b44745b565e64b87db9d58fe7bb9045b2143e23d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/venta/TicketPrinter.tsx",
+    "lines": 676,
+    "sha256": "576ead9097085d3c53eb7a8634d6e4513e9be4ec3f60ac5730f768337683efc8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "hooks/useBusinessIntelligence.js",
+    "lines": 194,
+    "sha256": "d929b6702c2e67361c0d5a5abb8e1595a8719359ad7dce8c75e1ff6d707d4f08",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "cash_movements",
+      "ventas"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "hooks/useCarrito.ts",
+    "lines": 358,
+    "sha256": "9a07013d9ec292f2c1f30efe461cec61166f63f4ed641e68291d2317328abcad",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "hooks/useCliente.ts",
+    "lines": 346,
+    "sha256": "7c89b34be3fa2299253bdd8468d86c0a4e386f169405e6494a40b8defd99cf77",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "clientes",
+      "perfiles",
+      "sucursales",
+      "ventas"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "hooks/useMetodoStats.js",
+    "lines": 192,
+    "sha256": "59b2f5da06343cdfbef284793cece7dd6faec5bf217fce3803be30db1cb646b2",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "hooks/useProductos.ts",
+    "lines": 442,
+    "sha256": "8edcbbe401334f8b2737a74b7742fe249def4964000d811cd339d4f8ebb78301",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "producto_imagenes",
+      "producto_variantes",
+      "productos",
+      "v_productos_catalogo"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "hooks/useProductViews.js",
+    "lines": 27,
+    "sha256": "00040f89f9599e1c7ede66920214db7884a0782c435c5c65d916c58d4f712d78",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "hooks/useQrStats.js",
+    "lines": 186,
+    "sha256": "0fc2850bfbd2fb99dc11b26715f9073cdbe4be75ddd57e069590a8176daa0117",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "hooks/useSavedPublicCountry.js",
+    "lines": 17,
+    "sha256": "168d3e676aa9807791bac5a3974c94989831b3b206021a01e85d0b23012f2719",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "hooks/useVentasDashboard.js",
+    "lines": 418,
+    "sha256": "17b416d5cd042ab0ac4b68c84e43a91d4c73f48c5e72be0b17a9c18cab3c05d3",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "productos",
+      "ventas",
+      "ventas_detalle"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "lib/adminAccess.js",
+    "lines": 65,
+    "sha256": "3ba79ee1b6551746f7e240567cfc61393c1f50e3698803cdf2c1e05cf3fb42f7",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles",
+      "usuario_paises",
+      "usuario_sucursales"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "lib/adminPermissions.js",
+    "lines": 223,
+    "sha256": "ff7110bc5f5e7a4499d3379ebf5334c37457a2544632f2ed9a73594cbc99e089",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/authLock.mjs",
+    "lines": 28,
+    "sha256": "faf6b65f16951773fd56780860c56b36dabee0958edbad706cbdfbffd0773158",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/authUserFromRequest.js",
+    "lines": 24,
+    "sha256": "6353a2fa7a0822481f17285c84571c602a162dc1d8d5ae71328959cf63fe0bc1",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/boxProductCodes.mjs",
+    "lines": 7,
+    "sha256": "3a52f81bb062c4a6e3929498e8537d2c0ee87f5a32fad213aceb956993812cae",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/browserStorage.js",
+    "lines": 35,
+    "sha256": "f8c9f0aec3e44d62fb71acaf64f88941f1786c3769afb83e39259e5b3163818d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/carritoToken.ts",
+    "lines": 14,
+    "sha256": "9b564642bf66ca9c78f101dab48636925afab664009cf681397718db4214a1a8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/cartPricing.ts",
+    "lines": 24,
+    "sha256": "c7d87bd05c3039c9aef443a0ad3445d484d7971cdb7ab72b220f7a0d077207b9",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/catalogCartPricing.mjs",
+    "lines": 18,
+    "sha256": "2c649de51ba86a5b7d68aa47abb4216862a724134e317bc1b6644a4adab0cc41",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/catalogImageLoader.mjs",
+    "lines": 20,
+    "sha256": "ddec4014e8387b66840f974f3ad33743482bc554697392b0815becd1cab03680",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/catalogImageSource.mjs",
+    "lines": 14,
+    "sha256": "0b66aeb8457c5732a00c692efc75282b83088c45068f0377296bd5c7b2287603",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/catalogRequest.js",
+    "lines": 18,
+    "sha256": "3054e2e2ee10984f7b92e942aa0a38883e90e07d3d1bbb25025d14348b74e893",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/config.js",
+    "lines": 72,
+    "sha256": "a455154fb55a6788571f711d0bde940254aad72dc037d17033866223e9acea7e",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/countryRoutes.js",
+    "lines": 49,
+    "sha256": "792380f3c0451958c9bfa5667b37b84de9fc9382bba4c30a028d0962437f6c10",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/exportBoxInventory.js",
+    "lines": 75,
+    "sha256": "d4fbf4ee107c32bb64fccee86287c9860df14b0092f28ae5e5d28ae6b69e4122",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/FacebookCatalogAPI.js",
+    "lines": 127,
+    "sha256": "51144eecc503eb6c78177a2332a4ea82d4fe75b331afd24f7cecfde2a45792c8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "productos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "lib/gmailSendEmail.js",
+    "lines": 49,
+    "sha256": "8ce5f9ee9e3725731f01a68b1423376936f1c42f9aedd1c9941ef3eb4f61e9d3",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/imageOptimization.ts",
+    "lines": 42,
+    "sha256": "9fca3091ba7e23f1063676ee1c4a6ad7085bca4cf7123677af44cdb55a599570",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/imageUploadOptimization.ts",
+    "lines": 161,
+    "sha256": "259869dfb7d7d62217f7ca916fe1876d1ef093dc5d5ab93796bb857b9e93fc50",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/inventoryReports.mjs",
+    "lines": 39,
+    "sha256": "a7c1c3fec88d8ce66af436fc97e8c4fc8e27e6dbc2537c787fdf9a402533d112",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/orderPricing.mjs",
+    "lines": 67,
+    "sha256": "a32ea6de6e846f99903c695b9b1a269c12dabbb0c0e300ed5614705898529411",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/packs.js",
+    "lines": 213,
+    "sha256": "cc8f584cf4d555e21370771cdef2d4f4640b6082360d539a450e6cdb4b400ccc",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "packs"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "lib/pendingOrderPricing.mjs",
+    "lines": 13,
+    "sha256": "d9b43786483e6038d6462a4e00e6d51082e1c50c22b0b59dc5692ceddca665d0",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/productGallery.js",
+    "lines": 5,
+    "sha256": "6982678922dc26356bf0e019f3cee8c628648836a890d7186bca9269f71d7244",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/productosHistorial.js",
+    "lines": 23,
+    "sha256": "e015fa9bc4efc712cd6e5b164bb3bb0cd20fb2f6d3b6d6fb362005de9f8dc14a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "productos_historial"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "lib/productViews.js",
+    "lines": 58,
+    "sha256": "eb0815dd24dbd7de691b86a5b465a4caaf226dd8044fe5c07d30a0a34ac7569b",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/promociones.js",
+    "lines": 126,
+    "sha256": "cbb7dd14520a95cb241a83001f9060da8bcb89ca7d6d7f9a8002c2c41846d3e3",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/saleDiscountPolicy.mjs",
+    "lines": 30,
+    "sha256": "0a932519dea908583b8335b9e7da07f9885fe13047ae0e89ad6aa3a860577b56",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/scheduleEffect.js",
+    "lines": 13,
+    "sha256": "3c8b8f4dec3cf915f159974bb140b2ca8189cd9e13f9c94173c6bae4e94cfb6b",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/searchMatching.js",
+    "lines": 68,
+    "sha256": "8a097cbd02d660157446643b98d7000f48f474e1e73facc47091612dd06abd89",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/sendEmail.js",
+    "lines": 36,
+    "sha256": "138a4b380295466da7256eba5e13a12ca8d55bfd693e88132953ee80395e531a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/stockMovimientos.js",
+    "lines": 36,
+    "sha256": "5bcabd52b7bfeff9e96c95131a8bdb57cc03451b9985fd92c27be2172765decd",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "stock_movimientos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "lib/storageImageUrl.mjs",
+    "lines": 24,
+    "sha256": "db62fdec4bf3cb5bd437a56f28e96079f068886623df72e404370def102a1e75",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/storeSettings.js",
+    "lines": 173,
+    "sha256": "7355b411126f1c585d54c443bf4c83114df031322033e341eb07c82f7b7da0c3",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "app_settings",
+      "pais_settings",
+      "paises"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "lib/SupabaseAdminClient.js",
+    "lines": 16,
+    "sha256": "649ec10de0e9d4ff0056a08e671a7af3da2ea4c599ebad77f7c64203d4338447",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/supabaseBrowser.js",
+    "lines": 20,
+    "sha256": "7eaccf1d7c3427642408bd4ac2ac3905b3d12c4a3879db6d0621a616645511e4",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/SupabaseClient.js",
+    "lines": 1,
+    "sha256": "4e30a7476b53441179dac2001f8f1199137c916655ad3cfb6b74508d16071d36",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/SupabaseClient.ts",
+    "lines": 1,
+    "sha256": "4e30a7476b53441179dac2001f8f1199137c916655ad3cfb6b74508d16071d36",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/supabaseServer.js",
+    "lines": 38,
+    "sha256": "618400defa41ed691d59fb3c6e199dbc944f89756a9b728d26c35b7d8d5922d1",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "lib/usePromociones.js",
+    "lines": 59,
+    "sha256": "c436da85987521641fb879f2944714042f92a014d3e78e483c9ca1c986faefae",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "promociones"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "lib/useUserProfile.js",
+    "lines": 121,
+    "sha256": "4a6a308bdccf11424ff63cce1b30bb4a1350950ff19d706904cd8cbb598ce2b6",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "perfiles"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "lib/utils.ts",
+    "lines": 103,
+    "sha256": "cde016564e2fffce417ddcab3ed93622e31693a070dbd49c7d8a4a7a262382a0",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "producto_variantes",
+      "productos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "lib/validateSaleDiscounts.mjs",
+    "lines": 71,
+    "sha256": "902b525f5b05894a7fd4debae41e4359c5de84ebe6f13dbdf5d49ca3a0ede12d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "services/cash.service.js",
+    "lines": 821,
+    "sha256": "95636108ca92de5023786c8d97fa2c273726635c68cb9acb6dd862bbad7d32bf",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "cash_closures",
+      "cash_movements",
+      "sucursales",
+      "ventas",
+      "ventas_pagos"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "services/ventas.service.ts",
+    "lines": 72,
+    "sha256": "600801ec1395124591b21b96ea92738b8557c80233340893b939c584d0ea816c",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "carritos_pendientes",
+      "ventas_pagos"
+    ],
+    "rpc": [
+      "crear_venta_completa",
+      "eliminar_venta_con_restock"
+    ]
+  },
+  {
+    "file": "types/qrcode.d.ts",
+    "lines": 3,
+    "sha256": "b3ce46c58f3bde853ae9d4534e2c971713bafdf8d16b2a005d1f5ff00c5e77c0",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/activate-catalogo-gmail.py",
+    "lines": 47,
+    "sha256": "f42f12a22d906f388e6e021da920c2b1147925e9fd88819c45458d04cb9acddc",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/add_cash_closure_bank_columns.sql",
+    "lines": 12,
+    "sha256": "ef1f87867c9fa01bc0d208bf8d817b5fa6f7266bf526a86feee4fbbba4e30ba2",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/add_pack_fecha_fin.sql",
+    "lines": 5,
+    "sha256": "8bca3a40b4c69f7d81df92dd9c2a38b94ba43c2526f6b83cfe34714f58341b32",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/add_product_unit_columns.sql",
+    "lines": 12,
+    "sha256": "9e5fc373e2c3b79f428b3d283c5ece4c4ad383c7299707bc8e5ccf4b8f1b9466",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/add_product_view_column.sql",
+    "lines": 6,
+    "sha256": "3874c2c1230b4662c0b453ef5a2aff03ec3c69325394370145b82e58523766db",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/add_safe_inventory_reduction.sql",
+    "lines": 157,
+    "sha256": "68b64662493b881d30ac2135852d51944d991d2abf3ef60a12ea1232d3063da6",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/alter_ventas_detalle_add_usuario_email.sql",
+    "lines": 2,
+    "sha256": "f4323665823f0b309b208191aecf39f959e915cc29b12642beceb29cf5823b27",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/archive_products.sql",
+    "lines": 73,
+    "sha256": "92b10a15344e38dc33f9e6282880d7be59b78a37c1ae3c7610a0898a2e3b9064",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/audit-browser.mjs",
+    "lines": 40,
+    "sha256": "f5bddd4c96d411ff7fc64a5404641901a98547252f83e73d6d585d22b0a44c05",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/audit-database-readonly.mjs",
+    "lines": 35,
+    "sha256": "d3897ba2a6b208012e3be63cae3474a9f30890f33d411e68628281e20095f15d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/audit-dell-isolated-restore.py",
+    "lines": 105,
+    "sha256": "0bba1f435ce6e4c6533530b5917219d6aa0d5e60ad10c8cd8e48606a147e920e",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/audit-dell-storage-health.py",
+    "lines": 106,
+    "sha256": "b49f9af59191e2268b735f2827acb47f73a59e5b6aa0694fa89ed592cc43ce10",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/audit-firefox-diagnostic.mjs",
+    "lines": 20,
+    "sha256": "483e7eb5ae8a65d678743ea25ef2f9649d5c342205636f1d98e9125192238ebc",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/audit-images.mjs",
+    "lines": 30,
+    "sha256": "0a9437e82a7fa9df1f68c07f06bddf1b29b661739f6ca5cd1f83966bc814260c",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/audit-migration-readonly.py",
+    "lines": 171,
+    "sha256": "5778df60f6c790592575ee74c6e4e7c89c41295f39888be84d3cfde48cd27725",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/audit-public-readonly.py",
+    "lines": 38,
+    "sha256": "6da92d49d6c445139d27cfc478ce5d9f5bf198d03981613a1670419c5407cf07",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/audit-sensitive-permissions.sql",
+    "lines": 22,
+    "sha256": "26834b777871eefccd4be0a48421646e3fe3759517b35991cda357253542f8b5",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/audit-source-inventory.py",
+    "lines": 21,
+    "sha256": "ec59332cb300d3038066ebd00e0c2ac059b54c4a0d50d9215e9fc74aa6dcc368",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/audit-storage-readonly.py",
+    "lines": 92,
+    "sha256": "ddf8179d862b4067e403e0bd7f0db840635b29e54fed35fc0f0f321a247da023",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/auditar_integridad_stock.sql",
+    "lines": 147,
+    "sha256": "de8cfc290a6b141439db3758e40ce68dda0861ae1635b983af12e06ca14e602d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/auditar_precios_runtime.mjs",
+    "lines": 57,
+    "sha256": "579e9ed05df8d3d41f10daf732ce3a6b6be5c7a525ac92ea7d0747677b83c0f8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/auditar_stock_gafas.js",
+    "lines": 86,
+    "sha256": "1b3d6a301e91512e8f1dc811cb014d2067ace60deb17b6d69b2fc4deb5b5823d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [
+      "pack_productos",
+      "productos",
+      "ventas_detalle"
+    ],
+    "rpc": []
+  },
+  {
+    "file": "scripts/auditar_stock_runtime.mjs",
+    "lines": 93,
+    "sha256": "afbe6d1073f5219b4fa5f1c7f43ddbe18949f95a68a553938f6b11c551c7fee4",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/authorize-catalogo-gmail.mjs",
+    "lines": 93,
+    "sha256": "237161408b1cb351b09510a129259ab15870e5fca6e620a80fd3f4da4ce370d4",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/bootstrap_inventory_ledger.sql",
+    "lines": 77,
+    "sha256": "dcb28b3edf380f515eb310abec8bd24cb47c843aa1b4979ce90a3d0b9f0c35d1",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/catalogo-auth-supervisor.py",
+    "lines": 35,
+    "sha256": "4517d8bb759872a3d59c6a627d19570ca563180d4ecf62ba7dfca769a40939df",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/catalogo_docker_metadata.py",
+    "lines": 54,
+    "sha256": "3f72ed67ca5ffd6464a6732e5e531321821b49b11e26542c3f694bd9e2db981c",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/catalogo_smtp_probe.py",
+    "lines": 30,
+    "sha256": "76512e102683a662bcfdbbcee10ed2237655d4a94edecedd13c8aff154d41aaf",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/create_password_resets.sql",
+    "lines": 7,
+    "sha256": "2b8a8114a1b002106daffec4d07aa28623b1ac90c8ece11830cd621cd0206e68",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/create_product_locations.sql",
+    "lines": 16,
+    "sha256": "db68fec8fd9f7344fe97f8708093d7401fe7a39c4b05249beca4dc5d4c8df827",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/enable_multi_pais.sql",
+    "lines": 952,
+    "sha256": "96e81b49ca98af78fcc85930c0c6f5aa7fef2a46d9f82a525e026c348dd5edd8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/enable_multi_sucursal.sql",
+    "lines": 681,
+    "sha256": "4bb3e063c0b7ce73f88d0f69b4928fb797e491ae57705f35056853ca795f8eff",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/enable_transferencia_sucursal.sql",
+    "lines": 517,
+    "sha256": "a5cd4cea4cfb249670caba0d899bcb0c4a57205e90bc17f03e89207d0e50e958",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/extend-sale-rpc-timeout.sql",
+    "lines": 17,
+    "sha256": "1c34159942a5396340ffda4447131eaf70c9f3ebfd64d0eea0dfa2ff97eed156",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/finalize-dell-logo-settings.sql",
+    "lines": 24,
+    "sha256": "e9f8cc6c10a9900dfb1448b6c0c5578d091736fe244d6611cc4815cb137aa0d3",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/finalize-dell-mail-and-logos.py",
+    "lines": 102,
+    "sha256": "43356fd50cc78259f096b24ce57a50ba97805cbca304fb14267880f0506c3015",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/fix_auth_signup_profile_trigger.sql",
+    "lines": 72,
+    "sha256": "877c7b4ff4ec5add4224c4bc8d8d0608c80654d2bddf2d6a89630ea764569fbc",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/fix_rls_carritos_pendientes.sql",
+    "lines": 13,
+    "sha256": "0a17a94b323a8a0af8e112f9bfa6e8dbac0a91cf60f04bba545e3c6dda263b99",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/fix_supabase_policy.sql",
+    "lines": 9,
+    "sha256": "6e589ee1a2f18729793a09df02c363d073b1fc925f1a70b8d84e16f8620a4792",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/gmail_oauth_relay.py",
+    "lines": 167,
+    "sha256": "6e9d399e63cf97785d3658bbc6a913410f2cce7dc859859ae0dd375b307ade5d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/guard_sale_restock_once.sql",
+    "lines": 314,
+    "sha256": "605b1892d270da2f1a00bc03cc2c7e82932219657b1149a2686b5f2dd409ce2b",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/harden-business-rpc-execution.sql",
+    "lines": 34,
+    "sha256": "fb08965f27feb93b07b3a6f1e7e1cebc700b88b14398b921746bf0f5134b2bd8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/harden-legacy-password-resets.sql",
+    "lines": 7,
+    "sha256": "e84fa4789260d0330f530286fe21275da3857b0973c28c01185c8bd5809004d3",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/harden_inventory_ledger.sql",
+    "lines": 386,
+    "sha256": "ef4dccf36341ec709f6611ab2bf72e08cbb0a177049311aa39f8c8cb29866d10",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/harden_sales_stock_flow.sql",
+    "lines": 764,
+    "sha256": "593e1156f0a21d4924d4d4fb08d5a8f3496ae0a86ced3b2adc16e0a05e7d6180",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/install-catalogo-continuity.py",
+    "lines": 107,
+    "sha256": "a4b9de02c941ca50323d7fe7e61bc69b23ac3bdc5aa9629176c648507ca2d0ee",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/install-catalogo-gmail.py",
+    "lines": 308,
+    "sha256": "6f1cc610c046bf11236b999149ddc17aa505a6431d27776cdd99b7e38ff7cd47",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/migrate_product_types.sql",
+    "lines": 125,
+    "sha256": "f7ec5135ddb65c3a23c8f23d1cd679331e31844b5e53c7905d28068782f56153",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/read-idrac-ip.py",
+    "lines": 105,
+    "sha256": "cb55d26bad338a472f576f037aa977409875dfae5e98da8eb2642ae2d287261d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/recover-catalogo-auth.py",
+    "lines": 74,
+    "sha256": "54d55073861c398a02121d72d2bc4451e3c7df19ea375b704679f749a2eb2a8d",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/reset_ventas_caja_inicio_cero.sql",
+    "lines": 208,
+    "sha256": "38ffcd96cd666b38442ad833dc9888431daa8fc07f0923a213cfa39045f6343c",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/restrict-anonymous-sensitive-tables.sql",
+    "lines": 72,
+    "sha256": "12a0629e18c2bb35e4cbaab9acec0ad3e5b28d70bdf816d80299394d8cf29eb8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/start-catalogo-auth-ram.py",
+    "lines": 132,
+    "sha256": "c650c2dea70754f5c29e36244845783b0cf298e7b757325f5d68430df862a3df",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/sync_auth_users_to_perfiles.sql",
+    "lines": 8,
+    "sha256": "6c6c68e10fff6124b3e7a36ddf55a8af02609734e2802a574dae8be9333497dd",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/validacion_stock.js",
+    "lines": 40,
+    "sha256": "654113dce271492b46889c83f67724bf5b315f2dd2d3a5cdd2b83e6c26f340bb",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/verify-backup-locally.mjs",
+    "lines": 73,
+    "sha256": "cf543080359f0bb0645f0405144b192a49e4e51eb3b3ebf73747000ed2315a5f",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "scripts/verify-saved-storage-backup.mjs",
+    "lines": 22,
+    "sha256": "faa7d41095c1cd2d4e6acf4e720b09531eb8e4f7645d4bc96ff8d1e4536e2362",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/archive-api.test.mjs",
+    "lines": 55,
+    "sha256": "273e28985e07534dd6d5386ff4eceecbcaa4124556e316692a259d2e489c817a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/archive-country.test.mjs",
+    "lines": 63,
+    "sha256": "70f0c0b503972539b51aff02ab6e80ddac2b75c259b67940406a8011196c264b",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/auth-lock.test.mjs",
+    "lines": 36,
+    "sha256": "774e59c23206c954bc09f3934a7a84121e5b4a24f433a7409cd9eb9df598e883",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/browser/auth-lock.spec.mjs",
+    "lines": 39,
+    "sha256": "782046228547284adf53c527c0c39e38e000a70f5ed7c45dfbf81095bf9c622a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/browser/guest-cart-permissions.spec.mjs",
+    "lines": 103,
+    "sha256": "818fe36bde467f7e9c0b56b853a4fde5d14dc60bfa970f76015971ae7724e868",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/browser/printing-lifecycle.spec.mjs",
+    "lines": 26,
+    "sha256": "89681ab338ced3638afa3abdbc8094261f9a1209b4335e561497fb8ad31f8dc8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/browser/product-image-viewer.spec.mjs",
+    "lines": 97,
+    "sha256": "787438b3d4a1344e4d8914e8b679fdb208d52c353ecc41307570fb8a8cace22c",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/browser/responsive-catalog.spec.mjs",
+    "lines": 23,
+    "sha256": "b29254c48fdf3e6d7d7caeef2439af0ffef1b07b8af3392e30c168e65dadc12a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/browser-storage.test.mjs",
+    "lines": 104,
+    "sha256": "f86c568ebabe501a798ceb78443fa0768bd5cdfef4e1f40aad1a40904c262874",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/cambiar-categoria.test.mjs",
+    "lines": 83,
+    "sha256": "c59550533518302b0da7338a25d655856015dce3329d122f7157f64950259b3a",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/cambiar-seccion.test.mjs",
+    "lines": 70,
+    "sha256": "e1b3e70194b706a5f84cd3fee880a5ccf4feebcef0086b468caaadd253771011",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/cash-closure.test.mjs",
+    "lines": 95,
+    "sha256": "e34903dbf698d904f5d47cef032f44b5917134e7ec0d19999c036e7b4f2615bd",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/catalog-cart-pricing.test.mjs",
+    "lines": 47,
+    "sha256": "6a74b4c9a74abe725c4c013061b84f2eafc52c45f71e7df223ca9c24b1cc13a8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/catalog-image-source.test.mjs",
+    "lines": 126,
+    "sha256": "ccd952f1b1c7c35d6cb30648fbc4a0114c331bd9a277865c4b8df0ad23f9ea1c",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/catalog-loading.test.mjs",
+    "lines": 69,
+    "sha256": "cf1a3e8253bdf5a482c248ced473fccfe99d066f12f4ffc62991b3e08e978f16",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/catalog-order-browser.mjs",
+    "lines": 123,
+    "sha256": "2debe302fb9b9531a6ec5e00b1b78afe92420ee3a1d6e97d0fb2956a29aa556c",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/catalogo-docker-metadata.test.py",
+    "lines": 72,
+    "sha256": "06c5d8e4930fac9f2baf7948a63b6dc8ce2dff8de362dac4493b414af7ad1362",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/external-endpoint-security.test.mjs",
+    "lines": 58,
+    "sha256": "d36bf9baf93cfcc0e5ac48edc9dfe4acb269e82546e5af94f6fafddf2e0f475f",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/fixtures/promotion-order8.mjs",
+    "lines": 15,
+    "sha256": "3e3ccbb4a29b108abcc30012011cc2887164781a969fcb6016170dfcf3c53308",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/gmail-oauth-relay.test.py",
+    "lines": 78,
+    "sha256": "a9d93d691fa262747258fc3dfce08bdc2f47b077d70b55da10107595eb1c5626",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/helpers/guest-order-route.mjs",
+    "lines": 56,
+    "sha256": "e48b84464ab80d513e2ad1da1ba98df4bf99b0062e89389c7828b34d06c189ed",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/inventory-display.test.mjs",
+    "lines": 21,
+    "sha256": "b3c922bccf1f8f8ffc7bc7a1c1ea2d5c2eecce424efd952ce84739d8d816eca1",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/inventory-invariants.test.mjs",
+    "lines": 141,
+    "sha256": "b47f000b40256a74125e2f9bebca23202e5fb44409f51689d5efbfb27c5ee89c",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/inventory-reports.test.mjs",
+    "lines": 32,
+    "sha256": "828801ec434ba80c671924fa01e7f89424d74b9e29019064503de87efd8e8123",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/order-sale-browser.mjs",
+    "lines": 79,
+    "sha256": "f3c9a9efa81a3a9a9cfa3e0bdbdb1d74015ce6bb16be72861b9cb7b929632774",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/order-system-consistency.test.mjs",
+    "lines": 71,
+    "sha256": "04b0428fc5774317d72e7428d58fdb9604ac70cef23ed94a85e94d2f6300da77",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/password-recovery-security.test.mjs",
+    "lines": 31,
+    "sha256": "f259fa71341af3c349609d393ad2eb3e930c00fe8c01f2747e8fc3c7b8e9b2e0",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/pending-order-pricing.test.mjs",
+    "lines": 103,
+    "sha256": "5a79189f72377be74b4badebe7500170bac153ed273f5d628b5398a323142970",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/product-locations.test.mjs",
+    "lines": 63,
+    "sha256": "0195bc1f43a1bb894a4a3f867106647d319122790bb5c8037522074bf9e20ea7",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/sale-discounts.test.mjs",
+    "lines": 155,
+    "sha256": "3ccbd060c4488293b429fe5111588b99dfcb1126ce881009c7398af9c7afc7ea",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/sale-order-conversion.test.mjs",
+    "lines": 115,
+    "sha256": "9b0084ba9dace80accd6aa3f28f7c3e16d47daf48e408eb41a41317362fafb8f",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "tests/storage-image-url.test.mjs",
+    "lines": 19,
+    "sha256": "a1471ea9a20aa5dae740ed35aa93dea45cb212c564bf43b59823b29ed40e6741",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  }
+]

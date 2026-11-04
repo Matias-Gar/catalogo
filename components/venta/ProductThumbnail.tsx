@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from 'react';
 import { resolveStorageImageUrl } from '../../lib/storageImageUrl.mjs';
+import CatalogImage from '../CatalogImage';
 
 export default function ProductThumbnail({ sources, name, size = 56 }: {
   sources: (string | undefined | null)[]; name: string; size?: number;
@@ -12,10 +12,9 @@ export default function ProductThumbnail({ sources, name, size = 56 }: {
 }
 
 function Thumbnail({ urls, name, size }: { urls: string[]; name: string; size: number }) {
-  const [index, setIndex] = useState(0);
-  return urls[index]
-    ? <img src={urls[index]} alt={name} width={size} height={size}
-        onError={() => setIndex(i => i + 1)} className="mx-auto rounded-lg border object-contain"
+  return urls.length
+    ? <CatalogImage sources={urls} alt={name} sizes={`${size}px`}
+        className="mx-auto rounded-lg border object-contain"
         style={{ width: size, height: size }} />
     : <span className="text-xs text-gray-500">Sin imagen</span>;
 }

@@ -39,13 +39,14 @@ test('propagates network failures to the retry UI', async () => {
   await assert.rejects(runCatalogQuery({ abortSignal: () => Promise.reject(new Error('Sin conexión')) }, 100), /Sin conexión/);
 });
 
-test('catalog thumbnails use the real Next image optimizer at quality 75', () => {
+test('catalog thumbnails resize directly without nesting the Vercel optimizer', () => {
   const src = 'https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/public/photo.png';
   const html = renderToStaticMarkup(React.createElement(ImageConfigContext.Provider, { value: imageConfig },
     React.createElement(CatalogImage, { sources: [src], alt: 'Gafas', sizes: '50vw' })));
-  assert.match(html, /\/_next\/image\?url=/);
+  assert.doesNotMatch(html, /\/_next\/image\?url=/);
   assert.match(html, /q=75/);
   assert.match(html, /catalog-image/);
+  assert.match(html, /w=640/);
   assert.doesNotMatch(html, /format=origin|quality=96/);
 });
 

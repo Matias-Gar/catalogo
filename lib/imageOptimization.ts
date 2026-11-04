@@ -1,4 +1,5 @@
 import { resolveStorageImageUrl } from './storageImageUrl.mjs'
+import { catalogImageLoader, catalogImageSrcSet } from './catalogImageLoader.mjs'
 
 type ImageFormat = 'origin' | 'webp' | 'avif' | 'jpg' | 'png'
 
@@ -24,11 +25,10 @@ export function isSupabaseStorageUrl(url: string): boolean {
 
 export function getOptimizedImageUrl(
   url?: string,
-  _width = 800,
-  _options: OptimizeOptions = {}
+  width = 800,
+  options: OptimizeOptions = {}
 ): string {
-  // Storage object endpoints serve originals. Next/image owns actual resizing.
-  return resolveStorageImageUrl(url)
+  return catalogImageLoader({ src: resolveStorageImageUrl(url), width, quality: Number(options.quality) >= 90 ? 90 : 75 })
 }
 
 export function buildImageSrcSet(
@@ -38,7 +38,5 @@ export function buildImageSrcSet(
 ): string {
   if (!url) return ""
 
-  return widths
-    .map((w) => `${getOptimizedImageUrl(url, w, options)} ${w}w`)
-    .join(', ')
+  return catalogImageSrcSet(resolveStorageImageUrl(url), widths, Number(options.quality) >= 90 ? 90 : 75)
 }

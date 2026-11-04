@@ -1,0 +1,532 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "timestamp": "2026-11-04T04:38:59.983Z",
+  "errors": [],
+  "failures": [
+    {
+      "url": "http://127.0.0.1:3000/bo/tipo/articulos?_rsc=nIsy_GhIOFDbZ6r2",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "http://127.0.0.1:3000/bo/insumos?_rsc=nIsy_GhIOFDbZ6r2",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "http://127.0.0.1:3000/bo/tipo/articulos?_rsc=hZrtY1mPWMH41wv6",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "http://127.0.0.1:3000/bo/insumos?_rsc=hZrtY1mPWMH41wv6",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "responses": [],
+  "pages": [
+    {
+      "path": "/bo",
+      "elapsedMs": 27435,
+      "title": "Importaciones GarBlac",
+      "vitals": {
+        "lcp": 360,
+        "cls": 0.46446683980773407
+      },
+      "overflow": false,
+      "images": [
+        {
+          "src": "https://garblac.duckdns.org/storage/v1/object/public/product_images/store/logo-6c274002-2dca-4616-947a-577fb77b6904.jpeg",
+          "width": 1254,
+          "complete": true,
+          "loading": "auto"
+        },
+        {
+          "src": "https://garblac.duckdns.org/storage/v1/object/public/product_images/store/logo-6c274002-2dca-4616-947a-577fb77b6904.jpeg",
+          "width": 1254,
+          "complete": true,
+          "loading": "auto"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F55c0c9d8-171b-4cb5-be96-9110ce50e809.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Fa8e66462-a24b-4612-b79f-3e810d172601.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F1a0d21b0-5152-44c7-b313-2d0323e7666d.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Fe28307af-46b5-422d-872b-4afebd5d7af6.jfif&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F29b752d8-4842-4cca-b670-9ae077a750fb.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F5578a54f-881e-4bf1-881e-668b16e16163.jpg&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Fff4093c2-122b-4164-af2d-50d204bcbe72.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Fd5820cb5-e8f0-4e4d-a6a5-a5570181b0b3.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F66680b78-adb8-4e7c-890b-1b1124e532e5.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F7d09b757-b298-4e03-bb50-1987036dfe1b.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Fb66043f8-f692-4231-932d-492acd24827e.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Fd5acad15-a458-4ca9-93f1-44ed78394833.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Ff6b4520a-3139-41db-bafd-e5ce7f3b4261.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F7d58c573-f628-40ac-8e65-b1abf2f3b889.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F45b14f87-a9bd-46c7-bfad-95666d2aec4b.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Ff3ac76c8-ca31-4348-9b60-aac9a912951d.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F8dfbb43e-db76-4847-badc-1251801bf7c6.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Fa51e5045-0932-4bcd-9c5d-e3d7a7f3ea15.png&w=48&q=75",
+          "width": 48,
+          "complete": true,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3000/brand/garblac-logo.png",
+          "width": 1470,
+          "complete": true,
+          "loading": "auto"
+        }
+      ],
+      "resources": [
+        {
+          "url": "http://127.0.0.1:3000/brand/catalog-teal-geometry.svg",
+          "duration": 49.10000002384186,
+          "transferSize": 916,
+          "encodedBodySize": 616
+        },
+        {
+          "url": "https://garblac.duckdns.org/storage/v1/object/public/product_images/store/logo-6c274002-2dca-4616-947a-577fb77b6904.jpeg",
+          "duration": 506,
+          "transferSize": 0,
+          "encodedBodySize": 0
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-preview?sucursalId=c023312e-6fa7-4481-bb1c-fe9c360c3f73",
+          "duration": 847.3000000119209,
+          "transferSize": 11685,
+          "encodedBodySize": 11385
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F55c0c9d8-171b-4cb5-be96-9110ce50e809.png&w=48&q=75",
+          "duration": 7649.600000023842,
+          "transferSize": 774,
+          "encodedBodySize": 474
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Fa8e66462-a24b-4612-b79f-3e810d172601.png&w=48&q=75",
+          "duration": 7938,
+          "transferSize": 1104,
+          "encodedBodySize": 804
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F1a0d21b0-5152-44c7-b313-2d0323e7666d.png&w=48&q=75",
+          "duration": 9521.900000035763,
+          "transferSize": 890,
+          "encodedBodySize": 590
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Fe28307af-46b5-422d-872b-4afebd5d7af6.jfif&w=48&q=75",
+          "duration": 1521.5,
+          "transferSize": 1094,
+          "encodedBodySize": 794
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F29b752d8-4842-4cca-b670-9ae077a750fb.png&w=48&q=75",
+          "duration": 7794.100000023842,
+          "transferSize": 544,
+          "encodedBodySize": 244
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F5578a54f-881e-4bf1-881e-668b16e16163.jpg&w=48&q=75",
+          "duration": 4153.899999976158,
+          "transferSize": 712,
+          "encodedBodySize": 412
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Fff4093c2-122b-4164-af2d-50d204bcbe72.png&w=48&q=75",
+          "duration": 7803.599999964237,
+          "transferSize": 1204,
+          "encodedBodySize": 904
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Fd5820cb5-e8f0-4e4d-a6a5-a5570181b0b3.png&w=48&q=75",
+          "duration": 11893,
+          "transferSize": 1092,
+          "encodedBodySize": 792
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F66680b78-adb8-4e7c-890b-1b1124e532e5.png&w=48&q=75",
+          "duration": 15172.199999988079,
+          "transferSize": 1000,
+          "encodedBodySize": 700
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F7d09b757-b298-4e03-bb50-1987036dfe1b.png&w=48&q=75",
+          "duration": 12601.100000023842,
+          "transferSize": 916,
+          "encodedBodySize": 616
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Fb66043f8-f692-4231-932d-492acd24827e.png&w=48&q=75",
+          "duration": 14744.200000047684,
+          "transferSize": 620,
+          "encodedBodySize": 320
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Fd5acad15-a458-4ca9-93f1-44ed78394833.png&w=48&q=75",
+          "duration": 18264.19999998808,
+          "transferSize": 1062,
+          "encodedBodySize": 762
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Ff6b4520a-3139-41db-bafd-e5ce7f3b4261.png&w=48&q=75",
+          "duration": 20292.69999998808,
+          "transferSize": 1010,
+          "encodedBodySize": 710
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F7d58c573-f628-40ac-8e65-b1abf2f3b889.png&w=48&q=75",
+          "duration": 23317.399999976158,
+          "transferSize": 694,
+          "encodedBodySize": 394
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F45b14f87-a9bd-46c7-bfad-95666d2aec4b.png&w=48&q=75",
+          "duration": 23585.799999952316,
+          "transferSize": 600,
+          "encodedBodySize": 300
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Ff3ac76c8-ca31-4348-9b60-aac9a912951d.png&w=48&q=75",
+          "duration": 19433.5,
+          "transferSize": 854,
+          "encodedBodySize": 554
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2F8dfbb43e-db76-4847-badc-1251801bf7c6.png&w=48&q=75",
+          "duration": 19028,
+          "transferSize": 752,
+          "encodedBodySize": 452
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/public/catalog-image?path=%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproduct_images%2Fpublic%2Fa51e5045-0932-4bcd-9c5d-e3d7a7f3ea15.png&w=48&q=75",
+          "duration": 22337.30000001192,
+          "transferSize": 792,
+          "encodedBodySize": 492
+        }
+      ]
+    }
+  ]
+}

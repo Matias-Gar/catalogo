@@ -1,0 +1,2965 @@
+[
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\[pais]\\insumos\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\[pais]\\insumos\\productos\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\[pais]\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\[pais]\\productos\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\[pais]\\tipo\\[vista]\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\[pais]\\tipo\\[vista]\\productos\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\_global-error\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\Sidebar.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\categorias\\page.js",
+    "messages": [
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has missing dependencies: 'fetchCategorias' and 'fetchProductos'. Either include them or remove the dependency array.",
+        "line": 24,
+        "column": 6,
+        "nodeType": "ArrayExpression",
+        "endLine": 24,
+        "endColumn": 41,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [activePaisId, effectiveSucursalId, fetchCategorias, fetchProductos]",
+            "fix": {
+              "range": [
+                878,
+                913
+              ],
+              "text": "[activePaisId, effectiveSucursalId, fetchCategorias, fetchProductos]"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\configuracion\\cambiar-categoria\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\configuracion\\cambiar-seccion\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\configuracion\\generador-qr\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\configuracion\\herramientas-imagen\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'ImagePlus' is defined but never used. Allowed unused vars must match /^_/u.",
+        "line": 8,
+        "column": 3,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 8,
+        "endColumn": 12,
+        "suggestions": [
+          {
+            "messageId": "removeUnusedVar",
+            "data": {
+              "varName": "ImagePlus"
+            },
+            "fix": {
+              "range": [
+                123,
+                136
+              ],
+              "text": ""
+            },
+            "desc": "Remove unused variable \"ImagePlus\"."
+          }
+        ]
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'SlidersHorizontal' is defined but never used. Allowed unused vars must match /^_/u.",
+        "line": 13,
+        "column": 3,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 13,
+        "endColumn": 20,
+        "suggestions": [
+          {
+            "messageId": "removeUnusedVar",
+            "data": {
+              "varName": "SlidersHorizontal"
+            },
+            "fix": {
+              "range": [
+                180,
+                201
+              ],
+              "text": ""
+            },
+            "desc": "Remove unused variable \"SlidersHorizontal\"."
+          }
+        ]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 2,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\configuracion\\sucursales\\page.js",
+    "messages": [
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.",
+        "line": 113,
+        "column": 8,
+        "nodeType": "ArrayExpression",
+        "endLine": 113,
+        "endColumn": 10,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [fetchData]",
+            "fix": {
+              "range": [
+                3240,
+                3242
+              ],
+              "text": "[fetchData]"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\configuracion\\tipos-producto\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\flujo-caja\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'isAutoSaleIncomeMovement' is defined but never used. Allowed unused vars must match /^_/u.",
+        "line": 36,
+        "column": 10,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 36,
+        "endColumn": 34
+      },
+      {
+        "ruleId": null,
+        "message": "Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps').",
+        "line": 281,
+        "column": 5,
+        "severity": 1,
+        "nodeType": null,
+        "fix": {
+          "range": [
+            9126,
+            9181
+          ],
+          "text": " "
+        }
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has missing dependencies: 'fetchClosures', 'fetchMovements', and 'fetchSummary'. Either include them or remove the dependency array.",
+        "line": 284,
+        "column": 8,
+        "nodeType": "ArrayExpression",
+        "endLine": 284,
+        "endColumn": 40,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [activePaisId, activeSucursalId, fetchClosures, fetchMovements, fetchSummary]",
+            "fix": {
+              "range": [
+                9203,
+                9235
+              ],
+              "text": "[activePaisId, activeSucursalId, fetchClosures, fetchMovements, fetchSummary]"
+            }
+          }
+        ]
+      },
+      {
+        "ruleId": null,
+        "message": "Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps').",
+        "line": 291,
+        "column": 5,
+        "severity": 1,
+        "nodeType": null,
+        "fix": {
+          "range": [
+            9399,
+            9454
+          ],
+          "text": " "
+        }
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has missing dependencies: 'fetchMovements' and 'fetchSummary'. Either include them or remove the dependency array.",
+        "line": 294,
+        "column": 8,
+        "nodeType": "ArrayExpression",
+        "endLine": 294,
+        "endColumn": 71,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [startDate, endDate, cashboxId, activePaisId, activeSucursalId, fetchSummary, fetchMovements]",
+            "fix": {
+              "range": [
+                9476,
+                9539
+              ],
+              "text": "[startDate, endDate, cashboxId, activePaisId, activeSucursalId, fetchSummary, fetchMovements]"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 5,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 2
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\insumos\\editar\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\insumos\\nuevo\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\insumos\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\inventario\\estadistica\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\inventario\\proximo-a-compra\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\inventario\\reportes\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\inventario\\stock\\page.js",
+    "messages": [
+      {
+        "ruleId": "react-hooks/immutability",
+        "severity": 2,
+        "message": "Error: Cannot access variable before it is declared\n\n`fetchProductos` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\n  125 |\n  126 |   useEffect(() => {\n> 127 |     fetchProductos();\n      |     ^^^^^^^^^^^^^^ `fetchProductos` accessed before it is declared\n  128 |     // eslint-disable-next-line react-hooks/exhaustive-deps\n  129 |   }, [orden, page, activePaisId, activeSucursalId, search, categoryFilter, stockFilter]);\n  130 |\n\n  149 |   }, [search, categoryFilter, stockFilter]);\n  150 |\n> 151 |   async function fetchProductos() {\n      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 152 |     setLoading(true);\n      | ^^^^^^^^^^^^^^^^^^^^^\n> 153 |     const from = page * PAGE_SIZE;\n      …\n      | ^^^^^^^^^^^^^^^^^^^^^\n> 232 |     setLoading(false);\n      | ^^^^^^^^^^^^^^^^^^^^^\n> 233 |   }\n      | ^^^^ `fetchProductos` is declared here\n  234 |\n  235 |   async function fetchImagenesPrincipales(productosPage) {\n  236 |     const ids = (productosPage || [])",
+        "line": 127,
+        "column": 5,
+        "nodeType": null,
+        "endLine": 127,
+        "endColumn": 19
+      },
+      {
+        "ruleId": "react-hooks/immutability",
+        "severity": 2,
+        "message": "Error: Cannot access variable before it is declared\n\n`fetchCategorias` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\n  130 |\n  131 |   useEffect(() => {\n> 132 |     fetchCategorias();\n      |     ^^^^^^^^^^^^^^^ `fetchCategorias` accessed before it is declared\n  133 |   }, [activePaisId, activeSucursalId]);\n  134 |\n  135 |   useEffect(() => {\n\n  465 |   }\n  466 |\n> 467 |   async function fetchCategorias() {\n      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 468 |     let query = supabase\n      | ^^^^^^^^^^^^^^^^^^^^^^^^\n> 469 |       .from(\"categorias\")\n      …\n      | ^^^^^^^^^^^^^^^^^^^^^^^^\n> 481 |     setAvailableCategories((data || []).map((item) => String(item.categori || \"\")).filter(Boolean));\n      | ^^^^^^^^^^^^^^^^^^^^^^^^\n> 482 |   }\n      | ^^^^ `fetchCategorias` is declared here\n  483 |\n  484 |   async function sendWhatsappAlerta(prod) {\n  485 |     const { data: { session } } = await supabase.auth.getSession();",
+        "line": 132,
+        "column": 5,
+        "nodeType": null,
+        "endLine": 132,
+        "endColumn": 20
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a missing dependency: 'fetchCategorias'. Either include it or remove the dependency array.",
+        "line": 133,
+        "column": 6,
+        "nodeType": "ArrayExpression",
+        "endLine": 133,
+        "endColumn": 38,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [activePaisId, activeSucursalId, fetchCategorias]",
+            "fix": {
+              "range": [
+                5866,
+                5898
+              ],
+              "text": "[activePaisId, activeSucursalId, fetchCategorias]"
+            }
+          }
+        ]
+      },
+      {
+        "ruleId": "react-hooks/set-state-in-effect",
+        "severity": 2,
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n  146 |\n  147 |   useEffect(() => {\n> 148 |     setPage(0);\n      |     ^^^^^^^ Avoid calling setState() directly within an effect\n  149 |   }, [search, categoryFilter, stockFilter]);\n  150 |\n  151 |   async function fetchProductos() {",
+        "line": 148,
+        "column": 5,
+        "nodeType": null,
+        "endLine": 148,
+        "endColumn": 12
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'productById' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 314,
+        "column": 11,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 314,
+        "endColumn": 22
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'hasUnitConversion' is defined but never used. Allowed unused vars must match /^_/u.",
+        "line": 377,
+        "column": 12,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 377,
+        "endColumn": 29
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'state' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 390,
+        "column": 11,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 390,
+        "endColumn": 16
+      }
+    ],
+    "errorCount": 3,
+    "fatalErrorCount": 0,
+    "warningCount": 4,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\inventario\\ubicaciones\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\layout.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\pagos\\efectivo\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'stats' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 15,
+        "column": 27,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 15,
+        "endColumn": 32
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'total' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 16,
+        "column": 9,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 16,
+        "endColumn": 14
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 2,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\pagos\\estadistica\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'err' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 102,
+        "column": 16,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 102,
+        "endColumn": 19
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\pagos\\qr\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'stats' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 15,
+        "column": 27,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 15,
+        "endColumn": 32
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'total' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 16,
+        "column": 9,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 16,
+        "endColumn": 14
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 2,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\pagos\\tarjeta\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'stats' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 16,
+        "column": 27,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 16,
+        "endColumn": 32
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'total' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 17,
+        "column": 9,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 17,
+        "endColumn": 14
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 2,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\pagos\\transferencias\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'stats' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 16,
+        "column": 27,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 16,
+        "endColumn": 32
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'total' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 17,
+        "column": 9,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 17,
+        "endColumn": 14
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 2,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\pedidos\\page.js",
+    "messages": [
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a missing dependency: 'fetchCarritos'. Either include it or remove the dependency array.",
+        "line": 15,
+        "column": 6,
+        "nodeType": "ArrayExpression",
+        "endLine": 15,
+        "endColumn": 38,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [activePaisId, activeSucursalId, fetchCarritos]",
+            "fix": {
+              "range": [
+                526,
+                558
+              ],
+              "text": "[activePaisId, activeSucursalId, fetchCarritos]"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\perfil\\layout.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\perfil\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\perfiles\\page.js",
+    "messages": [
+      {
+        "ruleId": "react-hooks/immutability",
+        "severity": 2,
+        "message": "Error: Cannot access variable before it is declared\n\n`cargarPerfiles` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\n  48 |         \n  49 |         if (perfilData?.rol === 'admin') {\n> 50 |           await Promise.all([cargarPerfiles(), cargarPermisosPais()]);\n     |                              ^^^^^^^^^^^^^^ `cargarPerfiles` accessed before it is declared\n  51 |         }\n  52 |       }\n  53 |       setLoading(false);\n\n  56 |   }, []);\n  57 |\n> 58 |   const cargarPerfiles = async () => {\n     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 59 |     const { data } = await supabase\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 60 |       .from('perfiles')\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 61 |       .select('*')\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 62 |       .order('nombre');\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 63 |     \n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 64 |     if (data) setPerfiles(data);\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 65 |   };\n     | ^^^^^ `cargarPerfiles` is declared here\n  66 |\n  67 |   const cargarPermisosPais = async () => {\n  68 |     try {",
+        "line": 50,
+        "column": 30,
+        "nodeType": null,
+        "endLine": 50,
+        "endColumn": 44
+      },
+      {
+        "ruleId": "react-hooks/immutability",
+        "severity": 2,
+        "message": "Error: Cannot access variable before it is declared\n\n`cargarPermisosPais` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\n  48 |         \n  49 |         if (perfilData?.rol === 'admin') {\n> 50 |           await Promise.all([cargarPerfiles(), cargarPermisosPais()]);\n     |                                                ^^^^^^^^^^^^^^^^^^ `cargarPermisosPais` accessed before it is declared\n  51 |         }\n  52 |       }\n  53 |       setLoading(false);\n\n  65 |   };\n  66 |\n> 67 |   const cargarPermisosPais = async () => {\n     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 68 |     try {\n     | ^^^^^^^^^\n> 69 |       const response = await fetch('/api/admin/perfiles-permisos', {\n     …\n     | ^^^^^^^^^\n> 82 |     }\n     | ^^^^^^^^^\n> 83 |   };\n     | ^^^^^ `cargarPermisosPais` is declared here\n  84 |\n  85 |   const getAsignacionesPerfil = (perfilId) =>\n  86 |     asignacionesPais.filter((item) => String(item.usuario_id) === String(perfilId));",
+        "line": 50,
+        "column": 48,
+        "nodeType": null,
+        "endLine": 50,
+        "endColumn": 66
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a missing dependency: 'cargarPermisosPais'. Either include it or remove the dependency array.",
+        "line": 56,
+        "column": 6,
+        "nodeType": "ArrayExpression",
+        "endLine": 56,
+        "endColumn": 8,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [cargarPermisosPais]",
+            "fix": {
+              "range": [
+                1744,
+                1746
+              ],
+              "text": "[cargarPermisosPais]"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 2,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\productos\\archivar\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\productos\\aumentar-stock\\page.js",
+    "messages": [
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.",
+        "line": 761,
+        "column": 6,
+        "nodeType": "ArrayExpression",
+        "endLine": 761,
+        "endColumn": 41,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [activePaisId, effectiveSucursalId, fetchData]",
+            "fix": {
+              "range": [
+                28859,
+                28894
+              ],
+              "text": "[activePaisId, effectiveSucursalId, fetchData]"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\productos\\catalogo\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'activeSucursal' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 19,
+        "column": 29,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 19,
+        "endColumn": 43
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\productos\\editar\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'registrarMovimientoStock' is defined but never used. Allowed unused vars must match /^_/u.",
+        "line": 12,
+        "column": 10,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 12,
+        "endColumn": 34,
+        "suggestions": [
+          {
+            "messageId": "removeUnusedImportDeclaration",
+            "data": {
+              "varName": "registrarMovimientoStock"
+            },
+            "fix": {
+              "range": [
+                482,
+                550
+              ],
+              "text": ""
+            },
+            "desc": "Remove unused import declaration."
+          }
+        ]
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'registrarHistorialProducto' is defined but never used. Allowed unused vars must match /^_/u.",
+        "line": 13,
+        "column": 10,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 13,
+        "endColumn": 36,
+        "suggestions": [
+          {
+            "messageId": "removeUnusedImportDeclaration",
+            "data": {
+              "varName": "registrarHistorialProducto"
+            },
+            "fix": {
+              "range": [
+                550,
+                622
+              ],
+              "text": ""
+            },
+            "desc": "Remove unused import declaration."
+          }
+        ]
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'sincronizarStockProducto' is defined but never used. Allowed unused vars must match /^_/u.",
+        "line": 14,
+        "column": 10,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 14,
+        "endColumn": 34,
+        "suggestions": [
+          {
+            "messageId": "removeUnusedVar",
+            "data": {
+              "varName": "sincronizarStockProducto"
+            },
+            "fix": {
+              "range": [
+                631,
+                656
+              ],
+              "text": ""
+            },
+            "desc": "Remove unused variable \"sincronizarStockProducto\"."
+          }
+        ]
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'currentViewMeta' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 63,
+        "column": 11,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 63,
+        "endColumn": 26
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 4,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\productos\\eliminar\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\productos\\nuevo\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'CantidadConUnidadInput' is defined but never used. Allowed unused vars must match /^_/u.",
+        "line": 24,
+        "column": 8,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 24,
+        "endColumn": 30,
+        "suggestions": [
+          {
+            "messageId": "removeUnusedImportDeclaration",
+            "data": {
+              "varName": "CantidadConUnidadInput"
+            },
+            "fix": {
+              "range": [
+                1162,
+                1247
+              ],
+              "text": ""
+            },
+            "desc": "Remove unused import declaration."
+          }
+        ]
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'showColorRepeatModal' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 485,
+        "column": 12,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 485,
+        "endColumn": 32
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "The 'handlePrintBarcode' function makes the dependencies of useEffect Hook (at line 1022) change on every render. To fix this, wrap the definition of 'handlePrintBarcode' in its own useCallback() Hook.",
+        "line": 812,
+        "column": 15,
+        "nodeType": "VariableDeclarator",
+        "endLine": 1017,
+        "endColumn": 6,
+        "suggestions": [
+          {
+            "desc": "Wrap the definition of 'handlePrintBarcode' in its own useCallback() Hook.",
+            "fix": {
+              "range": [
+                32650,
+                40085
+              ],
+              "text": "useCallback(async (codigo, productoNombre = '', copies = 1, printMode = 'browser') => {\r\n      const rawCode = String(codigo || '').trim();\r\n      const productName = String(productoNombre || '').trim() || 'SIN NOMBRE';\r\n      const barcodeValue = rawCode || '0000000000000';\r\n            const safeCopies = Math.max(1, Math.min(200, Number(copies) || 1));\r\n                        const labelWidthMm = 70;\r\n                        const labelHeightMm = 22;\r\n\r\n            const shouldUseQzRaw = printMode === 'qz-raw' && ENABLE_QZ_RAW_LABEL_PRINT;\r\n            const shouldUseQzHtml = printMode === 'qz-html' && ENABLE_QZ_DIRECT_VARIANT_PRINT;\r\n\r\n            const qzPrinted = shouldUseQzRaw\r\n                ? await tryPrintBarcodeWithQz({\r\n                    barcodeValue,\r\n                    productName,\r\n                    copies: safeCopies,\r\n                })\r\n                : false;\r\n\r\n            if (qzPrinted) {\r\n                setMessage('Etiquetas enviadas por QZ Tray con corte por cada copia.');\r\n                return;\r\n            }\r\n\r\n            let svgString = '';\r\n      try {\r\n        const JsBarcode = (await import('jsbarcode')).default;\r\n        const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');\r\n                const digitsOnly = /^\\d+$/.test(barcodeValue);\r\n                const canUseEAN = digitsOnly && (barcodeValue.length === 12 || barcodeValue.length === 13);\r\n        JsBarcode(svgEl, barcodeValue, {\r\n                    format: canUseEAN ? 'EAN13' : 'CODE128',\r\n          displayValue: false,\r\n          width: 1.2,\r\n          height: 35,\r\n          margin: 0,\r\n        });\r\n        svgString = new XMLSerializer().serializeToString(svgEl);\r\n            } catch (_err) {\r\n        svgString = `<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"220\" height=\"40\">\r\n          <text x=\"0\" y=\"20\">${barcodeValue}</text>\r\n        </svg>`;\r\n      }\r\n\r\n      const barcodeDataUri = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgString)))}`;\r\n\r\n            const buildLabelMarkup = () => `\r\n                <div class=\"sheet\">\r\n                    <div class=\"label\">\r\n                        <div class=\"left\">\r\n                            <img src=\"${barcodeDataUri}\" />\r\n                            <div class=\"code\">${barcodeValue}</div>\r\n                        </div>\r\n                        <div class=\"right\">${productName}</div>\r\n                    </div>\r\n                </div>\r\n            `;\r\n\r\n            const labelsHtml = Array.from({ length: safeCopies }).map(() => buildLabelMarkup()).join('');\r\n\r\n            const buildPrintHtml = (labelsMarkup) => `\r\n      <html>\r\n      <head>\r\n        <style>\r\n                    @page {\r\n                        size: ${labelWidthMm}mm auto;\r\n                        margin: 0;\r\n                    }\r\n\r\n          html, body {\r\n            width: ${labelWidthMm}mm;\r\n                        margin: 0;\r\n                        padding: 0;\r\n                        height: auto;\r\n                        font-family: Arial, sans-serif;\r\n                    }\r\n\r\n                    body {\r\n                        background: white;\r\n                        display: block;\r\n                    }\r\n\r\n                    .sheet {\r\n                        width: ${labelWidthMm}mm;\r\n                        min-height: ${labelHeightMm}mm;\r\n                        margin: 0;\r\n                        padding: 0;\r\n                        break-after: auto;\r\n                        page-break-after: auto;\r\n                    }\r\n\r\n          .label {\r\n            width: ${labelWidthMm}mm;\r\n                        min-height: ${labelHeightMm}mm;\r\n            box-sizing: border-box;\r\n            padding: 1mm;\r\n            display: flex;\r\n            border: 1px solid black;\r\n            overflow: hidden;\r\n          }\r\n\r\n          .left {\r\n            width: 48mm;\r\n            display: flex;\r\n            flex-direction: column;\r\n            justify-content: center;\r\n            align-items: center;\r\n          }\r\n\r\n          .left img {\r\n            width: 100%;\r\n          }\r\n\r\n          .code {\r\n            font-size: 9pt;\r\n          }\r\n\r\n          .right {\r\n                        width: calc(${labelWidthMm}mm - 48mm - 2mm);\r\n            display: flex;\r\n            justify-content: center;\r\n            align-items: center;\r\n            text-align: center;\r\n            font-size: 8pt;\r\n            word-break: break-word;\r\n          }\r\n        </style>\r\n      </head>\r\n      <body>\r\n                                ${labelsMarkup}\r\n\r\n      </body>\r\n      </html>\r\n      `;\r\n\r\n            const qzHtmlPrinted = shouldUseQzHtml\r\n                ? await tryPrintHtmlLabelWithQz({\r\n                    labelHtml: buildPrintHtml(buildLabelMarkup()),\r\n                    copies: safeCopies,\r\n                    enabled: true,\r\n                })\r\n                : false;\r\n\r\n            if (qzHtmlPrinted) {\r\n                setMessage('Etiquetas impresas por QZ Tray con corte por cada etiqueta.');\r\n                return;\r\n            }\r\n\r\n        const printInIframe = (htmlContent) => new Promise((resolve) => {\r\n        let iframe = document.getElementById('barcode-print-iframe');\r\n        if (!iframe) {\r\n          iframe = document.createElement('iframe');\r\n          iframe.id = 'barcode-print-iframe';\r\n          iframe.style.position = 'fixed';\r\n          iframe.style.width = '0';\r\n          iframe.style.height = '0';\r\n          iframe.style.border = '0';\r\n          iframe.style.visibility = 'hidden';\r\n          document.body.appendChild(iframe);\r\n        }\r\n\r\n        const doc = iframe.contentDocument || iframe.contentWindow?.document;\r\n                if (!doc) {\r\n                        resolve(false);\r\n                        return;\r\n                }\r\n\r\n        doc.open();\r\n        doc.write(htmlContent);\r\n        doc.close();\r\n\r\n                setTimeout(() => {\r\n          try {\r\n            iframe.contentWindow?.focus();\r\n            iframe.contentWindow?.print();\r\n                        resolve(true);\r\n          } catch (err) {\r\n            console.warn('Impresión desde iframe falló', err);\r\n                        resolve(false);\r\n          }\r\n        }, 500);\r\n            });\r\n\r\n            if (!ENABLE_QZ_RAW_LABEL_PRINT && ENABLE_QZ_CUT_PER_LABEL_WITH_BROWSER_PRINT) {\r\n                for (let i = 0; i < safeCopies; i++) {\r\n                        await printInIframe(buildPrintHtml(buildLabelMarkup()));\r\n                    // Pequeña espera para evitar cortar antes de que termine de salir la etiqueta.\r\n                    await new Promise((resolve) => setTimeout(resolve, 900));\r\n                    // Cortar solo entre etiquetas evita un corte adicional al final.\r\n                    if (i < safeCopies - 1) {\r\n                        await tryCutOnlyWithQz({ cuts: 1 });\r\n                    }\r\n                        if (i < safeCopies - 1) {\r\n                                await new Promise((resolve) => setTimeout(resolve, 250));\r\n                        }\r\n                }\r\n                return;\r\n            }\r\n\r\n            await printInIframe(buildPrintHtml(labelsHtml));\r\n\r\n            // Mantiene exactamente el diseño actual y delega a QZ solo el corte final.\r\n            if (!ENABLE_QZ_RAW_LABEL_PRINT && ENABLE_QZ_CUT_ONLY_AFTER_BROWSER_PRINT) {\r\n                    await tryCutOnlyWithQz({ cuts: 1 });\r\n            }\r\n    })"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 3,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\productos\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\productos\\reducir-stock\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\productos\\transferencia-sucursal\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\promociones\\descuentos\\page.js",
+    "messages": [
+      {
+        "ruleId": "react-hooks/immutability",
+        "severity": 2,
+        "message": "Error: Cannot access variable before it is declared\n\n`fetchProductosConPromociones` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\n  18 |   // Cargar productos que tienen promociones activas\n  19 |   useEffect(() => {\n> 20 |     fetchProductosConPromociones();\n     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `fetchProductosConPromociones` accessed before it is declared\n  21 |   }, [activePaisId, activeSucursalId]);\n  22 |\n  23 |   const fetchProductosConPromociones = async () => {\n\n  21 |   }, [activePaisId, activeSucursalId]);\n  22 |\n> 23 |   const fetchProductosConPromociones = async () => {\n     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 24 |     setLoading(true);\n     | ^^^^^^^^^^^^^^^^^^^^^\n> 25 |     try {\n     …\n     | ^^^^^^^^^^^^^^^^^^^^^\n> 57 |     }\n     | ^^^^^^^^^^^^^^^^^^^^^\n> 58 |   };\n     | ^^^^^ `fetchProductosConPromociones` is declared here\n  59 |\n  60 |   // Filtrar por búsqueda y estado\n  61 |   const promocionesFiltradas = productosConPromociones.filter(item => {",
+        "line": 20,
+        "column": 5,
+        "nodeType": null,
+        "endLine": 20,
+        "endColumn": 33
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a missing dependency: 'fetchProductosConPromociones'. Either include it or remove the dependency array.",
+        "line": 21,
+        "column": 6,
+        "nodeType": "ArrayExpression",
+        "endLine": 21,
+        "endColumn": 38,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [activePaisId, activeSucursalId, fetchProductosConPromociones]",
+            "fix": {
+              "range": [
+                986,
+                1018
+              ],
+              "text": "[activePaisId, activeSucursalId, fetchProductosConPromociones]"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 1,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\promociones\\packs\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\promociones\\productos\\page.js",
+    "messages": [
+      {
+        "ruleId": "react-hooks/immutability",
+        "severity": 2,
+        "message": "Error: Cannot access variable before it is declared\n\n`fetchDatos` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\n  30 |   useEffect(() => {\n  31 |     if (!activePaisId || !activeSucursalId) return;\n> 32 |     fetchDatos();\n     |     ^^^^^^^^^^ `fetchDatos` accessed before it is declared\n  33 |   }, [activePaisId, activeSucursalId]);\n  34 |\n  35 |   const fetchDatos = async () => {\n\n  33 |   }, [activePaisId, activeSucursalId]);\n  34 |\n> 35 |   const fetchDatos = async () => {\n     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 36 |     setLoading(true);\n     | ^^^^^^^^^^^^^^^^^^^^^\n> 37 |     try {\n     …\n     | ^^^^^^^^^^^^^^^^^^^^^\n> 82 |     }\n     | ^^^^^^^^^^^^^^^^^^^^^\n> 83 |   };\n     | ^^^^^ `fetchDatos` is declared here\n  84 |\n  85 |   // Filtrar productos en tiempo real\n  86 |   const productosFiltrados = productos.filter(producto => {",
+        "line": 32,
+        "column": 5,
+        "nodeType": null,
+        "endLine": 32,
+        "endColumn": 15
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a missing dependency: 'fetchDatos'. Either include it or remove the dependency array.",
+        "line": 33,
+        "column": 6,
+        "nodeType": "ArrayExpression",
+        "endLine": 33,
+        "endColumn": 38,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [activePaisId, activeSucursalId, fetchDatos]",
+            "fix": {
+              "range": [
+                1245,
+                1277
+              ],
+              "text": "[activePaisId, activeSucursalId, fetchDatos]"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 1,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\ventas\\auditoria\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\ventas\\estadistica\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'diasSinVentas' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 189,
+        "column": 9,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 189,
+        "endColumn": 22
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\ventas\\limpieza\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\ventas\\nueva\\NuevaVenta.tsx",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'formatMoneyInput' is defined but never used. Allowed unused vars must match /^_/u.",
+        "line": 92,
+        "column": 10,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 92,
+        "endColumn": 26
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'packsKey' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 223,
+        "column": 9,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 223,
+        "endColumn": 17
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'productosKey' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 224,
+        "column": 9,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 224,
+        "endColumn": 21
+      },
+      {
+        "ruleId": null,
+        "message": "Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps').",
+        "line": 433,
+        "column": 5,
+        "severity": 1,
+        "nodeType": null,
+        "fix": {
+          "range": [
+            21076,
+            21131
+          ],
+          "text": " "
+        }
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.",
+        "line": 473,
+        "column": 7,
+        "nodeType": "ChainExpression",
+        "endLine": 473,
+        "endColumn": 23
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.",
+        "line": 473,
+        "column": 25,
+        "nodeType": "ChainExpression",
+        "endLine": 473,
+        "endColumn": 41
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useCallback has an unnecessary dependency: 'subtotal'. Either exclude it or remove the dependency array.",
+        "line": 1033,
+        "column": 6,
+        "nodeType": "ArrayExpression",
+        "endLine": 1033,
+        "endColumn": 325,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [promociones, loadingPromociones, errorPromociones, carrito, cliente, pagos, mostrarSegundoPago, sumaPagos, tienePagoEnEfectivo, cambio, totalCobrar, totalDescuento, packs, setCarrito, cambiarCampo, envio, comision, publicidad, rebajas, impuestosCalculados, cobrarImpuestos, activePaisId, effectiveSucursalId]",
+            "fix": {
+              "range": [
+                48613,
+                48932
+              ],
+              "text": "[promociones, loadingPromociones, errorPromociones, carrito, cliente, pagos, mostrarSegundoPago, sumaPagos, tienePagoEnEfectivo, cambio, totalCobrar, totalDescuento, packs, setCarrito, cambiarCampo, envio, comision, publicidad, rebajas, impuestosCalculados, cobrarImpuestos, activePaisId, effectiveSucursalId]"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 7,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 1
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\ventas\\nueva\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\ventas\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\ventas\\todas\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\admin\\whatsapp\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\categorias\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\clientes\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\inventario\\reportes\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\inventario\\ubicaciones\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\pais-settings\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\pedidos\\descartar\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\perfiles-permisos\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\productos\\archivar\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\productos\\aumentar-stock\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\productos\\cambiar-categoria\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\productos\\cambiar-seccion\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\productos\\editar\\route.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'insertedVariant' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 168,
+        "column": 23,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 168,
+        "endColumn": 38
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\productos\\eliminar\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\productos\\nuevo\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\productos\\transferir\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\sucursal-context\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\sucursales\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\tipos-producto\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\admin\\ventas\\crear\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\auth\\check-email\\route.ts",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\auth\\forgot-password\\route.ts",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\auth\\validate-reset-code.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\auth\\validate-reset-code\\route.ts",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\carritos-pendientes-service-role\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\cash\\closure\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\cash\\closures\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\cash\\movements\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\cash\\summary\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\facebook\\catalog\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\image-proxy\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\public\\catalog-image\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\public\\catalog-preview\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\public\\store-settings\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\public\\sucursales\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\public\\tipos-producto\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\whatsapp\\catalogo\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\whatsapp\\comando\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\whatsapp\\notificar\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\api\\whatsapp\\webhook\\route.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\contacto\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\insumos\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\insumos\\productos\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\layout.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\login\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'PacksDisponibles' is defined but never used. Allowed unused vars must match /^_/u.",
+        "line": 10,
+        "column": 10,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 10,
+        "endColumn": 26,
+        "suggestions": [
+          {
+            "messageId": "removeUnusedImportDeclaration",
+            "data": {
+              "varName": "PacksDisponibles"
+            },
+            "fix": {
+              "range": [
+                461,
+                511
+              ],
+              "text": ""
+            },
+            "desc": "Remove unused import declaration."
+          }
+        ]
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'getCategoriaNombre' is defined but never used. Allowed unused vars must match /^_/u.",
+        "line": 24,
+        "column": 10,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 24,
+        "endColumn": 28
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has missing dependencies: 'fetchCategorias' and 'fetchProductos'. Either include them or remove the dependency array.",
+        "line": 451,
+        "column": 8,
+        "nodeType": "ArrayExpression",
+        "endLine": 451,
+        "endColumn": 64,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [currentPublicView, activeSucursalId, sucursalesLoading, fetchCategorias, fetchProductos]",
+            "fix": {
+              "range": [
+                18363,
+                18419
+              ],
+              "text": "[currentPublicView, activeSucursalId, sucursalesLoading, fetchCategorias, fetchProductos]"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 3,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\perfil\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'error' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 28,
+        "column": 16,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 28,
+        "endColumn": 21
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\productos\\page.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'getStockBreakdown' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 235,
+        "column": 11,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 235,
+        "endColumn": 28
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a missing dependency: 'fetchProductosYCategoriasYImagenes'. Either include it or remove the dependency array.",
+        "line": 462,
+        "column": 8,
+        "nodeType": "ArrayExpression",
+        "endLine": 462,
+        "endColumn": 64,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [currentPublicView, activeSucursalId, sucursalesLoading, fetchProductosYCategoriasYImagenes]",
+            "fix": {
+              "range": [
+                24953,
+                25009
+              ],
+              "text": "[currentPublicView, activeSucursalId, sucursalesLoading, fetchProductosYCategoriasYImagenes]"
+            }
+          }
+        ]
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a missing dependency: 'fetchProductosYCategoriasYImagenes'. Either include it or remove the dependency array.",
+        "line": 478,
+        "column": 8,
+        "nodeType": "ArrayExpression",
+        "endLine": 478,
+        "endColumn": 64,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [activeSucursalId, sucursalesLoading, currentPublicView, fetchProductosYCategoriasYImagenes]",
+            "fix": {
+              "range": [
+                25538,
+                25594
+              ],
+              "text": "[activeSucursalId, sucursalesLoading, currentPublicView, fetchProductosYCategoriasYImagenes]"
+            }
+          }
+        ]
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'error' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 508,
+        "column": 22,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 508,
+        "endColumn": 27
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'e' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 710,
+        "column": 18,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 710,
+        "endColumn": 19
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 5,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\reset-password\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\tipo\\[vista]\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\app\\tipo\\[vista]\\productos\\page.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\AuthDebug.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'profile' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 47,
+        "column": 23,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 47,
+        "endColumn": 30
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'profileError' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 47,
+        "column": 39,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 47,
+        "endColumn": 51
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 2,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\AuthForm.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\CodigoYContrasenaForm.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\ConfirmModal.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\FacebookPixel.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\Header.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\ImageManager.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\PerfilForm.client.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\PerfilForm.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'errorCheck' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 152,
+        "column": 45,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 152,
+        "endColumn": 55
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\ProductCard.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\ProductImageViewer.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\QZTrayLoader.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\RecuperarContrasenaForm.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\SafeImage.js",
+    "messages": [
+      {
+        "ruleId": "jsx-a11y/alt-text",
+        "severity": 1,
+        "message": "Image elements must have an alt prop, either with meaningful text, or an empty string for decorative images.",
+        "line": 4,
+        "column": 10,
+        "nodeType": "JSXOpeningElement",
+        "endLine": 4,
+        "endColumn": 30
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\StoreFooter.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\UserNavigation.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'error' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 30,
+        "column": 14,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 30,
+        "endColumn": 19
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'error' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 44,
+        "column": 14,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 44,
+        "endColumn": 19
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'error' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 77,
+        "column": 14,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 77,
+        "endColumn": 19
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 3,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\UserProfile.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'error' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 76,
+        "column": 16,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 76,
+        "endColumn": 21
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\ui\\ExpandableDescription.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\ui\\Toast.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\ui\\button.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\ui\\card.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\ui\\input.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\venta\\BuscadorProductos.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\venta\\CarritoPanel.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\venta\\ClienteForm.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\venta\\ProductThumbnail.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\components\\venta\\TicketPrinter.tsx",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'useState' is defined but never used. Allowed unused vars must match /^_/u.",
+        "line": 16,
+        "column": 58,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 16,
+        "endColumn": 66,
+        "suggestions": [
+          {
+            "messageId": "removeUnusedVar",
+            "data": {
+              "varName": "useState"
+            },
+            "fix": {
+              "range": [
+                375,
+                385
+              ],
+              "text": ""
+            },
+            "desc": "Remove unused variable \"useState\"."
+          }
+        ]
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'err' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 377,
+        "column": 16,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 377,
+        "endColumn": 19
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'err' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 407,
+        "column": 20,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 407,
+        "endColumn": 23
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'err' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 416,
+        "column": 14,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 416,
+        "endColumn": 17
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'printComprobanteThermal' is defined but never used. Allowed unused vars must match /^_/u.",
+        "line": 422,
+        "column": 18,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 422,
+        "endColumn": 41
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'err' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 526,
+        "column": 14,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 526,
+        "endColumn": 17
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'err' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 614,
+        "column": 22,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 614,
+        "endColumn": 25
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'err' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 620,
+        "column": 14,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 620,
+        "endColumn": 17
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'err' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 659,
+        "column": 14,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 659,
+        "endColumn": 17
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 9,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\hooks\\useBusinessIntelligence.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\hooks\\useCarrito.ts",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\hooks\\useCliente.ts",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'errorMessage' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 148,
+        "column": 13,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 148,
+        "endColumn": 25
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'errorMessage' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 176,
+        "column": 13,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 176,
+        "endColumn": 25
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'errorMessage' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+        "line": 204,
+        "column": 13,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 204,
+        "endColumn": 25
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'e' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 284,
+        "column": 14,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 284,
+        "endColumn": 15
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'e' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 322,
+        "column": 14,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 322,
+        "endColumn": 15
+      },
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'e' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 342,
+        "column": 14,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 342,
+        "endColumn": 15
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 6,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\hooks\\useMetodoStats.js",
+    "messages": [
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has missing dependencies: 'metodoKeys' and 'metodoLabel'. Either include them or remove the dependency array.",
+        "line": 189,
+        "column": 6,
+        "nodeType": "ArrayExpression",
+        "endLine": 189,
+        "endColumn": 17,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [metodoKey, metodoKeys, metodoLabel]",
+            "fix": {
+              "range": [
+                7773,
+                7784
+              ],
+              "text": "[metodoKey, metodoKeys, metodoLabel]"
+            }
+          }
+        ]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\hooks\\useProductViews.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\hooks\\useProductos.ts",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'e' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 417,
+        "column": 14,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 417,
+        "endColumn": 15
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\hooks\\useQrStats.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\hooks\\useSavedPublicCountry.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\hooks\\useVentasDashboard.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\FacebookCatalogAPI.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\SupabaseAdminClient.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\SupabaseClient.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\SupabaseClient.ts",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\adminAccess.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\adminPermissions.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\authUserFromRequest.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\boxProductCodes.mjs",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\browserStorage.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\carritoToken.ts",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\cartPricing.ts",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\catalogCartPricing.mjs",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\catalogImageSource.mjs",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\catalogRequest.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\config.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\countryRoutes.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\exportBoxInventory.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\gmailSendEmail.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\imageOptimization.ts",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\imageUploadOptimization.ts",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\inventoryReports.mjs",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\orderPricing.mjs",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\packs.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\pendingOrderPricing.mjs",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\productGallery.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\productViews.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\productosHistorial.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\promociones.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\saleDiscountPolicy.mjs",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\scheduleEffect.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\searchMatching.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\sendEmail.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\stockMovimientos.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\storageImageUrl.mjs",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\storeSettings.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\supabaseServer.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\usePromociones.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'payload' is defined but never used. Allowed unused args must match /^_/u.",
+        "line": 46,
+        "column": 10,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 46,
+        "endColumn": 17
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\useUserProfile.js",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unused-vars",
+        "severity": 1,
+        "message": "'err' is defined but never used. Allowed unused caught errors must match /^_/u.",
+        "line": 50,
+        "column": 16,
+        "nodeType": "Identifier",
+        "messageId": "unusedVar",
+        "endLine": 50,
+        "endColumn": 19
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\utils.ts",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\lib\\validateSaleDiscounts.mjs",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\next.config.ts",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\proxy.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\services\\cash.service.js",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  },
+  {
+    "filePath": "C:\\Users\\saita\\catalogo\\services\\ventas.service.ts",
+    "messages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  }
+]

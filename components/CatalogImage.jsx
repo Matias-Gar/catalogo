@@ -4,7 +4,9 @@ import Image from "next/image";
 import { useState } from "react";
 import { resolveStorageImageUrl } from "../lib/storageImageUrl.mjs";
 import { getCatalogImageSource } from "../lib/catalogImageSource.mjs";
+import { catalogImageLoader } from "../lib/catalogImageLoader.mjs";
 
+/** @param {Omit<import('next/image').ImageProps, 'src'> & {sources?: (string | null | undefined)[]}} props */
 export default function CatalogImage({ sources = [], ...props }) {
   const urls = [...new Set(sources.map((url) => resolveStorageImageUrl(url)).filter(Boolean))];
   return <CatalogImageContent key={urls.join("|")} urls={urls} {...props} />;
@@ -20,6 +22,7 @@ function CatalogImageContent({ urls, alt, unoptimized = false, ...props }) {
   const showOriginal = unoptimized || !canOptimize || useOriginal;
   return <Image
     {...props}
+    loader={!showOriginal && optimizedSource.startsWith('/api/public/catalog-image?') ? catalogImageLoader : undefined}
     src={showOriginal ? src : optimizedSource}
     alt={alt || "Producto"}
     width={600}

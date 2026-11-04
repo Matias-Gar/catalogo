@@ -13,6 +13,7 @@ const eslintConfig = [
   // Local credentials and backups are not application source files.
   { ignores: [".audit-access/**", "backups/**", "public/qz-tray.js"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  { files: ["**/*.{js,jsx,mjs,cjs}"], rules: { "no-undef": "error" } },
   {
     ignores: [
       "node_modules/**",

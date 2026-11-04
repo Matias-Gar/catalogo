@@ -3,7 +3,9 @@ import { useEffect } from "react";
 export default function QZTrayLoader() {
   useEffect(() => {
     if (typeof window !== "undefined" && !window.qz) {
+      if (document.getElementById('qz-tray-script')) return;
       const script = document.createElement("script");
+      script.id = 'qz-tray-script';
       script.src = "/qz-tray.js";
       script.async = true;
       script.onload = () => {

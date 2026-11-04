@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
 // Configuración de Supabase directa
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -13,7 +14,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 // Token de verificación para WhatsApp Webhook (cámbialo por uno seguro)
-const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'tu_token_verificacion_whatsapp_2024';
+const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
 
 // Token de acceso de WhatsApp Business API
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -29,7 +30,7 @@ export async function GET(request) {
   const token = searchParams.get('hub.verify_token');
   const challenge = searchParams.get('hub.challenge');
 
-  if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+  if (VERIFY_TOKEN && mode === 'subscribe' && token === VERIFY_TOKEN) {
     console.log('✅ Webhook verificado exitosamente');
     return new Response(challenge, { status: 200 });
   } else {
@@ -41,19 +42,28 @@ export async function GET(request) {
 // Recibir mensajes de WhatsApp
 export async function POST(request) {
   try {
-    const body = await request.json();
-    console.log('📱 Mensaje recibido:', JSON.stringify(body, null, 2));
+    const secret = process.env.WHATSAPP_APP_SECRET;
+    if (!secret) return NextResponse.json({ error: 'Webhook no configurado' }, { status: 503 });
+    const rawBody = await request.text();
+    const signature = request.headers.get('x-hub-signature-256') || '';
+    const expected = 'sha256=' + createHmac('sha256', secret).update(rawBody).digest('hex');
+    if (!/^sha256=[a-f0-9]{64}$/.test(signature) || !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+      return NextResponse.json({ error: 'Firma invalida' }, { status: 403 });
+    }
+    let body;
+    try { body = JSON.parse(rawBody); }
+    catch { return NextResponse.json({ error: 'JSON invalido' }, { status: 400 }); }
 
     // Verificar que es un mensaje entrante
     if (body.object === 'whatsapp_business_account') {
-      for (const entry of body.entry) {
-        for (const change of entry.changes) {
+      for (const entry of body.entry || []) {
+        for (const change of entry.changes || []) {
           if (change.field === 'messages') {
             const value = change.value;
             
             if (value.messages) {
               for (const message of value.messages) {
-                await procesarMensaje(message, value.contacts[0]);
+                await procesarMensaje(message, value.contacts?.[0]);
               }
             }
           }
@@ -74,7 +84,6 @@ async function procesarMensaje(message, contact) {
   const tipoMensaje = message.type;
   const nombreContacto = contact?.profile?.name || 'Cliente';
   
-  console.log(`📞 Mensaje de ${nombreContacto} (${telefono}):`, message);
 
   // Solo procesar mensajes de texto
   if (tipoMensaje !== 'text') {

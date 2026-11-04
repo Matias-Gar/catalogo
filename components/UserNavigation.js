@@ -53,10 +53,10 @@ export default function UserNavigation() {
     getUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         if (session?.user) {
           setUser(session.user);
-          await loadProfile(session.user.id);
+          setTimeout(() => { void loadProfile(session.user.id); }, 0);
         } else {
           setUser(null);
           setProfile(null);

@@ -1,0 +1,590 @@
+﻿{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\saita\\catalogo\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--workers=3",
+      "--reporter=json"
+    ],
+    "configFile": "C:\\Users\\saita\\catalogo\\playwright.config.mjs",
+    "rootDir": "C:/Users/saita/catalogo/tests/browser",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 3
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/saita/catalogo/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/saita/catalogo/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 240000
+      },
+      {
+        "outputDir": "C:/Users/saita/catalogo/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "C:/Users/saita/catalogo/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 240000
+      },
+      {
+        "outputDir": "C:/Users/saita/catalogo/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "C:/Users/saita/catalogo/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 240000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\saita\\catalogo\\test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "name": "chromium",
+        "testDir": "C:\\Users\\saita\\catalogo\\tests\\browser",
+        "snapshotDir": "C:\\Users\\saita\\catalogo\\tests\\browser",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 240000,
+        "use": {
+          "actionTimeout": 15000,
+          "navigationTimeout": 30000,
+          "baseURL": "http://127.0.0.1:3000",
+          "hasTouch": true,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "browserName": "chromium"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "chromium"
+      },
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\saita\\catalogo\\test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "name": "webkit",
+        "testDir": "C:\\Users\\saita\\catalogo\\tests\\browser",
+        "snapshotDir": "C:\\Users\\saita\\catalogo\\tests\\browser",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 240000,
+        "use": {
+          "actionTimeout": 15000,
+          "navigationTimeout": 30000,
+          "baseURL": "http://127.0.0.1:3000",
+          "hasTouch": true,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "browserName": "webkit"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "webkit"
+      },
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\saita\\catalogo\\test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "name": "firefox",
+        "testDir": "C:\\Users\\saita\\catalogo\\tests\\browser",
+        "snapshotDir": "C:\\Users\\saita\\catalogo\\tests\\browser",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 240000,
+        "use": {
+          "actionTimeout": 15000,
+          "navigationTimeout": 30000,
+          "baseURL": "http://127.0.0.1:3000",
+          "hasTouch": false,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "browserName": "firefox"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "firefox"
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.1",
+    "workers": 3,
+    "webServer": {
+      "command": "npm run start -- --hostname 127.0.0.1",
+      "url": "http://127.0.0.1:3000",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "auth-lock.spec.mjs",
+      "file": "auth-lock.spec.mjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Auth lock preserves exclusion across tabs and reports failures only to its caller",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 869,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T04:57:44.950Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b3304c052bfad671b970-ae37114308df2bdb168a",
+          "file": "auth-lock.spec.mjs",
+          "line": 4,
+          "column": 1
+        },
+        {
+          "title": "Auth lock preserves exclusion across tabs and reports failures only to its caller",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1547,
+                  "error": {
+                    "message": "Error: page.evaluate: Error: Concurrent session operation",
+                    "stack": "Error: page.evaluate: Error: Concurrent session operation\n    at run (C:\\Users\\saita\\catalogo\\tests\\browser\\auth-lock.spec.mjs:16:35)\n    at C:\\Users\\saita\\catalogo\\tests\\browser\\auth-lock.spec.mjs:25:22",
+                    "location": {
+                      "file": "C:\\Users\\saita\\catalogo\\tests\\browser\\auth-lock.spec.mjs",
+                      "column": 35,
+                      "line": 16
+                    },
+                    "snippet": "  14 |   }\n  15 |   await page.evaluate(() => localStorage.removeItem('audit-lock-owner'));\n> 16 |   const run = (tab, owner) => tab.evaluate(async owner => {\n     |                                   ^\n  17 |     for (let i = 0; i < 5; i++) await window.browserAuthLock('audit-session-lock', 5000, async () => {\n  18 |       if (localStorage.getItem('audit-lock-owner')) throw new Error('Concurrent session operation');\n  19 |       localStorage.setItem('audit-lock-owner', owner);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\Users\\saita\\catalogo\\tests\\browser\\auth-lock.spec.mjs",
+                        "column": 35,
+                        "line": 16
+                      },
+                      "message": "Error: page.evaluate: Error: Concurrent session operation\n\n  14 |   }\n  15 |   await page.evaluate(() => localStorage.removeItem('audit-lock-owner'));\n> 16 |   const run = (tab, owner) => tab.evaluate(async owner => {\n     |                                   ^\n  17 |     for (let i = 0; i < 5; i++) await window.browserAuthLock('audit-session-lock', 5000, async () => {\n  18 |       if (localStorage.getItem('audit-lock-owner')) throw new Error('Concurrent session operation');\n  19 |       localStorage.setItem('audit-lock-owner', owner);\n    at run (C:\\Users\\saita\\catalogo\\tests\\browser\\auth-lock.spec.mjs:16:35)\n    at C:\\Users\\saita\\catalogo\\tests\\browser\\auth-lock.spec.mjs:25:22"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T04:57:47.536Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\saita\\catalogo\\test-results\\auth-lock-Auth-lock-preser-9f01f-failures-only-to-its-caller-webkit\\error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\Users\\saita\\catalogo\\tests\\browser\\auth-lock.spec.mjs",
+                    "column": 35,
+                    "line": 16
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b3304c052bfad671b970-5be667a633056df8bd05",
+          "file": "auth-lock.spec.mjs",
+          "line": 4,
+          "column": 1
+        },
+        {
+          "title": "Auth lock preserves exclusion across tabs and reports failures only to its caller",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 8499,
+                  "error": {
+                    "message": "Error: page.evaluate: Concurrent session operation\n@debugger eval code line 370 > eval:3:59\nbrowserAuthLock/outcome<@http://127.0.0.1:3000/audit-lock-fixture line 7 > injectedScript:19:51\nLockGrantedCallback*browserAuthLock@http://127.0.0.1:3000/audit-lock-fixture line 7 > injectedScript:14:35\n@debugger eval code line 370 > eval:2:46\nasync*evaluate@debugger eval code:372:16\n@debugger eval code:1:44\n@debugger eval code:1:62\n",
+                    "stack": "Error: page.evaluate: Concurrent session operation\n@debugger eval code line 370 > eval:3:59\nbrowserAuthLock/outcome<@http://127.0.0.1:3000/audit-lock-fixture line 7 > injectedScript:19:51\nLockGrantedCallback*browserAuthLock@http://127.0.0.1:3000/audit-lock-fixture line 7 > injectedScript:14:35\n@debugger eval code line 370 > eval:2:46\nasync*evaluate@debugger eval code:372:16\n@debugger eval code:1:44\n@debugger eval code:1:62\n\n    at @debugger eval code line 370 > eval:3:59\n    at browserAuthLock/outcome<@http://127.0.0.1:3000/audit-lock-fixture line 7 > injectedScript:19:51\n    at LockGrantedCallback*browserAuthLock@http://127.0.0.1:3000/audit-lock-fixture line 7 > injectedScript:14:35\n    at @debugger eval code line 370 > eval:2:46\n    at async*evaluate@debugger eval code:372:16\n    at @debugger eval code:1:44\n    at @debugger eval code:1:62\n    at run (C:\\Users\\saita\\catalogo\\tests\\browser\\auth-lock.spec.mjs:16:35)\n    at C:\\Users\\saita\\catalogo\\tests\\browser\\auth-lock.spec.mjs:25:22",
+                    "location": {
+                      "file": "@debugger eval code line 370 > eval",
+                      "column": 59,
+                      "line": 3
+                    }
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "@debugger eval code line 370 > eval",
+                        "column": 59,
+                        "line": 3
+                      },
+                      "message": "Error: page.evaluate: Concurrent session operation\n@debugger eval code line 370 > eval:3:59\nbrowserAuthLock/outcome<@http://127.0.0.1:3000/audit-lock-fixture line 7 > injectedScript:19:51\nLockGrantedCallback*browserAuthLock@http://127.0.0.1:3000/audit-lock-fixture line 7 > injectedScript:14:35\n@debugger eval code line 370 > eval:2:46\nasync*evaluate@debugger eval code:372:16\n@debugger eval code:1:44\n@debugger eval code:1:62\n\n    at @debugger eval code line 370 > eval:3:59\n    at browserAuthLock/outcome<@http://127.0.0.1:3000/audit-lock-fixture line 7 > injectedScript:19:51\n    at LockGrantedCallback*browserAuthLock@http://127.0.0.1:3000/audit-lock-fixture line 7 > injectedScript:14:35\n    at @debugger eval code line 370 > eval:2:46\n    at async*evaluate@debugger eval code:372:16\n    at @debugger eval code:1:44\n    at @debugger eval code:1:62\n    at run (C:\\Users\\saita\\catalogo\\tests\\browser\\auth-lock.spec.mjs:16:35)\n    at C:\\Users\\saita\\catalogo\\tests\\browser\\auth-lock.spec.mjs:25:22"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T04:57:54.764Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\saita\\catalogo\\test-results\\auth-lock-Auth-lock-preser-9f01f-failures-only-to-its-caller-firefox\\error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "@debugger eval code line 370 > eval",
+                    "column": 59,
+                    "line": 3
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b3304c052bfad671b970-14964ff510906df0252b",
+          "file": "auth-lock.spec.mjs",
+          "line": 4,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "product-image-viewer.spec.mjs",
+      "file": "product-image-viewer.spec.mjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "all country and dynamic catalog routes share the touch viewer",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 69396,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T04:57:44.978Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "38fa1290f9411c97da98-4e96b204e058d15baa1c",
+          "file": "product-image-viewer.spec.mjs",
+          "line": 9,
+          "column": 1
+        },
+        {
+          "title": "all country and dynamic catalog routes share the touch viewer",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 182226,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T04:57:48.211Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "38fa1290f9411c97da98-8fc4b7325cc8212eb771",
+          "file": "product-image-viewer.spec.mjs",
+          "line": 9,
+          "column": 1
+        },
+        {
+          "title": "all country and dynamic catalog routes share the touch viewer",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 139609,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T04:58:11.262Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "38fa1290f9411c97da98-586f8198202e8c673ea5",
+          "file": "product-image-viewer.spec.mjs",
+          "line": 9,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "responsive-catalog.spec.mjs",
+      "file": "responsive-catalog.spec.mjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "catalog layout and branch navigation fit all requested widths",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 1721,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T04:57:44.980Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "573a573af64431e86d6e-3dc44ca42d451a5dc12e",
+          "file": "responsive-catalog.spec.mjs",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "catalog layout and branch navigation fit all requested widths",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1914,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T04:57:51.046Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "573a573af64431e86d6e-4538fc7f6e41c02fa52d",
+          "file": "responsive-catalog.spec.mjs",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "catalog layout and branch navigation fit all requested widths",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 12109,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T04:58:56.425Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "573a573af64431e86d6e-3558ce1fac3cda4bf9e4",
+          "file": "responsive-catalog.spec.mjs",
+          "line": 3,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-04T04:57:43.527Z",
+    "duration": 187443.268,
+    "expected": 7,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

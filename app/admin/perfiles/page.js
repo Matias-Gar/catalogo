@@ -30,31 +30,6 @@ export default function PerfilesAdminPage() {
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      
-      if (data?.user) {
-        setUser(data.user);
-        
-        // Verificar si es admin
-        const { data: perfilData } = await supabase
-          .from('perfiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-        
-        setUserProfile(perfilData);
-        
-        if (perfilData?.rol === 'admin') {
-          await Promise.all([cargarPerfiles(), cargarPermisosPais()]);
-        }
-      }
-      setLoading(false);
-    };
-    getUser();
-  }, []);
-
   const cargarPerfiles = async () => {
     const { data } = await supabase
       .from('perfiles')
@@ -246,6 +221,34 @@ export default function PerfilesAdminPage() {
     getAccessSummary(perfil).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+
+
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+
+      if (data?.user) {
+        setUser(data.user);
+
+        // Verificar si es admin
+        const { data: perfilData } = await supabase
+          .from('perfiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        setUserProfile(perfilData);
+
+        if (perfilData?.rol === 'admin') {
+          await Promise.all([cargarPerfiles(), cargarPermisosPais()]);
+        }
+      }
+      setLoading(false);
+    };
+    getUser();
+  }, []);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
@@ -268,6 +271,7 @@ export default function PerfilesAdminPage() {
       </div>
     );
   }
+
 
   return (
     <div className="max-w-7xl mx-auto p-6">

@@ -1,0 +1,3010 @@
+{
+  "base": "https://catalogo-sigma-one.vercel.app",
+  "timestamp": "2026-11-04T04:24:19.479Z",
+  "errors": [],
+  "failures": [
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/productos/productos?categoria=9&_rsc=eqsio",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/productos/productos?_rsc=eqsio",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/bo/insumos/productos?_rsc=eqsio",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/equipos-de-produccion/productos?categoria=15&_rsc=eqsio",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F1e3916fd-e63e-4527-ac44-6100fd88084f.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:27 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::467tn-1793766262190-9a4fc75cd538"
+      },
+      "timing": {
+        "startTime": 1793766261731.138,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 38.07,
+        "responseStart": 5332.172,
+        "responseEnd": 5350.665
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::467tn-1793766262190-9a4fc75cd538\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F785ba6aa-c2be-44a9-9848-639ba2106285.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:27 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::w8fvs-1793766262191-d2375d9b22a1"
+      },
+      "timing": {
+        "startTime": 1793766261734.437,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 43.865,
+        "responseStart": 5466.691,
+        "responseEnd": 5482.725
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::w8fvs-1793766262191-d2375d9b22a1\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Ff2d7d9d2-8560-437c-8085-ad80554c0edf.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:27 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::pnz76-1793766262190-e1f6b1d3f2ba"
+      },
+      "timing": {
+        "startTime": 1793766261727.3728,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 36.285,
+        "responseStart": 5474.63,
+        "responseEnd": 5486.123
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::pnz76-1793766262190-e1f6b1d3f2ba\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Ff22fb305-887c-4e2f-abf4-29e31625540c.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:27 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::w8fvs-1793766262190-53c3f2b2e2f9"
+      },
+      "timing": {
+        "startTime": 1793766261729.418,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 35.716,
+        "responseStart": 5837.802,
+        "responseEnd": 5848.294
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::w8fvs-1793766262190-53c3f2b2e2f9\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fe1b1ee12-8a85-43ed-b1d7-19df3d87c12d.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::467tn-1793766262190-c62ecf93ec1e"
+      },
+      "timing": {
+        "startTime": 1793766261731.5059,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 34.481,
+        "responseStart": 5966.536,
+        "responseEnd": 6014.882
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::467tn-1793766262190-c62ecf93ec1e\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Feb8e4607-c6af-49db-a890-8abe24a9fb50.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::pgdvf-1793766262190-ad8232d95f5f"
+      },
+      "timing": {
+        "startTime": 1793766261733.685,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 39.196,
+        "responseStart": 5979.147,
+        "responseEnd": 6014.79
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::pgdvf-1793766262190-ad8232d95f5f\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Ff6b4520a-3139-41db-bafd-e5ce7f3b4261.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::w9h85-1793766262152-62c28b9f441c"
+      },
+      "timing": {
+        "startTime": 1793766261720.893,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 28.908,
+        "responseStart": 6099.852,
+        "responseEnd": 6106.527
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::w9h85-1793766262152-62c28b9f441c\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Ff5d4287f-f4ae-4106-bf74-55a7fac616df.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::9pl9m-1793766262190-199faeef4b94"
+      },
+      "timing": {
+        "startTime": 1793766261736.633,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 44.015,
+        "responseStart": 6091.939,
+        "responseEnd": 6106.624
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::9pl9m-1793766262190-199faeef4b94\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fd513cc14-28b4-4f05-a3f3-035ad0ab8402.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::bb47d-1793766262153-1c44f42c98a0"
+      },
+      "timing": {
+        "startTime": 1793766261722.337,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 28.728,
+        "responseStart": 6247.642,
+        "responseEnd": 6256.73
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::bb47d-1793766262153-1c44f42c98a0\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fd5820cb5-e8f0-4e4d-a6a5-a5570181b0b3.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::8947h-1793766262145-ae71c29d010c"
+      },
+      "timing": {
+        "startTime": 1793766261718.364,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 29.719,
+        "responseStart": 6349.398,
+        "responseEnd": 6353.272
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::8947h-1793766262145-ae71c29d010c\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fd4264d93-805c-431c-a34c-de8f09f10458.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::dmc9l-1793766262152-bc8a80a96e7c"
+      },
+      "timing": {
+        "startTime": 1793766261723.096,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 30.053,
+        "responseStart": 6358.074,
+        "responseEnd": 6367.433
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::dmc9l-1793766262152-bc8a80a96e7c\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F777e8830-c3ca-4388-bee3-5aabc8b221d2.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::vsm7s-1793766262152-6aa0d9fa231e"
+      },
+      "timing": {
+        "startTime": 1793766261724.3618,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 29.388,
+        "responseStart": 6357.661,
+        "responseEnd": 6367.643
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::vsm7s-1793766262152-6aa0d9fa231e\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fff4093c2-122b-4164-af2d-50d204bcbe72.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::f8vsf-1793766262145-67892cf2da8e"
+      },
+      "timing": {
+        "startTime": 1793766261718.076,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 29.075,
+        "responseStart": 6364.593,
+        "responseEnd": 6370.743
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::f8vsf-1793766262145-67892cf2da8e\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F1b21a7cd-e478-4960-bbfa-3213d994369d.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::l2klf-1793766262145-fe242b1af092"
+      },
+      "timing": {
+        "startTime": 1793766261718.794,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 30.005,
+        "responseStart": 6377.542,
+        "responseEnd": 6389.61
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::l2klf-1793766262145-fe242b1af092\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fa13e806d-bd84-4654-8221-8253f6809aaf.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::mvbbp-1793766262152-1ee64d79df1f"
+      },
+      "timing": {
+        "startTime": 1793766261723.493,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 30.111,
+        "responseStart": 6373.772,
+        "responseEnd": 6388.378
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::mvbbp-1793766262152-1ee64d79df1f\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F7d09b757-b298-4e03-bb50-1987036dfe1b.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::v5psz-1793766262145-7323b4aa80e3"
+      },
+      "timing": {
+        "startTime": 1793766261719.716,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 28.767,
+        "responseStart": 6378.427,
+        "responseEnd": 6390.583
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::v5psz-1793766262145-7323b4aa80e3\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F56c7e0c5-18fe-48ec-b880-c2e6b4565a1b.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::7b6ct-1793766262152-a12a5fedfc9e"
+      },
+      "timing": {
+        "startTime": 1793766261722.716,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 29.333,
+        "responseStart": 6376.293,
+        "responseEnd": 6389.721
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::7b6ct-1793766262152-a12a5fedfc9e\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F7d58c573-f628-40ac-8e65-b1abf2f3b889.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::dmc9l-1793766262152-774c2037540e"
+      },
+      "timing": {
+        "startTime": 1793766261721.226,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 28.701,
+        "responseStart": 6390.193,
+        "responseEnd": 6402.64
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::dmc9l-1793766262152-774c2037540e\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F7a95f759-2de3-4bf1-85b6-bf2db0f5566a.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::bb47d-1793766262154-43c062cb7195"
+      },
+      "timing": {
+        "startTime": 1793766261721.564,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 30.8,
+        "responseStart": 6402.632,
+        "responseEnd": 6411.695
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::bb47d-1793766262154-43c062cb7195\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fe9ae981f-98b9-4369-abe6-2d8751ea1c59.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::7kw9q-1793766262190-88a1df6d2e65"
+      },
+      "timing": {
+        "startTime": 1793766261736.98,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 42.546,
+        "responseStart": 6405.8,
+        "responseEnd": 6424.615
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::7kw9q-1793766262190-88a1df6d2e65\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F15b99f98-cada-445d-8d80-0173417504c0.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::f8vsf-1793766262152-75c6bdbec980"
+      },
+      "timing": {
+        "startTime": 1793766261723.944,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 30.204,
+        "responseStart": 6419.766,
+        "responseEnd": 6430.815
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::f8vsf-1793766262152-75c6bdbec980\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F47b9321d-46d8-479d-b7c5-747640e5b617.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::f8vsf-1793766262190-814d7b2381e3"
+      },
+      "timing": {
+        "startTime": 1793766261731.901,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 37.435,
+        "responseStart": 6412.547,
+        "responseEnd": 6428.161
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::f8vsf-1793766262190-814d7b2381e3\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fe65a72ae-7810-4fad-a400-67b50501e15f.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::gzmfg-1793766262190-e7e58c53472c"
+      },
+      "timing": {
+        "startTime": 1793766261734.832,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 38.889,
+        "responseStart": 6410.35,
+        "responseEnd": 6427.412
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::gzmfg-1793766262190-e7e58c53472c\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Febe32071-083a-46b1-ad11-8b6241b0d11a.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::bb47d-1793766262191-8654b171cfaf"
+      },
+      "timing": {
+        "startTime": 1793766261732.6072,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 36.45,
+        "responseStart": 6413.3,
+        "responseEnd": 6428.918
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::bb47d-1793766262191-8654b171cfaf\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F1a0d21b0-5152-44c7-b313-2d0323e7666d.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::bb47d-1793766262154-f8ebe683e253"
+      },
+      "timing": {
+        "startTime": 1793766261716.821,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 33.695,
+        "responseStart": 6429.838,
+        "responseEnd": 6435.943
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::bb47d-1793766262154-f8ebe683e253\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fd46a6681-13d9-4a1e-a008-431c6ee5ddaf.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::8zprr-1793766262190-d9a8f98cf7bd"
+      },
+      "timing": {
+        "startTime": 1793766261725.8452,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 34.882,
+        "responseStart": 6427.911,
+        "responseEnd": 6445.356
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::8zprr-1793766262190-d9a8f98cf7bd\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fdc39af55-4384-433c-9a26-58e01859a7f7.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::595kq-1793766262190-34c508ae74d7"
+      },
+      "timing": {
+        "startTime": 1793766261730.7542,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 34.572,
+        "responseStart": 6423.84,
+        "responseEnd": 6443.961
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::595kq-1793766262190-34c508ae74d7\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fc43d8fdf-7bd7-48b4-a972-d0877fb534f0.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::pgdvf-1793766262190-606a1f394192"
+      },
+      "timing": {
+        "startTime": 1793766261733.363,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 38.685,
+        "responseStart": 6422.061,
+        "responseEnd": 6443.349
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::pgdvf-1793766262190-606a1f394192\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fd5acad15-a458-4ca9-93f1-44ed78394833.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::h7djm-1793766262152-e5ff12d46bd2"
+      },
+      "timing": {
+        "startTime": 1793766261720.5269,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 28.775,
+        "responseStart": 6435.616,
+        "responseEnd": 6449.204
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::h7djm-1793766262152-e5ff12d46bd2\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F95acfb2a-fbec-4acf-b1bf-01fd00303302.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::2fg6p-1793766262190-be518c2d0eba"
+      },
+      "timing": {
+        "startTime": 1793766261732.241,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 38.192,
+        "responseStart": 6424.662,
+        "responseEnd": 6444.74
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::2fg6p-1793766262190-be518c2d0eba\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F488ac74d-a4ae-4fdc-b266-2fd629e58a66.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::7kw9q-1793766262190-d93adee8567c"
+      },
+      "timing": {
+        "startTime": 1793766261726.98,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 36.02,
+        "responseStart": 6430.267,
+        "responseEnd": 6447.169
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::7kw9q-1793766262190-d93adee8567c\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F8b50eb92-542b-4800-a2f0-f4b5df6b2322.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::f8vsf-1793766262190-f14352b3ab17"
+      },
+      "timing": {
+        "startTime": 1793766261724.7231,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 30.78,
+        "responseStart": 6433.58,
+        "responseEnd": 6448.697
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::f8vsf-1793766262190-f14352b3ab17\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fa51e5045-0932-4bcd-9c5d-e3d7a7f3ea15.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::7kw9q-1793766262190-7553f6cc4d21"
+      },
+      "timing": {
+        "startTime": 1793766261726.629,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 35.428,
+        "responseStart": 6432.532,
+        "responseEnd": 6448.209
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::7kw9q-1793766262190-7553f6cc4d21\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fc4c6af3b-323d-4344-acd1-fb3a5844064f.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::mkhxb-1793766262190-655f854184a1"
+      },
+      "timing": {
+        "startTime": 1793766261725.529,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 30.502,
+        "responseStart": 6434.412,
+        "responseEnd": 6449.121
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::mkhxb-1793766262190-655f854184a1\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F61ca24cc-125a-4b84-adf4-e295aded05e5.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::vsm7s-1793766262199-bb69df0b6cb5"
+      },
+      "timing": {
+        "startTime": 1793766261729.878,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 35.691,
+        "responseStart": 6440.369,
+        "responseEnd": 6454.423
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::vsm7s-1793766262199-bb69df0b6cb5\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F8dfbb43e-db76-4847-badc-1251801bf7c6.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::w9h85-1793766262197-d5a4d5f98680"
+      },
+      "timing": {
+        "startTime": 1793766261726.238,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 34.351,
+        "responseStart": 6461.996,
+        "responseEnd": 6473.092
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::w9h85-1793766262197-d5a4d5f98680\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F391a7554-e2ba-48b7-838d-f7b49ea5ec57.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::2gqkc-1793766262191-43df23e888d5"
+      },
+      "timing": {
+        "startTime": 1793766261725.11,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 30.783,
+        "responseStart": 6463.974,
+        "responseEnd": 6474.171
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::2gqkc-1793766262191-43df23e888d5\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fc34a1515-b413-4a36-8787-daca64c464b9.jpg&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::2gqkc-1793766262190-48a8800fbdcb"
+      },
+      "timing": {
+        "startTime": 1793766261735.896,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 40.393,
+        "responseStart": 6490.898,
+        "responseEnd": 6505.139
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::2gqkc-1793766262190-48a8800fbdcb\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Ffcf270ca-35ee-46d6-b49d-9c90a7346e44.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::wfcsd-1793766262145-37b18a9a68a3"
+      },
+      "timing": {
+        "startTime": 1793766261717.4531,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 26.802,
+        "responseStart": 6524.857,
+        "responseEnd": 6528.353
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::wfcsd-1793766262145-37b18a9a68a3\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fa8e66462-a24b-4612-b79f-3e810d172601.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::zjpsm-1793766262138-ecb9bf28c3b1"
+      },
+      "timing": {
+        "startTime": 1793766261716.527,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 24.688,
+        "responseStart": 6536.171,
+        "responseEnd": 6543.347
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::zjpsm-1793766262138-ecb9bf28c3b1\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F7142bbb3-56f8-49ec-bf17-9061e5ca1614.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::pgdvf-1793766262194-4e91c25fdf77"
+      },
+      "timing": {
+        "startTime": 1793766261734.0698,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 39.962,
+        "responseStart": 6523.692,
+        "responseEnd": 6536.994
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::pgdvf-1793766262194-4e91c25fdf77\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F5578a54f-881e-4bf1-881e-668b16e16163.jpg&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::2fg6p-1793766262145-7c0a9f91c2ea"
+      },
+      "timing": {
+        "startTime": 1793766261717.7632,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 29.223,
+        "responseStart": 6580.569,
+        "responseEnd": 6584.242
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::2fg6p-1793766262145-7c0a9f91c2ea\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F140c8147-c499-414e-8fff-ee24a84cd1fe.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::7mrpp-1793766262152-49810a38a773"
+      },
+      "timing": {
+        "startTime": 1793766261721.897,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 29.6,
+        "responseStart": 6650.282,
+        "responseEnd": 6657.221
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::7mrpp-1793766262152-49810a38a773\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F965aea8a-fc45-4352-b937-6107f2de1bcd.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::zjpsm-1793766262190-f726aea87b82"
+      },
+      "timing": {
+        "startTime": 1793766261727.7761,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 34.436,
+        "responseStart": 6645.284,
+        "responseEnd": 6655.407
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::zjpsm-1793766262190-f726aea87b82\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fb66043f8-f692-4231-932d-492acd24827e.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::9pl9m-1793766262149-8ee80a5c94a1"
+      },
+      "timing": {
+        "startTime": 1793766261720.133,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 29.043,
+        "responseStart": 6666.471,
+        "responseEnd": 6675.386
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::9pl9m-1793766262149-8ee80a5c94a1\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F0395040a-3f27-4dfe-a525-733e4b9d812a.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::zjpsm-1793766262190-288df0ab9400"
+      },
+      "timing": {
+        "startTime": 1793766261735.16,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 40.17,
+        "responseStart": 6766.249,
+        "responseEnd": 6782.132
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::zjpsm-1793766262190-288df0ab9400\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fa434c0d9-286f-4ff8-87ae-c385e5bc957f.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:28 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::dfwms-1793766262190-e3719919dea7"
+      },
+      "timing": {
+        "startTime": 1793766261732.97,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 39.22,
+        "responseStart": 6901.677,
+        "responseEnd": 6916.568
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::dfwms-1793766262190-e3719919dea7\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fa8fe2fe2-b19c-4788-a281-ce77681e7393.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:29 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::dfwms-1793766262190-609044275daa"
+      },
+      "timing": {
+        "startTime": 1793766261736.2512,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 41.641,
+        "responseStart": 7047.925,
+        "responseEnd": 7066.054
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::dfwms-1793766262190-609044275daa\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Ff35cfa34-b39c-4249-b08e-7c3b6fdefd6d.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:29 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::v5psz-1793766262190-88bb689cfa0b"
+      },
+      "timing": {
+        "startTime": 1793766261737.353,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 42.354,
+        "responseStart": 7185.554,
+        "responseEnd": 7200.939
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::v5psz-1793766262190-88bb689cfa0b\n"
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F0a3862c8-2607-461a-a5c6-3a427931716c.png&w=48&q=75",
+      "status": 400,
+      "requestHeaders": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "https://catalogo-sigma-one.vercel.app/bo",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"HeadlessChrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "headers": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "content-security-policy": "script-src 'none'; frame-src 'none'; sandbox;",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-error": "INVALID_IMAGE_OPTIMIZE_REQUEST",
+        "x-vercel-cache": "MISS",
+        "x-matched-path": "/500",
+        "content-length": "84",
+        "date": "Wed, 04 Nov 2026 04:24:29 GMT",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "gru1::dfwms-1793766262190-e06a5109c19b"
+      },
+      "timing": {
+        "startTime": 1793766261728.971,
+        "domainLookupStart": -1,
+        "domainLookupEnd": -1,
+        "connectStart": -1,
+        "secureConnectionStart": -1,
+        "connectEnd": -1,
+        "requestStart": 35.315,
+        "responseStart": 7322.07,
+        "responseEnd": 7335.359
+      },
+      "body": "Bad request\n\nINVALID_IMAGE_OPTIMIZE_REQUEST\n\ngru1::dfwms-1793766262190-e06a5109c19b\n"
+    }
+  ],
+  "pages": [
+    {
+      "path": "/bo",
+      "elapsedMs": 28113,
+      "title": "Importaciones GarBlac",
+      "vitals": {
+        "lcp": 788,
+        "cls": 0.46446683980773407
+      },
+      "overflow": false,
+      "images": [
+        {
+          "src": "https://garblac.duckdns.org/storage/v1/object/public/product_images/store/logo-6c274002-2dca-4616-947a-577fb77b6904.jpeg",
+          "width": 1254,
+          "complete": true
+        },
+        {
+          "src": "https://garblac.duckdns.org/storage/v1/object/public/product_images/store/logo-6c274002-2dca-4616-947a-577fb77b6904.jpeg",
+          "width": 1254,
+          "complete": true
+        },
+        {
+          "src": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fb76bbdc8-6519-4e94-8b7b-b5df4582f2e6.png&w=48&q=75",
+          "width": 48,
+          "complete": true
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "https://garblac.duckdns.org/storage/v1/object/public/product_images/public/e28307af-46b5-422d-872b-4afebd5d7af6.jfif",
+          "width": 463,
+          "complete": true
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "https://garblac.duckdns.org/storage/v1/object/public/product_images/public/9807325f-765d-4c1c-8bb2-83bd6b9f5700.jfif",
+          "width": 1184,
+          "complete": false
+        },
+        {
+          "src": "https://garblac.duckdns.org/storage/v1/object/public/product_images/public/46c1065b-6921-4eb0-a45c-4c9c19ae7668.jfif",
+          "width": 1138,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "https://garblac.duckdns.org/storage/v1/object/public/product_images/public/be7c07bf-94fc-443e-b74f-90a53902c187.jfif",
+          "width": 992,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F112db714-3c8e-4897-a14d-3e0c642ca228.jpg&w=48&q=75",
+          "width": 48,
+          "complete": true
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "",
+          "width": 0,
+          "complete": false
+        },
+        {
+          "src": "https://catalogo-sigma-one.vercel.app/brand/garblac-logo.png",
+          "width": 1470,
+          "complete": true
+        }
+      ],
+      "resources": [
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/media/797e433ab948586e-s.p.08e28id.o-okb.woff2",
+          "duration": 93.5,
+          "transferSize": 23408,
+          "encodedBodySize": 23108
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2",
+          "duration": 115.69999998807907,
+          "transferSize": 29588,
+          "encodedBodySize": 29288
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/brand/garblac-logo.png",
+          "duration": 187.69999998807907,
+          "transferSize": 296162,
+          "encodedBodySize": 295862
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/13wtj8qk4k5l3.css",
+          "duration": 109.30000001192093,
+          "transferSize": 1305,
+          "encodedBodySize": 1005
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/0ottkw3963t-2.css",
+          "duration": 120.89999997615814,
+          "transferSize": 19479,
+          "encodedBodySize": 19179
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/0x7jj31b0fvj-.css",
+          "duration": 170.80000001192093,
+          "transferSize": 2916,
+          "encodedBodySize": 2616
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/0skwb7st_o0_z.css",
+          "duration": 114.5,
+          "transferSize": 3087,
+          "encodedBodySize": 2787
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/0yb2wil16uz6h.js",
+          "duration": 186.89999997615814,
+          "transferSize": 2415,
+          "encodedBodySize": 2115
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/101x93l_yqy5k.js",
+          "duration": 169.10000002384186,
+          "transferSize": 9758,
+          "encodedBodySize": 9458
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/0h-3ceazn73a-.js",
+          "duration": 230,
+          "transferSize": 72597,
+          "encodedBodySize": 72297
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/0.byldhwn1e~~.js",
+          "duration": 199.10000002384186,
+          "transferSize": 38393,
+          "encodedBodySize": 38093
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/0uky-j4n69m-l.js",
+          "duration": 225.89999997615814,
+          "transferSize": 9905,
+          "encodedBodySize": 9605
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/turbopack-01jeyd__1zwvt.js",
+          "duration": 155.80000001192093,
+          "transferSize": 4879,
+          "encodedBodySize": 4579
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/05tkru43bz49s.js",
+          "duration": 189.80000001192093,
+          "transferSize": 21643,
+          "encodedBodySize": 21343
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/0.6hwu~4gtb8z.js",
+          "duration": 215.19999998807907,
+          "transferSize": 58634,
+          "encodedBodySize": 58334
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/01dy8yb69-dlh.js",
+          "duration": 214.29999995231628,
+          "transferSize": 13693,
+          "encodedBodySize": 13393
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/17g87mjd4qc7..js",
+          "duration": 195.19999998807907,
+          "transferSize": 470,
+          "encodedBodySize": 170
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/183zuoayn~ypv.js",
+          "duration": 197.5,
+          "transferSize": 10995,
+          "encodedBodySize": 10695
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/0e9cblyu6c0j5.js",
+          "duration": 215.60000002384186,
+          "transferSize": 13376,
+          "encodedBodySize": 13076
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/brand/catalog-teal-geometry.svg",
+          "duration": 80.09999996423721,
+          "transferSize": 922,
+          "encodedBodySize": 622
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/qz-tray.js",
+          "duration": 72.60000002384186,
+          "transferSize": 28812,
+          "encodedBodySize": 28512
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/api/public/store-settings?pais=bo",
+          "duration": 1040.4000000357628,
+          "transferSize": 696,
+          "encodedBodySize": 396
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/api/public/tipos-producto",
+          "duration": 632.1999999880791,
+          "transferSize": 477,
+          "encodedBodySize": 177
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/api/public/sucursales?pais=bo",
+          "duration": 1052.5,
+          "transferSize": 620,
+          "encodedBodySize": 320
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/api/public/sucursales?pais=bo",
+          "duration": 1806.8999999761581,
+          "transferSize": 620,
+          "encodedBodySize": 320
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/login?_rsc=eqsio",
+          "duration": 65.69999998807907,
+          "transferSize": 1003,
+          "encodedBodySize": 703
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/articulos/productos?_rsc=eqsio",
+          "duration": 224.60000002384186,
+          "transferSize": 478,
+          "encodedBodySize": 178
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo?_rsc=1a28h",
+          "duration": 204.89999997615814,
+          "transferSize": 844,
+          "encodedBodySize": 544
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/login?_rsc=7uv4x",
+          "duration": 66.09999996423721,
+          "transferSize": 788,
+          "encodedBodySize": 488
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/login?_rsc=tqoh4",
+          "duration": 68,
+          "transferSize": 1361,
+          "encodedBodySize": 1061
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/login?_rsc=kucj1",
+          "duration": 69.39999997615814,
+          "transferSize": 825,
+          "encodedBodySize": 525
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/login?_rsc=1u7b6",
+          "duration": 74.19999998807907,
+          "transferSize": 760,
+          "encodedBodySize": 460
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/static/chunks/0st50k6yuaat1.js",
+          "duration": 69.10000002384186,
+          "transferSize": 2720,
+          "encodedBodySize": 2420
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/articulos/productos?_rsc=1a28h",
+          "duration": 205.0999999642372,
+          "transferSize": 875,
+          "encodedBodySize": 575
+        },
+        {
+          "url": "https://garblac.duckdns.org/storage/v1/object/public/product_images/store/logo-6c274002-2dca-4616-947a-577fb77b6904.jpeg",
+          "duration": 359,
+          "transferSize": 0,
+          "encodedBodySize": 0
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/api/public/catalog-preview?sucursalId=c023312e-6fa7-4481-bb1c-fe9c360c3f73",
+          "duration": 86,
+          "transferSize": 2699,
+          "encodedBodySize": 2399
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/insumos?_rsc=eqsio",
+          "duration": 237,
+          "transferSize": 457,
+          "encodedBodySize": 157
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/articulos?_rsc=eqsio",
+          "duration": 201.69999998807907,
+          "transferSize": 469,
+          "encodedBodySize": 169
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fb76bbdc8-6519-4e94-8b7b-b5df4582f2e6.png&w=48&q=75",
+          "duration": 111.5,
+          "transferSize": 836,
+          "encodedBodySize": 536
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fa8e66462-a24b-4612-b79f-3e810d172601.png&w=48&q=75",
+          "duration": 6543.300000011921,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F1a0d21b0-5152-44c7-b313-2d0323e7666d.png&w=48&q=75",
+          "duration": 6435.899999976158,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://garblac.duckdns.org/storage/v1/object/public/product_images/public/e28307af-46b5-422d-872b-4afebd5d7af6.jfif",
+          "duration": 197.69999998807907,
+          "transferSize": 0,
+          "encodedBodySize": 0
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Ffcf270ca-35ee-46d6-b49d-9c90a7346e44.png&w=48&q=75",
+          "duration": 6528.199999988079,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F5578a54f-881e-4bf1-881e-668b16e16163.jpg&w=48&q=75",
+          "duration": 6584.199999988079,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fff4093c2-122b-4164-af2d-50d204bcbe72.png&w=48&q=75",
+          "duration": 6370.800000011921,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fd5820cb5-e8f0-4e4d-a6a5-a5570181b0b3.png&w=48&q=75",
+          "duration": 6353.200000047684,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F1b21a7cd-e478-4960-bbfa-3213d994369d.png&w=48&q=75",
+          "duration": 6389.5,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F7d09b757-b298-4e03-bb50-1987036dfe1b.png&w=48&q=75",
+          "duration": 6390.600000023842,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fb66043f8-f692-4231-932d-492acd24827e.png&w=48&q=75",
+          "duration": 6675.300000011921,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fd5acad15-a458-4ca9-93f1-44ed78394833.png&w=48&q=75",
+          "duration": 6449.099999964237,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Ff6b4520a-3139-41db-bafd-e5ce7f3b4261.png&w=48&q=75",
+          "duration": 6106.5,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F7d58c573-f628-40ac-8e65-b1abf2f3b889.png&w=48&q=75",
+          "duration": 6402.600000023842,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F7a95f759-2de3-4bf1-85b6-bf2db0f5566a.png&w=48&q=75",
+          "duration": 6411.599999964237,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F140c8147-c499-414e-8fff-ee24a84cd1fe.png&w=48&q=75",
+          "duration": 6657.199999988079,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fd513cc14-28b4-4f05-a3f3-035ad0ab8402.png&w=48&q=75",
+          "duration": 6256.700000047684,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F56c7e0c5-18fe-48ec-b880-c2e6b4565a1b.png&w=48&q=75",
+          "duration": 6389.800000011921,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fd4264d93-805c-431c-a34c-de8f09f10458.png&w=48&q=75",
+          "duration": 6367.300000011921,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fa13e806d-bd84-4654-8221-8253f6809aaf.png&w=48&q=75",
+          "duration": 6388.399999976158,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F15b99f98-cada-445d-8d80-0173417504c0.png&w=48&q=75",
+          "duration": 6430.699999988079,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F777e8830-c3ca-4388-bee3-5aabc8b221d2.png&w=48&q=75",
+          "duration": 6367.600000023842,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F8b50eb92-542b-4800-a2f0-f4b5df6b2322.png&w=48&q=75",
+          "duration": 6448.5,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F391a7554-e2ba-48b7-838d-f7b49ea5ec57.png&w=48&q=75",
+          "duration": 6474.099999964237,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fc4c6af3b-323d-4344-acd1-fb3a5844064f.png&w=48&q=75",
+          "duration": 6449.099999964237,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fd46a6681-13d9-4a1e-a008-431c6ee5ddaf.png&w=48&q=75",
+          "duration": 6445.199999988079,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F8dfbb43e-db76-4847-badc-1251801bf7c6.png&w=48&q=75",
+          "duration": 6472.900000035763,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fa51e5045-0932-4bcd-9c5d-e3d7a7f3ea15.png&w=48&q=75",
+          "duration": 6448.199999988079,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F488ac74d-a4ae-4fdc-b266-2fd629e58a66.png&w=48&q=75",
+          "duration": 6447.100000023842,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Ff2d7d9d2-8560-437c-8085-ad80554c0edf.png&w=48&q=75",
+          "duration": 5486.099999964237,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F965aea8a-fc45-4352-b937-6107f2de1bcd.png&w=48&q=75",
+          "duration": 6655.300000011921,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F0a3862c8-2607-461a-a5c6-3a427931716c.png&w=48&q=75",
+          "duration": 7335.400000035763,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Ff22fb305-887c-4e2f-abf4-29e31625540c.png&w=48&q=75",
+          "duration": 5848.200000047684,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F61ca24cc-125a-4b84-adf4-e295aded05e5.png&w=48&q=75",
+          "duration": 6454.299999952316,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fdc39af55-4384-433c-9a26-58e01859a7f7.png&w=48&q=75",
+          "duration": 6443.900000035763,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F1e3916fd-e63e-4527-ac44-6100fd88084f.png&w=48&q=75",
+          "duration": 5350.699999988079,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fe1b1ee12-8a85-43ed-b1d7-19df3d87c12d.png&w=48&q=75",
+          "duration": 6014.899999976158,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F47b9321d-46d8-479d-b7c5-747640e5b617.png&w=48&q=75",
+          "duration": 6428.100000023842,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F95acfb2a-fbec-4acf-b1bf-01fd00303302.png&w=48&q=75",
+          "duration": 6444.699999988079,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Febe32071-083a-46b1-ad11-8b6241b0d11a.png&w=48&q=75",
+          "duration": 6428.800000011921,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fa434c0d9-286f-4ff8-87ae-c385e5bc957f.png&w=48&q=75",
+          "duration": 6916.5,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fc43d8fdf-7bd7-48b4-a972-d0877fb534f0.png&w=48&q=75",
+          "duration": 6443.300000011921,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Feb8e4607-c6af-49db-a890-8abe24a9fb50.png&w=48&q=75",
+          "duration": 6014.699999988079,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F7142bbb3-56f8-49ec-bf17-9061e5ca1614.png&w=48&q=75",
+          "duration": 6536.899999976158,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F785ba6aa-c2be-44a9-9848-639ba2106285.png&w=48&q=75",
+          "duration": 5482.700000047684,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fe65a72ae-7810-4fad-a400-67b50501e15f.png&w=48&q=75",
+          "duration": 6427.199999988079,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F0395040a-3f27-4dfe-a525-733e4b9d812a.png&w=48&q=75",
+          "duration": 6782.199999988079,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252F112db714-3c8e-4897-a14d-3e0c642ca228.jpg&w=48&q=75",
+          "duration": 157.30000001192093,
+          "transferSize": 680,
+          "encodedBodySize": 380
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fc34a1515-b413-4a36-8787-daca64c464b9.jpg&w=48&q=75",
+          "duration": 6505.099999964237,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Ff5d4287f-f4ae-4106-bf74-55a7fac616df.png&w=48&q=75",
+          "duration": 6106.599999964237,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fa8fe2fe2-b19c-4788-a281-ce77681e7393.png&w=48&q=75",
+          "duration": 7066,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Fe9ae981f-98b9-4369-abe6-2d8751ea1c59.png&w=48&q=75",
+          "duration": 6424.600000023842,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/_next/image?url=%2Fapi%2Fpublic%2Fcatalog-image%3Fpath%3D%252Fstorage%252Fv1%252Fobject%252Fpublic%252Fproduct_images%252Fpublic%252Ff35cfa34-b39c-4249-b08e-7c3b6fdefd6d.png&w=48&q=75",
+          "duration": 7200.900000035763,
+          "transferSize": 384,
+          "encodedBodySize": 84
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/productos/productos?categoria=57&_rsc=eqsio",
+          "duration": 543.4000000357628,
+          "transferSize": 487,
+          "encodedBodySize": 187
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/productos/productos?categoria=9&_rsc=eqsio",
+          "duration": 268.60000002384186,
+          "transferSize": 486,
+          "encodedBodySize": 186
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/productos/productos?categoria=54&_rsc=eqsio",
+          "duration": 229.19999998807907,
+          "transferSize": 487,
+          "encodedBodySize": 187
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/productos/productos?categoria=49&_rsc=eqsio",
+          "duration": 210.4000000357628,
+          "transferSize": 487,
+          "encodedBodySize": 187
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/productos/productos?categoria=52&_rsc=eqsio",
+          "duration": 212.69999998807907,
+          "transferSize": 486,
+          "encodedBodySize": 186
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/insumos/productos?categoria=6&_rsc=eqsio",
+          "duration": 208.69999998807907,
+          "transferSize": 477,
+          "encodedBodySize": 177
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/insumos/productos?categoria=4&_rsc=eqsio",
+          "duration": 202.30000001192093,
+          "transferSize": 477,
+          "encodedBodySize": 177
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/insumos/productos?categoria=5&_rsc=eqsio",
+          "duration": 212.30000001192093,
+          "transferSize": 477,
+          "encodedBodySize": 177
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/insumos/productos?categoria=12&_rsc=eqsio",
+          "duration": 280.69999998807907,
+          "transferSize": 477,
+          "encodedBodySize": 177
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/insumos/productos?categoria=56&_rsc=eqsio",
+          "duration": 205,
+          "transferSize": 478,
+          "encodedBodySize": 178
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/api/public/store-settings?pais_id=51bb19a9-e12a-40c3-884e-93b13ac9dee9&pais=bo",
+          "duration": 1192.5999999642372,
+          "transferSize": 696,
+          "encodedBodySize": 396
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/articulos/productos?categoria=10&_rsc=eqsio",
+          "duration": 198,
+          "transferSize": 491,
+          "encodedBodySize": 191
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/articulos/productos?categoria=55&_rsc=eqsio",
+          "duration": 204,
+          "transferSize": 492,
+          "encodedBodySize": 192
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/articulos/productos?categoria=16&_rsc=eqsio",
+          "duration": 203.20000004768372,
+          "transferSize": 492,
+          "encodedBodySize": 192
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/articulos/productos?categoria=2&_rsc=eqsio",
+          "duration": 222.80000001192093,
+          "transferSize": 489,
+          "encodedBodySize": 189
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/productos/productos?categoria=57&_rsc=1a28h",
+          "duration": 205.19999998807907,
+          "transferSize": 891,
+          "encodedBodySize": 591
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/productos/productos?categoria=9&_rsc=1a28h",
+          "duration": 206,
+          "transferSize": 892,
+          "encodedBodySize": 592
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/productos/productos?categoria=54&_rsc=1a28h",
+          "duration": 203.80000001192093,
+          "transferSize": 894,
+          "encodedBodySize": 594
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/productos/productos?categoria=49&_rsc=1a28h",
+          "duration": 200.5,
+          "transferSize": 892,
+          "encodedBodySize": 592
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/productos/productos?categoria=52&_rsc=1a28h",
+          "duration": 198.29999995231628,
+          "transferSize": 891,
+          "encodedBodySize": 591
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/insumos/productos?categoria=6&_rsc=1a28h",
+          "duration": 210.70000004768372,
+          "transferSize": 885,
+          "encodedBodySize": 585
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/insumos/productos?categoria=4&_rsc=1a28h",
+          "duration": 211.0999999642372,
+          "transferSize": 885,
+          "encodedBodySize": 585
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/insumos/productos?categoria=5&_rsc=1a28h",
+          "duration": 204.5,
+          "transferSize": 886,
+          "encodedBodySize": 586
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/insumos/productos?categoria=12&_rsc=1a28h",
+          "duration": 207.80000001192093,
+          "transferSize": 882,
+          "encodedBodySize": 582
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/insumos/productos?categoria=56&_rsc=1a28h",
+          "duration": 197.9000000357628,
+          "transferSize": 884,
+          "encodedBodySize": 584
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/articulos/productos?categoria=10&_rsc=1a28h",
+          "duration": 200.19999998807907,
+          "transferSize": 898,
+          "encodedBodySize": 598
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/articulos/productos?categoria=55&_rsc=1a28h",
+          "duration": 198.69999998807907,
+          "transferSize": 900,
+          "encodedBodySize": 600
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/articulos/productos?categoria=16&_rsc=1a28h",
+          "duration": 192.5999999642372,
+          "transferSize": 900,
+          "encodedBodySize": 600
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/articulos/productos?categoria=2&_rsc=1a28h",
+          "duration": 195.89999997615814,
+          "transferSize": 897,
+          "encodedBodySize": 597
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/insumos?_rsc=1a28h",
+          "duration": 203.80000001192093,
+          "transferSize": 852,
+          "encodedBodySize": 552
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/articulos?_rsc=1a28h",
+          "duration": 209,
+          "transferSize": 863,
+          "encodedBodySize": 563
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/productos/productos?_rsc=eqsio",
+          "duration": 211.69999998807907,
+          "transferSize": 475,
+          "encodedBodySize": 175
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/insumos/productos?_rsc=eqsio",
+          "duration": 216.79999995231628,
+          "transferSize": 465,
+          "encodedBodySize": 165
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/equipos-de-produccion/productos?categoria=47&_rsc=eqsio",
+          "duration": 209,
+          "transferSize": 498,
+          "encodedBodySize": 198
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/equipos-de-produccion/productos?categoria=15&_rsc=eqsio",
+          "duration": 238.79999995231628,
+          "transferSize": 497,
+          "encodedBodySize": 197
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/equipos-de-produccion/productos?categoria=17&_rsc=eqsio",
+          "duration": 213.89999997615814,
+          "transferSize": 498,
+          "encodedBodySize": 198
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/equipos-de-produccion/productos?categoria=14&_rsc=eqsio",
+          "duration": 206.69999998807907,
+          "transferSize": 497,
+          "encodedBodySize": 197
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/moldes/productos?categoria=23&_rsc=eqsio",
+          "duration": 212.0999999642372,
+          "transferSize": 490,
+          "encodedBodySize": 190
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/moldes/productos?categoria=38&_rsc=eqsio",
+          "duration": 210,
+          "transferSize": 490,
+          "encodedBodySize": 190
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/moldes/productos?categoria=30&_rsc=eqsio",
+          "duration": 207,
+          "transferSize": 490,
+          "encodedBodySize": 190
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/moldes/productos?categoria=40&_rsc=eqsio",
+          "duration": 212.19999998807907,
+          "transferSize": 490,
+          "encodedBodySize": 190
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/insumos-para-velas/productos?categoria=66&_rsc=eqsio",
+          "duration": 197.19999998807907,
+          "transferSize": 499,
+          "encodedBodySize": 199
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/papeleria/productos?categoria=58&_rsc=eqsio",
+          "duration": 232.9000000357628,
+          "transferSize": 492,
+          "encodedBodySize": 192
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/papeleria/productos?categoria=59&_rsc=eqsio",
+          "duration": 232.5,
+          "transferSize": 491,
+          "encodedBodySize": 191
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/insumos-para-velas?_rsc=eqsio",
+          "duration": 208.80000001192093,
+          "transferSize": 476,
+          "encodedBodySize": 176
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/papeleria?_rsc=eqsio",
+          "duration": 206.70000004768372,
+          "transferSize": 469,
+          "encodedBodySize": 169
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/insumos-para-velas/productos?categoria=66&_rsc=1a28h",
+          "duration": 238.9000000357628,
+          "transferSize": 905,
+          "encodedBodySize": 605
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/papeleria/productos?categoria=58&_rsc=1a28h",
+          "duration": 237.5,
+          "transferSize": 899,
+          "encodedBodySize": 599
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/papeleria/productos?categoria=59&_rsc=1a28h",
+          "duration": 235.60000002384186,
+          "transferSize": 899,
+          "encodedBodySize": 599
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/insumos-para-velas?_rsc=1a28h",
+          "duration": 197.9000000357628,
+          "transferSize": 872,
+          "encodedBodySize": 572
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/papeleria?_rsc=1a28h",
+          "duration": 206.60000002384186,
+          "transferSize": 864,
+          "encodedBodySize": 564
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/insumos-para-velas/productos?_rsc=eqsio",
+          "duration": 200.69999998807907,
+          "transferSize": 485,
+          "encodedBodySize": 185
+        },
+        {
+          "url": "https://catalogo-sigma-one.vercel.app/bo/tipo/papeleria/productos?_rsc=eqsio",
+          "duration": 199.80000001192093,
+          "transferSize": 478,
+          "encodedBodySize": 178
+        }
+      ]
+    }
+  ]
+}

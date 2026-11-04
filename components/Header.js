@@ -1,7 +1,7 @@
 "use client";
 import { useSavedPublicCountry } from '../hooks/useSavedPublicCountry';
 import { useState, useEffect } from 'react';
-import { resolveStorageImageUrl } from '../lib/storageImageUrl.mjs';
+import CatalogImage from './CatalogImage';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { supabase } from '../lib/SupabaseClient'; // Asegúrate que esta ruta es correcta
@@ -115,8 +115,9 @@ function HeaderContent({ pathname }) {
           <Link href={homeHref}>
             <div className="catalog-header-brand flex items-center justify-center gap-2 text-2xl font-extrabold text-white cursor-pointer hover:text-indigo-400 transition duration-200">
               {storeSettings.store_logo_url ? (
-                <img
-                  src={resolveStorageImageUrl(storeSettings.store_logo_url)}
+                <CatalogImage
+                  sources={[storeSettings.store_logo_url]}
+                  sizes="40px"
                   alt="Logo tienda"
                   className="h-9 w-9 rounded-full object-cover border border-white/20"
                 />
@@ -186,8 +187,9 @@ function HeaderContent({ pathname }) {
         <Link href={homeHref}>
           <div className="catalog-header-brand flex items-center gap-3 text-3xl font-extrabold text-white cursor-pointer hover:text-indigo-400 transition duration-200">
             {storeSettings.store_logo_url ? (
-              <img
-                src={resolveStorageImageUrl(storeSettings.store_logo_url)}
+              <CatalogImage
+                sources={[storeSettings.store_logo_url]}
+                sizes="40px"
                 alt="Logo tienda"
                 className="h-10 w-10 rounded-full object-cover border border-white/20"
               />
