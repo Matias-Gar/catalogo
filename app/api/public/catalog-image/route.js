@@ -71,7 +71,7 @@ export async function GET(request) {
     return new Response(body, {
       headers: {
         'Content-Type': outputType,
-        'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+        'Cache-Control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800, stale-if-error=86400',
         'Content-Disposition': 'attachment; filename="catalog-image"',
         'Content-Security-Policy': "default-src 'none'; sandbox",
         'X-Content-Type-Options': 'nosniff',

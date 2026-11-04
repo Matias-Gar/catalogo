@@ -5,11 +5,13 @@ import { useState } from "react";
 import { resolveStorageImageUrl } from "../lib/storageImageUrl.mjs";
 import { getCatalogImageSource } from "../lib/catalogImageSource.mjs";
 import { catalogImageLoader } from "../lib/catalogImageLoader.mjs";
+import ViewportImage from './ViewportImage';
 
-/** @param {Omit<import('next/image').ImageProps, 'src'> & {sources?: (string | null | undefined)[]}} props */
-export default function CatalogImage({ sources = [], ...props }) {
+/** @param {Omit<import('next/image').ImageProps, 'src'> & {sources?: (string | null | undefined)[], deferUntilVisible?: boolean}} props */
+export default function CatalogImage({ sources = [], deferUntilVisible = false, ...props }) {
   const urls = [...new Set(sources.map((url) => resolveStorageImageUrl(url)).filter(Boolean))];
-  return <CatalogImageContent key={urls.join("|")} urls={urls} {...props} />;
+  const image = <CatalogImageContent key={urls.join("|")} urls={urls} {...props} />;
+  return deferUntilVisible ? <ViewportImage>{image}</ViewportImage> : image;
 }
 
 function CatalogImageContent({ urls, alt, unoptimized = false, ...props }) {

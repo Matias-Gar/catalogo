@@ -74,6 +74,7 @@ test('public image source streams the image and prevents redirects to another or
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('content-type'), 'image/png');
   assert.match(response.headers.get('cache-control'), /s-maxage=86400/);
+  assert.match(response.headers.get('cache-control'), /stale-while-revalidate=604800/);
   assert.deepEqual([...new Uint8Array(await response.arrayBuffer())], [1, 2, 3]);
   assert.equal(called, true);
 });

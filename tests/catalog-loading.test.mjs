@@ -14,7 +14,9 @@ function load(relative) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
   }).outputText;
   const exports = {};
-  vm.runInNewContext(code, { exports, require: createRequire(new URL(relative, import.meta.url)), process, URL, AbortController, setTimeout, clearTimeout });
+  const moduleRequire = createRequire(new URL(relative, import.meta.url));
+  vm.runInNewContext(code, { exports, require: name => name === './ViewportImage'
+    ? load('../components/ViewportImage.jsx') : moduleRequire(name), process, URL, AbortController, setTimeout, clearTimeout });
   return exports;
 }
 const { runCatalogQuery } = load('../lib/catalogRequest.js');

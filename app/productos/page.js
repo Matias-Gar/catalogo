@@ -1340,6 +1340,9 @@ function CatalogoContent() {
                                                 <CatalogImage
                                                     sources={imagenes}
                                                     alt={producto.nombre}
+                                                    deferUntilVisible={idx >= 4}
+                                                    loading="eager"
+                                                    fetchPriority={idx < 4 ? 'high' : 'auto'}
                                                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                                                     className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-105 ${agotado ? 'grayscale' : ''}`}
                                                 />

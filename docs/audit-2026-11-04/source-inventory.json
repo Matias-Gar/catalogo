@@ -1008,7 +1008,7 @@
   {
     "file": "app/api/public/catalog-image/route.js",
     "lines": 83,
-    "sha256": "2f0b6161a5d335a797150abd0edb075ffb49d0b645b4bb39419e5b10616ecc3a",
+    "sha256": "ae6eb31e2faffc46433713278da097000b0232bbd3cac294f220f0fcf7064a73",
     "inspection": "static inventory and pattern scan",
     "tables": [],
     "rpc": [],
@@ -1205,8 +1205,8 @@
   },
   {
     "file": "app/productos/page.js",
-    "lines": 2056,
-    "sha256": "099041267ce71463fc64ee43cdf904a074b4c85992d8d31ea169cf45deb3cde4",
+    "lines": 2059,
+    "sha256": "3fbcf395172e562d8c43143e18d2ca8f6564f2030087acf12837b2861907d361",
     "inspection": "static inventory and pattern scan",
     "tables": [
       "categorias",
@@ -1278,8 +1278,8 @@
   },
   {
     "file": "components/CatalogImage.jsx",
-    "lines": 37,
-    "sha256": "68dba628687760d568de371e405c5d36bd30d4a1fd0ff89d42463186e43e9581",
+    "lines": 39,
+    "sha256": "984aea8151ed2a59c1387570647cc329baa4fd1024b513b8a3c445bdfc934493",
     "inspection": "static inventory and pattern scan",
     "tables": [],
     "rpc": []
@@ -1573,6 +1573,14 @@
     "file": "components/venta/TicketPrinter.tsx",
     "lines": 676,
     "sha256": "576ead9097085d3c53eb7a8634d6e4513e9be4ec3f60ac5730f768337683efc8",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
+    "file": "components/ViewportImage.jsx",
+    "lines": 26,
+    "sha256": "9f1fe214ea190db43ae2ba999daaf9c2d60b040a5108f01aac68bc5dc56a0a03",
     "inspection": "static inventory and pattern scan",
     "tables": [],
     "rpc": []
@@ -2570,6 +2578,14 @@
     "rpc": []
   },
   {
+    "file": "tests/browser/image-scheduling.spec.mjs",
+    "lines": 46,
+    "sha256": "504c9f904b945f64252913a01001ea9e409659423ae0ca8b00b35e0723551adb",
+    "inspection": "static inventory and pattern scan",
+    "tables": [],
+    "rpc": []
+  },
+  {
     "file": "tests/browser/printing-lifecycle.spec.mjs",
     "lines": 26,
     "sha256": "89681ab338ced3638afa3abdbc8094261f9a1209b4335e561497fb8ad31f8dc8",
@@ -2635,16 +2651,16 @@
   },
   {
     "file": "tests/catalog-image-source.test.mjs",
-    "lines": 126,
-    "sha256": "ccd952f1b1c7c35d6cb30648fbc4a0114c331bd9a277865c4b8df0ad23f9ea1c",
+    "lines": 127,
+    "sha256": "af7a7b6c26d0c99e4db36700341c222905641c9cb75cd4f66d7188f41d27c25a",
     "inspection": "static inventory and pattern scan",
     "tables": [],
     "rpc": []
   },
   {
     "file": "tests/catalog-loading.test.mjs",
-    "lines": 69,
-    "sha256": "cf1a3e8253bdf5a482c248ced473fccfe99d066f12f4ffc62991b3e08e978f16",
+    "lines": 71,
+    "sha256": "3feb6d74e10bb39a4d2566f078ea03de397ee07e6e2fe680f96b9b503259b917",
     "inspection": "static inventory and pattern scan",
     "tables": [],
     "rpc": []
