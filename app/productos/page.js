@@ -1,7 +1,8 @@
 "use client";
 
 // --- IMPORTS Y HOOKS NECESARIOS ---
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import { scheduleEffect } from '../../lib/scheduleEffect';
+import React, { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { resolveStorageImageUrl } from '../../lib/storageImageUrl.mjs';
 import { priceCatalogItem } from "@/lib/catalogCartPricing.mjs";
 import { buildOrderWhatsappMessage, money } from "@/lib/orderPricing.mjs";
@@ -12,7 +13,7 @@ import CatalogImage from "@/components/CatalogImage";
 import ProductImageViewer from "@/components/ProductImageViewer";
 import { getProductGallery } from "@/lib/productGallery";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { usePromociones } from "@/lib/usePromociones";
 import { usePacks, calcularDescuentoPack } from "@/lib/packs";
 import { supabase } from "@/lib/SupabaseClient";
@@ -23,20 +24,22 @@ import { productMatchesSearch } from "@/lib/searchMatching";
 import PublicSucursalSelector, { usePublicSucursal } from "@/components/PublicSucursalSelector";
 import { stripCountryFromPath } from "@/lib/countryRoutes";
 
-function UnitPricePanel({ conversionInfo, factor, className = "mb-3" }) {
-    if (!conversionInfo) return null;
-    const PriceValue = ({ original, final }) => (
+const UnitPriceValue = ({ original, final, promotional }) => (
         <span className="flex shrink-0 flex-col items-end leading-tight">
-            {conversionInfo.tienePromocion && (
+            {promotional && (
                 <span className="text-xs text-gray-800 line-through decoration-gray-800">
                     Bs {original.toFixed(2)}
                 </span>
             )}
-            <span className={`font-bold ${conversionInfo.tienePromocion ? 'text-green-600' : 'text-blue-700'}`}>
+            <span className={`font-bold ${promotional ? 'text-green-600' : 'text-blue-700'}`}>
                 Bs {final.toFixed(2)}
             </span>
         </span>
     );
+
+function UnitPricePanel({ conversionInfo, factor, className = "mb-3" }) {
+    if (!conversionInfo) return null;
+    
 
     return (
         <div className={`${className} space-y-1 text-left`}>
@@ -44,12 +47,12 @@ function UnitPricePanel({ conversionInfo, factor, className = "mb-3" }) {
                 {conversionInfo.showBasePrice && (
                     <div className="flex items-center justify-between gap-2">
                         <span className="text-xs text-gray-600 sm:text-sm">Por {conversionInfo.unidadBase}</span>
-                        <PriceValue original={conversionInfo.precioBaseOriginal} final={conversionInfo.precioBase} />
+                        <UnitPriceValue promotional={conversionInfo.tienePromocion} original={conversionInfo.precioBaseOriginal} final={conversionInfo.precioBase} />
                     </div>
                 )}
                 <div className="flex items-center justify-between gap-2">
                     <span className="text-xs text-gray-600 sm:text-sm">Por {conversionInfo.unidadAlternativa}</span>
-                    <PriceValue original={conversionInfo.precioAlternativoOriginal} final={conversionInfo.precioAlternativo} />
+                    <UnitPriceValue promotional={conversionInfo.tienePromocion} original={conversionInfo.precioAlternativoOriginal} final={conversionInfo.precioAlternativo} />
                 </div>
             </div>
             <div className="text-[11px] leading-tight text-gray-500">
@@ -80,6 +83,10 @@ function cleanWhatsappNumber(input) {
 }
 
 export default function CatalogoPage() {
+  return <Suspense fallback={<div className="p-8 text-center">Cargando catálogo...</div>}><CatalogoContent /></Suspense>;
+}
+
+function CatalogoContent() {
         const pathname = usePathname();
         const cleanPathname = stripCountryFromPath(pathname);
         const customViewMatch = cleanPathname?.match(/^\/tipo\/([^/]+)/);
@@ -105,7 +112,11 @@ export default function CatalogoPage() {
     const [customerData, setCustomerData] = useState({ nombre: '', nit_ci: '' });
     // --- Declarar promociones usando el hook personalizado ---
     const { promociones, loading: loadingPromociones, error: errorPromociones } = usePromociones(activeSucursalId);
-                                const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
+                                const searchParams = useSearchParams();
+  const urlCategory = searchParams.get('categoria') || '';
+  const [categoryDraft, setCategoryDraft] = useState({ source: urlCategory, value: urlCategory });
+  const categoriaSeleccionada = categoryDraft.source === urlCategory ? categoryDraft.value : urlCategory;
+  const setCategoriaSeleccionada = (value) => setCategoryDraft({ source: urlCategory, value });
                                 const [busqueda, setBusqueda] = useState('');
                                 const [imagenesProductos, setImagenesProductos] = useState({});
                             const [productos, setProductos] = useState([]);
@@ -119,10 +130,7 @@ export default function CatalogoPage() {
             const sendingOrderRef = useRef(false);
             const [sendingOrder, setSendingOrder] = useState(false);
         const [usuario, setUsuario] = useState(null);
-    useEffect(() => {
-        const categoryFromUrl = new URLSearchParams(window.location.search).get('categoria') || '';
-        setCategoriaSeleccionada(categoryFromUrl);
-    }, [pathname]);
+    
     const getAvailableUnits = (producto, stockBaseInput = null) => {
         const unidadBase = String(producto?.unidad_base || 'unidad').trim() || 'unidad';
         const alternativas = Array.isArray(producto?.unidades_alternativas)
@@ -447,11 +455,15 @@ export default function CatalogoPage() {
     };
 
     useEffect(() => {
+      return scheduleEffect(() => {
         fetchProductosYCategoriasYImagenes();
+    
+      });
     }, [currentPublicView, activeSucursalId, sucursalesLoading]);
 
     // --- Recarga productos e imágenes al volver a la pestaña ---
     useEffect(() => {
+      return scheduleEffect(() => {
         const handleVisibility = () => {
             if (document.visibilityState === 'visible') {
                 fetchProductosYCategoriasYImagenes();
@@ -461,6 +473,8 @@ export default function CatalogoPage() {
         return () => {
             document.removeEventListener('visibilitychange', handleVisibility);
         };
+    
+      });
     }, [activeSucursalId, sucursalesLoading, currentPublicView]);
 
     // Obtener usuario y perfil
@@ -485,13 +499,16 @@ export default function CatalogoPage() {
                     }
                     // ...existing code...
                     setUsuario({ id: session.user.id, email: session.user.email, nombre, nit_ci });
+                    setCustomerData(prev => ({ nombre: nombre || prev.nombre || "", nit_ci: nit_ci || prev.nit_ci || "" }));
                 } else {
                     // ...existing code...
                     setUsuario(null);
+                    setCustomerData({ nombre: "", nit_ci: "" });
                 }
             } catch (error) {
                 // ...existing code...
                 setUsuario(null);
+                    setCustomerData({ nombre: "", nit_ci: "" });
             }
         };
         getUser();
@@ -518,25 +535,11 @@ export default function CatalogoPage() {
     }, [activePais?.direccion, activePais?.id, activePais?.slug, activePais?.whatsapp]);
 
     // Auto-llenar datos del cliente cuando el usuario esté logueado
-    useEffect(() => {
-        if (usuario) {
-            // ...existing code...
-            setCustomerData(prevData => {
-                const newData = {
-                    nombre: usuario.nombre || prevData.nombre || '',
-                    nit_ci: usuario.nit_ci || prevData.nit_ci || ''
-                };
-                // ...existing code...
-                return newData;
-            });
-        } else {
-            // ...existing code...
-            setCustomerData({ nombre: '', nit_ci: '' });
-        }
-    }, [usuario]);
+    
 
     // 2. Cargar carrito desde localStorage al inicio
     useEffect(() => {
+      return scheduleEffect(() => {
         const stored = getBrowserItem(cartStorageKey);
         const legacyInsumosKey = `carrito_temporal_insumos_${activeSucursalId || 'global'}`;
         const legacyInsumos = getBrowserItem(legacyInsumosKey);
@@ -558,6 +561,8 @@ export default function CatalogoPage() {
         setCart(merged);
         setLoadedCartKey(cartStorageKey);
         if (legacyInsumosKey !== cartStorageKey) removeBrowserItem(legacyInsumosKey);
+    
+      });
     }, [cartStorageKey, activeSucursalId]);
 
     // 3. Guardar carrito en localStorage cada vez que cambia

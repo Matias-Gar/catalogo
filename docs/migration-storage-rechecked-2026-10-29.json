@@ -1,0 +1,50 @@
+{
+  "objects": [
+    {
+      "bucket": "product_images",
+      "path_sha256": "0e9b92b86a8dbe1ab74dca964af1f531c3f16769ffb4c8f18ba2760ab23dade7",
+      "status": 200,
+      "sha256": "e6509b957e1b149d6bc5790d986fe79354190071a01ef669d5656be73191d106",
+      "bytes": 3161842,
+      "cloud_equal": true,
+      "mime": "image/png"
+    },
+    {
+      "bucket": "product_images",
+      "path_sha256": "61d4382e915d1186783d7bb55fcd86854d4bbe757b6d23b986c1d7ecd17aeee6",
+      "status": 200,
+      "sha256": "fd197eb929a8f58a6a6c047abfef3b5c3ec7b13b70df79d1d55a03fb3aac6218",
+      "bytes": 5963952,
+      "cloud_equal": true,
+      "mime": "image/jpeg"
+    },
+    {
+      "bucket": "product_images",
+      "path_sha256": "aaabd6fafc1a5bc0ef286377973337037af39fcb3edd20641dfa2783e2758f47",
+      "status": 200,
+      "sha256": "0f4386bed974510613c59fe8d7daadb03c2b5ef644d3dcb21026692100ec5e66",
+      "bytes": 2665036,
+      "cloud_equal": true,
+      "mime": "image/png"
+    },
+    {
+      "bucket": "product_images",
+      "path_sha256": "861bc009d509f5f379c040aad01eb67cf6c1663176ac3d5894160850989dac3e",
+      "status": 200,
+      "sha256": "f7065d73c41210fefd3cdc8f6c9e228c417269fb714217184ccd7ea8da7d73be",
+      "bytes": 4758546,
+      "cloud_equal": true,
+      "mime": "image/jpeg"
+    },
+    {
+      "bucket": "product_images",
+      "path_sha256": "a7422c886117005367d1de55a9193a67f0825738368e1fa3ecefafb4f6f4dee4",
+      "status": 200,
+      "sha256": "a1c4e86716ad826fc14f031b2f089e1d8d3629b38d41aa6c9aebc2c211abf237",
+      "bytes": 5470276,
+      "cloud_equal": true,
+      "mime": "image/jpeg"
+    }
+  ],
+  "all_five_match": true
+}

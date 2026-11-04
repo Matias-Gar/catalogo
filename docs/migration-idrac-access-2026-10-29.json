@@ -1,0 +1,17 @@
+{
+  "checked_utc": "2026-10-29T23:35:09.972Z",
+  "server_model": "Dell Storage NX430",
+  "factory_address": "192.168.0.120",
+  "no_authentication_attempted": true,
+  "production_changed": false,
+  "checks": [
+    {
+      "protocol": "https:",
+      "error": "timeout"
+    },
+    {
+      "protocol": "http:",
+      "error": "timeout"
+    }
+  ]
+}

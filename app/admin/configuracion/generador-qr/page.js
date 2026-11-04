@@ -1,5 +1,6 @@
 "use client";
 
+import { scheduleEffect } from '../../../../lib/scheduleEffect';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Copy, Download, ImagePlus, Link as LinkIcon, Palette, QrCode, RotateCcw, Upload, X } from "lucide-react";
 
@@ -307,8 +308,11 @@ export default function GeneradorQrPage() {
   }, [logo, qrText, settings]);
 
   useEffect(() => {
+      return scheduleEffect(() => {
     drawQr();
-  }, [drawQr]);
+  
+      });
+    }, [drawQr]);
 
   const handleLogo = (event) => {
     const file = event.target.files?.[0];

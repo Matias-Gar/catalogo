@@ -1,5 +1,6 @@
 "use client";
 
+import { scheduleEffect } from '../../lib/scheduleEffect';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/SupabaseClient";
 import { savePublicCountrySlug } from "@/lib/countryRoutes";
@@ -99,8 +100,11 @@ export function SucursalProvider({ children, showShell = true }) {
   }, [setActivePaisId, setActiveSucursalId]);
 
   useEffect(() => {
+      return scheduleEffect(() => {
     loadSucursales();
-  }, [loadSucursales]);
+  
+      });
+    }, [loadSucursales]);
 
   const activeSucursal = useMemo(
     () => sucursales.find((branch) => branch.id === activeSucursalId && (!activePaisId || branch.pais_id === activePaisId)) || null,

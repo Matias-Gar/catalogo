@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import { resolveStorageImageUrl } from '../../../lib/storageImageUrl.mjs';
 const SafeImage = dynamic(() => import("../../../components/SafeImage"), { ssr: false });
@@ -258,12 +259,12 @@ export default function PerfilPage() {
                 <p className="text-orange-600 text-sm">Gestiona todos los perfiles de usuarios</p>
               </div>
             </div>
-            <a 
+            <Link 
               href="/admin/perfiles" 
               className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
               Ir a Perfiles
-            </a>
+            </Link>
           </div>
         </div>
       )}

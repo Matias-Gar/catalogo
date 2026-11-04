@@ -1,0 +1,259 @@
+{
+  "checked_utc": "2026-10-29T23:25:45.976978+00:00",
+  "production_changed": false,
+  "memory": {
+    "MemTotal": "8089888 kB",
+    "MemAvailable": "5086772 kB",
+    "SwapTotal": "4194300 kB",
+    "SwapFree": "3512008 kB"
+  },
+  "pressure": {
+    "io": "some avg10=73.75 avg60=79.29 avg300=77.33 total=8725629859\nfull avg10=64.43 avg60=68.33 avg300=66.80 total=7444351865",
+    "memory": "some avg10=0.60 avg60=1.35 avg300=0.56 total=2118541253\nfull avg10=0.52 avg60=1.22 avg300=0.50 total=1805746572"
+  },
+  "root_devices": [
+    {
+      "device": "dm-0",
+      "sample_seconds": 2.0,
+      "reads_completed": 0,
+      "writes_completed": 4,
+      "inflight": 1,
+      "read_average_ms": null,
+      "write_average_ms": 0.0,
+      "busy_percent": 99.96
+    },
+    {
+      "device": "sda",
+      "sample_seconds": 2.0,
+      "reads_completed": 0,
+      "writes_completed": 5,
+      "inflight": 1,
+      "read_average_ms": null,
+      "write_average_ms": 0.0,
+      "busy_percent": 10.45,
+      "model": "PERC H730 Adp",
+      "vendor": "DELL",
+      "state": "running"
+    },
+    {
+      "device": "sda3",
+      "sample_seconds": 2.0,
+      "reads_completed": 0,
+      "writes_completed": 5,
+      "inflight": 1,
+      "read_average_ms": null,
+      "write_average_ms": 0.2,
+      "busy_percent": 100
+    }
+  ],
+  "installed_storage_tools": [
+    "/usr/sbin/smartctl"
+  ],
+  "physical_drive_0_probe": {
+    "result": "Read-only SMART probe timed out after 10 seconds"
+  },
+  "kernel_storage_messages": [
+    {
+      "boot_seconds": 122904.72,
+      "message": "megaraid_sas 0000:03:00.0: 16124 (846631460s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122906.73,
+      "message": "megaraid_sas 0000:03:00.0: 16126 (846631462s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122908.92,
+      "message": "megaraid_sas 0000:03:00.0: 16128 (846631464s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122910.94,
+      "message": "megaraid_sas 0000:03:00.0: 16130 (846631466s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122913.03,
+      "message": "megaraid_sas 0000:03:00.0: 16132 (846631468s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122915.08,
+      "message": "megaraid_sas 0000:03:00.0: 16134 (846631470s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122917.14,
+      "message": "megaraid_sas 0000:03:00.0: 16136 (846631472s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122919.1,
+      "message": "megaraid_sas 0000:03:00.0: 16138 (846631474s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122921.07,
+      "message": "megaraid_sas 0000:03:00.0: 16140 (846631476s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122923.05,
+      "message": "megaraid_sas 0000:03:00.0: 16142 (846631478s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122925.03,
+      "message": "megaraid_sas 0000:03:00.0: 16144 (846631480s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122926.98,
+      "message": "megaraid_sas 0000:03:00.0: 16146 (846631482s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122928.96,
+      "message": "megaraid_sas 0000:03:00.0: 16148 (846631484s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122930.92,
+      "message": "megaraid_sas 0000:03:00.0: 16150 (846631486s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122932.92,
+      "message": "megaraid_sas 0000:03:00.0: 16152 (846631488s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122934.87,
+      "message": "megaraid_sas 0000:03:00.0: 16154 (846631490s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122936.82,
+      "message": "megaraid_sas 0000:03:00.0: 16156 (846631492s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122938.79,
+      "message": "megaraid_sas 0000:03:00.0: 16158 (846631494s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122940.79,
+      "message": "megaraid_sas 0000:03:00.0: 16160 (846631496s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122943.24,
+      "message": "megaraid_sas 0000:03:00.0: 16162 (846631498s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122945.23,
+      "message": "megaraid_sas 0000:03:00.0: 16164 (846631500s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122947.44,
+      "message": "megaraid_sas 0000:03:00.0: 16166 (846631503s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122949.44,
+      "message": "megaraid_sas 0000:03:00.0: 16168 (846631505s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122951.51,
+      "message": "megaraid_sas 0000:03:00.0: 16170 (846631507s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122953.55,
+      "message": "megaraid_sas 0000:03:00.0: 16172 (846631509s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122955.66,
+      "message": "megaraid_sas 0000:03:00.0: 16174 (846631511s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122957.66,
+      "message": "megaraid_sas 0000:03:00.0: 16176 (846631513s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122959.69,
+      "message": "megaraid_sas 0000:03:00.0: 16178 (846631515s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122961.74,
+      "message": "megaraid_sas 0000:03:00.0: 16180 (846631517s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122963.77,
+      "message": "megaraid_sas 0000:03:00.0: 16182 (846631519s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122965.78,
+      "message": "megaraid_sas 0000:03:00.0: 16184 (846631521s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122967.76,
+      "message": "megaraid_sas 0000:03:00.0: 16186 (846631523s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122969.73,
+      "message": "megaraid_sas 0000:03:00.0: 16188 (846631525s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122971.72,
+      "message": "megaraid_sas 0000:03:00.0: 16190 (846631527s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122973.69,
+      "message": "megaraid_sas 0000:03:00.0: 16192 (846631529s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122975.66,
+      "message": "megaraid_sas 0000:03:00.0: 16194 (846631531s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122977.67,
+      "message": "megaraid_sas 0000:03:00.0: 16196 (846631533s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122979.66,
+      "message": "megaraid_sas 0000:03:00.0: 16198 (846631535s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122981.78,
+      "message": "megaraid_sas 0000:03:00.0: 16200 (846631537s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122983.77,
+      "message": "megaraid_sas 0000:03:00.0: 16202 (846631539s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122985.72,
+      "message": "megaraid_sas 0000:03:00.0: 16204 (846631541s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122987.69,
+      "message": "megaraid_sas 0000:03:00.0: 16206 (846631543s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122989.67,
+      "message": "megaraid_sas 0000:03:00.0: 16208 (846631545s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122991.68,
+      "message": "megaraid_sas 0000:03:00.0: 16210 (846631547s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122993.67,
+      "message": "megaraid_sas 0000:03:00.0: 16212 (846631549s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122995.65,
+      "message": "megaraid_sas 0000:03:00.0: 16214 (846631551s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122997.62,
+      "message": "megaraid_sas 0000:03:00.0: 16216 (846631553s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 122999.65,
+      "message": "megaraid_sas 0000:03:00.0: 16218 (846631555s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 123001.63,
+      "message": "megaraid_sas 0000:03:00.0: 16220 (846631557s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    },
+    {
+      "boot_seconds": 123003.63,
+      "message": "megaraid_sas 0000:03:00.0: 16222 (846631559s/0x0002/FATAL) - Unrecoverable medium error during recovery on PD 01(e0x20/s1) at 110cf3a\n SUBSYSTEM=pci\n DEVICE=+pci:0000:03:00.0"
+    }
+  ],
+  "kernel_readable": true,
+  "report_path": "/dev/shm/catalogo-storage-health-1793316359.json"
+}

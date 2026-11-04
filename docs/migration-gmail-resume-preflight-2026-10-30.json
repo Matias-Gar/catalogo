@@ -1,0 +1,15 @@
+{
+  "checked_utc": "2026-10-30T13:10:30.553Z",
+  "resume_integrity_tests_passed": 4,
+  "bundle_sha256": "1ec9dfc767a97c5a93c50c47c16d7fc253eed2b239f124b2f6e5d18639dfb9eb",
+  "systemctl_ram_version": "255.4-1ubuntu8.18",
+  "systemctl_ram_sha256": "37ec607113f55f1b385b4fa75588a43402aec0de57927500763b267713f10f63",
+  "prior_service_state": {
+    "load": "loaded",
+    "active": "inactive",
+    "enabled": false
+  },
+  "production_changed_by_preparation": false,
+  "subscription_free_confirmed_by_user_screenshot": true,
+  "pending": "Root execution, service start, Auth SMTP application, actual recovery email"
+}

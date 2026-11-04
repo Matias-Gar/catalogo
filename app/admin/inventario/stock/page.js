@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
@@ -8,6 +9,82 @@ import { Toast, showToast } from "../../../../components/ui/Toast";
 import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
 import { productMatchesSearch } from "../../../../lib/searchMatching";
 import { buildImageSrcSet, getOptimizedImageUrl } from "../../../../lib/imageOptimization";
+
+function getEffectiveVariantStock(variant) {
+    const decimal = Number(variant?.stock_decimal);
+    const legacy = Number(variant?.stock);
+    const hasDecimal = variant?.stock_decimal !== null && variant?.stock_decimal !== undefined && variant?.stock_decimal !== "";
+    return Math.max(0, hasDecimal && Number.isFinite(decimal) ? decimal : legacy || 0);
+  }
+
+function getUnitInfo(prod) {
+    const unidadBase = String(prod?.unidad_base || "unidad").trim() || "unidad";
+    const alternativas = Array.isArray(prod?.unidades_alternativas)
+      ? prod.unidades_alternativas.map((u) => String(u || "").trim()).filter(Boolean)
+      : [];
+    const unidadAlternativa = alternativas.find((u) => u && u !== unidadBase);
+    const factor = Number(prod?.factor_conversion || 0);
+    return { unidadBase, unidadAlternativa, factor };
+  }
+
+function getBaseStock(prod) {
+    const productStock = Math.max(0, Number(prod?.stock || 0));
+    if (Array.isArray(prod?.variantes) && prod.variantes.length > 0) {
+      const variantStock = prod.variantes.reduce((sum, v) => sum + getEffectiveVariantStock(v), 0);
+      return variantStock > 0 || productStock <= 0 ? variantStock : productStock;
+    }
+    return productStock;
+  }
+
+function getReadableStock(prod, stockInput = null) {
+    const stockBase = Math.max(0, Number(stockInput ?? getBaseStock(prod)) || 0);
+    const { unidadBase, unidadAlternativa, factor } = getUnitInfo(prod);
+
+    if (!unidadAlternativa || !Number.isFinite(factor) || factor <= 0) {
+      return {
+        hasConversion: false,
+        stockBase,
+        principal: `${formatQuantity(stockBase)} ${unidadBase}`,
+        detalle: "",
+        completos: Math.floor(stockBase),
+        restanteAlternativo: 0,
+        totalAlternativo: 0,
+        unidadBase,
+        unidadAlternativa,
+      };
+    }
+
+    const completos = Math.floor(stockBase + 0.000001);
+    const restanteAlternativo = Math.max(0, (stockBase - completos) * factor);
+    const totalAlternativo = stockBase * factor;
+    const detalle = completos > 0
+      ? `${formatQuantity(restanteAlternativo)} ${unidadAlternativa} sueltos`
+      : `Solo ${formatQuantity(totalAlternativo)} ${unidadAlternativa}`;
+
+    return {
+      hasConversion: true,
+      stockBase,
+      principal: `${completos} ${unidadBase}${completos === 1 ? "" : "s"} completo${completos === 1 ? "" : "s"}`,
+      detalle,
+      completos,
+      restanteAlternativo,
+      totalAlternativo,
+      unidadBase,
+      unidadAlternativa,
+    };
+  }
+
+function getReadableStockText(prod, stockInput = null) {
+    const readable = getReadableStock(prod, stockInput);
+    if (!readable.hasConversion) return readable.principal;
+    if (readable.completos > 0 && readable.restanteAlternativo > 0) {
+      return `${readable.principal} + ${formatQuantity(readable.restanteAlternativo)} ${readable.unidadAlternativa}`;
+    }
+    if (readable.completos > 0) {
+      return `${readable.principal} (${formatQuantity(readable.totalAlternativo)} ${readable.unidadAlternativa})`;
+    }
+    return readable.detalle;
+  }
 
 export default function StockPage() {
   const { activePaisId, activeSucursalId } = useSucursalActiva();
@@ -293,86 +370,20 @@ export default function StockPage() {
     return Number(parsed.toFixed(2)).toString();
   }
 
-  function getEffectiveVariantStock(variant) {
-    const decimal = Number(variant?.stock_decimal);
-    const legacy = Number(variant?.stock);
-    const hasDecimal = variant?.stock_decimal !== null && variant?.stock_decimal !== undefined && variant?.stock_decimal !== "";
-    return Math.max(0, hasDecimal && Number.isFinite(decimal) ? decimal : legacy || 0);
-  }
+  
 
-  function getUnitInfo(prod) {
-    const unidadBase = String(prod?.unidad_base || "unidad").trim() || "unidad";
-    const alternativas = Array.isArray(prod?.unidades_alternativas)
-      ? prod.unidades_alternativas.map((u) => String(u || "").trim()).filter(Boolean)
-      : [];
-    const unidadAlternativa = alternativas.find((u) => u && u !== unidadBase);
-    const factor = Number(prod?.factor_conversion || 0);
-    return { unidadBase, unidadAlternativa, factor };
-  }
+  
 
   function hasUnitConversion(prod) {
     const { unidadAlternativa, factor } = getUnitInfo(prod);
     return Boolean(unidadAlternativa && Number.isFinite(factor) && factor > 0);
   }
 
-  function getBaseStock(prod) {
-    const productStock = Math.max(0, Number(prod?.stock || 0));
-    if (Array.isArray(prod?.variantes) && prod.variantes.length > 0) {
-      const variantStock = prod.variantes.reduce((sum, v) => sum + getEffectiveVariantStock(v), 0);
-      return variantStock > 0 || productStock <= 0 ? variantStock : productStock;
-    }
-    return productStock;
-  }
+  
 
-  function getReadableStock(prod, stockInput = null) {
-    const stockBase = Math.max(0, Number(stockInput ?? getBaseStock(prod)) || 0);
-    const { unidadBase, unidadAlternativa, factor } = getUnitInfo(prod);
+  
 
-    if (!unidadAlternativa || !Number.isFinite(factor) || factor <= 0) {
-      return {
-        hasConversion: false,
-        stockBase,
-        principal: `${formatQuantity(stockBase)} ${unidadBase}`,
-        detalle: "",
-        completos: Math.floor(stockBase),
-        restanteAlternativo: 0,
-        totalAlternativo: 0,
-        unidadBase,
-        unidadAlternativa,
-      };
-    }
-
-    const completos = Math.floor(stockBase + 0.000001);
-    const restanteAlternativo = Math.max(0, (stockBase - completos) * factor);
-    const totalAlternativo = stockBase * factor;
-    const detalle = completos > 0
-      ? `${formatQuantity(restanteAlternativo)} ${unidadAlternativa} sueltos`
-      : `Solo ${formatQuantity(totalAlternativo)} ${unidadAlternativa}`;
-
-    return {
-      hasConversion: true,
-      stockBase,
-      principal: `${completos} ${unidadBase}${completos === 1 ? "" : "s"} completo${completos === 1 ? "" : "s"}`,
-      detalle,
-      completos,
-      restanteAlternativo,
-      totalAlternativo,
-      unidadBase,
-      unidadAlternativa,
-    };
-  }
-
-  function getReadableStockText(prod, stockInput = null) {
-    const readable = getReadableStock(prod, stockInput);
-    if (!readable.hasConversion) return readable.principal;
-    if (readable.completos > 0 && readable.restanteAlternativo > 0) {
-      return `${readable.principal} + ${formatQuantity(readable.restanteAlternativo)} ${readable.unidadAlternativa}`;
-    }
-    if (readable.completos > 0) {
-      return `${readable.principal} (${formatQuantity(readable.totalAlternativo)} ${readable.unidadAlternativa})`;
-    }
-    return readable.detalle;
-  }
+  
 
   function StockHumanCard({ prod, compact = false }) {
     const readable = getReadableStock(prod);
@@ -930,12 +941,12 @@ export default function StockPage() {
               <option value="stock-asc">Menor stock primero</option>
             </select>
 
-            <a
+            <Link
               href="/admin/productos/catalogo"
               className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-indigo-700"
             >
               Ver Catalogo
-            </a>
+            </Link>
           </div>
 
           <div className="w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">

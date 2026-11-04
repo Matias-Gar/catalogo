@@ -1,0 +1,24 @@
+{
+  "checked_utc": "2026-10-29T22:49:06.281Z",
+  "commit": "3c4b210",
+  "checks": [
+    {
+      "page": "/correo-catalogo.html",
+      "status": 200,
+      "expected_heading": true
+    },
+    {
+      "page": "/privacidad-correo.html",
+      "status": 200,
+      "privacy_link_verified": true,
+      "scope_disclosed": true
+    },
+    {
+      "page": "/login",
+      "status": 200,
+      "email_field_visible": true,
+      "form_submitted": false
+    }
+  ],
+  "passed": true
+}

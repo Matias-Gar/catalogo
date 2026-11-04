@@ -1,0 +1,15 @@
+{
+  "mail_sent": false,
+  "production_changed": false,
+  "smtp_applied": false,
+  "logos_applied": false,
+  "errors": [
+    "Timeout after 12 seconds: docker compose version"
+  ],
+  "last_step": "docker compose version",
+  "docker_api_version": "1.52",
+  "docker_cli_read_verified": true,
+  "status": "failed_or_partial",
+  "finished_utc": "2026-10-30T12:47:07.639970+00:00",
+  "report_path": "/dev/shm/catalogo-gmail-result-20261030-124655-3869519.json"
+}

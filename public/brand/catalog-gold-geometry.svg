@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1000" viewBox="0 0 1440 1000" fill="none">
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="220" y2="220" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#25241F"/>
+      <stop offset=".5" stop-color="#101112"/>
+      <stop offset="1" stop-color="#050606"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1440" y2="1000" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8C681E"/>
+      <stop offset=".3" stop-color="#F7DE76"/>
+      <stop offset=".65" stop-color="#CBA338"/>
+      <stop offset="1" stop-color="#F7DE76"/>
+    </linearGradient>
+    <pattern id="facets" width="240" height="240" patternUnits="userSpaceOnUse" patternTransform="rotate(-15)">
+      <path d="M0 0H240V240H0Z" fill="url(#panel)"/>
+      <path d="m0 0 120 120L240 0M120 120v120" stroke="#34332B" stroke-opacity=".45"/>
+      <path d="M0 2h238v236" stroke="#000" stroke-width="4" stroke-opacity=".6"/>
+    </pattern>
+    <radialGradient id="light">
+      <stop stop-color="#E8C94F" stop-opacity=".1"/>
+      <stop offset="1" stop-color="#E8C94F" stop-opacity="0"/>
+    </radialGradient>
+    <path id="spark" d="m0-6 1.8 4.2L6 0 1.8 1.8 0 6-1.8 1.8-6 0l4.2-1.8Z"/>
+  </defs>
+  <path fill="#08090A" d="M0 0h1440v1000H0z"/>
+  <path fill="url(#facets)" opacity=".65" d="M0 0h1440v1000H0z"/>
+  <ellipse cx="1100" cy="140" rx="540" ry="400" fill="url(#light)"/>
+  <ellipse cx="100" cy="870" rx="480" ry="340" fill="url(#light)"/>
+  <g stroke="url(#gold)" stroke-width="1.5">
+    <path d="M-80 36C180 220 290-50 550 67S850 202 1100 74s290 12 420 100" opacity=".85"/>
+    <path d="M-60 63C180 247 300-21 560 94S860 229 1110 101s290 12 420 100" opacity=".15"/>
+    <path d="M-60 885c210-170 350 150 640 6s480-50 560 14 230 18 370-65" opacity=".7"/>
+  </g>
+  <g fill="#E8C94F">
+    <use href="#spark" x="124" y="112" opacity=".8"/>
+    <use href="#spark" x="1020" y="140" opacity=".8"/>
+    <use href="#spark" x="1330" y="840" opacity=".65"/>
+    <use href="#spark" x="350" y="920" opacity=".65"/>
+  </g>
+</svg>

@@ -1,0 +1,49 @@
+{
+  "checked_utc": "2026-10-29T23:09:42.607058+00:00",
+  "production_changed": false,
+  "checks": [
+    {
+      "check": "daemon_version",
+      "error": "TimeoutError",
+      "elapsed_s": 6.0
+    },
+    {
+      "check": "catalogo_auth_inspect",
+      "http_status": 200,
+      "elapsed_s": 0.0,
+      "state": "running",
+      "compose_project": "supabase",
+      "compose_service": "auth",
+      "compose_workdir": "/srv/garblac/backend",
+      "networks": [
+        {
+          "name": "supabase_default",
+          "network_id": "303bbe24297c4c280c2fa794619c4ac5095556619e4b1029c0ad2da654ff0809",
+          "ip": "172.18.0.5",
+          "gateway": "172.18.0.1"
+        }
+      ]
+    }
+  ],
+  "io_pressure": "some avg10=74.44 avg60=79.47 avg300=76.26 total=7991518398\nfull avg10=66.29 avg60=69.57 avg300=66.07 total=6809637616",
+  "processes": [
+    {
+      "pid": 869,
+      "name": "containerd",
+      "state": "S (sleeping)",
+      "wait": "futex_wait_queue"
+    },
+    {
+      "pid": 1111,
+      "name": "dockerd",
+      "state": "S (sleeping)",
+      "wait": "futex_wait_queue"
+    },
+    {
+      "pid": 4178285,
+      "name": "python3",
+      "state": "R (running)",
+      "wait": "0"
+    }
+  ]
+}

@@ -17,7 +17,7 @@ interface Props {
   setShowSuggestions: (b: boolean) => void;
   packResults?: Pack[];
   onAddPack?: (pack: Pack) => void;
-  promociones?: any[];
+  promociones?: unknown[];
 }
 
 export default function BuscadorProductos({
@@ -47,11 +47,11 @@ export default function BuscadorProductos({
   };
 
   const getConversionInfo = (p: Producto) => {
-    const stockBase = Math.max(0, Number((p as any).stock ?? 0));
-    const factor = Number((p as any).factor_conversion || 0);
-    const base = String((p as any).unidad_base || "unidad");
-    const alternativas = Array.isArray((p as any).unidades_alternativas)
-      ? (p as any).unidades_alternativas.filter((u: string) => u && u !== base)
+    const stockBase = Math.max(0, Number(p.stock ?? 0));
+    const factor = Number(p.factor_conversion || 0);
+    const base = String(p.unidad_base || "unidad");
+    const alternativas = Array.isArray(p.unidades_alternativas)
+      ? p.unidades_alternativas.filter((u: string) => u && u !== base)
       : [];
     const alt = alternativas[0];
     const hasConversion = Boolean(alt && Number.isFinite(factor) && factor > 0);
@@ -60,14 +60,14 @@ export default function BuscadorProductos({
 
   const handleAddClick = (p: Producto) => {
     const { stockBase, factor, base, alternativas, alt: unidadAlternativa, hasConversion } = getConversionInfo(p);
-    const unidadesBase = Array.isArray((p as any).unidades_disponibles)
-      ? (p as any).unidades_disponibles
-      : (p as any).unidad_base && (p as any).unidades_alternativas
+    const unidadesBase = Array.isArray(p.unidades_disponibles)
+      ? p.unidades_disponibles
+      : p.unidad_base && p.unidades_alternativas
         ? [
-            (p as any).unidad_base,
+            p.unidad_base,
             ...alternativas,
           ]
-        : [(p as any).unidad_base || "unidad"];
+        : [p.unidad_base || "unidad"];
     const unidades =
       hasConversion
         ? [
@@ -159,7 +159,7 @@ export default function BuscadorProductos({
                     type="button"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      onAddPack && onAddPack(pack);
+                      onAddPack?.(pack);
                     }}
                     className="rounded bg-purple-700 px-2 py-1 text-sm font-semibold text-white hover:bg-purple-800"
                     title="Agregar pack al carrito"
@@ -193,13 +193,13 @@ export default function BuscadorProductos({
                         {(() => {
                           const stockBase = Number(p.stock || 0);
                           if (
-                            Array.isArray((p as any).unidades_alternativas) &&
-                            (p as any).unidades_alternativas.length > 0 &&
-                            Number((p as any).factor_conversion) > 0 &&
+                            Array.isArray(p.unidades_alternativas) &&
+                            p.unidades_alternativas.length > 0 &&
+                            Number(p.factor_conversion) > 0 &&
                             (p as Producto).unidad_base
                           ) {
-                            const alt = (p as any).unidades_alternativas[0];
-                            const stockAlt = stockBase * Number((p as any).factor_conversion);
+                            const alt = p.unidades_alternativas[0];
+                            const stockAlt = stockBase * Number(p.factor_conversion);
                             if (stockBase === 0 && stockAlt > 0) {
                               return <span>Stock: {formatQuantity(stockAlt)} {alt}</span>;
                             }

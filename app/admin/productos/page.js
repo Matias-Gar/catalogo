@@ -1,4 +1,6 @@
 "use client";
+import { scheduleEffect } from '../../../lib/scheduleEffect';
+import Image from "next/image";
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef } from 'react';
@@ -178,8 +180,7 @@ export default function AdminProductosPage() {
     // FUNCIÓN DE IMPRESIÓN DE CÓDIGO DE BARRAS (PDF directo, sin forzar con CSS de página)
     // --------------------------------------------------------------------------
     const handlePrintBarcode = async (codigo, productoNombre = '') => {
-        if (!window._barcodeRefs) window._barcodeRefs = {};
-        const ref = window._barcodeRefs[codigo];
+        const ref = window._barcodeRefs?.[codigo];
         let svgString = '';
         if (ref && ref.current) {
             const svgNode = ref.current.querySelector ? ref.current.querySelector('svg') : null;
@@ -516,6 +517,7 @@ export default function AdminProductosPage() {
 
     // useEffect para cargar categorías y productos después de declarar las funciones
     useEffect(() => {
+      return scheduleEffect(() => {
         // Solo cargar datos si el rol no se ha determinado o es admin
         if ((userRole && canAccessAdminPath(userRole, '/admin/productos')) || userRole === null) {
             fetchCategories();
@@ -536,6 +538,8 @@ export default function AdminProductosPage() {
         return () => {
             supabase.removeChannel(channel);
         };
+    
+      });
     }, [userRole, activePaisId, activeSucursalId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     

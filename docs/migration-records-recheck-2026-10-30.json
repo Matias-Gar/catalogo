@@ -1,0 +1,6 @@
+{
+  "checked_utc": "2026-10-30T12:43:37.466Z",
+  "public_record_files_changed": [],
+  "table_counts_equal": true,
+  "note": "REST exports at different times, not transactional snapshots"
+}

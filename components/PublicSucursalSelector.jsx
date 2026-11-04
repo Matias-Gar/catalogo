@@ -1,9 +1,10 @@
 "use client";
 
+import { useSavedPublicCountry } from '../hooks/useSavedPublicCountry';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { buildCountryPath, getCountrySlugFromPath, getSavedPublicCountrySlug, hasCountrySlugInPath, savePublicCountrySlug, stripCountryFromPath } from "../lib/countryRoutes";
+import { buildCountryPath, getCountrySlugFromPath, hasCountrySlugInPath, savePublicCountrySlug, stripCountryFromPath } from "../lib/countryRoutes";
 import { getProductViewPublicPath } from "../lib/productViews";
 import { useProductViews } from "../hooks/useProductViews";
 import { getBrowserItem, setBrowserItem } from "../lib/browserStorage";
@@ -23,12 +24,10 @@ export function usePublicSucursal() {
   const [error, setError] = useState("");
   const pathname = usePathname();
   const pathCountrySlug = getCountrySlugFromPath(pathname);
-  const [activeCountrySlug, setActiveCountrySlug] = useState(pathCountrySlug);
+  const savedCountrySlug = useSavedPublicCountry();
+  const activeCountrySlug = hasCountrySlugInPath(pathname) ? pathCountrySlug : savedCountrySlug || pathCountrySlug;
 
-  useEffect(() => {
-    const nextSlug = hasCountrySlugInPath(pathname) ? pathCountrySlug : getSavedPublicCountrySlug() || pathCountrySlug;
-    setActiveCountrySlug(nextSlug);
-  }, [pathCountrySlug, pathname]);
+  
 
   const setActiveSucursalId = useCallback((id) => {
     setActiveSucursalIdState(id);
@@ -61,6 +60,7 @@ export function usePublicSucursal() {
         }
 
         const branches = Array.isArray(result.sucursales) ? result.sucursales : [];
+        if (!mounted) return;
         savePublicCountrySlug(activeCountrySlug);
         const savedId = getSavedSucursalId(activeCountrySlug);
         const savedStillValid = branches.some((branch) => branch.id === savedId);

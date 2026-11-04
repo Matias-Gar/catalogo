@@ -1,0 +1,5381 @@
+{
+  "started_utc": "2026-10-29T21:24:43.680Z",
+  "engine": "PGlite PostgreSQL WASM; isolated local process, not Dell services",
+  "files": {
+    "auth-storage-schema.sql": {
+      "sha256": "ab0e0f9e8bad4d868ac66f2fefc851dd94080d8a711fa33da41ccb2fcee4e7d2"
+    },
+    "garblac-auth.sql": {
+      "sha256": "be29851cf0e1bdd56a1e35478b103b5e95127933c28d40b2da1350648db5e311"
+    },
+    "garblac-storage.sql": {
+      "sha256": "4ef979245c52c431bb82f6571fb059454b68453832da6cb177885d302a24b31a"
+    },
+    "garblac-public.sql": {
+      "sha256": "84c9625d1cd79952b7780eabcaf7b8054131be40989a6ffc132a1b3951884565"
+    }
+  },
+  "copies": [
+    {
+      "table": "auth.identities",
+      "rows": 6
+    },
+    {
+      "table": "auth.users",
+      "rows": 6
+    },
+    {
+      "table": "storage.buckets",
+      "rows": 3
+    },
+    {
+      "table": "storage.objects",
+      "rows": 1260
+    },
+    {
+      "table": "public.app_settings",
+      "rows": 1
+    },
+    {
+      "table": "public.business_audit_events",
+      "rows": 202
+    },
+    {
+      "table": "public.carritos_pendientes",
+      "rows": 10
+    },
+    {
+      "table": "public.cash_closures",
+      "rows": 0
+    },
+    {
+      "table": "public.cash_movements",
+      "rows": 53
+    },
+    {
+      "table": "public.categorias",
+      "rows": 66
+    },
+    {
+      "table": "public.clientes",
+      "rows": 0
+    },
+    {
+      "table": "public.inventory_operation_attempts",
+      "rows": 0
+    },
+    {
+      "table": "public.inventory_operation_requests",
+      "rows": 53
+    },
+    {
+      "table": "public.pack_productos",
+      "rows": 0
+    },
+    {
+      "table": "public.packs",
+      "rows": 0
+    },
+    {
+      "table": "public.pais_settings",
+      "rows": 2
+    },
+    {
+      "table": "public.paises",
+      "rows": 2
+    },
+    {
+      "table": "public.password_resets",
+      "rows": 2
+    },
+    {
+      "table": "public.perfiles",
+      "rows": 6
+    },
+    {
+      "table": "public.producto_imagenes",
+      "rows": 778
+    },
+    {
+      "table": "public.producto_ubicaciones",
+      "rows": 99
+    },
+    {
+      "table": "public.producto_variantes",
+      "rows": 411
+    },
+    {
+      "table": "public.productos",
+      "rows": 362
+    },
+    {
+      "table": "public.productos_historial",
+      "rows": 364
+    },
+    {
+      "table": "public.promociones",
+      "rows": 13
+    },
+    {
+      "table": "public.stock_movimientos",
+      "rows": 1019
+    },
+    {
+      "table": "public.sucursal_settings",
+      "rows": 1
+    },
+    {
+      "table": "public.sucursales",
+      "rows": 3
+    },
+    {
+      "table": "public.tipos_producto",
+      "rows": 7
+    },
+    {
+      "table": "public.transferencias_sucursal",
+      "rows": 0
+    },
+    {
+      "table": "public.usuario_paises",
+      "rows": 5
+    },
+    {
+      "table": "public.usuario_sucursales",
+      "rows": 2
+    },
+    {
+      "table": "public.ventas",
+      "rows": 53
+    },
+    {
+      "table": "public.ventas_detalle",
+      "rows": 101
+    },
+    {
+      "table": "public.ventas_pagos",
+      "rows": 53
+    }
+  ],
+  "errors": [],
+  "tables": {
+    "auth.audit_log_entries": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.custom_oauth_providers": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.flow_state": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.identities": {
+      "count": 6,
+      "rowset_md5": "77b03d20a9db0a4e8cddae29625c3deb"
+    },
+    "auth.instances": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.mfa_amr_claims": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.mfa_challenges": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.mfa_factors": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.mfa_recovery_code_sets": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.mfa_recovery_codes": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.oauth_authorizations": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.oauth_client_states": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.oauth_clients": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.oauth_consents": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.one_time_tokens": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.refresh_tokens": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.saml_providers": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.saml_relay_states": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.schema_migrations": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.scim_tokens": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.scim_users": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.sessions": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.sso_domains": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.sso_providers": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.users": {
+      "count": 6,
+      "rowset_md5": "792ea0f1e19aec92cdccd3032a4493ee"
+    },
+    "auth.webauthn_challenges": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auth.webauthn_credentials": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "public.app_settings": {
+      "count": 1,
+      "rowset_md5": "56d5c655a4d18a9f13982061cf0e283a"
+    },
+    "public.business_audit_events": {
+      "count": 202,
+      "rowset_md5": "29045384028f4b90212e154c1e12b8ac"
+    },
+    "public.carritos_pendientes": {
+      "count": 10,
+      "rowset_md5": "c82471080e2822925ea38b29f28bf499"
+    },
+    "public.cash_closures": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "public.cash_movements": {
+      "count": 53,
+      "rowset_md5": "1c48ae683ec5b1db4e05995ea12980e6"
+    },
+    "public.categorias": {
+      "count": 66,
+      "rowset_md5": "05ea4b134d1da403083b877a26886d92"
+    },
+    "public.clientes": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "public.inventory_operation_attempts": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "public.inventory_operation_requests": {
+      "count": 53,
+      "rowset_md5": "8b0cd38999c8a8d39acfbcea125b031a"
+    },
+    "public.pack_productos": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "public.packs": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "public.pais_settings": {
+      "count": 2,
+      "rowset_md5": "d18fe440f93427606d89844a10a39253"
+    },
+    "public.paises": {
+      "count": 2,
+      "rowset_md5": "d70907a4a9c9e82a330fb3538b778808"
+    },
+    "public.password_resets": {
+      "count": 2,
+      "rowset_md5": "aca1bf65dd6e23e7eb60d87ef441b56e"
+    },
+    "public.perfiles": {
+      "count": 6,
+      "rowset_md5": "84218495c388154d3c161f7872ed92f7"
+    },
+    "public.producto_imagenes": {
+      "count": 778,
+      "rowset_md5": "7f1d1300f4a3baf27a9a76165b8e6442"
+    },
+    "public.producto_ubicaciones": {
+      "count": 99,
+      "rowset_md5": "022b0726c7b66a7fc6d6363bbc52229d"
+    },
+    "public.producto_variantes": {
+      "count": 411,
+      "rowset_md5": "a29bd745ecf95ab931948c27a806cf5b"
+    },
+    "public.productos": {
+      "count": 362,
+      "rowset_md5": "57cd80041af61787d50861188609b778"
+    },
+    "public.productos_historial": {
+      "count": 364,
+      "rowset_md5": "0db78b71f5eb425f8cbd10b1d8765de8"
+    },
+    "public.promociones": {
+      "count": 13,
+      "rowset_md5": "3b563734a2c932068bc95dc08557d86c"
+    },
+    "public.stock_movimientos": {
+      "count": 1019,
+      "rowset_md5": "74940a2465efe42672bc604bf448cb96"
+    },
+    "public.sucursal_settings": {
+      "count": 1,
+      "rowset_md5": "a2c1cb0f17a8559b5cff4c6da1b3ec44"
+    },
+    "public.sucursales": {
+      "count": 3,
+      "rowset_md5": "ae039c8cfc839a05e61cd0f0505f2ba8"
+    },
+    "public.tipos_producto": {
+      "count": 7,
+      "rowset_md5": "ed7f7ede7afc0439e6b172f28c5225c1"
+    },
+    "public.transferencias_sucursal": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "public.usuario_paises": {
+      "count": 5,
+      "rowset_md5": "0d2b7299f401cb367800c9bd51130777"
+    },
+    "public.usuario_sucursales": {
+      "count": 2,
+      "rowset_md5": "21a11649d899a88a1239d2e9083f1162"
+    },
+    "public.ventas": {
+      "count": 53,
+      "rowset_md5": "3b861dcc96fd16ba7d137c6bc0c4fc0e"
+    },
+    "public.ventas_detalle": {
+      "count": 101,
+      "rowset_md5": "888ec9578ac5ff6ea521d625fa707efb"
+    },
+    "public.ventas_pagos": {
+      "count": 53,
+      "rowset_md5": "19f8137108f5d521d1887ffb302e16ce"
+    },
+    "storage.buckets": {
+      "count": 3,
+      "rowset_md5": "7bf0851a47923424bbc0c3d4de0f8f2a"
+    },
+    "storage.buckets_analytics": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "storage.buckets_vectors": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "storage.iceberg_namespaces": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "storage.iceberg_tables": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "storage.migrations": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "storage.objects": {
+      "count": 1260,
+      "rowset_md5": "1314be068812929e71985f04edaa4ad9"
+    },
+    "storage.s3_multipart_uploads": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "storage.s3_multipart_uploads_parts": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "storage.vector_indexes": {
+      "count": 0,
+      "rowset_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  },
+  "constraints": [
+    {
+      "schema": "auth",
+      "tab": "audit_log_entries",
+      "name": "audit_log_entries_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "audit_log_entries",
+      "name": "audit_log_entries_ip_address_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL ip_address"
+    },
+    {
+      "schema": "auth",
+      "tab": "audit_log_entries",
+      "name": "audit_log_entries_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_acceptable_client_ids_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL acceptable_client_ids"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_attribute_mapping_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL attribute_mapping"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_authorization_params_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL authorization_params"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_authorization_url_https",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((authorization_url IS NULL) OR (authorization_url ~~ 'https://%'::text)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_authorization_url_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((authorization_url IS NULL) OR (char_length(authorization_url) <= 2048)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_client_id_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((char_length(client_id) >= 1) AND (char_length(client_id) <= 512)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_client_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL client_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_client_secret_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL client_secret"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_custom_claims_allowlist_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL custom_claims_allowlist"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_discovery_url_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((discovery_url IS NULL) OR (char_length(discovery_url) <= 2048)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_email_optional_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL email_optional"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_enabled_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL enabled"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_identifier_format",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((identifier ~ '^[a-z0-9][a-z0-9:-]{0,48}[a-z0-9]$'::text))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_identifier_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (identifier)"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_identifier_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL identifier"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_issuer_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((issuer IS NULL) OR ((char_length(issuer) >= 1) AND (char_length(issuer) <= 2048))))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_jwks_uri_https",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((jwks_uri IS NULL) OR (jwks_uri ~~ 'https://%'::text)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_jwks_uri_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((jwks_uri IS NULL) OR (char_length(jwks_uri) <= 2048)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_name_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((char_length(name) >= 1) AND (char_length(name) <= 100)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_name_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL name"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_oauth2_requires_endpoints",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((provider_type <> 'oauth2'::text) OR ((authorization_url IS NOT NULL) AND (token_url IS NOT NULL) AND (userinfo_url IS NOT NULL))))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_oidc_discovery_url_https",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((provider_type <> 'oidc'::text) OR (discovery_url IS NULL) OR (discovery_url ~~ 'https://%'::text)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_oidc_issuer_https",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((provider_type <> 'oidc'::text) OR (issuer IS NULL) OR (issuer ~~ 'https://%'::text)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_oidc_requires_issuer",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((provider_type <> 'oidc'::text) OR (issuer IS NOT NULL)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_pkce_enabled_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pkce_enabled"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_provider_type_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((provider_type = ANY (ARRAY['oauth2'::text, 'oidc'::text])))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_provider_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL provider_type"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_scopes_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL scopes"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_skip_nonce_check_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL skip_nonce_check"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_token_url_https",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((token_url IS NULL) OR (token_url ~~ 'https://%'::text)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_token_url_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((token_url IS NULL) OR (char_length(token_url) <= 2048)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_userinfo_url_https",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((userinfo_url IS NULL) OR (userinfo_url ~~ 'https://%'::text)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "custom_oauth_providers",
+      "name": "custom_oauth_providers_userinfo_url_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((userinfo_url IS NULL) OR (char_length(userinfo_url) <= 2048)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "flow_state",
+      "name": "flow_state_authentication_method_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL authentication_method"
+    },
+    {
+      "schema": "auth",
+      "tab": "flow_state",
+      "name": "flow_state_email_optional_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL email_optional"
+    },
+    {
+      "schema": "auth",
+      "tab": "flow_state",
+      "name": "flow_state_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "flow_state",
+      "name": "flow_state_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "flow_state",
+      "name": "flow_state_provider_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL provider_type"
+    },
+    {
+      "schema": "auth",
+      "tab": "identities",
+      "name": "identities_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "identities",
+      "name": "identities_identity_data_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL identity_data"
+    },
+    {
+      "schema": "auth",
+      "tab": "identities",
+      "name": "identities_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "identities",
+      "name": "identities_provider_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL provider_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "identities",
+      "name": "identities_provider_id_provider_unique",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (provider_id, provider)"
+    },
+    {
+      "schema": "auth",
+      "tab": "identities",
+      "name": "identities_provider_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL provider"
+    },
+    {
+      "schema": "auth",
+      "tab": "identities",
+      "name": "identities_user_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "identities",
+      "name": "identities_user_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL user_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "instances",
+      "name": "instances_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "instances",
+      "name": "instances_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_amr_claims",
+      "name": "amr_id_pk",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_amr_claims",
+      "name": "mfa_amr_claims_authentication_method_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL authentication_method"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_amr_claims",
+      "name": "mfa_amr_claims_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_amr_claims",
+      "name": "mfa_amr_claims_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_amr_claims",
+      "name": "mfa_amr_claims_session_id_authentication_method_pkey",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (session_id, authentication_method)"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_amr_claims",
+      "name": "mfa_amr_claims_session_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (session_id) REFERENCES auth.sessions(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_amr_claims",
+      "name": "mfa_amr_claims_session_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL session_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_amr_claims",
+      "name": "mfa_amr_claims_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_challenges",
+      "name": "mfa_challenges_auth_factor_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (factor_id) REFERENCES auth.mfa_factors(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_challenges",
+      "name": "mfa_challenges_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_challenges",
+      "name": "mfa_challenges_factor_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL factor_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_challenges",
+      "name": "mfa_challenges_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_challenges",
+      "name": "mfa_challenges_ip_address_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL ip_address"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_challenges",
+      "name": "mfa_challenges_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_factors",
+      "name": "mfa_factors_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_factors",
+      "name": "mfa_factors_factor_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL factor_type"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_factors",
+      "name": "mfa_factors_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_factors",
+      "name": "mfa_factors_last_challenged_at_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (last_challenged_at)"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_factors",
+      "name": "mfa_factors_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_factors",
+      "name": "mfa_factors_status_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL status"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_factors",
+      "name": "mfa_factors_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_factors",
+      "name": "mfa_factors_user_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_factors",
+      "name": "mfa_factors_user_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL user_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_code_sets",
+      "name": "mfa_recovery_code_sets_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_code_sets",
+      "name": "mfa_recovery_code_sets_failed_verification_count_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((failed_verification_count >= 0))"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_code_sets",
+      "name": "mfa_recovery_code_sets_failed_verification_count_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL failed_verification_count"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_code_sets",
+      "name": "mfa_recovery_code_sets_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_code_sets",
+      "name": "mfa_recovery_code_sets_mfa_factor_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (mfa_factor_id) REFERENCES auth.mfa_factors(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_code_sets",
+      "name": "mfa_recovery_code_sets_mfa_factor_id_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (mfa_factor_id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_code_sets",
+      "name": "mfa_recovery_code_sets_mfa_factor_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL mfa_factor_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_code_sets",
+      "name": "mfa_recovery_code_sets_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_code_sets",
+      "name": "mfa_recovery_code_sets_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_code_sets",
+      "name": "mfa_recovery_code_sets_user_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_code_sets",
+      "name": "mfa_recovery_code_sets_user_id_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (user_id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_code_sets",
+      "name": "mfa_recovery_code_sets_user_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL user_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_codes",
+      "name": "mfa_recovery_codes_code_hash_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL code_hash"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_codes",
+      "name": "mfa_recovery_codes_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_codes",
+      "name": "mfa_recovery_codes_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_codes",
+      "name": "mfa_recovery_codes_mfa_recovery_code_set_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (mfa_recovery_code_set_id) REFERENCES auth.mfa_recovery_code_sets(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_codes",
+      "name": "mfa_recovery_codes_mfa_recovery_code_set_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL mfa_recovery_code_set_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "mfa_recovery_codes",
+      "name": "mfa_recovery_codes_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_authorization_code_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (authorization_code)"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_authorization_code_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(authorization_code) <= 255))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_authorization_id_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (authorization_id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_authorization_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL authorization_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_client_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (client_id) REFERENCES auth.oauth_clients(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_client_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL client_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_code_challenge_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(code_challenge) <= 128))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_expires_at_future",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((expires_at > created_at))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_expires_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL expires_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_nonce_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(nonce) <= 255))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_redirect_uri_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(redirect_uri) <= 2048))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_redirect_uri_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL redirect_uri"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_resource_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(resource) <= 2048))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_response_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL response_type"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_scope_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(scope) <= 4096))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_scope_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL scope"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_state_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(state) <= 4096))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_status_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL status"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_authorizations",
+      "name": "oauth_authorizations_user_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_client_states",
+      "name": "oauth_client_states_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_client_states",
+      "name": "oauth_client_states_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_client_states",
+      "name": "oauth_client_states_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_client_states",
+      "name": "oauth_client_states_provider_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL provider_type"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_clients",
+      "name": "oauth_clients_client_name_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(client_name) <= 1024))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_clients",
+      "name": "oauth_clients_client_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL client_type"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_clients",
+      "name": "oauth_clients_client_uri_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(client_uri) <= 2048))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_clients",
+      "name": "oauth_clients_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_clients",
+      "name": "oauth_clients_grant_types_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL grant_types"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_clients",
+      "name": "oauth_clients_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_clients",
+      "name": "oauth_clients_logo_uri_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(logo_uri) <= 2048))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_clients",
+      "name": "oauth_clients_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_clients",
+      "name": "oauth_clients_redirect_uris_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL redirect_uris"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_clients",
+      "name": "oauth_clients_registration_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL registration_type"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_clients",
+      "name": "oauth_clients_token_endpoint_auth_method_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((token_endpoint_auth_method = ANY (ARRAY['client_secret_basic'::text, 'client_secret_post'::text, 'none'::text])))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_clients",
+      "name": "oauth_clients_token_endpoint_auth_method_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL token_endpoint_auth_method"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_clients",
+      "name": "oauth_clients_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_consents",
+      "name": "oauth_consents_client_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (client_id) REFERENCES auth.oauth_clients(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_consents",
+      "name": "oauth_consents_client_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL client_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_consents",
+      "name": "oauth_consents_granted_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL granted_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_consents",
+      "name": "oauth_consents_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_consents",
+      "name": "oauth_consents_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_consents",
+      "name": "oauth_consents_revoked_after_granted",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((revoked_at IS NULL) OR (revoked_at >= granted_at)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_consents",
+      "name": "oauth_consents_scopes_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(scopes) <= 2048))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_consents",
+      "name": "oauth_consents_scopes_not_empty",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(TRIM(BOTH FROM scopes)) > 0))"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_consents",
+      "name": "oauth_consents_scopes_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL scopes"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_consents",
+      "name": "oauth_consents_user_client_unique",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (user_id, client_id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_consents",
+      "name": "oauth_consents_user_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "oauth_consents",
+      "name": "oauth_consents_user_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL user_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "one_time_tokens",
+      "name": "one_time_tokens_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "one_time_tokens",
+      "name": "one_time_tokens_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "one_time_tokens",
+      "name": "one_time_tokens_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "one_time_tokens",
+      "name": "one_time_tokens_relates_to_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL relates_to"
+    },
+    {
+      "schema": "auth",
+      "tab": "one_time_tokens",
+      "name": "one_time_tokens_token_hash_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(token_hash) > 0))"
+    },
+    {
+      "schema": "auth",
+      "tab": "one_time_tokens",
+      "name": "one_time_tokens_token_hash_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL token_hash"
+    },
+    {
+      "schema": "auth",
+      "tab": "one_time_tokens",
+      "name": "one_time_tokens_token_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL token_type"
+    },
+    {
+      "schema": "auth",
+      "tab": "one_time_tokens",
+      "name": "one_time_tokens_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "one_time_tokens",
+      "name": "one_time_tokens_user_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "one_time_tokens",
+      "name": "one_time_tokens_user_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL user_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "refresh_tokens",
+      "name": "refresh_tokens_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "refresh_tokens",
+      "name": "refresh_tokens_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "refresh_tokens",
+      "name": "refresh_tokens_session_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (session_id) REFERENCES auth.sessions(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "refresh_tokens",
+      "name": "refresh_tokens_token_unique",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (token)"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_providers",
+      "name": "entity_id not empty",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(entity_id) > 0))"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_providers",
+      "name": "metadata_url not empty",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((metadata_url = NULL::text) OR (char_length(metadata_url) > 0)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_providers",
+      "name": "metadata_xml not empty",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(metadata_xml) > 0))"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_providers",
+      "name": "saml_providers_entity_id_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (entity_id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_providers",
+      "name": "saml_providers_entity_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL entity_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_providers",
+      "name": "saml_providers_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_providers",
+      "name": "saml_providers_metadata_xml_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL metadata_xml"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_providers",
+      "name": "saml_providers_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_providers",
+      "name": "saml_providers_sso_provider_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sso_provider_id) REFERENCES auth.sso_providers(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_providers",
+      "name": "saml_providers_sso_provider_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sso_provider_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_relay_states",
+      "name": "request_id not empty",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(request_id) > 0))"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_relay_states",
+      "name": "saml_relay_states_flow_state_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (flow_state_id) REFERENCES auth.flow_state(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_relay_states",
+      "name": "saml_relay_states_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_relay_states",
+      "name": "saml_relay_states_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_relay_states",
+      "name": "saml_relay_states_request_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL request_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_relay_states",
+      "name": "saml_relay_states_sso_provider_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sso_provider_id) REFERENCES auth.sso_providers(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "saml_relay_states",
+      "name": "saml_relay_states_sso_provider_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sso_provider_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "schema_migrations",
+      "name": "schema_migrations_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (version)"
+    },
+    {
+      "schema": "auth",
+      "tab": "schema_migrations",
+      "name": "schema_migrations_version_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL version"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_tokens",
+      "name": "scim_tokens_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_tokens",
+      "name": "scim_tokens_expires_at_future",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((expires_at IS NULL) OR (expires_at > created_at)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_tokens",
+      "name": "scim_tokens_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_tokens",
+      "name": "scim_tokens_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_tokens",
+      "name": "scim_tokens_prefix_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL prefix"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_tokens",
+      "name": "scim_tokens_revoked_after_created",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((revoked_at IS NULL) OR (revoked_at >= created_at)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_tokens",
+      "name": "scim_tokens_sso_provider_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sso_provider_id) REFERENCES auth.sso_providers(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_tokens",
+      "name": "scim_tokens_sso_provider_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sso_provider_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_tokens",
+      "name": "scim_tokens_token_hash_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((token_hash ~ '^[0-9a-f]{64}$'::text))"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_tokens",
+      "name": "scim_tokens_token_hash_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL token_hash"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_users",
+      "name": "scim_users_active_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL active"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_users",
+      "name": "scim_users_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_users",
+      "name": "scim_users_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_users",
+      "name": "scim_users_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_users",
+      "name": "scim_users_resource_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL resource"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_users",
+      "name": "scim_users_sso_provider_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sso_provider_id) REFERENCES auth.sso_providers(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_users",
+      "name": "scim_users_sso_provider_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sso_provider_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_users",
+      "name": "scim_users_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_users",
+      "name": "scim_users_user_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL"
+    },
+    {
+      "schema": "auth",
+      "tab": "scim_users",
+      "name": "scim_users_user_name_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL user_name"
+    },
+    {
+      "schema": "auth",
+      "tab": "sessions",
+      "name": "sessions_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "sessions",
+      "name": "sessions_oauth_client_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (oauth_client_id) REFERENCES auth.oauth_clients(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "sessions",
+      "name": "sessions_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "sessions",
+      "name": "sessions_scopes_length",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(scopes) <= 4096))"
+    },
+    {
+      "schema": "auth",
+      "tab": "sessions",
+      "name": "sessions_user_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "sessions",
+      "name": "sessions_user_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL user_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "sso_domains",
+      "name": "domain not empty",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((char_length(domain) > 0))"
+    },
+    {
+      "schema": "auth",
+      "tab": "sso_domains",
+      "name": "sso_domains_domain_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL domain"
+    },
+    {
+      "schema": "auth",
+      "tab": "sso_domains",
+      "name": "sso_domains_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "sso_domains",
+      "name": "sso_domains_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "sso_domains",
+      "name": "sso_domains_sso_provider_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sso_provider_id) REFERENCES auth.sso_providers(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "sso_domains",
+      "name": "sso_domains_sso_provider_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sso_provider_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "sso_providers",
+      "name": "resource_id not empty",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((resource_id = NULL::text) OR (char_length(resource_id) > 0)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "sso_providers",
+      "name": "sso_providers_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "sso_providers",
+      "name": "sso_providers_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "users",
+      "name": "users_email_change_confirm_status_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((email_change_confirm_status >= 0) AND (email_change_confirm_status <= 2)))"
+    },
+    {
+      "schema": "auth",
+      "tab": "users",
+      "name": "users_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "users",
+      "name": "users_is_anonymous_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL is_anonymous"
+    },
+    {
+      "schema": "auth",
+      "tab": "users",
+      "name": "users_is_sso_user_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL is_sso_user"
+    },
+    {
+      "schema": "auth",
+      "tab": "users",
+      "name": "users_phone_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (phone)"
+    },
+    {
+      "schema": "auth",
+      "tab": "users",
+      "name": "users_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_challenges",
+      "name": "webauthn_challenges_challenge_type_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((challenge_type = ANY (ARRAY['signup'::text, 'registration'::text, 'authentication'::text])))"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_challenges",
+      "name": "webauthn_challenges_challenge_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL challenge_type"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_challenges",
+      "name": "webauthn_challenges_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_challenges",
+      "name": "webauthn_challenges_expires_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL expires_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_challenges",
+      "name": "webauthn_challenges_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_challenges",
+      "name": "webauthn_challenges_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_challenges",
+      "name": "webauthn_challenges_session_data_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL session_data"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_challenges",
+      "name": "webauthn_challenges_user_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_credentials",
+      "name": "webauthn_credentials_attestation_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL attestation_type"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_credentials",
+      "name": "webauthn_credentials_backed_up_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL backed_up"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_credentials",
+      "name": "webauthn_credentials_backup_eligible_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL backup_eligible"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_credentials",
+      "name": "webauthn_credentials_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_credentials",
+      "name": "webauthn_credentials_credential_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL credential_id"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_credentials",
+      "name": "webauthn_credentials_friendly_name_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL friendly_name"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_credentials",
+      "name": "webauthn_credentials_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_credentials",
+      "name": "webauthn_credentials_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_credentials",
+      "name": "webauthn_credentials_public_key_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL public_key"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_credentials",
+      "name": "webauthn_credentials_sign_count_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sign_count"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_credentials",
+      "name": "webauthn_credentials_transports_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL transports"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_credentials",
+      "name": "webauthn_credentials_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_credentials",
+      "name": "webauthn_credentials_user_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "auth",
+      "tab": "webauthn_credentials",
+      "name": "webauthn_credentials_user_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL user_id"
+    },
+    {
+      "schema": "public",
+      "tab": "app_settings",
+      "name": "app_settings_key_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL key"
+    },
+    {
+      "schema": "public",
+      "tab": "app_settings",
+      "name": "app_settings_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (key)"
+    },
+    {
+      "schema": "public",
+      "tab": "app_settings",
+      "name": "app_settings_settings_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL settings"
+    },
+    {
+      "schema": "public",
+      "tab": "app_settings",
+      "name": "app_settings_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "public",
+      "tab": "business_audit_events",
+      "name": "business_audit_events_correlation_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL correlation_id"
+    },
+    {
+      "schema": "public",
+      "tab": "business_audit_events",
+      "name": "business_audit_events_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "public",
+      "tab": "business_audit_events",
+      "name": "business_audit_events_entidad_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL entidad_id"
+    },
+    {
+      "schema": "public",
+      "tab": "business_audit_events",
+      "name": "business_audit_events_entidad_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL entidad"
+    },
+    {
+      "schema": "public",
+      "tab": "business_audit_events",
+      "name": "business_audit_events_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "business_audit_events",
+      "name": "business_audit_events_metadata_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL metadata"
+    },
+    {
+      "schema": "public",
+      "tab": "business_audit_events",
+      "name": "business_audit_events_operacion_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL operacion"
+    },
+    {
+      "schema": "public",
+      "tab": "business_audit_events",
+      "name": "business_audit_events_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "carritos_pendientes",
+      "name": "carritos_pendientes_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "carritos_pendientes",
+      "name": "carritos_pendientes_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "carritos_pendientes",
+      "name": "carritos_pendientes_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "carritos_pendientes",
+      "name": "carritos_pendientes_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "carritos_pendientes",
+      "name": "carritos_pendientes_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "carritos_pendientes",
+      "name": "carritos_pendientes_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_cashbox_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL cashbox_id"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_difference_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL difference"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_end_date_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL end_date"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_expected_cash_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL expected_cash"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_opening_balance_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL opening_balance"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_real_cash_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL real_cash"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_start_date_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL start_date"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_closures",
+      "name": "cash_closures_valid_range",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((start_date <= end_date))"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_amount_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((amount > (0)::numeric))"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_amount_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL amount"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_cashbox_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL cashbox_id"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_date_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL date"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_payment_method_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((payment_method = ANY (ARRAY['cash'::text, 'qr'::text, 'transfer'::text, 'other'::text])))"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_payment_method_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL payment_method"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_type_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((type = ANY (ARRAY['income'::text, 'expense'::text])))"
+    },
+    {
+      "schema": "public",
+      "tab": "cash_movements",
+      "name": "cash_movements_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL type"
+    },
+    {
+      "schema": "public",
+      "tab": "categorias",
+      "name": "categorias_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "categorias",
+      "name": "categorias_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "categorias",
+      "name": "categorias_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "categorias",
+      "name": "categorias_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "categorias",
+      "name": "categorias_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "categorias",
+      "name": "categorias_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "clientes",
+      "name": "clientes_carnet_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (carnet)"
+    },
+    {
+      "schema": "public",
+      "tab": "clientes",
+      "name": "clientes_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "clientes",
+      "name": "clientes_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "clientes",
+      "name": "clientes_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "clientes",
+      "name": "clientes_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "clientes",
+      "name": "clientes_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "clientes",
+      "name": "clientes_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_attempts",
+      "name": "inventory_operation_attempts_correlation_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL correlation_id"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_attempts",
+      "name": "inventory_operation_attempts_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_attempts",
+      "name": "inventory_operation_attempts_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_attempts",
+      "name": "inventory_operation_attempts_metadata_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL metadata"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_attempts",
+      "name": "inventory_operation_attempts_operacion_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL operacion"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_attempts",
+      "name": "inventory_operation_attempts_origen_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL origen"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_attempts",
+      "name": "inventory_operation_attempts_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_attempts",
+      "name": "inventory_operation_attempts_resultado_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((resultado = ANY (ARRAY['RECHAZADO'::text, 'ERROR'::text])))"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_attempts",
+      "name": "inventory_operation_attempts_resultado_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL resultado"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_requests",
+      "name": "inventory_operation_requests_correlation_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL correlation_id"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_requests",
+      "name": "inventory_operation_requests_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_requests",
+      "name": "inventory_operation_requests_idempotency_key_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL idempotency_key"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_requests",
+      "name": "inventory_operation_requests_operacion_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL operacion"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_requests",
+      "name": "inventory_operation_requests_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (idempotency_key)"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_requests",
+      "name": "inventory_operation_requests_request_hash_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL request_hash"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_requests",
+      "name": "inventory_operation_requests_status_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((status = ANY (ARRAY['PROCESSING'::text, 'COMPLETED'::text])))"
+    },
+    {
+      "schema": "public",
+      "tab": "inventory_operation_requests",
+      "name": "inventory_operation_requests_status_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL status"
+    },
+    {
+      "schema": "public",
+      "tab": "pack_productos",
+      "name": "pack_productos_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "pack_productos",
+      "name": "pack_productos_pack_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pack_id) REFERENCES public.packs(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "pack_productos",
+      "name": "pack_productos_pack_id_producto_id_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (pack_id, producto_id)"
+    },
+    {
+      "schema": "public",
+      "tab": "pack_productos",
+      "name": "pack_productos_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "pack_productos",
+      "name": "pack_productos_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "pack_productos",
+      "name": "pack_productos_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "pack_productos",
+      "name": "pack_productos_producto_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (producto_id) REFERENCES public.productos(user_id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "pack_productos",
+      "name": "pack_productos_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "pack_productos",
+      "name": "pack_productos_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "pack_productos",
+      "name": "pack_productos_variante_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (variante_id) REFERENCES public.producto_variantes(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "packs",
+      "name": "packs_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "packs",
+      "name": "packs_nombre_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL nombre"
+    },
+    {
+      "schema": "public",
+      "tab": "packs",
+      "name": "packs_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "packs",
+      "name": "packs_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "packs",
+      "name": "packs_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "packs",
+      "name": "packs_precio_pack_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL precio_pack"
+    },
+    {
+      "schema": "public",
+      "tab": "packs",
+      "name": "packs_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "packs",
+      "name": "packs_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "pais_settings",
+      "name": "pais_settings_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "pais_settings",
+      "name": "pais_settings_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "pais_settings",
+      "name": "pais_settings_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (pais_id)"
+    },
+    {
+      "schema": "public",
+      "tab": "pais_settings",
+      "name": "pais_settings_settings_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL settings"
+    },
+    {
+      "schema": "public",
+      "tab": "pais_settings",
+      "name": "pais_settings_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "public",
+      "tab": "paises",
+      "name": "paises_activa_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL activa"
+    },
+    {
+      "schema": "public",
+      "tab": "paises",
+      "name": "paises_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "public",
+      "tab": "paises",
+      "name": "paises_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "paises",
+      "name": "paises_metadata_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL metadata"
+    },
+    {
+      "schema": "public",
+      "tab": "paises",
+      "name": "paises_moneda_codigo_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL moneda_codigo"
+    },
+    {
+      "schema": "public",
+      "tab": "paises",
+      "name": "paises_moneda_simbolo_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL moneda_simbolo"
+    },
+    {
+      "schema": "public",
+      "tab": "paises",
+      "name": "paises_nombre_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL nombre"
+    },
+    {
+      "schema": "public",
+      "tab": "paises",
+      "name": "paises_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "paises",
+      "name": "paises_slug_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (slug)"
+    },
+    {
+      "schema": "public",
+      "tab": "paises",
+      "name": "paises_slug_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL slug"
+    },
+    {
+      "schema": "public",
+      "tab": "paises",
+      "name": "paises_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "public",
+      "tab": "password_resets",
+      "name": "password_resets_code_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL code"
+    },
+    {
+      "schema": "public",
+      "tab": "password_resets",
+      "name": "password_resets_email_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL email"
+    },
+    {
+      "schema": "public",
+      "tab": "password_resets",
+      "name": "password_resets_expires_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL expires_at"
+    },
+    {
+      "schema": "public",
+      "tab": "password_resets",
+      "name": "password_resets_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (email, code)"
+    },
+    {
+      "schema": "public",
+      "tab": "perfiles",
+      "name": "perfiles_email_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL email"
+    },
+    {
+      "schema": "public",
+      "tab": "perfiles",
+      "name": "perfiles_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "perfiles",
+      "name": "perfiles_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "perfiles",
+      "name": "perfiles_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "perfiles",
+      "name": "perfiles_rol_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL rol"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_imagenes",
+      "name": "producto_imagenes_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_imagenes",
+      "name": "producto_imagenes_imagen_url_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL imagen_url"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_imagenes",
+      "name": "producto_imagenes_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_imagenes",
+      "name": "producto_imagenes_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_imagenes",
+      "name": "producto_imagenes_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_imagenes",
+      "name": "producto_imagenes_producto_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (producto_id) REFERENCES public.productos(user_id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_imagenes",
+      "name": "producto_imagenes_producto_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL producto_id"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_imagenes",
+      "name": "producto_imagenes_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_imagenes",
+      "name": "producto_imagenes_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_ubicaciones",
+      "name": "producto_ubicaciones_caja_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((length(TRIM(BOTH FROM caja)) >= 1) AND (length(TRIM(BOTH FROM caja)) <= 80)))"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_ubicaciones",
+      "name": "producto_ubicaciones_caja_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL caja"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_ubicaciones",
+      "name": "producto_ubicaciones_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (producto_id)"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_ubicaciones",
+      "name": "producto_ubicaciones_producto_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (producto_id) REFERENCES public.productos(user_id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_ubicaciones",
+      "name": "producto_ubicaciones_producto_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL producto_id"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_ubicaciones",
+      "name": "producto_ubicaciones_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_ubicaciones",
+      "name": "producto_ubicaciones_updated_by_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (updated_by) REFERENCES auth.users(id) ON DELETE SET NULL"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_variantes",
+      "name": "producto_variantes_activo_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL activo"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_variantes",
+      "name": "producto_variantes_color_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL color"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_variantes",
+      "name": "producto_variantes_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_variantes",
+      "name": "producto_variantes_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_variantes",
+      "name": "producto_variantes_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_variantes",
+      "name": "producto_variantes_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_variantes",
+      "name": "producto_variantes_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_variantes",
+      "name": "producto_variantes_producto_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (producto_id) REFERENCES public.productos(user_id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_variantes",
+      "name": "producto_variantes_producto_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL producto_id"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_variantes",
+      "name": "producto_variantes_stock_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((stock >= 0))"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_variantes",
+      "name": "producto_variantes_stock_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL stock"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_variantes",
+      "name": "producto_variantes_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_variantes",
+      "name": "producto_variantes_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "producto_variantes",
+      "name": "producto_variantes_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "public",
+      "tab": "productos",
+      "name": "productos_archivado_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL archivado"
+    },
+    {
+      "schema": "public",
+      "tab": "productos",
+      "name": "productos_category_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (category_id) REFERENCES public.categorias(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "productos",
+      "name": "productos_nombre_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL nombre"
+    },
+    {
+      "schema": "public",
+      "tab": "productos",
+      "name": "productos_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "productos",
+      "name": "productos_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "productos",
+      "name": "productos_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (user_id)"
+    },
+    {
+      "schema": "public",
+      "tab": "productos",
+      "name": "productos_precio_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL precio"
+    },
+    {
+      "schema": "public",
+      "tab": "productos",
+      "name": "productos_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "productos",
+      "name": "productos_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "productos",
+      "name": "productos_user_id_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (user_id)"
+    },
+    {
+      "schema": "public",
+      "tab": "productos",
+      "name": "productos_user_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL user_id"
+    },
+    {
+      "schema": "public",
+      "tab": "productos",
+      "name": "productos_vista_producto_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (vista_producto) REFERENCES public.tipos_producto(slug) ON UPDATE CASCADE ON DELETE RESTRICT"
+    },
+    {
+      "schema": "public",
+      "tab": "productos",
+      "name": "productos_vista_producto_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL vista_producto"
+    },
+    {
+      "schema": "public",
+      "tab": "productos_historial",
+      "name": "productos_historial_accion_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL accion"
+    },
+    {
+      "schema": "public",
+      "tab": "productos_historial",
+      "name": "productos_historial_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "productos_historial",
+      "name": "productos_historial_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "productos_historial",
+      "name": "productos_historial_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "productos_historial",
+      "name": "productos_historial_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "productos_historial",
+      "name": "productos_historial_producto_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (producto_id) REFERENCES public.productos(user_id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "productos_historial",
+      "name": "productos_historial_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "productos_historial",
+      "name": "productos_historial_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "promociones",
+      "name": "promociones_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "promociones",
+      "name": "promociones_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "promociones",
+      "name": "promociones_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "promociones",
+      "name": "promociones_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "promociones",
+      "name": "promociones_producto_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (producto_id) REFERENCES public.productos(user_id)"
+    },
+    {
+      "schema": "public",
+      "tab": "promociones",
+      "name": "promociones_producto_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL producto_id"
+    },
+    {
+      "schema": "public",
+      "tab": "promociones",
+      "name": "promociones_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "promociones",
+      "name": "promociones_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "promociones",
+      "name": "promociones_tipo_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL tipo"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_cantidad_base_positiva",
+      "type": "c",
+      "validated": false,
+      "definition": "CHECK (((cantidad_base IS NULL) OR (cantidad_base > (0)::numeric) OR ((tipo = 'apertura_ledger'::text) AND (cantidad_base = (0)::numeric)))) NOT VALID"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_cantidad_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL cantidad"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_factor_positivo",
+      "type": "c",
+      "validated": false,
+      "definition": "CHECK (((factor_conversion IS NULL) OR (factor_conversion > (0)::numeric))) NOT VALID"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_producto_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (producto_id) REFERENCES public.productos(user_id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_producto_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL producto_id"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_resultado_valido",
+      "type": "c",
+      "validated": false,
+      "definition": "CHECK ((resultado = ANY (ARRAY['OK'::text, 'RECHAZADO'::text, 'ERROR'::text]))) NOT VALID"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_snapshot_no_negativo",
+      "type": "c",
+      "validated": false,
+      "definition": "CHECK (((stock_antes IS NULL) OR (stock_antes >= (0)::numeric))) NOT VALID"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_stock_despues_no_negativo",
+      "type": "c",
+      "validated": false,
+      "definition": "CHECK (((stock_despues IS NULL) OR (stock_despues >= (0)::numeric))) NOT VALID"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "stock_movimientos",
+      "name": "stock_movimientos_tipo_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL tipo"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursal_settings",
+      "name": "sucursal_settings_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (sucursal_id)"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursal_settings",
+      "name": "sucursal_settings_settings_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL settings"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursal_settings",
+      "name": "sucursal_settings_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursal_settings",
+      "name": "sucursal_settings_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursal_settings",
+      "name": "sucursal_settings_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursales",
+      "name": "sucursales_activa_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL activa"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursales",
+      "name": "sucursales_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursales",
+      "name": "sucursales_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursales",
+      "name": "sucursales_metadata_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL metadata"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursales",
+      "name": "sucursales_nombre_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL nombre"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursales",
+      "name": "sucursales_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursales",
+      "name": "sucursales_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursales",
+      "name": "sucursales_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursales",
+      "name": "sucursales_slug_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL slug"
+    },
+    {
+      "schema": "public",
+      "tab": "sucursales",
+      "name": "sucursales_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "public",
+      "tab": "tipos_producto",
+      "name": "tipos_producto_activo_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL activo"
+    },
+    {
+      "schema": "public",
+      "tab": "tipos_producto",
+      "name": "tipos_producto_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "public",
+      "tab": "tipos_producto",
+      "name": "tipos_producto_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "tipos_producto",
+      "name": "tipos_producto_nombre_no_vacio",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((length(TRIM(BOTH FROM nombre)) > 0))"
+    },
+    {
+      "schema": "public",
+      "tab": "tipos_producto",
+      "name": "tipos_producto_nombre_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL nombre"
+    },
+    {
+      "schema": "public",
+      "tab": "tipos_producto",
+      "name": "tipos_producto_orden_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL orden"
+    },
+    {
+      "schema": "public",
+      "tab": "tipos_producto",
+      "name": "tipos_producto_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "tipos_producto",
+      "name": "tipos_producto_protegido_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL protegido"
+    },
+    {
+      "schema": "public",
+      "tab": "tipos_producto",
+      "name": "tipos_producto_slug_formato",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'::text))"
+    },
+    {
+      "schema": "public",
+      "tab": "tipos_producto",
+      "name": "tipos_producto_slug_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (slug)"
+    },
+    {
+      "schema": "public",
+      "tab": "tipos_producto",
+      "name": "tipos_producto_slug_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL slug"
+    },
+    {
+      "schema": "public",
+      "tab": "tipos_producto",
+      "name": "tipos_producto_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_cantidad_base_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((cantidad_base > (0)::numeric))"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_cantidad_base_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL cantidad_base"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_cantidad_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((cantidad > (0)::numeric))"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_cantidad_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL cantidad"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_distintas",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((sucursal_origen_id <> sucursal_destino_id))"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_estado_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL estado"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_producto_destino_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL producto_destino_id"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_producto_nombre_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL producto_nombre"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_producto_origen_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL producto_origen_id"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_sucursal_destino_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_destino_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_sucursal_destino_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_destino_id"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_sucursal_origen_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_origen_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "transferencias_sucursal",
+      "name": "transferencias_sucursal_sucursal_origen_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_origen_id"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_paises",
+      "name": "usuario_paises_activo_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL activo"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_paises",
+      "name": "usuario_paises_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_paises",
+      "name": "usuario_paises_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_paises",
+      "name": "usuario_paises_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_paises",
+      "name": "usuario_paises_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_paises",
+      "name": "usuario_paises_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_paises",
+      "name": "usuario_paises_rol_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((rol = ANY (ARRAY['owner'::text, 'admin'::text, 'administracion'::text, 'vendedor'::text, 'almacen'::text])))"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_paises",
+      "name": "usuario_paises_rol_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL rol"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_paises",
+      "name": "usuario_paises_usuario_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (usuario_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_paises",
+      "name": "usuario_paises_usuario_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL usuario_id"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_paises",
+      "name": "usuario_paises_usuario_id_pais_id_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (usuario_id, pais_id)"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_sucursales",
+      "name": "usuario_sucursales_activo_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL activo"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_sucursales",
+      "name": "usuario_sucursales_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_sucursales",
+      "name": "usuario_sucursales_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_sucursales",
+      "name": "usuario_sucursales_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_sucursales",
+      "name": "usuario_sucursales_rol_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((rol = ANY (ARRAY['admin'::text, 'administracion'::text, 'vendedor'::text, 'almacen'::text])))"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_sucursales",
+      "name": "usuario_sucursales_rol_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL rol"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_sucursales",
+      "name": "usuario_sucursales_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_sucursales",
+      "name": "usuario_sucursales_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_sucursales",
+      "name": "usuario_sucursales_usuario_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (usuario_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_sucursales",
+      "name": "usuario_sucursales_usuario_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL usuario_id"
+    },
+    {
+      "schema": "public",
+      "tab": "usuario_sucursales",
+      "name": "usuario_sucursales_usuario_id_sucursal_id_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (usuario_id, sucursal_id)"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas",
+      "name": "ventas_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas",
+      "name": "ventas_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas",
+      "name": "ventas_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas",
+      "name": "ventas_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas",
+      "name": "ventas_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas",
+      "name": "ventas_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_detalle",
+      "name": "ventas_detalle_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_detalle",
+      "name": "ventas_detalle_pack_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pack_id) REFERENCES public.packs(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_detalle",
+      "name": "ventas_detalle_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_detalle",
+      "name": "ventas_detalle_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_detalle",
+      "name": "ventas_detalle_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_detalle",
+      "name": "ventas_detalle_producto_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (producto_id) REFERENCES public.productos(user_id)"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_detalle",
+      "name": "ventas_detalle_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_detalle",
+      "name": "ventas_detalle_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_detalle",
+      "name": "ventas_detalle_variante_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (variante_id) REFERENCES public.producto_variantes(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_detalle",
+      "name": "ventas_detalle_venta_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (venta_id) REFERENCES public.ventas(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_pagos",
+      "name": "ventas_pagos_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_pagos",
+      "name": "ventas_pagos_metodo_pago_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL metodo_pago"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_pagos",
+      "name": "ventas_pagos_monto_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((monto > (0)::numeric))"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_pagos",
+      "name": "ventas_pagos_monto_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL monto"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_pagos",
+      "name": "ventas_pagos_pais_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (pais_id) REFERENCES public.paises(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_pagos",
+      "name": "ventas_pagos_pais_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL pais_id"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_pagos",
+      "name": "ventas_pagos_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_pagos",
+      "name": "ventas_pagos_sucursal_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (sucursal_id) REFERENCES public.sucursales(id)"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_pagos",
+      "name": "ventas_pagos_sucursal_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL sucursal_id"
+    },
+    {
+      "schema": "public",
+      "tab": "ventas_pagos",
+      "name": "ventas_pagos_venta_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (venta_id) REFERENCES public.ventas(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets",
+      "name": "buckets_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets",
+      "name": "buckets_lifecycle_configuration_pair_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((lifecycle_configuration IS NULL) = (lifecycle_configuration_generation IS NULL)))"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets",
+      "name": "buckets_lifecycle_configuration_shape_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((lifecycle_configuration IS NULL) OR ((jsonb_typeof(lifecycle_configuration) = 'object'::text) AND (lifecycle_configuration ? 'rules'::text) AND\nCASE\n    WHEN (jsonb_typeof((lifecycle_configuration -> 'rules'::text)) = 'array'::text) THEN ((jsonb_array_length((lifecycle_configuration -> 'rules'::text)) >= 1) AND (jsonb_array_length((lifecycle_configuration -> 'rules'::text)) <= 1000))\n    ELSE false\nEND)))"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets",
+      "name": "buckets_lifecycle_configuration_standard_only_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((type = 'STANDARD'::storage.buckettype) OR ((lifecycle_configuration IS NULL) AND (lifecycle_configuration_generation IS NULL))))"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets",
+      "name": "buckets_name_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL name"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets",
+      "name": "buckets_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets",
+      "name": "buckets_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL type"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets",
+      "name": "buckets_versioning_standard_only_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK (((type = 'STANDARD'::storage.buckettype) OR (versioning_status = 'DISABLED'::text)))"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets",
+      "name": "buckets_versioning_status_check",
+      "type": "c",
+      "validated": true,
+      "definition": "CHECK ((versioning_status = ANY (ARRAY['DISABLED'::text, 'ENABLED'::text, 'SUSPENDED'::text])))"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets",
+      "name": "buckets_versioning_status_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL versioning_status"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets_analytics",
+      "name": "buckets_analytics_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets_analytics",
+      "name": "buckets_analytics_format_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL format"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets_analytics",
+      "name": "buckets_analytics_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets_analytics",
+      "name": "buckets_analytics_name_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL name"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets_analytics",
+      "name": "buckets_analytics_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets_analytics",
+      "name": "buckets_analytics_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL type"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets_analytics",
+      "name": "buckets_analytics_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets_vectors",
+      "name": "buckets_vectors_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets_vectors",
+      "name": "buckets_vectors_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets_vectors",
+      "name": "buckets_vectors_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets_vectors",
+      "name": "buckets_vectors_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL type"
+    },
+    {
+      "schema": "storage",
+      "tab": "buckets_vectors",
+      "name": "buckets_vectors_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_namespaces",
+      "name": "iceberg_namespaces_bucket_name_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL bucket_name"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_namespaces",
+      "name": "iceberg_namespaces_catalog_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (catalog_id) REFERENCES storage.buckets_analytics(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_namespaces",
+      "name": "iceberg_namespaces_catalog_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL catalog_id"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_namespaces",
+      "name": "iceberg_namespaces_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_namespaces",
+      "name": "iceberg_namespaces_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_namespaces",
+      "name": "iceberg_namespaces_metadata_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL metadata"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_namespaces",
+      "name": "iceberg_namespaces_name_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL name"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_namespaces",
+      "name": "iceberg_namespaces_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_namespaces",
+      "name": "iceberg_namespaces_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_tables",
+      "name": "iceberg_tables_bucket_name_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL bucket_name"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_tables",
+      "name": "iceberg_tables_catalog_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (catalog_id) REFERENCES storage.buckets_analytics(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_tables",
+      "name": "iceberg_tables_catalog_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL catalog_id"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_tables",
+      "name": "iceberg_tables_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_tables",
+      "name": "iceberg_tables_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_tables",
+      "name": "iceberg_tables_location_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL location"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_tables",
+      "name": "iceberg_tables_name_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL name"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_tables",
+      "name": "iceberg_tables_namespace_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (namespace_id) REFERENCES storage.iceberg_namespaces(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_tables",
+      "name": "iceberg_tables_namespace_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL namespace_id"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_tables",
+      "name": "iceberg_tables_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "storage",
+      "tab": "iceberg_tables",
+      "name": "iceberg_tables_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "schema": "storage",
+      "tab": "migrations",
+      "name": "migrations_hash_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL hash"
+    },
+    {
+      "schema": "storage",
+      "tab": "migrations",
+      "name": "migrations_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "storage",
+      "tab": "migrations",
+      "name": "migrations_name_key",
+      "type": "u",
+      "validated": true,
+      "definition": "UNIQUE (name)"
+    },
+    {
+      "schema": "storage",
+      "tab": "migrations",
+      "name": "migrations_name_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL name"
+    },
+    {
+      "schema": "storage",
+      "tab": "migrations",
+      "name": "migrations_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "storage",
+      "tab": "objects",
+      "name": "objects_bucketId_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (bucket_id) REFERENCES storage.buckets(id)"
+    },
+    {
+      "schema": "storage",
+      "tab": "objects",
+      "name": "objects_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "storage",
+      "tab": "objects",
+      "name": "objects_is_delete_marker_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL is_delete_marker"
+    },
+    {
+      "schema": "storage",
+      "tab": "objects",
+      "name": "objects_is_versioned_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL is_versioned"
+    },
+    {
+      "schema": "storage",
+      "tab": "objects",
+      "name": "objects_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads",
+      "name": "s3_multipart_uploads_bucket_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (bucket_id) REFERENCES storage.buckets(id)"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads",
+      "name": "s3_multipart_uploads_bucket_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL bucket_id"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads",
+      "name": "s3_multipart_uploads_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads",
+      "name": "s3_multipart_uploads_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads",
+      "name": "s3_multipart_uploads_in_progress_size_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL in_progress_size"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads",
+      "name": "s3_multipart_uploads_key_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL key"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads",
+      "name": "s3_multipart_uploads_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads",
+      "name": "s3_multipart_uploads_upload_signature_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL upload_signature"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads",
+      "name": "s3_multipart_uploads_version_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL version"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads_parts",
+      "name": "s3_multipart_uploads_parts_bucket_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (bucket_id) REFERENCES storage.buckets(id)"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads_parts",
+      "name": "s3_multipart_uploads_parts_bucket_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL bucket_id"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads_parts",
+      "name": "s3_multipart_uploads_parts_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads_parts",
+      "name": "s3_multipart_uploads_parts_etag_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL etag"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads_parts",
+      "name": "s3_multipart_uploads_parts_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads_parts",
+      "name": "s3_multipart_uploads_parts_key_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL key"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads_parts",
+      "name": "s3_multipart_uploads_parts_part_number_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL part_number"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads_parts",
+      "name": "s3_multipart_uploads_parts_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads_parts",
+      "name": "s3_multipart_uploads_parts_size_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL size"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads_parts",
+      "name": "s3_multipart_uploads_parts_upload_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (upload_id) REFERENCES storage.s3_multipart_uploads(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads_parts",
+      "name": "s3_multipart_uploads_parts_upload_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL upload_id"
+    },
+    {
+      "schema": "storage",
+      "tab": "s3_multipart_uploads_parts",
+      "name": "s3_multipart_uploads_parts_version_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL version"
+    },
+    {
+      "schema": "storage",
+      "tab": "vector_indexes",
+      "name": "vector_indexes_bucket_id_fkey",
+      "type": "f",
+      "validated": true,
+      "definition": "FOREIGN KEY (bucket_id) REFERENCES storage.buckets_vectors(id)"
+    },
+    {
+      "schema": "storage",
+      "tab": "vector_indexes",
+      "name": "vector_indexes_bucket_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL bucket_id"
+    },
+    {
+      "schema": "storage",
+      "tab": "vector_indexes",
+      "name": "vector_indexes_created_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "schema": "storage",
+      "tab": "vector_indexes",
+      "name": "vector_indexes_data_type_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL data_type"
+    },
+    {
+      "schema": "storage",
+      "tab": "vector_indexes",
+      "name": "vector_indexes_dimension_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL dimension"
+    },
+    {
+      "schema": "storage",
+      "tab": "vector_indexes",
+      "name": "vector_indexes_distance_metric_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL distance_metric"
+    },
+    {
+      "schema": "storage",
+      "tab": "vector_indexes",
+      "name": "vector_indexes_id_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL id"
+    },
+    {
+      "schema": "storage",
+      "tab": "vector_indexes",
+      "name": "vector_indexes_name_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL name"
+    },
+    {
+      "schema": "storage",
+      "tab": "vector_indexes",
+      "name": "vector_indexes_pkey",
+      "type": "p",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "storage",
+      "tab": "vector_indexes",
+      "name": "vector_indexes_updated_at_not_null",
+      "type": "n",
+      "validated": true,
+      "definition": "NOT NULL updated_at"
+    }
+  ],
+  "constraint_tests": [
+    {
+      "name": "product_primary_key",
+      "passed": true,
+      "code": "23505"
+    },
+    {
+      "name": "product_not_null",
+      "passed": true,
+      "code": "23502"
+    },
+    {
+      "name": "detail_product_fk",
+      "passed": true,
+      "code": "23503"
+    }
+  ],
+  "status": "restored_and_constraint_tests_passed",
+  "logo_change_test": {
+    "changed_logos": 3,
+    "other_row_changes": 1,
+    "passed": false
+  },
+  "finished_utc": "2026-10-29T21:24:48.535Z"
+}

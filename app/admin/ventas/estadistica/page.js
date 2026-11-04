@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 import dynamic from "next/dynamic";
 import { useSucursalActiva } from "../../../../components/admin/SucursalContext";
@@ -14,7 +14,6 @@ export default function VentasEstadisticaPage() {
   const { activeSucursalId } = useSucursalActiva();
   const [ventas, setVentas] = useState([]);
   const [detalles, setDetalles] = useState([]);
-  const [reportLines, setReportLines] = useState([]);
   const [openRow, setOpenRow] = useState(null);
 
   useEffect(() => {
@@ -40,8 +39,8 @@ export default function VentasEstadisticaPage() {
   }, [activeSucursalId]);
 
 
-  useEffect(() => {
-    if (ventas.length === 0) return;
+  const reportLines = useMemo(() => {
+    if (ventas.length === 0) return [];
 
     // Agrupar detalles por venta para acceso O(1)
     const detallesPorVenta = {};
@@ -85,7 +84,7 @@ export default function VentasEstadisticaPage() {
       });
       return { venta: v, inversion, ventaPrice, descuentos, costos, gananciaBruta, gananciaNeta, porcentajeUtilidad, items };
     });
-    setReportLines(lines);
+    return lines;
   }, [ventas, detalles]);
 
   // Diagnóstico rápido

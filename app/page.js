@@ -1,5 +1,6 @@
 "use client";
 
+import { scheduleEffect } from '../lib/scheduleEffect';
 import React, { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '../lib/SupabaseClient';
@@ -154,20 +155,22 @@ function getStockBreakdown(producto, stockBaseInput) {
   };
 }
 
-function UnitPricePanel({ conversionInfo, factor }) {
-  if (!conversionInfo) return null;
-  const PriceValue = ({ original, final }) => (
+const UnitPriceValue = ({ original, final, promotional }) => (
     <span className="flex shrink-0 flex-col items-end leading-tight">
-      {conversionInfo.tienePromocion && (
+      {promotional && (
         <span className="text-xs text-gray-800 line-through decoration-gray-800">
           Bs {original.toFixed(2)}
         </span>
       )}
-      <span className={`font-bold ${conversionInfo.tienePromocion ? 'text-green-600' : 'text-blue-700'}`}>
+      <span className={`font-bold ${promotional ? 'text-green-600' : 'text-blue-700'}`}>
         Bs {final.toFixed(2)}
       </span>
     </span>
   );
+
+function UnitPricePanel({ conversionInfo, factor }) {
+  if (!conversionInfo) return null;
+  
 
   return (
     <div className="mb-1.5 space-y-1 text-left">
@@ -175,12 +178,12 @@ function UnitPricePanel({ conversionInfo, factor }) {
         {conversionInfo.showBasePrice && (
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs text-gray-600 sm:text-sm">Por {conversionInfo.unidadBase}</span>
-            <PriceValue original={conversionInfo.precioBaseOriginal} final={conversionInfo.precioBase} />
+            <UnitPriceValue promotional={conversionInfo.tienePromocion} original={conversionInfo.precioBaseOriginal} final={conversionInfo.precioBase} />
           </div>
         )}
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs text-gray-600 sm:text-sm">Por {conversionInfo.unidadAlternativa}</span>
-          <PriceValue original={conversionInfo.precioAlternativoOriginal} final={conversionInfo.precioAlternativo} />
+          <UnitPriceValue promotional={conversionInfo.tienePromocion} original={conversionInfo.precioAlternativoOriginal} final={conversionInfo.precioAlternativo} />
         </div>
       </div>
       <div className="text-[11px] leading-tight text-gray-500">
@@ -423,6 +426,7 @@ function CatalogHome() {
   };
 
   useEffect(() => {
+      return scheduleEffect(() => {
     fetchCategorias();
     fetchProductos();
     
@@ -442,7 +446,9 @@ function CatalogHome() {
         supabase.removeChannel(channel);
       };
     }
-  }, [currentPublicView, activeSucursalId, sucursalesLoading]);
+  
+      });
+    }, [currentPublicView, activeSucursalId, sucursalesLoading]);
 
 
   // 2. Definición de la variable calculada: productosFiltrados

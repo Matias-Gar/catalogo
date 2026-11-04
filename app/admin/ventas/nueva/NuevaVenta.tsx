@@ -14,7 +14,7 @@ import CarritoPanel from '../../../../components/venta/CarritoPanel';
 import dynamic from 'next/dynamic';
 const TicketPrinter = dynamic(() => import('../../../../components/venta/TicketPrinter'), { ssr: false });
 import type { TicketPrinterHandle } from '../../../../components/venta/TicketPrinter';
-import { Pack, Producto } from '../../../../hooks/useCarrito';
+import { CartItem, Pack, Producto } from '../../../../hooks/useCarrito';
 import { supabase } from '../../../../lib/SupabaseClient';
 import { showToast } from '../../../../components/ui/Toast';
 import { useSucursalActiva } from '../../../../components/admin/SucursalContext';
@@ -154,7 +154,7 @@ function getSaleBaseQuantity(
 
 export default function NuevaVenta() {
   // hooks
-  const { activePaisId, activeSucursal } = useSucursalActiva() as any;
+  const { activePaisId, activeSucursal } = useSucursalActiva() as { activePaisId: string; activeSucursal: { id: string } | null };
   const effectiveSucursalId = activeSucursal?.id || "";
   const { cliente, cambiarCampo, buscarPorCarnet, guardar, buscarEmailHistorico } = useCliente(effectiveSucursalId, activePaisId);
   const { promociones, loading: loadingPromociones, error: errorPromociones } = usePromociones(effectiveSucursalId);
@@ -240,7 +240,7 @@ export default function NuevaVenta() {
         pendingPedidoIdRef.current = pedidoObj?.id || null;
         if (!Array.isArray(pedidoObj.productos)) return;
         // Agrupar productos por producto_id, variante_id y color
-        const grouped: { [key: string]: any } = {};
+        const grouped: Record<string, Partial<CartItem> & { producto_id?: string | number; cantidad: number; error?: string }> = {};
         for (const p of pedidoObj.productos) {
           // Sanitizar: si es pack y user_id es 'pack-<id>', usar solo pack_id numérico
           let producto_id = p.producto_id || p.user_id || '';
@@ -272,8 +272,8 @@ export default function NuevaVenta() {
 
         // Consultar productos desde la base de datos, trayendo también la imagen principal
         let productosDB = [];
-        let imagenesDB: { [key: string]: string[] } = {};
-        let unidadesByProducto: Record<string, any> = {};
+        const imagenesDB: { [key: string]: string[] } = {};
+        let unidadesByProducto: Record<string, Partial<ProductoDB>> = {};
         if (productosIds.length > 0) {
           const supabaseClient = supabase;
           let productosQuery = supabaseClient
@@ -419,8 +419,8 @@ export default function NuevaVenta() {
       } catch (e: unknown) {
         console.error('Error cargando pedido:', e);
         let errorMsg = '';
-        if (e && typeof e === 'object' && 'message' in e && typeof (e as any).message === 'string') {
-          errorMsg = (e as any).message;
+        if (e && typeof e === 'object' && 'message' in e && typeof e.message === 'string') {
+          errorMsg = e.message;
         } else {
           errorMsg = String(e);
         }

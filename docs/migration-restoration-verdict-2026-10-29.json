@@ -1,0 +1,28 @@
+{
+  "public_constraints_compared": 119,
+  "differences": [],
+  "restore_status": "restored_and_constraint_tests_passed",
+  "engine": "PGlite PostgreSQL WASM; isolated local process, not Dell services",
+  "logo_change_test": {
+    "changed_logos": 3,
+    "other_row_changes": 0,
+    "automatic_metadata_updates": [
+      {
+        "table": "app_settings",
+        "field": "updated_at"
+      },
+      {
+        "table": "pais_settings",
+        "field": "updated_at"
+      },
+      {
+        "table": "pais_settings",
+        "field": "updated_at"
+      }
+    ],
+    "passed": true
+  },
+  "original_cloud_backup_restored": true,
+  "current_dell_backup_restored": true,
+  "production_changed": false
+}

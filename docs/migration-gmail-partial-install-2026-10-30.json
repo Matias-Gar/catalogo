@@ -1,0 +1,18 @@
+{
+  "mail_sent": false,
+  "production_changed": true,
+  "smtp_applied": false,
+  "logos_applied": false,
+  "errors": [
+    "Timeout after 30 seconds: systemctl daemon-reload"
+  ],
+  "last_step": "systemctl daemon-reload",
+  "docker_api_version": "1.52",
+  "docker_cli_read_verified": true,
+  "docker_compose_client_available": true,
+  "oauth_refresh_verified_from_dell": true,
+  "rollback_env_private_path": "/dev/shm/catalogo-env-before-gmail-20261030-125117-3891952",
+  "status": "failed_or_partial",
+  "finished_utc": "2026-10-30T12:55:29.573803+00:00",
+  "report_path": "/dev/shm/catalogo-gmail-result-20261030-125117-3891952.json"
+}

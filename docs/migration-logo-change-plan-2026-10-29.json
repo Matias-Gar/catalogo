@@ -1,0 +1,26 @@
+[
+  {
+    "table": "app_settings",
+    "ids": {
+      "key": "global_store_settings"
+    },
+    "old": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/store/logo-c6a4346c-e139-4250-9855-ac048733293d.jpg",
+    "new": "https://garblac.duckdns.org/storage/v1/object/public/product_images/store/logo-c6a4346c-e139-4250-9855-ac048733293d.jpg"
+  },
+  {
+    "table": "pais_settings",
+    "ids": {
+      "pais_id": "31c58f8a-3d08-4869-a94b-78e43010847e"
+    },
+    "old": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/store/logo-53b2b5eb-9a60-4129-a627-6cbfa47c5027.jpg",
+    "new": "https://garblac.duckdns.org/storage/v1/object/public/product_images/store/logo-53b2b5eb-9a60-4129-a627-6cbfa47c5027.jpg"
+  },
+  {
+    "table": "pais_settings",
+    "ids": {
+      "pais_id": "51bb19a9-e12a-40c3-884e-93b13ac9dee9"
+    },
+    "old": "https://gzvtuenpwndodnetnmzi.supabase.co/storage/v1/object/public/product_images/store/logo-6c274002-2dca-4616-947a-577fb77b6904.jpeg",
+    "new": "https://garblac.duckdns.org/storage/v1/object/public/product_images/store/logo-6c274002-2dca-4616-947a-577fb77b6904.jpeg"
+  }
+]

@@ -1,4 +1,6 @@
 "use client";
+import { scheduleEffect } from '../../../../lib/scheduleEffect';
+import Image from "next/image";
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef } from 'react';
@@ -1015,7 +1017,9 @@ export default function AdminProductosPage() {
     };
 
         const handlePrintBarcodeRef = useRef(handlePrintBarcode);
-        handlePrintBarcodeRef.current = handlePrintBarcode;
+        useEffect(() => {
+            handlePrintBarcodeRef.current = handlePrintBarcode;
+        }, [handlePrintBarcode]);
 
     // Listener para imprimir código de barras de variante
     useEffect(() => {
@@ -1032,9 +1036,12 @@ export default function AdminProductosPage() {
         }, []);
 
     useEffect(() => {
+      return scheduleEffect(() => {
         if (isPrintModalOpen && ENABLE_QZ_PRODUCT_LABEL_FLOW) {
             checkQzHealth();
         }
+    
+      });
     }, [isPrintModalOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Función para abrir modal de impresión de variantes
@@ -1447,6 +1454,7 @@ export default function AdminProductosPage() {
 
     // useEffect para cargar categorías y productos después de declarar las funciones
     useEffect(() => {
+      return scheduleEffect(() => {
         // Solo cargar datos si el rol no se ha determinado o es admin
         if ((userRole && canAccessAdminPath(userRole, '/admin/productos/nuevo')) || userRole === null) {
             fetchCategories();
@@ -1467,11 +1475,14 @@ export default function AdminProductosPage() {
         return () => {
             supabase.removeChannel(channel);
         };
+    
+      });
     }, [userRole, currentProductView, activePaisId, effectiveSucursalId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // load saved form if returning from otra página
     const restoredRef = useRef(false);
     useEffect(() => {
+      return scheduleEffect(() => {
         try {
             const saved = sessionStorage.getItem('pendingProduct');
             if (saved) {
@@ -1486,6 +1497,8 @@ export default function AdminProductosPage() {
             console.warn('no se pudo restaurar producto pendiente', e);
         }
         restoredRef.current = true;
+    
+      });
     }, [currentProductView]);
 
     // store form in sessionStorage whenever cambia, but skip initial render

@@ -4,81 +4,25 @@ import React, { useState, useEffect, useRef } from "react";
  * Componente robusto y seguro para sistemas de ventas/inventario críticos.
  * Soporta coma decimal, validación pura, precisión configurable, control de stock y UX accesible.
  */
-export default function CantidadConUnidadInput({
-  unidadBase,
-  factorConversion,
-  unidadesDisponibles,
-  stockBase,
-  onChange,
-  initialUnidad,
-  initialCantidad,
-  min = 0.01,
-  max = undefined,
-  precision = 3,
-  disabled = false,
-}) {
-  const defaultUnidad = initialUnidad || unidadesDisponibles[0];
-  const [unidad, setUnidad] = useState(defaultUnidad);
-  const [cantidad, setCantidad] = useState(
-    initialCantidad === undefined || initialCantidad === null || initialCantidad === ""
-      ? ""
-      : String(initialCantidad).replace(".", ",")
-  ); // input controlado como string
-  const [error, setError] = useState("");
-  const [valorBase, setValorBase] = useState(0);
-
-  // Guardar onChange en ref para evitar loops
-  const onChangeRef = useRef(onChange);
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-
-  useEffect(() => {
-    setUnidad(initialUnidad || unidadesDisponibles[0]);
-  }, [initialUnidad, unidadesDisponibles]);
-
-  useEffect(() => {
-    if (initialCantidad === undefined || initialCantidad === null || initialCantidad === "") {
-      setCantidad("");
-      return;
-    }
-    setCantidad(String(initialCantidad).replace(".", ","));
-  }, [initialCantidad]);
-
-  // Control de última emisión para evitar renders innecesarios
-  const lastEmitted = useRef({ base: null, unidad: null, cantidad: null });
-
-  // Funciones puras de conversión
-  function convertirABase(num, unidadInput, unidadBaseInput, factorConv) {
+function convertirABase(num, unidadInput, unidadBaseInput, factorConv) {
     if (!Number.isFinite(factorConv) || factorConv <= 0) return NaN;
     if (unidadInput === unidadBaseInput) return num;
     return num / factorConv;
   }
-  function convertirDesdeBase(base, unidadInput, unidadBaseInput, factorConv) {
+
+function convertirDesdeBase(base, unidadInput, unidadBaseInput, factorConv) {
     if (!Number.isFinite(factorConv) || factorConv <= 0) return NaN;
     if (unidadInput === unidadBaseInput) return base;
     return base * factorConv;
   }
 
-  function formatQuantity(value) {
+function formatQuantity(value) {
     const num = Number(value);
     if (!Number.isFinite(num)) return "0";
     return Number(num.toFixed(3)).toString();
   }
 
-  // Stock máximo permitido en unidad seleccionada (defensivo)
-  const stockEnUnidad = convertirDesdeBase(
-    stockBase,
-    unidad,
-    unidadBase,
-    factorConversion
-  );
-  const stockEnUnidadSafe = Number.isFinite(stockEnUnidad) ? stockEnUnidad : 0;
-  const maxPermitido = max ?? stockEnUnidadSafe;
-  const step = 1 / Math.pow(10, precision);
-
-  // Validación completamente pura
-  function validarCantidad(
+function validarCantidad(
     cantidadStr,
     unidadSel,
     stockBaseVal,
@@ -122,12 +66,62 @@ export default function CantidadConUnidadInput({
     return { error: "", base, num };
   }
 
-  // Validación y conversión en tiempo real (UN solo useEffect)
+export default function CantidadConUnidadInput({
+  unidadBase,
+  factorConversion,
+  unidadesDisponibles,
+  stockBase,
+  onChange,
+  initialUnidad,
+  initialCantidad,
+  min = 0.01,
+  max = undefined,
+  precision = 3,
+  disabled = false,
+}) {
+  const defaultUnidad = initialUnidad || unidadesDisponibles[0];
+  const initialText = initialCantidad === undefined || initialCantidad === null || initialCantidad === "" ? "" : String(initialCantidad).replace(".", ",");
+  const [unitDraft, setUnitDraft] = useState({ source: defaultUnidad, value: defaultUnidad });
+  const [quantityDraft, setQuantityDraft] = useState({ source: initialText, value: initialText });
+  const unidad = unitDraft.source === defaultUnidad && unidadesDisponibles.includes(unitDraft.value) ? unitDraft.value : defaultUnidad;
+  const cantidad = quantityDraft.source === initialText ? quantityDraft.value : initialText;
+  const setUnidad = (value) => setUnitDraft({ source: defaultUnidad, value });
+  const setCantidad = (value) => setQuantityDraft({ source: initialText, value });
+
+  // Guardar onChange en ref para evitar loops
+  const onChangeRef = useRef(onChange);
   useEffect(() => {
-    const normalized = cantidad.replace(",", ".").trim();
-    const num = Number(normalized);
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+
+
+  // Control de última emisión para evitar renders innecesarios
+  const lastEmitted = useRef({ base: null, unidad: null, cantidad: null });
+
+  // Funciones puras de conversión
+  
+  
+
+  
+
+  // Stock máximo permitido en unidad seleccionada (defensivo)
+  const stockEnUnidad = convertirDesdeBase(
+    stockBase,
+    unidad,
+    unidadBase,
+    factorConversion
+  );
+  const stockEnUnidadSafe = Number.isFinite(stockEnUnidad) ? stockEnUnidad : 0;
+  const maxPermitido = max ?? stockEnUnidadSafe;
+  const step = 1 / Math.pow(10, precision);
+
+  // Validación completamente pura
+  
+
+  // Validación y conversión en tiempo real (UN solo useEffect)
     const {
-      error: err,
+      error,
       base,
       num: validNum,
     } = validarCantidad(
@@ -140,12 +134,9 @@ export default function CantidadConUnidadInput({
       unidadBase,
       precision
     );
-    setError(err);
-    if (err) {
-      setValorBase(0);
-      return;
-    }
-    setValorBase(base);
+  const valorBase = error ? 0 : base;
+  useEffect(() => {
+    if (error || !Number.isFinite(base) || !Number.isFinite(validNum)) return;
     // Evitar onChange si el valor no cambió
     if (
       lastEmitted.current.base === base &&
@@ -156,17 +147,7 @@ export default function CantidadConUnidadInput({
     }
     lastEmitted.current = { base, unidad, cantidad: validNum };
     onChangeRef.current?.(base, unidad, validNum);
-    // eslint-disable-next-line
-  }, [
-    cantidad,
-    unidad,
-    stockBase,
-    factorConversion,
-    stockEnUnidadSafe,
-    maxPermitido,
-    precision,
-    unidadBase,
-  ]);
+  }, [error, base, validNum, unidad]);
 
   // Cambio de unidad: mantener valor real, limitar decimales visualmente
   function handleUnidadChange(e) {

@@ -1,6 +1,7 @@
 "use client";
 
 
+import { scheduleEffect } from '../../lib/scheduleEffect';
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/SupabaseClient";
 import Image from "next/image";
@@ -82,8 +83,11 @@ export default function PacksClient({ initialPacks = [] }) {
   };
 
   useEffect(() => {
+      return scheduleEffect(() => {
     fetchPacks();
-  }, [activePaisId, activeSucursalId]);
+  
+      });
+    }, [activePaisId, activeSucursalId]);
 
   // Cargar productos solo cuando se abre el form
   const fetchProductos = async () => {

@@ -20,14 +20,7 @@ const normalizeMetodo = (m) => {
 };
 
 export function useBusinessIntelligence() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchBI();
-  }, []);
-
-  async function fetchBI() {
+async function fetchBI() {
     setLoading(true);
 
     const today = new Date();
@@ -187,6 +180,15 @@ export function useBusinessIntelligence() {
 
     setLoading(false);
   }
+
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchBI();
+  }, []);
+
+  
 
   return { data, loading };
 }

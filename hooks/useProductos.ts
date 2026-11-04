@@ -1,3 +1,4 @@
+import { scheduleEffect } from '../lib/scheduleEffect';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/SupabaseClient';
 
@@ -265,7 +266,7 @@ export function useProductos(_includeCost = false, sucursalId?: string) {
                   precio: precioBase,
                   precio_base: precioBase,
                   precio_compra: undefined,
-                  stock: matchedVar ? getEffectiveVariantStock(matchedVar as any) : Number(p.stock_total ?? 0),
+                  stock: matchedVar ? getEffectiveVariantStock(matchedVar) : Number(p.stock_total ?? 0),
                   stock_total: Number(p.stock_total ?? 0),
                   codigo_barra: String(p.codigo_barra ?? ''),
                   categoria: String(p.categoria ?? ''),
@@ -423,8 +424,11 @@ export function useProductos(_includeCost = false, sucursalId?: string) {
   }, [sucursalId]);
 
   useEffect(() => {
+      return scheduleEffect(() => {
     fetchProductos();
-  }, [fetchProductos]);
+  
+      });
+    }, [fetchProductos]);
 
   return {
     productos,

@@ -1,5 +1,6 @@
 "use client";
 
+import { scheduleEffect } from '../../../../lib/scheduleEffect';
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -44,6 +45,18 @@ const uploadProductImages = async (files) => {
 };
 
 export default function EditarCatalogo() {
+const [productos, setProductos] = useState([]);
+const [imagenes, setImagenes] = useState({});
+const [variantes, setVariantes] = useState({});
+const [categories, setCategories] = useState([]);
+const [editando, setEditando] = useState({});
+const [modalConfirm, setModalConfirm] = useState({ visible: false, id: null });
+const [loading, setLoading] = useState(false);
+const [search, setSearch] = useState("");
+const [categoryFilter, setCategoryFilter] = useState("");
+const [sortOrder, setSortOrder] = useState("alphabetical");
+const getProductKey = (product) => product?.id ?? product?.user_id ?? null;
+
     const { activeSucursalId } = useSucursalActiva();
     const pathname = usePathname();
     const currentProductView = normalizeProductView(pathname?.includes('/admin/insumos') ? 'insumos' : 'articulos');
@@ -52,6 +65,7 @@ export default function EditarCatalogo() {
 
     // Cargar productos, variantes, imágenes y categorías al montar
     useEffect(() => {
+      return scheduleEffect(() => {
       const fetchData = async () => {
         setLoading(true);
         try {
@@ -108,6 +122,8 @@ export default function EditarCatalogo() {
         setLoading(false);
       };
       fetchData();
+    
+      });
     }, [activeSucursalId]);
 
     useEffect(() => {
@@ -298,18 +314,18 @@ export default function EditarCatalogo() {
     const closeConfirm = () => {
       setModalConfirm({ visible: false, id: null });
     };
-  const [productos, setProductos] = useState([]);
-  const [imagenes, setImagenes] = useState({});
-  const [variantes, setVariantes] = useState({});
-  const [categories, setCategories] = useState([]);
-  const [editando, setEditando] = useState({});
-  const [modalConfirm, setModalConfirm] = useState({ visible: false, id: null });
-  const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [sortOrder, setSortOrder] = useState("alphabetical");
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
-  const getProductKey = (product) => product?.id ?? product?.user_id ?? null;
+  
 
   const clearFilters = () => {
     setSearch("");

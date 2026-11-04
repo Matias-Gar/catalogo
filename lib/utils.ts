@@ -1,4 +1,6 @@
 
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 // --- TIPOS E INTERFACES ---
 
 export interface Imagen {
@@ -25,10 +27,10 @@ export interface ProductoInput {
 // --- SINCRONIZACIÓN GLOBAL DE STOCK DE PRODUCTO ---
 export async function sincronizarStockProducto(
   producto_id: string | number,
-  supabase: unknown,
+  supabase: SupabaseClient,
   scope: { pais_id?: string | null; sucursal_id?: string | null } = {}
 ): Promise<number> {
-  let productoQuery = (supabase as any)
+  let productoQuery = supabase
     .from("productos")
     .select("stock, unidad_base, unidades_alternativas, factor_conversion")
     .eq("user_id", producto_id);
@@ -36,9 +38,9 @@ export async function sincronizarStockProducto(
   if (scope.sucursal_id) productoQuery = productoQuery.eq("sucursal_id", scope.sucursal_id);
   const { data: producto } = await productoQuery.maybeSingle();
 
-  const stockActual = Number((producto as any)?.stock ?? 0);
+  const stockActual = Number(producto?.stock ?? 0);
   const stockProducto = Number.isFinite(stockActual) ? Math.max(0, stockActual) : 0;
-  let variantesQuery = (supabase as any)
+  let variantesQuery = supabase
     .from("producto_variantes")
     .select("stock, stock_decimal")
     .eq("producto_id", producto_id)
@@ -48,7 +50,7 @@ export async function sincronizarStockProducto(
   const { data } = await variantesQuery;
 
   const variantes: Variante[] = Array.isArray(data)
-    ? data.map((v) => ({ ...v, color: (v as any).color ?? "", id: (v as any).id ?? undefined }))
+    ? data.map((v) => ({ ...v, color: "" }))
     : [];
 
   if (variantes.length === 0) {
@@ -57,7 +59,7 @@ export async function sincronizarStockProducto(
 
   const stockTotal = variantes.reduce<number>(
     (sum: number, v: Variante) => {
-      const decimal = Number((v as any).stock_decimal);
+      const decimal = Number(v.stock_decimal);
       const legacy = Number(v.stock);
       const hasDecimal = v?.stock_decimal !== null && v?.stock_decimal !== undefined;
       return sum + Math.max(0, hasDecimal && Number.isFinite(decimal) ? decimal : legacy || 0);
@@ -65,7 +67,7 @@ export async function sincronizarStockProducto(
     0
   );
 
-  let updateQuery = (supabase as any)
+  let updateQuery = supabase
     .from("productos")
     .update({ stock: stockTotal })
     .eq("user_id", producto_id);

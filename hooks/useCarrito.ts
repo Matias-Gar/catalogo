@@ -1,3 +1,4 @@
+import { scheduleEffect } from '../lib/scheduleEffect';
 import { calcularLineaVenta } from '../lib/cartPricing';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { calcularPrecioConPromocion } from '../lib/promociones';
@@ -152,6 +153,7 @@ export function useCarrito(promociones: unknown[], sucursalId?: string, catalogo
   // Cada sucursal conserva su propia cesta. No trasladar la cesta antigua global
   // a otra sucursal; un pedido se recupera desde su detalle y ámbito verificados.
   useEffect(() => {
+      return scheduleEffect(() => {
     if (!storageKey) return;
     const stored = getBrowserItem(storageKey);
     if (stored) {
@@ -161,7 +163,9 @@ export function useCarrito(promociones: unknown[], sucursalId?: string, catalogo
       setCarrito([]);
     }
     setLoadedStorageKey(storageKey);
-  }, [storageKey]);
+  
+      });
+    }, [storageKey]);
   useEffect(() => {
     if (!storageKey || loadedStorageKey !== storageKey) return;
     if (carrito.length) {

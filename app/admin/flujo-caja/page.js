@@ -1,5 +1,6 @@
 "use client";
 
+import { scheduleEffect } from '../../../lib/scheduleEffect';
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bar,
@@ -272,19 +273,25 @@ export default function FlujoCajaPage() {
   }
 
   useEffect(() => {
+      return scheduleEffect(() => {
     if (!activePaisId || !activeSucursalId) return;
     fetchSummary();
     fetchClosures();
     fetchMovements();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePaisId, activeSucursalId]);
+  
+      });
+    }, [activePaisId, activeSucursalId]);
 
   useEffect(() => {
+      return scheduleEffect(() => {
     if (!activePaisId || !activeSucursalId) return;
     fetchSummary();
     fetchMovements();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, endDate, cashboxId, activePaisId, activeSucursalId]);
+  
+      });
+    }, [startDate, endDate, cashboxId, activePaisId, activeSucursalId]);
 
   const difference = useMemo(() => {
     const expectedCash = Number(summary?.expected_cash || 0);
@@ -330,7 +337,7 @@ export default function FlujoCajaPage() {
       description: `Ingreso por venta #${sale.id}${sale.modo_pago ? ` (${sale.modo_pago})` : ""}`,
       amount: Number(sale.total || 0),
     }));
-  }, [summary?.auto_sales_rows, summary?.sales]);
+  }, [summary]);
 
   // Only show truly manual movements: exclude any that look like sales
   const manualMovements = useMemo(
@@ -350,7 +357,7 @@ export default function FlujoCajaPage() {
 
   const orphanSalesMovements = useMemo(
     () => Array.isArray(summary?.orphan_sales_movements) ? summary.orphan_sales_movements : [],
-    [summary?.orphan_sales_movements]
+    [summary]
   );
 
   const orphanSalesTotal = useMemo(
@@ -386,7 +393,7 @@ export default function FlujoCajaPage() {
         const rightTime = right.created_at ? new Date(right.created_at).getTime() : 0;
         return leftTime - rightTime;
       });
-  }, [summary?.ledger_entries]);
+  }, [summary]);
 
   const latestClosureForRange = useMemo(() => {
     if (!Array.isArray(closures) || closures.length === 0) return null;

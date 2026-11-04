@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/SupabaseClient";
 
 export default function PerfilesAdminPage() {
+
+
   const rolesPanel = ['admin', 'administracion', 'vendedor', 'almacen'];
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);

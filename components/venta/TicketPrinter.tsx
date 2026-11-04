@@ -5,7 +5,7 @@ declare global {
     qz?: {
       websocket?: unknown;
       configs?: {
-        create?: (...args: any[]) => any;
+        create?: (printer: string) => unknown;
         [key: string]: unknown;
       };
       print?: unknown;
@@ -459,7 +459,7 @@ const TicketPrinter = forwardRef<TicketPrinterHandle, TicketPrinterProps>((props
         if (item.color) nombre += ` (${item.color})`;
         const precioFinal = itemCalc.totalLinea.toFixed(2);
         // Ajusta el ancho para que no se corte el nombre
-        let detalle = `${cantidad}${unidad}`.padEnd(5) + nombre.padEnd(25).substring(0,25) + precioFinal.padStart(7);
+        const detalle = `${cantidad}${unidad}`.padEnd(5) + nombre.padEnd(25).substring(0,25) + precioFinal.padStart(7);
         lines.push(detalle);
         lines.push(`  P/U Bs ${itemCalc.precioFinalVisual.toFixed(2)}${unidad ? `/${unidad.trim()}` : ''}`);
         if (itemCalc.descuento > 0) {

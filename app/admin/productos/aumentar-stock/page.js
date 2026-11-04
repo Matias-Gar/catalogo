@@ -14,70 +14,7 @@ import { productMatchesSearch } from "@/lib/searchMatching";
 import { useSucursalActiva } from "@/components/admin/SucursalContext";
 
 export function StockControlPage({ operation = "increase" }) {
-  const isReductionMode = operation === "reduce";
-  const { activePaisId, activeSucursal } = useSucursalActiva();
-  const effectiveSucursalId = activeSucursal?.id || "";
-  const QZ_PRINTER_NAME = "POS-80C";
-  const ENABLE_QZ_DIRECT_LABEL_PRINT = true;
-
-  const [productos, setProductos] = useState([]);
-  const [variantesByProducto, setVariantesByProducto] = useState({});
-  const [imagenPrincipalByProducto, setImagenPrincipalByProducto] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [savingKey, setSavingKey] = useState(null);
-  const [increments, setIncrements] = useState({});
-  const [incrementUnits, setIncrementUnits] = useState({});
-  const [reductionReasons, setReductionReasons] = useState({});
-  const [pendingReduction, setPendingReduction] = useState(null);
-  const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-
-  useEffect(() => {
-    if (!activePaisId || !effectiveSucursalId) return;
-    fetchData();
-  }, [activePaisId, effectiveSucursalId]);
-
-  const loadQzTray = () =>
-    new Promise((resolve, reject) => {
-      if (!ENABLE_QZ_DIRECT_LABEL_PRINT) {
-        reject(new Error("QZ Tray desactivado"));
-        return;
-      }
-
-      if (window.qz) {
-        resolve(window.qz);
-        return;
-      }
-
-      const existing = document.getElementById("qz-tray-script");
-      if (existing) {
-        existing.addEventListener("load", () => resolve(window.qz));
-        existing.addEventListener("error", () => reject(new Error("No se pudo cargar QZ Tray.")));
-        return;
-      }
-      // Ya no se carga por CDN, solo se usa window.qz global
-      reject(new Error("QZ Tray no está disponible"));
-    });
-
-  const ensureQzConnection = async () => {
-    const qz = await loadQzTray();
-    if (!qz) throw new Error("QZ Tray no disponible");
-
-    if (qz.security) {
-      qz.security.setCertificatePromise((resolve) => resolve(null));
-      qz.security.setSignaturePromise(() => (resolve) => resolve(""));
-    }
-
-    if (!qz.websocket.isActive()) {
-      await qz.websocket.connect({ retries: 1, delay: 0 });
-    }
-
-    return qz;
-  };
-
-  // QZ se verifica solo al momento de imprimir para evitar ruido visual al entrar.
-
-  function escapeHtml(value) {
+function escapeHtml(value) {
     return String(value || "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -86,11 +23,11 @@ export function StockControlPage({ operation = "increase" }) {
       .replace(/'/g, "&#039;");
   }
 
-  function getBarcodeImageUrl(code) {
+function getBarcodeImageUrl(code) {
     return `https://bwipjs-api.metafloor.com/?bcid=code128&text=${encodeURIComponent(String(code || ""))}&scale=2&height=10&includetext=true`;
   }
 
-  async function printLabels({ code, label, copies }) {
+async function printLabels({ code, label, copies }) {
     const safeCode = String(code || "").trim();
     const safeLabel = String(label || "").trim();
     const safeCopies = Number(copies || 0);
@@ -221,7 +158,7 @@ export function StockControlPage({ operation = "increase" }) {
     popup.document.close();
   }
 
-  async function fetchData() {
+async function fetchData() {
     setLoading(true);
 
     let productosQuery = supabase
@@ -354,24 +291,24 @@ export function StockControlPage({ operation = "increase" }) {
     setLoading(false);
   }
 
-  function getCategoryName(prod) {
+function getCategoryName(prod) {
     return String(prod?.categorias?.categori || prod?.categoria || prod?.category_id || "Sin categoria");
   }
 
-  function formatQuantity(value) {
+function formatQuantity(value) {
     const parsed = Number(value || 0);
     if (!Number.isFinite(parsed)) return "0";
     return Number(parsed.toFixed(3)).toString();
   }
 
-  function getEffectiveVariantStock(variant) {
+function getEffectiveVariantStock(variant) {
     const decimal = Number(variant?.stock_decimal);
     const legacy = Number(variant?.stock);
     const hasDecimal = variant?.stock_decimal !== null && variant?.stock_decimal !== undefined && variant?.stock_decimal !== "";
     return Math.max(0, hasDecimal && Number.isFinite(decimal) ? decimal : legacy || 0);
   }
 
-  function getUnitInfo(prod) {
+function getUnitInfo(prod) {
     const unidadBase = String(prod?.unidad_base || "unidad").trim() || "unidad";
     const alternativas = Array.isArray(prod?.unidades_alternativas)
       ? prod.unidades_alternativas.map((u) => String(u || "").trim()).filter(Boolean)
@@ -382,12 +319,12 @@ export function StockControlPage({ operation = "increase" }) {
     return { unidadBase, unidadAlternativa, factor, hasConversion };
   }
 
-  function getSelectableUnits(prod) {
+function getSelectableUnits(prod) {
     const { unidadBase, unidadAlternativa, hasConversion } = getUnitInfo(prod);
     return hasConversion ? [unidadBase, unidadAlternativa] : [unidadBase];
   }
 
-  function normalizeUnitName(unit) {
+function normalizeUnitName(unit) {
     return String(unit || "")
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -395,28 +332,28 @@ export function StockControlPage({ operation = "increase" }) {
       .trim();
   }
 
-  function isDiscreteUnit(unit) {
+function isDiscreteUnit(unit) {
     return ["unidad", "unidades", "pieza", "piezas", "pza", "pzas", "par", "pares", "item", "items", "articulo", "articulos"].includes(normalizeUnitName(unit));
   }
 
-  function getQuantityStep(unit) {
+function getQuantityStep(unit) {
     return isDiscreteUnit(unit) ? 1 : 0.01;
   }
 
-  function normalizeIncrementValue(rawValue, unit) {
+function normalizeIncrementValue(rawValue, unit) {
     const cleaned = String(rawValue || "").replace(",", ".").replace(/[^\d.]/g, "");
     const parsed = Number(cleaned);
     if (!Number.isFinite(parsed) || parsed <= 0) return 0;
     return isDiscreteUnit(unit) ? Math.floor(parsed) : parsed;
   }
 
-  function getSelectedUnit(prod, key) {
+function getSelectedUnit(prod, key) {
     const units = getSelectableUnits(prod);
     const selected = incrementUnits[key];
     return units.includes(selected) ? selected : units[0];
   }
 
-  function getBaseStock(prod, variants = null) {
+function getBaseStock(prod, variants = null) {
     const productStock = Math.max(0, Number(prod?.stock || 0));
     const list = Array.isArray(variants) ? variants : [];
     if (list.length > 0) {
@@ -426,7 +363,7 @@ export function StockControlPage({ operation = "increase" }) {
     return productStock;
   }
 
-  function getReadableStockText(prod, stockInput = null) {
+function getReadableStockText(prod, stockInput = null) {
     const { unidadBase, unidadAlternativa, factor, hasConversion } = getUnitInfo(prod);
     const stockBase = Math.max(0, Number(stockInput ?? prod?.stock ?? 0) || 0);
     if (!hasConversion) return `${formatQuantity(stockBase)} ${unidadBase}`;
@@ -443,7 +380,7 @@ export function StockControlPage({ operation = "increase" }) {
     return `Solo ${formatQuantity(totalAlt)} ${unidadAlternativa}`;
   }
 
-  function getBaseIncrease(prod, key) {
+function getBaseIncrease(prod, key) {
     const rawAmount = Number(increments[key] || 0);
     const { unidadBase, factor, hasConversion } = getUnitInfo(prod);
     const selectedUnit = getSelectedUnit(prod, key);
@@ -451,17 +388,17 @@ export function StockControlPage({ operation = "increase" }) {
     return rawAmount / factor;
   }
 
-  function setIncrementValue(key, rawValue, unit) {
+function setIncrementValue(key, rawValue, unit) {
     const value = normalizeIncrementValue(rawValue, unit);
     setIncrements((prev) => ({ ...prev, [key]: value }));
   }
 
-  function setIncrementUnit(key, unit) {
+function setIncrementUnit(key, unit) {
     setIncrementUnits((prev) => ({ ...prev, [key]: unit }));
     setIncrements((prev) => ({ ...prev, [key]: normalizeIncrementValue(prev[key], unit) }));
   }
 
-  async function aumentarStockApi(payload) {
+async function aumentarStockApi(payload) {
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token;
     const response = await fetch("/api/admin/productos/aumentar-stock", {
@@ -479,7 +416,7 @@ export function StockControlPage({ operation = "increase" }) {
     return result;
   }
 
-  async function aumentarStockProducto(prod, shouldPrint = false) {
+async function aumentarStockProducto(prod, shouldPrint = false) {
     if (!activePaisId || !effectiveSucursalId) {
       showToast("Selecciona pais y sucursal antes de aumentar stock", "error");
       return;
@@ -604,7 +541,7 @@ export function StockControlPage({ operation = "increase" }) {
     }
   }
 
-  async function aumentarStockVariante(prod, variante, shouldPrint = false) {
+async function aumentarStockVariante(prod, variante, shouldPrint = false) {
     if (!activePaisId || !effectiveSucursalId) {
       showToast("Selecciona pais y sucursal antes de aumentar stock", "error");
       return;
@@ -756,7 +693,7 @@ export function StockControlPage({ operation = "increase" }) {
     }
   }
 
-  async function reducirStock(prod, variante = null) {
+async function reducirStock(prod, variante = null) {
     const key = variante ? `v-${variante.id}` : `p-${prod.user_id}`;
     const displayAmount = Number(increments[key] || 0);
     const baseAmount = getBaseIncrease(prod, key);
@@ -771,7 +708,7 @@ export function StockControlPage({ operation = "increase" }) {
     setPendingReduction({ prod, variante, key, displayAmount, baseAmount, selectedUnit, reason, beforeText, afterText });
   }
 
-  async function confirmarReduccion() {
+async function confirmarReduccion() {
     const pending = pendingReduction;
     if (!pending) return;
     const { prod, variante, key, displayAmount, selectedUnit, reason } = pending;
@@ -799,6 +736,117 @@ export function StockControlPage({ operation = "increase" }) {
       setSavingKey(null);
     }
   }
+
+  const isReductionMode = operation === "reduce";
+  const { activePaisId, activeSucursal } = useSucursalActiva();
+  const effectiveSucursalId = activeSucursal?.id || "";
+  const QZ_PRINTER_NAME = "POS-80C";
+  const ENABLE_QZ_DIRECT_LABEL_PRINT = true;
+
+  const [productos, setProductos] = useState([]);
+  const [variantesByProducto, setVariantesByProducto] = useState({});
+  const [imagenPrincipalByProducto, setImagenPrincipalByProducto] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [savingKey, setSavingKey] = useState(null);
+  const [increments, setIncrements] = useState({});
+  const [incrementUnits, setIncrementUnits] = useState({});
+  const [reductionReasons, setReductionReasons] = useState({});
+  const [pendingReduction, setPendingReduction] = useState(null);
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+
+  useEffect(() => {
+    if (!activePaisId || !effectiveSucursalId) return;
+    fetchData();
+  }, [activePaisId, effectiveSucursalId]);
+
+  const loadQzTray = () =>
+    new Promise((resolve, reject) => {
+      if (!ENABLE_QZ_DIRECT_LABEL_PRINT) {
+        reject(new Error("QZ Tray desactivado"));
+        return;
+      }
+
+      if (window.qz) {
+        resolve(window.qz);
+        return;
+      }
+
+      const existing = document.getElementById("qz-tray-script");
+      if (existing) {
+        existing.addEventListener("load", () => resolve(window.qz));
+        existing.addEventListener("error", () => reject(new Error("No se pudo cargar QZ Tray.")));
+        return;
+      }
+      // Ya no se carga por CDN, solo se usa window.qz global
+      reject(new Error("QZ Tray no está disponible"));
+    });
+
+  const ensureQzConnection = async () => {
+    const qz = await loadQzTray();
+    if (!qz) throw new Error("QZ Tray no disponible");
+
+    if (qz.security) {
+      qz.security.setCertificatePromise((resolve) => resolve(null));
+      qz.security.setSignaturePromise(() => (resolve) => resolve(""));
+    }
+
+    if (!qz.websocket.isActive()) {
+      await qz.websocket.connect({ retries: 1, delay: 0 });
+    }
+
+    return qz;
+  };
+
+  // QZ se verifica solo al momento de imprimir para evitar ruido visual al entrar.
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
 
   const categories = useMemo(() => {
     return Array.from(new Set(productos.map((p) => getCategoryName(p)))).sort((a, b) => a.localeCompare(b, "es"));

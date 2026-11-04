@@ -1,5 +1,6 @@
 'use client';
 
+import { scheduleEffect } from '../lib/scheduleEffect';
 import { useState, useEffect, useCallback } from 'react';
 import { resolveStorageImageUrl } from '../lib/storageImageUrl.mjs';
 import { supabase } from '../lib/SupabaseClient';
@@ -48,6 +49,7 @@ export default function UserNavigation() {
   }, [loadProfile]);
 
   useEffect(() => {
+      return scheduleEffect(() => {
     getUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -64,7 +66,9 @@ export default function UserNavigation() {
     );
 
     return () => subscription.unsubscribe();
-  }, [getUser, loadProfile]);
+  
+      });
+    }, [getUser, loadProfile]);
 
   async function handleSignOut() {
     try {

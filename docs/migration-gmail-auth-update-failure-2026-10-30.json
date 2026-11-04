@@ -1,0 +1,22 @@
+{
+  "mail_sent": false,
+  "production_changed": true,
+  "smtp_applied": false,
+  "logos_applied": false,
+  "errors": [
+    "Auth update failed; old env restored; inspect rollback_health_ok"
+  ],
+  "last_step": "docker compose --project-name",
+  "docker_api_version": "1.52",
+  "docker_cli_read_verified": true,
+  "docker_compose_client_available": true,
+  "existing_installation_verified": true,
+  "oauth_refresh_verified_from_dell": true,
+  "rollback_env_private_path": "/dev/shm/catalogo-env-before-gmail-20261030-132647-4063960",
+  "private_smtp_auth_verified": true,
+  "rollback_attempted": true,
+  "rollback_health_ok": false,
+  "status": "failed_or_partial",
+  "finished_utc": "2026-10-30T13:31:08.516179+00:00",
+  "report_path": "/dev/shm/catalogo-gmail-result-20261030-132647-4063960.json"
+}

@@ -1,0 +1,21 @@
+{
+  "status": "incomplete; backup disk read blocked",
+  "buckets": {
+    "imagenes": {"cloud": 10, "dell": 10, "public_both": true, "missing_in_dell": 0},
+    "perfiles": {"cloud": 3, "dell": 3, "public_both": true, "missing_in_dell": 0},
+    "product_images": {"cloud": 1247, "dell": 1248, "public_both": true, "missing_in_dell": 0}
+  },
+  "bucket_limits": "file_size_limit and allowed_mime_types null on both sources",
+  "object_union_count": 1261,
+  "sha256_comparison": "download/hash phase reached archive phase, but per-object report not persisted before disk wait; equality not asserted",
+  "backup": {
+    "file": "/srv/garblac/backups/automaticos/garblac-imagenes-20261029_060001.tar.gz",
+    "size_bytes_from_initial_inventory": 1219717798,
+    "observed_read_position": 965437440,
+    "process_state": "D",
+    "kernel_wait": "folio_wait_bit_common",
+    "fully_read": false,
+    "restore_verified": false
+  },
+  "limitation": "A kernel I/O wait does not establish hardware failure by itself. No disk repair, restart or production modification was performed."
+}

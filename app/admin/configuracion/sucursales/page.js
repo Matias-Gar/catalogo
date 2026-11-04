@@ -1,5 +1,6 @@
 "use client";
 
+import { scheduleEffect } from '../../../../lib/scheduleEffect';
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../../lib/SupabaseClient";
 
@@ -105,8 +106,11 @@ export default function SucursalesPage() {
   };
 
   useEffect(() => {
+      return scheduleEffect(() => {
     fetchData();
-  }, []);
+  
+      });
+    }, []);
 
   const updateForm = (field, value) => {
     setForm((prev) => {

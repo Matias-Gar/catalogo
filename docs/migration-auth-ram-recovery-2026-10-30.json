@@ -1,0 +1,10 @@
+{
+  "started_utc": "2026-10-30T13:49:56.395625+00:00",
+  "temporary_recovery": true,
+  "docker_restarted": false,
+  "containers_deleted": 0,
+  "auth_health_ok": true,
+  "ram_auth_launched": true,
+  "ram_auth_pid": 4167701,
+  "status": "access_recovered_temporarily"
+}

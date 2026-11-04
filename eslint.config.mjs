@@ -11,7 +11,7 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   // Local credentials and backups are not application source files.
-  { ignores: [".audit-access/**", "backups/**"] },
+  { ignores: [".audit-access/**", "backups/**", "public/qz-tray.js"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     ignores: [

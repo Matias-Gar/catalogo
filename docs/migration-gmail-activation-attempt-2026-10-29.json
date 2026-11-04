@@ -1,0 +1,12 @@
+{
+  "mail_sent": false,
+  "production_changed": false,
+  "smtp_applied": false,
+  "logos_applied": false,
+  "errors": [
+    "TimeoutExpired"
+  ],
+  "status": "failed_or_partial",
+  "finished_utc": "2026-10-29T23:06:53.797715+00:00",
+  "report_path": "/dev/shm/catalogo-gmail-result-20261029-230623-4164195.json"
+}

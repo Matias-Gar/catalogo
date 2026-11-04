@@ -1,0 +1,353 @@
+{
+  "started_utc": "2026-10-29T23:31:52.745Z",
+  "scope": "Best-effort REST records and Auth metadata; not transactional, not SQL, no password hashes",
+  "backup_root": "C:\\Users\\saita\\catalogo\\backups\\emergency-api-2026-10-29T23-31-52Z",
+  "tables": {
+    "app_settings": {
+      "count": 1,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "key"
+      ]
+    },
+    "business_audit_events": {
+      "count": 206,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "carritos_pendientes": {
+      "count": 14,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "cash_closures": {
+      "count": 0,
+      "pages": 1,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "cash_movements": {
+      "count": 54,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "categorias": {
+      "count": 66,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "clientes": {
+      "count": 0,
+      "pages": 1,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "flujo_diario": {
+      "count": 25,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "dia",
+        "total"
+      ]
+    },
+    "inventory_operation_attempts": {
+      "count": 0,
+      "pages": 1,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "inventory_operation_requests": {
+      "count": 54,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "idempotency_key"
+      ]
+    },
+    "inventory_reconciliation": {
+      "count": 412,
+      "pages": 3,
+      "complete": true,
+      "order": [
+        "diferencia",
+        "estado",
+        "producto_id",
+        "stock_ledger",
+        "stock_sistema",
+        "ultimo_movimiento",
+        "variante_id"
+      ]
+    },
+    "pack_productos": {
+      "count": 0,
+      "pages": 1,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "packs": {
+      "count": 0,
+      "pages": 1,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "pais_settings": {
+      "count": 2,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "pais_id"
+      ]
+    },
+    "paises": {
+      "count": 2,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "password_resets": {
+      "count": 2,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "email",
+        "code"
+      ]
+    },
+    "perfiles": {
+      "count": 6,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "producto_imagenes": {
+      "count": 779,
+      "pages": 5,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "producto_ubicaciones": {
+      "count": 99,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "producto_id"
+      ]
+    },
+    "producto_variantes": {
+      "count": 412,
+      "pages": 3,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "productos": {
+      "count": 363,
+      "pages": 3,
+      "complete": true,
+      "order": [
+        "user_id"
+      ]
+    },
+    "productos_historial": {
+      "count": 365,
+      "pages": 3,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "promociones": {
+      "count": 13,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "qr_daily_stats": {
+      "count": 13,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "cantidad",
+        "dia",
+        "manual",
+        "sistema",
+        "total"
+      ]
+    },
+    "qr_kpis": {
+      "count": 1,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "cantidad",
+        "maximo",
+        "minimo",
+        "promedio",
+        "total",
+        "total_manual",
+        "total_sistema"
+      ]
+    },
+    "qr_recent_payments": {
+      "count": 24,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "stock_movimientos": {
+      "count": 1022,
+      "pages": 6,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "sucursal_settings": {
+      "count": 1,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "sucursal_id"
+      ]
+    },
+    "sucursales": {
+      "count": 3,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "tipos_producto": {
+      "count": 7,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "top_productos": {
+      "count": 74,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "ganancia",
+        "producto_id",
+        "vendidos"
+      ]
+    },
+    "transferencias_sucursal": {
+      "count": 0,
+      "pages": 1,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "users_public": {
+      "count": 6,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "usuario_paises": {
+      "count": 5,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "usuario_sucursales": {
+      "count": 2,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "v_productos_catalogo": {
+      "count": 360,
+      "pages": 3,
+      "complete": true,
+      "order": [
+        "producto_id"
+      ]
+    },
+    "ventas": {
+      "count": 54,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "ventas_con_utilidad": {
+      "count": 54,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "ventas_detalle": {
+      "count": 102,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    },
+    "ventas_pagos": {
+      "count": 54,
+      "pages": 2,
+      "complete": true,
+      "order": [
+        "id"
+      ]
+    }
+  },
+  "errors": [],
+  "auth_metadata_count": 6,
+  "finished_utc": "2026-10-29T23:31:59.761Z",
+  "manifest_files_verified": true,
+  "snapshot_transaction_consistent": false,
+  "full_postgresql_backup": false
+}

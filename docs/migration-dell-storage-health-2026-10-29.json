@@ -1,0 +1,56 @@
+{
+  "checked_utc": "2026-10-29T23:20:30.356321+00:00",
+  "production_changed": false,
+  "memory": {
+    "MemTotal": "8089888 kB",
+    "MemAvailable": "5074344 kB",
+    "SwapTotal": "4194300 kB",
+    "SwapFree": "3512008 kB"
+  },
+  "pressure": {
+    "io": "some avg10=56.52 avg60=75.52 avg300=77.20 total=8482571988\nfull avg10=48.14 avg60=66.16 avg300=67.14 total=7234897872",
+    "memory": "some avg10=0.00 avg60=0.03 avg300=0.38 total=2116942376\nfull avg10=0.00 avg60=0.02 avg300=0.32 total=1804292136"
+  },
+  "root_devices": [
+    {
+      "device": "dm-0",
+      "sample_seconds": 2.0,
+      "reads_completed": 1,
+      "writes_completed": 4,
+      "inflight": 3,
+      "read_average_ms": 2006.0,
+      "write_average_ms": 47.25,
+      "busy_percent": 100
+    },
+    {
+      "device": "sda",
+      "sample_seconds": 2.0,
+      "reads_completed": 1,
+      "writes_completed": 4,
+      "inflight": 3,
+      "read_average_ms": 2007.0,
+      "write_average_ms": 16.0,
+      "busy_percent": 98.72,
+      "model": "PERC H730 Adp",
+      "vendor": "DELL",
+      "state": "running"
+    },
+    {
+      "device": "sda3",
+      "sample_seconds": 2.0,
+      "reads_completed": 1,
+      "writes_completed": 4,
+      "inflight": 3,
+      "read_average_ms": 2006.0,
+      "write_average_ms": 16.0,
+      "busy_percent": 100
+    }
+  ],
+  "installed_storage_tools": [
+    "/usr/sbin/smartctl"
+  ],
+  "kernel_storage_messages": [],
+  "kernel_readable": false,
+  "kernel_limitation": "Root access required to read kernel messages",
+  "report_path": "/dev/shm/catalogo-storage-health-1793316032.json"
+}

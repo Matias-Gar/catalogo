@@ -1,0 +1,27 @@
+{
+  "checked_utc": "2026-10-29T23:12:51.228Z",
+  "status": "prepared_not_installed",
+  "python": "3.12.3",
+  "smtp_security_tests_passed": 7,
+  "oauth_refresh_verified_from_dell": true,
+  "oauth_production_confirmed_in_user_screenshot": true,
+  "renewed_authorization_utc": "2026-10-29T23:02:50.883Z",
+  "real_email_sent": false,
+  "production_changed": false,
+  "bundle_sha256": "5bed5a9ffd2b734ed1d981671b3cd5749c332113e26474002f0589c81de2d046",
+  "files": {
+    "scripts/gmail_oauth_relay.py": "6e9d399e63cf97785d3658bbc6a913410f2cce7dc859859ae0dd375b307ade5d",
+    "scripts/catalogo_docker_metadata.py": "3f72ed67ca5ffd6464a6732e5e531321821b49b11e26542c3f694bd9e2db981c",
+    "scripts/finalize-dell-logo-settings.sql": "e9f8cc6c10a9900dfb1448b6c0c5578d091736fe244d6611cc4815cb137aa0d3",
+    "install-catalogo-gmail.py": "b364d9058dfe58ff83bd81c9a63d4049b16cef27231a43df5877ec22b854343c",
+    "wheels/aiosmtpd-1.4.6-py3-none-any.whl": "72c99179ba5aa9ae0abbda6994668239b64a5ce054471955fe75f581d2592475",
+    "wheels/atpublic-6.0.2-py3-none-any.whl": "156cfd3854e580ebfa596094a018fe15e4f3fa5bade74b39c3dabb54f12d6565",
+    "wheels/attrs-25.4.0-py3-none-any.whl": "adcf7e2a1fb3b36ac48d97835bb6d8ade15b8dcce26aba8bf1d14847b57a3373",
+    "wheels/manifest.json": "d2980a3366271ca7b4a81eabff40de86e621e1a821192e29c1fbf2c5e96411fe"
+  },
+  "private_transport": "Authenticated SMTP limited to catalogue Docker bridge; Gmail HTTPS",
+  "pending": [
+    "Root preflight, explicit approval, installation",
+    "Actual recovery email delivery and published app verification"
+  ]
+}

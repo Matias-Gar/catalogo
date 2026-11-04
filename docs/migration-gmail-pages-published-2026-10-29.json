@@ -1,0 +1,38 @@
+{
+  "checked_utc": "2026-10-29T22:49:34.295Z",
+  "commit": "3c4b210",
+  "pages": [
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/correo-catalogo.html",
+      "status": 200,
+      "title": "Catálogo Dell · Correo de la aplicación",
+      "final_url": "https://catalogo-sigma-one.vercel.app/correo-catalogo.html?audit=3c4b210",
+      "content_type": "text/html; charset=utf-8",
+      "content_sha256": "37a1b6151818038f26b75a1ec6fe765a6882ef1405c116e289aed07a6bd89e18",
+      "expected_sha256": "37a1b6151818038f26b75a1ec6fe765a6882ef1405c116e289aed07a6bd89e18",
+      "content_matches": true
+    },
+    {
+      "url": "https://catalogo-sigma-one.vercel.app/privacidad-correo.html",
+      "status": 200,
+      "title": "Catálogo Dell · Privacidad del correo",
+      "final_url": "https://catalogo-sigma-one.vercel.app/privacidad-correo.html?audit=3c4b210",
+      "content_type": "text/html; charset=utf-8",
+      "content_sha256": "eae4d806c813bddaa23f03e901a5f52cd3c13762306e8bc9635aab1e95857047",
+      "expected_sha256": "eae4d806c813bddaa23f03e901a5f52cd3c13762306e8bc9635aab1e95857047",
+      "content_matches": true
+    }
+  ],
+  "published_verified": true,
+  "github_status": {
+    "state": "success",
+    "statuses": [
+      {
+        "context": "Vercel",
+        "state": "success",
+        "description": "Deployment has completed",
+        "target_url": "https://vercel.com/matias-projects-9f6961d9/catalogo/R1VsbVH3KLH2hj4WvomSu4YyJ2FP"
+      }
+    ]
+  }
+}

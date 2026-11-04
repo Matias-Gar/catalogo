@@ -1,0 +1,119 @@
+{
+  "started_utc": "2026-10-29T23:46:55.299Z",
+  "cloud_blocked": true,
+  "requests": [
+    {
+      "host": "garblac.duckdns.org",
+      "path": "/rest/v1/app_settings",
+      "status": 200
+    },
+    {
+      "host": "garblac.duckdns.org",
+      "path": "/rest/v1/promociones",
+      "status": 200
+    },
+    {
+      "host": "garblac.duckdns.org",
+      "path": "/rest/v1/app_settings",
+      "status": 200
+    },
+    {
+      "host": "garblac.duckdns.org",
+      "path": "/rest/v1/packs",
+      "status": 200
+    },
+    {
+      "host": "gzvtuenpwndodnetnmzi.supabase.co",
+      "path": "/storage/v1/object/public/product_images/store/logo-6c274002-2dca-4616-947a-577fb77b6904.jpeg",
+      "blocked_cloud": true
+    },
+    {
+      "host": "garblac.duckdns.org",
+      "path": "/rest/v1/promociones",
+      "status": 200
+    },
+    {
+      "host": "garblac.duckdns.org",
+      "path": "/rest/v1/packs",
+      "status": 200
+    },
+    {
+      "host": "garblac.duckdns.org",
+      "path": "/rest/v1/categorias",
+      "status": 200
+    },
+    {
+      "host": "garblac.duckdns.org",
+      "path": "/rest/v1/v_productos_catalogo",
+      "status": 200
+    },
+    {
+      "host": "garblac.duckdns.org",
+      "path": "/rest/v1/producto_imagenes",
+      "status": 200
+    },
+    {
+      "host": "garblac.duckdns.org",
+      "path": "/rest/v1/productos",
+      "status": 200
+    },
+    {
+      "host": "garblac.duckdns.org",
+      "path": "/rest/v1/producto_variantes",
+      "status": 200
+    },
+    {
+      "host": "garblac.duckdns.org",
+      "path": "/rest/v1/app_settings",
+      "status": 200
+    },
+    {
+      "host": "gzvtuenpwndodnetnmzi.supabase.co",
+      "path": "/storage/v1/object/public/product_images/store/logo-6c274002-2dca-4616-947a-577fb77b6904.jpeg",
+      "blocked_cloud": true
+    },
+    {
+      "host": "garblac.duckdns.org",
+      "path": "/rest/v1/app_settings",
+      "status": 200
+    },
+    {
+      "host": "gzvtuenpwndodnetnmzi.supabase.co",
+      "path": "/storage/v1/object/public/product_images/store/logo-6c274002-2dca-4616-947a-577fb77b6904.jpeg",
+      "blocked_cloud": true
+    }
+  ],
+  "pages": [
+    {
+      "path": "/bo/productos",
+      "status": 200,
+      "product_buttons": 62,
+      "images": {
+        "total": 65,
+        "loaded": 2,
+        "cloud_sources": 3
+      }
+    },
+    {
+      "path": "/login",
+      "status": 200,
+      "product_buttons": 0,
+      "images": {
+        "total": 2,
+        "loaded": 0,
+        "cloud_sources": 2
+      }
+    },
+    {
+      "path": "/reset-password",
+      "status": 200,
+      "product_buttons": 0,
+      "images": {
+        "total": 2,
+        "loaded": 0,
+        "cloud_sources": 2
+      }
+    }
+  ],
+  "finished_utc": "2026-10-29T23:47:12.136Z"
+}

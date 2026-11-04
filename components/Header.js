@@ -1,11 +1,12 @@
 "use client";
+import { useSavedPublicCountry } from '../hooks/useSavedPublicCountry';
 import { useState, useEffect } from 'react';
 import { resolveStorageImageUrl } from '../lib/storageImageUrl.mjs';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { supabase } from '../lib/SupabaseClient'; // Asegúrate que esta ruta es correcta
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from '../lib/storeSettings';
-import { buildCountryPath, getCountrySlugFromPath, getSavedPublicCountrySlug, hasCountrySlugInPath, stripCountryFromPath } from '../lib/countryRoutes';
+import { buildCountryPath, getCountrySlugFromPath, hasCountrySlugInPath, stripCountryFromPath } from '../lib/countryRoutes';
 import { getDefaultAdminRoute, isAdminPanelRole } from '../lib/adminPermissions';
 import { getProductViewPublicPath, normalizeProductView } from '../lib/productViews';
 
@@ -18,15 +19,13 @@ export default function Header() {
 
 function HeaderContent({ pathname }) {
   const pathCountrySlug = getCountrySlugFromPath(pathname);
-  const [countrySlug, setCountrySlug] = useState(pathCountrySlug);
+  const savedCountrySlug = useSavedPublicCountry();
+  const countrySlug = hasCountrySlugInPath(pathname) ? pathCountrySlug : savedCountrySlug || pathCountrySlug;
   const [session, setSession] = useState(null);
   const [userRole, setUserRole] = useState(null); // Nuevo estado para el rol
   const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
 
-  useEffect(() => {
-    const nextSlug = hasCountrySlugInPath(pathname) ? pathCountrySlug : getSavedPublicCountrySlug() || pathCountrySlug;
-    setCountrySlug(nextSlug);
-  }, [pathCountrySlug, pathname]);
+  
 
   useEffect(() => {
     // Función para obtener la sesión y el rol

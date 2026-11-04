@@ -1,0 +1,19 @@
+{
+  "mail_sent": false,
+  "production_changed": true,
+  "smtp_applied": false,
+  "logos_applied": false,
+  "errors": [
+    "Relay did not become ready; Auth unchanged"
+  ],
+  "last_step": "systemctl disable --now",
+  "docker_api_version": "1.52",
+  "docker_cli_read_verified": true,
+  "docker_compose_client_available": true,
+  "existing_installation_verified": true,
+  "oauth_refresh_verified_from_dell": true,
+  "rollback_env_private_path": "/dev/shm/catalogo-env-before-gmail-20261030-130212-3945115",
+  "status": "failed_or_partial",
+  "finished_utc": "2026-10-30T13:03:38.335802+00:00",
+  "report_path": "/dev/shm/catalogo-gmail-result-20261030-130212-3945115.json"
+}

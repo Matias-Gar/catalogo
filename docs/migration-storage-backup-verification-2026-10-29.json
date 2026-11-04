@@ -1,0 +1,9 @@
+{
+  "started_utc": "2026-10-29T22:35:07.786Z",
+  "backup_root": "C:\\Users\\saita\\catalogo\\backups\\verification-2026-10-29T21-17-14-362Z",
+  "verified_files": 2521,
+  "verified_bytes": 2474017590,
+  "failures": [],
+  "finished_utc": "2026-10-29T22:35:25.038Z",
+  "passed": true
+}

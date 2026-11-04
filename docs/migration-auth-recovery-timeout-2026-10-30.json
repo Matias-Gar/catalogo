@@ -1,0 +1,12 @@
+{
+  "checked_utc": "2026-10-30T13:38:30.906327+00:00",
+  "production_changed": true,
+  "containers_deleted": 0,
+  "containers_recreated": 0,
+  "original_auth_started": false,
+  "auth_health_ok": false,
+  "last_step": "start_preserved_original_auth",
+  "status": "needs_inspection",
+  "error": "TimeoutError",
+  "finished_utc": "2026-10-30T13:38:42.917355+00:00"
+}

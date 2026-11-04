@@ -1,0 +1,9 @@
+{
+  "cloud_snapshot_users": 6,
+  "dell_backup_users": 6,
+  "matching_nonempty_password_hashes": 6,
+  "different_hashes": 0,
+  "password_plaintext_compared": false,
+  "login_in_private_window_confirmed_by_user": true,
+  "recovery_email_received_by_user": false
+}
