@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
     root: process.cwd(),
   },
   images: {
+    localPatterns: [
+      { pathname: '/**', search: '' },
+      { pathname: '/api/public/catalog-image' },
+    ],
     remotePatterns: [
       { protocol: 'https', hostname: 'garblac.duckdns.org', pathname: '/storage/v1/object/public/**' },
       {

@@ -114,7 +114,7 @@ function HeaderContent({ pathname }) {
         {/* Fila superior: Título */}
         <div className="text-center mb-3">
           <Link href={homeHref}>
-            <div className="flex items-center justify-center gap-2 text-2xl font-extrabold text-white cursor-pointer hover:text-indigo-400 transition duration-200">
+            <div className="catalog-header-brand flex items-center justify-center gap-2 text-2xl font-extrabold text-white cursor-pointer hover:text-indigo-400 transition duration-200">
               {storeSettings.store_logo_url ? (
                 <img
                   src={resolveStorageImageUrl(storeSettings.store_logo_url)}
@@ -133,12 +133,12 @@ function HeaderContent({ pathname }) {
           <div className="flex gap-2">
             {!session && (
               <>
-                <Link href={pedidosHref}>
+                <Link href={pedidosHref} className="catalog-orders">
                   <div className="bg-green-600 hover:bg-green-700 text-white font-bold px-3 py-2 rounded-lg text-sm transition duration-300 shadow-md">
                     🛒 Pedidos
                   </div>
                 </Link>
-                <Link href="/login">
+                <Link href="/login" className="catalog-login">
                   <div className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-2 rounded-lg text-sm transition duration-300 shadow-md">
                     👤 Iniciar Sesión
                   </div>
@@ -153,7 +153,7 @@ function HeaderContent({ pathname }) {
                     Panel
                   </div>
                 </Link>
-                <Link href={pedidosHref}>
+                <Link href={pedidosHref} className="catalog-orders">
                   <div className="bg-green-500 hover:bg-green-600 text-white font-bold px-3 py-2 rounded-lg text-sm transition duration-300 shadow-md">
                     🛒 Pedidos
                   </div>
@@ -174,7 +174,7 @@ function HeaderContent({ pathname }) {
           {session && (
             <button
               onClick={handleLogout}
-              className="px-3 py-2 bg-red-600 rounded-lg text-white font-bold text-sm hover:bg-red-700 transition duration-300 shadow-md"
+              className="catalog-logout px-3 py-2 bg-red-600 rounded-lg text-white font-bold text-sm hover:bg-red-700 transition duration-300 shadow-md"
             >
               Cerrar Sesión
             </button>
@@ -185,7 +185,7 @@ function HeaderContent({ pathname }) {
       {/* Layout desktop (sin cambios) */}
       <div className="hidden sm:flex sm:justify-between sm:items-center">
         <Link href={homeHref}>
-          <div className="flex items-center gap-3 text-3xl font-extrabold text-white cursor-pointer hover:text-indigo-400 transition duration-200">
+          <div className="catalog-header-brand flex items-center gap-3 text-3xl font-extrabold text-white cursor-pointer hover:text-indigo-400 transition duration-200">
             {storeSettings.store_logo_url ? (
               <img
                 src={resolveStorageImageUrl(storeSettings.store_logo_url)}
@@ -204,7 +204,7 @@ function HeaderContent({ pathname }) {
                   Panel
                 </div>
               </Link>
-              <Link href={pedidosHref}>
+              <Link href={pedidosHref} className="catalog-orders">
                 <div className="bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-lg text-base transition duration-300 shadow-md">
                   🛒 Pedidos
                 </div>
@@ -223,19 +223,19 @@ function HeaderContent({ pathname }) {
               )}
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-red-600 rounded-lg text-white font-bold text-base hover:bg-red-700 transition duration-300 shadow-md"
+                className="catalog-logout px-4 py-2 bg-red-600 rounded-lg text-white font-bold text-base hover:bg-red-700 transition duration-300 shadow-md"
               >
                 Cerrar Sesión
               </button>
             </div>
           ) : (
             <>
-              <Link href={pedidosHref}>
+              <Link href={pedidosHref} className="catalog-orders">
                 <div className="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded-lg text-base transition duration-300 shadow-md">
                   🛒 Pedidos
                 </div>
               </Link>
-              <Link href="/login">
+              <Link href="/login" className="catalog-login">
                 <div className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg text-base transition duration-300 shadow-md">
                   👤 Iniciar Sesión
                 </div>

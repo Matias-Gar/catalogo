@@ -10,6 +10,8 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // Local credentials and backups are not application source files.
+  { ignores: [".audit-access/**", "backups/**"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     ignores: [

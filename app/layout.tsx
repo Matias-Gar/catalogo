@@ -3,10 +3,13 @@
 import React from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./catalog-theme.css";
 import Header from "../components/Header";
 import StoreFooter from "../components/StoreFooter";
 import ToastProvider from "@/components/ui/ToastProvider";
 import QZTrayLoader from "../components/QZTrayLoader";
+import { usePathname } from "next/navigation";
+import { stripCountryFromPath } from "../lib/countryRoutes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,6 +26,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = stripCountryFromPath(usePathname() || "/");
+  const isCatalog = pathname === "/" || /^\/(tipo|productos|insumos)(\/|$)/.test(pathname);
   return (
     <html lang="es" translate="no">
       <head>
@@ -33,9 +38,11 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <QZTrayLoader />
-        <Header />
-        {children}
-        <StoreFooter />
+        <div className={isCatalog ? "garblac-theme" : undefined}>
+          <Header />
+          {children}
+          <StoreFooter />
+        </div>
         <ToastProvider />
       </body>
     </html>

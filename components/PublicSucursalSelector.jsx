@@ -149,7 +149,7 @@ export default function PublicSucursalSelector({
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="rounded-full border border-gray-200 bg-white/85 px-3 py-1.5 text-[11px] font-semibold text-gray-600 shadow-sm backdrop-blur transition hover:bg-white hover:text-gray-900"
+        className="catalog-branch-trigger rounded-full border border-gray-200 bg-white/85 px-3 py-1.5 text-[11px] font-semibold text-gray-600 shadow-sm backdrop-blur transition hover:bg-white hover:text-gray-900"
         title="Cambiar sucursal"
       >
         {activeSucursal?.nombre || "Sucursal"}

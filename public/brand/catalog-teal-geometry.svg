@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1000" viewBox="0 0 1440 1000" fill="none">
+  <defs>
+    <linearGradient id="base" x2="1440" y2="1000" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06161C"/>
+      <stop offset=".5" stop-color="#092A31"/>
+      <stop offset="1" stop-color="#040F15"/>
+    </linearGradient>
+    <linearGradient id="facet" x2="1" y2="1">
+      <stop stop-color="#008D96" stop-opacity=".48"/>
+      <stop offset="1" stop-color="#00353F" stop-opacity=".05"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop stop-color="#00D6D2" stop-opacity=".16"/>
+      <stop offset="1" stop-color="#00D6D2" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="tiles" width="300" height="300" patternUnits="userSpaceOnUse" patternTransform="rotate(-15)">
+      <path d="M0 0h300v300H0Z" fill="#061B22" fill-opacity=".2"/>
+      <path d="m0 0 150 150L300 0M150 150v150" stroke="#57CBC8" stroke-opacity=".09"/>
+      <path d="M0 2h298v296" stroke="#000C12" stroke-opacity=".45" stroke-width="3"/>
+    </pattern>
+  </defs>
+  <path fill="url(#base)" d="M0 0h1440v1000H0z"/>
+  <path fill="url(#tiles)" d="M0 0h1440v1000H0z"/>
+  <path d="M0 110 390 420 0 760Z" fill="url(#facet)"/>
+  <path d="m1440 50-470 420 470 340Z" fill="url(#facet)"/>
+  <path d="m0 1000 550-420 500 420Z" fill="url(#facet)" opacity=".45"/>
+  <path d="m0 110 390 310L0 760m1440-710L970 470l470 340" stroke="#00C6CA" stroke-opacity=".25"/>
+  <ellipse cx="130" cy="450" rx="480" ry="500" fill="url(#glow)"/>
+  <ellipse cx="1350" cy="500" rx="500" ry="550" fill="url(#glow)"/>
+</svg>

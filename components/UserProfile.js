@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { resolveStorageImageUrl } from '../lib/storageImageUrl.mjs';
 import { supabase } from '../lib/SupabaseClient';
 import { useRouter } from 'next/navigation';

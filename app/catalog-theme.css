@@ -1,0 +1,297 @@
+
+/* Public catalog only: keep administration and other pages on their own theme. */
+.garblac-theme {
+  --catalog-base: #071C22;
+  --catalog-card: #102C32;
+  --catalog-border: #24555D;
+  --catalog-accent: #00D6D2;
+  --catalog-text: #F1FAF8;
+  --catalog-muted: #B1C8CA;
+  --catalog-hover: #17434A;
+  min-height: 100vh;
+  background-color: var(--catalog-base);
+  color: var(--catalog-text);
+  color-scheme: dark;
+  overflow-wrap: anywhere;
+  position: relative;
+  isolation: isolate;
+}
+/* A fixed layer keeps the artwork proportional on long catalogs and mobile Safari. */
+.garblac-theme::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url("/brand/catalog-teal-geometry.svg");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.garblac-theme .catalog-landing { background-color: transparent; }
+.garblac-theme :is(.min-h-screen, .min-h-\[calc\(100vh-80px\)\]) { background-color: transparent; }
+.garblac-theme :is(.text-xs, .text-sm) { color: inherit !important; }
+.garblac-theme :is(input, textarea, select) {
+  background-color: var(--catalog-card);
+  color: var(--catalog-text) !important;
+  border-color: var(--catalog-border);
+  accent-color: var(--catalog-accent);
+}
+.garblac-theme :is(input, textarea)::placeholder { color: var(--catalog-muted) !important; opacity: 1; }
+.garblac-theme :is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--catalog-accent);
+  outline-offset: 4px;
+}
+.garblac-theme :is(button, summary, a) { -webkit-tap-highlight-color: rgb(0 214 210 / 15%); }
+.garblac-theme header {
+  background: rgb(7 28 34 / 94%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--catalog-border);
+  box-shadow: 0 4px 18px rgb(0 0 0 / 18%);
+}
+.garblac-theme footer { background: rgb(7 28 34 / 96%); border-color: var(--catalog-border); }
+.garblac-theme .catalog-category-card {
+  background: rgb(25 26 28 / 94%);
+  border: 1px solid var(--catalog-border);
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 16%);
+  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+.garblac-theme [data-catalog-primary] {
+  background: var(--catalog-accent);
+  color: var(--catalog-base) !important;
+  min-height: 48px;
+}
+.garblac-theme [data-catalog-icon] {
+  color: var(--catalog-accent);
+  background: rgb(0 214 210 / 8%);
+  border: 1px solid rgb(0 214 210 / 22%);
+  box-shadow: none;
+}
+.garblac-theme [data-catalog-accent] { color: var(--catalog-accent); }
+.garblac-theme [data-catalog-primary] [data-catalog-accent] { background: rgb(7 28 34 / 10%); color: var(--catalog-base); }
+.garblac-theme [data-catalog-soft] { background: var(--catalog-base); }
+.garblac-theme * { scrollbar-color: #24555D #102C32; }
+@media (hover: hover) and (pointer: fine) {
+  .garblac-theme .catalog-category-card:hover {
+    background: var(--catalog-hover);
+    border-color: rgb(0 214 210 / 50%);
+    box-shadow: 0 10px 28px rgb(0 0 0 / 22%);
+    transform: translateY(-3px);
+  }
+  .garblac-theme [data-catalog-primary]:hover { background: #64F2E8; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .garblac-theme *, .garblac-theme *::before, .garblac-theme *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .garblac-theme .catalog-category-card:hover { transform: none; }
+}
+
+.garblac-theme :is(.bg-white, .bg-white\/95, .bg-white\/90, .bg-gray-50, .bg-gray-100, .bg-gray-200, .bg-slate-50, .bg-violet-50, .bg-violet-100, .bg-purple-50, .bg-purple-100, .bg-blue-50, .bg-blue-100, .bg-green-50, .bg-green-100, .bg-orange-50, .bg-rose-50, .bg-red-50, .bg-red-100, .bg-red-200, .bg-yellow-100, .bg-yellow-200) { background-color: var(--catalog-card); }
+
+.garblac-theme :is(.border-gray-50, .border-gray-100, .border-gray-200, .border-gray-300, .border-gray-400, .border-gray-500, .border-gray-900, .border-slate-100, .border-slate-200, .border-violet-50, .border-violet-100, .border-violet-500, .border-violet-600, .border-purple-300, .border-indigo-600, .border-blue-50, .border-blue-400, .border-blue-500, .border-green-50, .border-green-300, .border-green-500, .border-green-600, .border-green-700, .border-red-200, .border-yellow-300, .border-transparent) { border-color: var(--catalog-border); }
+
+.garblac-theme :is(.text-gray-50, .text-gray-100, .text-gray-300, .text-gray-400, .text-gray-500, .text-gray-600, .text-gray-700, .text-gray-800, .text-gray-900, .text-slate-50, .text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500, .text-slate-600, .text-slate-700, .text-slate-900) { color: var(--catalog-muted) !important; }
+
+.garblac-theme :is(.text-white, .text-gray-800, .text-gray-900, .text-slate-900) { color: var(--catalog-text) !important; }
+
+.garblac-theme :is(.text-violet-700, .text-violet-800, .text-purple-600, .text-purple-700, .text-purple-800, .text-purple-900, .text-indigo-400, .text-blue-400, .text-blue-600, .text-blue-700, .text-blue-800, .text-green-600, .text-green-700, .text-green-800, .text-emerald-200, .text-emerald-300, .text-rose-600, .text-red-50, .text-red-200, .text-red-500, .text-red-600, .text-red-700, .text-red-800, .text-yellow-800) { color: var(--catalog-accent) !important; }
+
+.garblac-theme :is(.bg-violet-600, .bg-purple-600, .bg-purple-700, .bg-indigo-600, .bg-indigo-700, .bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-green-700, .bg-orange-500, .bg-orange-600, .bg-rose-600, .bg-red-500, .bg-red-600, .bg-red-700) { background-color: var(--catalog-accent); color: var(--catalog-base) !important; }
+
+@media (hover: hover) {
+.garblac-theme :is(.hover\:bg-gray-100, .hover\:bg-gray-200, .hover\:bg-gray-300, .hover\:bg-violet-50, .hover\:bg-purple-700, .hover\:bg-indigo-700, .hover\:bg-blue-700, .hover\:bg-green-50, .hover\:bg-green-600, .hover\:bg-green-700, .hover\:bg-orange-600, .hover\:bg-red-200, .hover\:bg-red-700):hover { background-color: var(--catalog-hover); color: var(--catalog-text) !important; }
+}
+
+.garblac-theme :is(.from-violet-50\/50, .to-white) { --tw-gradient-from: #102C32; --tw-gradient-to: #071C22; }
+
+.garblac-theme [class*="shadow-"] { --tw-shadow-color: rgb(0 0 0 / 18%); }
+.garblac-theme [class*="focus:ring-"]:focus { --tw-ring-color: rgb(0 214 210 / 30%); }
+.garblac-theme [class*="focus:border-"]:focus { border-color: var(--catalog-accent); }
+.garblac-theme [class*="hover:text-"]:hover { color: var(--catalog-accent) !important; }
+.garblac-theme [class*="bg-gray-950/"] { background-color: rgb(7 28 34 / 90%); }
+.garblac-theme :is(header a, header button, summary) { min-height: 44px; }
+
+/* These explicit roles win over legacy size and text utility overrides. */
+.garblac-theme [data-catalog-icon] { color: var(--catalog-accent) !important; }
+.garblac-theme [data-catalog-primary] { color: var(--catalog-base) !important; }
+.garblac-theme [data-catalog-primary]:hover { color: var(--catalog-base) !important; }
+
+.garblac-theme .min-h-screen { background-color: transparent; }
+
+/* Keep secondary navigation restrained, and the original dark logo legible. */
+.garblac-theme header :is(a > div:not(.catalog-header-brand), button) {
+  background-color: var(--catalog-card);
+  color: var(--catalog-text) !important;
+  border: 1px solid var(--catalog-border);
+}
+.garblac-theme header a[href*="/admin"] > div {
+  background-color: var(--catalog-accent);
+  color: var(--catalog-base) !important;
+}
+.garblac-theme .catalog-brand-logo { background-color: var(--catalog-text); }
+@media (hover: hover) {
+  .garblac-theme header :is(a > div:not(.catalog-header-brand), button):hover { background-color: var(--catalog-hover); color: var(--catalog-text) !important; }
+}
+
+/* Checkout and pack surfaces previously used colored gradients. */
+.garblac-theme :is(.from-purple-50, .to-purple-100) {
+  background-image: none;
+  background-color: var(--catalog-card);
+}
+.garblac-theme :is(.from-green-600, .to-blue-600) {
+  background-image: none;
+  background-color: var(--catalog-accent);
+  color: var(--catalog-base) !important;
+}
+.garblac-theme .bg-blue-700.\!text-white {
+  background-color: var(--catalog-base);
+  border: 1px solid var(--catalog-border);
+}
+.garblac-theme :disabled { opacity: .5; cursor: not-allowed; }
+@media (hover: hover) {
+  .garblac-theme :is(.from-green-600, .to-blue-600):hover {
+    background-color: var(--catalog-hover);
+    color: var(--catalog-text) !important;
+  }
+  .garblac-theme .hover\:bg-violet-50\/70:hover { background-color: var(--catalog-hover); }
+}
+
+/* Teal and turquoise identity inspired by the reference, shared by every category. */
+.garblac-theme :is(.catalog-category-card, .catalog-product-card) {
+  --catalog-card: #F6FBF8;
+  --catalog-text: #102D33;
+  --catalog-muted: #48656A;
+  --catalog-border: #A4CDCB;
+  --catalog-accent: #006B73;
+  --catalog-hover: #DDF3EE;
+  color-scheme: light;
+  color: var(--catalog-text);
+  background: #EEF7F4;
+  border-color: #56B8BB;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 80%), 0 8px 24px rgb(0 0 0 / 28%);
+}
+.garblac-theme .catalog-category-card [data-catalog-soft] { background: #DCEFEA; }
+.garblac-theme :is(.catalog-category-card, .catalog-product-card) * { scrollbar-color: #47989E #DCEFEA; }
+.garblac-theme [data-catalog-icon] {
+  background: linear-gradient(135deg, rgb(0 214 210 / 23%), rgb(0 214 210 / 7%));
+  border-color: rgb(0 214 210 / 55%);
+  box-shadow: 0 0 20px rgb(0 214 210 / 8%);
+}
+.garblac-theme [data-catalog-primary] {
+  background: linear-gradient(110deg, #00D6D2, #64F2E8 55%, #007D87);
+  box-shadow: 0 3px 14px rgb(0 214 210 / 16%);
+  border: 1px solid rgb(100 242 232 / 50%);
+}
+.garblac-theme .catalog-landing > section > div:first-child h2 {
+  color: #64F2E8 !important;
+  text-shadow: 0 2px 22px rgb(0 214 210 / 12%);
+}
+.garblac-theme header { border-bottom-color: rgb(0 214 210 / 40%); }
+.garblac-theme footer { border-top-color: rgb(0 214 210 / 40%); }
+@media (hover: hover) and (pointer: fine) {
+  .garblac-theme :is(.catalog-category-card, .catalog-product-card):hover {
+    border-color: #008D96;
+    background: #F5FFFB;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 30%), 0 0 22px rgb(0 214 210 / 10%);
+  }
+  .garblac-theme [data-catalog-primary]:hover {
+    background: linear-gradient(110deg, #00838D, #00A9B3 55%, #00D6D2);
+  }
+}
+
+/* Solid teal actions echo the sketch, with white text for clear contrast. */
+.garblac-theme [data-catalog-primary] {
+  background: linear-gradient(110deg, #00636D, #007D87);
+  color: #F4FFFD !important;
+  border-color: #39C6C7;
+}
+.garblac-theme [data-catalog-primary] [data-catalog-accent] {
+  background: rgb(255 255 255 / 16%);
+  color: #FFFFFF;
+}
+.garblac-theme .catalog-landing > section > div:first-child h2 {
+  color: #F1FAF8 !important;
+}
+.garblac-theme .catalog-landing h2 .catalog-heading-accent { color: #00E0DC; }
+@media (hover: hover) and (pointer: fine) {
+  .garblac-theme [data-catalog-primary]:hover {
+    background: linear-gradient(110deg, #00535C, #006D76);
+    color: #FFFFFF !important;
+  }
+}
+
+/* Sold-out captions retain contrast over their dark image overlay. */
+.garblac-theme .catalog-product-card [class*="bg-gray-950/"] :is(.text-sm, .text-xs) {
+  color: #F1FAF8 !important;
+}
+
+/* The store identity is a plain link, visually integrated with the header. */
+.garblac-theme header .catalog-header-brand {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+/* Explicit navigation roles retain their familiar action colors. */
+.garblac-theme header a.catalog-orders > div {
+  background-color: #15803D;
+  border-color: #166534;
+  color: #FFFFFF !important;
+}
+.garblac-theme header button.catalog-logout.bg-red-600 {
+  background-color: #DC2626;
+  border-color: #B91C1C;
+  color: #FFFFFF !important;
+}
+.garblac-theme button.catalog-branch-trigger,
+.garblac-theme button.catalog-branch-trigger:hover {
+  color: #000000 !important;
+}
+@media (hover: hover) {
+  .garblac-theme header a.catalog-orders > div:hover { background-color: #166534; }
+  .garblac-theme header button.catalog-logout.bg-red-600:hover { background-color: #B91C1C; }
+}
+
+/* Sign-in action for visitors, matching the requested violet reference. */
+.garblac-theme header a.catalog-login > div {
+  background-color: #5035F2;
+  border-color: #B9ACFF;
+  color: #FFFFFF !important;
+}
+@media (hover: hover) {
+  .garblac-theme header a.catalog-login > div:hover {
+    background-color: #4026D6;
+    color: #FFFFFF !important;
+  }
+}
+
+/* Product copy stays black; prices and promotions retain their own meaning. */
+.garblac-theme .catalog-product-card {
+  --catalog-text: #000000;
+  --catalog-muted: #000000;
+  --catalog-accent: #000000;
+}
+.garblac-theme .catalog-product-card .text-blue-700 { color: #1D4ED8 !important; }
+.garblac-theme .catalog-product-card :is(.text-green-600, .text-green-700) { color: #008A32 !important; }
+.garblac-theme .catalog-product-card .line-through {
+  color: #000000 !important;
+  text-decoration-color: #000000;
+}
+.garblac-theme .catalog-promo-banner {
+  --catalog-text: #FFFFFF;
+  --catalog-muted: #FFFFFF;
+  --catalog-accent: #FFFFFF;
+  color: #FFFFFF;
+}
+.garblac-theme .catalog-promo-banner .bg-rose-600 {
+  background-color: #EF003E;
+  color: #FFFFFF !important;
+}
+.garblac-theme .catalog-promo-banner .bg-rose-50 { background-color: #FFFFFF; }
+.garblac-theme .catalog-promo-banner .text-rose-600 { color: #EF003E !important; }
+.garblac-theme .catalog-promo-banner .border-b-rose-700 { border-bottom-color: #C90035; }

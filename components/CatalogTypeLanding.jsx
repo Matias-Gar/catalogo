@@ -10,15 +10,6 @@ import { getProductViewPublicPath } from "@/lib/productViews";
 import CatalogImage from "@/components/CatalogImage";
 import { usePublicSucursal } from "@/components/PublicSucursalSelector";
 
-const CARD_STYLES = [
-  { accent: "#5b42e8", soft: "#f1efff", border: "#9c8cff" },
-  { accent: "#ff6b16", soft: "#fff3eb", border: "#ffab78" },
-  { accent: "#15945b", soft: "#ecfbf3", border: "#74c99d" },
-  { accent: "#1684c7", soft: "#edf8ff", border: "#72bce8" },
-  { accent: "#df356a", soft: "#fff0f5", border: "#ed8baa" },
-  { accent: "#9a42d1", soft: "#faf0ff", border: "#c68ce8" },
-];
-
 function ViewIcon({ index }) {
   const Icon = index % 3 === 0 ? ShoppingBag : index % 3 === 1 ? Package : Boxes;
   return <Icon className="h-8 w-8" strokeWidth={1.8} />;
@@ -42,28 +33,26 @@ export default function CatalogTypeLanding() {
   }, [activeSucursalId]);
 
   return (
-    <main className="min-h-[calc(100vh-80px)] bg-[radial-gradient(circle_at_top_left,_#ede9fe,_transparent_38%),linear-gradient(180deg,#f8fafc,#f3f6fb)] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+    <main className="min-h-[calc(100vh-80px)] catalog-landing px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <section className="mx-auto max-w-6xl">
         <div className="mx-auto mb-6 max-w-3xl pt-2 text-center">
-          <h2 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">¿Qué deseas ver en el catálogo?</h2>
+          <h2 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">¿Qué deseas ver <span className="catalog-heading-accent">en el catálogo?</span></h2>
           <p className="mt-2 text-sm text-slate-600 sm:text-base">Explora nuestras categorías y descubre todo lo que tenemos para ti.</p>
         </div>
 
         {loadingProductViews || loadingSucursal ? <div className="py-16 text-center font-semibold text-slate-500">Cargando catálogos...</div> : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {productViews.map((view, index) => {
-              const style = CARD_STYLES[index % CARD_STYLES.length];
               const preview = previews[view.value] || { count: 0, categories: [] };
               const viewPath = buildCountryPath(countrySlug, getProductViewPublicPath(view.value));
               const productsPath = buildCountryPath(countrySlug, getProductViewPublicPath(view.value, true));
               return (
                 <article key={view.value}
-                  className="group flex min-h-[255px] flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                  style={{ border: `1px solid ${style.border}` }}>
+                  className="catalog-category-card group flex min-h-[255px] flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white shadow-md" style={{ background: style.accent }}><ViewIcon index={index} /></div>
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white shadow-md" data-catalog-icon><ViewIcon index={index} /></div>
                     <div className="min-w-0 pt-0.5">
-                      <p className="text-[11px] font-black uppercase tracking-[0.16em]" style={{ color: style.accent }}>Catálogo</p>
+                      <p className="text-[11px] font-black uppercase tracking-[0.16em]" data-catalog-accent>Catálogo</p>
                       <h2 className="text-2xl font-black leading-tight text-slate-900">{view.label}</h2>
                       <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-600">Descubre todo lo disponible en esta sección.</p>
                     </div>
@@ -77,13 +66,13 @@ export default function CatalogTypeLanding() {
                         </div>
                         <p className="mt-1 truncate text-[10px] font-bold text-slate-700" title={category.name}>{category.name}</p>
                       </Link>
-                    )) : <div className="flex w-full items-center justify-center rounded-2xl border border-dashed border-slate-200 text-xs font-semibold text-slate-400" style={{ background: style.soft }}>Próximamente nuevas categorías</div>}
+                    )) : <div className="flex w-full items-center justify-center rounded-2xl border border-dashed border-slate-200 text-xs font-semibold text-slate-400" data-catalog-soft>Próximamente nuevas categorías</div>}
                   </div>
 
                   <div className="mt-auto border-t border-slate-200 pt-3">
-                    <Link href={viewPath} className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold text-white" style={{ background: style.accent }}>
+                    <Link href={viewPath} className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold text-white" data-catalog-primary>
                       <span>Ver productos de {view.label.toLowerCase()}</span>
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white" style={{ color: style.accent }}><ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" /></span>
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white" data-catalog-accent><ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" /></span>
                     </Link>
                   </div>
                 </article>
@@ -94,7 +83,7 @@ export default function CatalogTypeLanding() {
 
         <section className="mt-6 overflow-hidden rounded-2xl border border-violet-100 bg-white/95 shadow-sm">
           <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:px-7">
-            <div className="flex h-14 w-16 shrink-0 items-center justify-center rounded-xl bg-slate-50 p-2">
+            <div className="catalog-brand-logo flex h-14 w-16 shrink-0 items-center justify-center rounded-xl bg-slate-50 p-2">
               <img src="/brand/garblac-logo.png" alt="Importadora GARBLAC" className="h-full w-full object-contain" />
             </div>
             <div className="min-w-0 flex-1">

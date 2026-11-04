@@ -772,7 +772,7 @@ function CatalogHome() {
             const imgs = Array.isArray(imagenesProductos[p.user_id]) ? imagenesProductos[p.user_id] : [];
             const galeria = getProductGallery(p.imagen_base || p.imagen_url, imgs);
             return (
-              <div key={p.user_id} className={`relative overflow-hidden rounded-lg border bg-white p-1.5 sm:p-3 shadow-md flex flex-col items-center ${agotado ? 'border-gray-900' : 'border-transparent'}`}>
+              <div key={p.user_id} className={`catalog-product-card relative overflow-hidden rounded-lg border bg-white p-1.5 sm:p-3 shadow-md flex flex-col items-center ${agotado ? 'border-gray-900' : 'border-transparent'}`}>
                 <div className={`w-full ${agotado ? 'h-28 sm:h-44 mb-1' : 'h-32 sm:h-48 mb-1.5'} flex items-center justify-center cursor-pointer relative group`}>
                   {galeria.length > 0 ? (
                     <>

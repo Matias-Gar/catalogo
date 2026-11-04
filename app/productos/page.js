@@ -1311,7 +1311,7 @@ export default function CatalogoPage() {
                             return (
                                 <div
                                     key={producto.user_id ? producto.user_id : 'producto-' + idx}
-                                    className={`relative overflow-hidden bg-white border rounded-lg p-1.5 sm:p-3 shadow-lg flex flex-col transition-shadow duration-300 hover:shadow-xl ${agotado ? 'border-gray-900' : 'border-gray-200'}`}
+                                    className={`catalog-product-card relative overflow-hidden bg-white border rounded-lg p-1.5 sm:p-3 shadow-lg flex flex-col transition-shadow duration-300 hover:shadow-xl ${agotado ? 'border-gray-900' : 'border-gray-200'}`}
                                 >
                                     <div className="relative">
                                         {Array.isArray(imagenes) && imagenes.length > 0 && typeof imagenes[0] === 'string' ? (

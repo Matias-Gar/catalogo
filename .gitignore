@@ -43,3 +43,7 @@ next-env.d.ts
 
 /test-results/
 /playwright-report/
+
+# Local audit credentials and independent backups must never enter Git.
+/.audit-access/
+/backups/

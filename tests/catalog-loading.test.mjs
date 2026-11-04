@@ -45,6 +45,7 @@ test('catalog thumbnails use the real Next image optimizer at quality 75', () =>
     React.createElement(CatalogImage, { sources: [src], alt: 'Gafas', sizes: '50vw' })));
   assert.match(html, /\/_next\/image\?url=/);
   assert.match(html, /q=75/);
+  assert.match(html, /catalog-image/);
   assert.doesNotMatch(html, /format=origin|quality=96/);
 });
 
