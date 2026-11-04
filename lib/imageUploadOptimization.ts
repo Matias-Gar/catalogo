@@ -77,6 +77,9 @@ export async function optimizeImageForUpload(
   }
 
   if (SKIP_MIME_TYPES.has(file.type)) {
+    if (file.size > cfg.hardMaxBytes) {
+      throw new Error('La imagen supera el límite permitido. Reduce su tamaño antes de subirla.')
+    }
     return { file, optimized: false, originalBytes: file.size, finalBytes: file.size }
   }
 
@@ -94,7 +97,7 @@ export async function optimizeImageForUpload(
     const outHeight = Math.max(1, Math.round(height * scale))
 
     const needResize = outWidth !== width || outHeight !== height
-    const needsOptimization = originalBytes > cfg.targetMaxBytes || needResize
+    const needsOptimization = originalBytes > Math.min(cfg.targetMaxBytes, cfg.hardMaxBytes) || needResize
 
     if (!needsOptimization) {
       return { file, optimized: false, originalBytes, finalBytes: originalBytes }
@@ -106,7 +109,7 @@ export async function optimizeImageForUpload(
 
     const ctx = canvas.getContext("2d", { alpha: true })
     if (!ctx) {
-      return { file, optimized: false, originalBytes, finalBytes: originalBytes }
+      throw new Error('Canvas unavailable')
     }
 
     ctx.imageSmoothingEnabled = true
@@ -128,7 +131,7 @@ export async function optimizeImageForUpload(
     }
 
     if (!bestBlob) {
-      return { file, optimized: false, originalBytes, finalBytes: originalBytes }
+      throw new Error('Image encoding unavailable')
     }
 
     // Si no mejora y todavía no supera límite duro, conservar original para máxima fidelidad.
@@ -156,6 +159,11 @@ export async function optimizeImageForUpload(
       finalBytes: optimizedFile.size,
     }
   } catch {
+    // Do not silently return an oversized original after decoding/compression
+    // fails: the caller would upload a file outside its configured hard limit.
+    if (originalBytes > cfg.hardMaxBytes) {
+      throw new Error('No pudimos reducir la imagen al tamaño permitido. Usa una imagen más pequeña.')
+    }
     return { file, optimized: false, originalBytes, finalBytes: originalBytes }
   }
 }

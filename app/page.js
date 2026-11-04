@@ -3,7 +3,7 @@
 import { scheduleEffect } from '../lib/scheduleEffect';
 import React, { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { supabase } from '../lib/SupabaseClient';
+import { publicSupabase as supabase } from '../lib/supabasePublic';
 import { PrecioConPromocion, calcularPrecioConPromocion, PromoCompactBanner } from '../lib/promociones';
 import { usePromociones } from '../lib/usePromociones';
 import { usePacks, calcularDescuentoPack } from '../lib/packs';

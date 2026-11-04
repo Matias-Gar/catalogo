@@ -18,6 +18,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { usePromociones } from "@/lib/usePromociones";
 import { usePacks, calcularDescuentoPack } from "@/lib/packs";
 import { supabase } from "@/lib/SupabaseClient";
+import { publicSupabase } from "@/lib/supabasePublic";
+import { runCatalogQuery } from "@/lib/catalogRequest";
 import { DEFAULT_STORE_SETTINGS, fetchStoreSettings } from "@/lib/storeSettings";
 import { PrecioConPromocion, calcularPrecioConPromocion, PromoCompactBanner } from "@/lib/promociones";
 import { normalizeProductView } from "@/lib/productViews";
@@ -141,6 +143,8 @@ function CatalogoContent() {
             const [loadedCartKey, setLoadedCartKey] = useState(null);
             const cart = useMemo(() => storedCart.map(item => priceCatalogItem(item, promociones, productos)), [storedCart, promociones, productos]);
             const pendingOrderRequestKeyRef = useRef(null);
+            const catalogLoadRef = useRef(0);
+            const [catalogError, setCatalogError] = useState('');
             const sendingOrderRef = useRef(false);
             const [sendingOrder, setSendingOrder] = useState(false);
         const [usuario, setUsuario] = useState(null);
@@ -315,11 +319,11 @@ function CatalogoContent() {
         const ids = items.map((item) => item.user_id).filter(Boolean);
         if (ids.length === 0) return items;
         try {
-            let productDetailsQuery = supabase
+            let productDetailsQuery = publicSupabase
                 .from('productos')
                 .select('user_id, unidad_base, unidades_alternativas, factor_conversion, vista_producto, stock')
                 .in('user_id', ids);
-            let variantsQuery = supabase
+            let variantsQuery = publicSupabase
                 .from('producto_variantes')
                 .select('producto_id, id, color, stock, stock_decimal, precio, imagen_url, sku')
                 .in('producto_id', ids);
@@ -328,8 +332,8 @@ function CatalogoContent() {
                 variantsQuery = variantsQuery.eq('sucursal_id', activeSucursalId);
             }
             const [{ data, error }, { data: variantRows }] = await Promise.all([
-                productDetailsQuery,
-                variantsQuery,
+                runCatalogQuery(productDetailsQuery),
+                runCatalogQuery(variantsQuery),
             ]);
             if (error || !Array.isArray(data)) return items;
             const byId = new Map(data.map((row) => [String(row.user_id), row]));
@@ -382,6 +386,8 @@ function CatalogoContent() {
     );
     // --- Refactor: función de fetch fuera del useEffect para poder reutilizarla ---
     const fetchProductosYCategoriasYImagenes = async () => {
+        const load = ++catalogLoadRef.current;
+        const started = Date.now();
         if (sucursalesLoading) return;
         if (!activeSucursalId) {
             setProductos([]);
@@ -389,18 +395,20 @@ function CatalogoContent() {
             setImagenesProductos({});
             return;
         }
+        setCatalogError('');
+        try {
         // Usar la misma vista pública que la home para evitar desajustes entre rutas.
-        let catalogQuery = supabase
+        let catalogQuery = publicSupabase
             .from('v_productos_catalogo')
             .select('producto_id, nombre, descripcion, precio_base, imagen_base, category_id, categoria, stock_total, codigo_barra, variantes');
         if (activeSucursalId) catalogQuery = catalogQuery.eq('sucursal_id', activeSucursalId);
 
-        let categoriasQuery = supabase
+        let categoriasQuery = publicSupabase
             .from('categorias')
             .select('*');
         if (activeSucursalId) categoriasQuery = categoriasQuery.eq('sucursal_id', activeSucursalId);
 
-        let imagenesQuery = supabase
+        let imagenesQuery = publicSupabase
             .from('producto_imagenes')
             .select('producto_id, imagen_url');
         if (activeSucursalId) imagenesQuery = imagenesQuery.eq('sucursal_id', activeSucursalId);
@@ -410,11 +418,10 @@ function CatalogoContent() {
             { data: productosData, error: productosError },
             { data: categoriasData, error: categoriasError },
             { data: imagenesData, error: imagenesError },
-        ] = await Promise.all([catalogQuery, categoriasQuery, imagenesQuery]);
+        ] = await Promise.all([runCatalogQuery(catalogQuery), runCatalogQuery(categoriasQuery), runCatalogQuery(imagenesQuery)]);
+        if (load !== catalogLoadRef.current) return;
         if (productosError || !productosData) {
-            setProductos([]);
-            setImagenesProductos({});
-            return;
+            throw new Error('Catalog query failed');
         }
         const normalizedBase = productosData.map((p) => ({
                         ...p,
@@ -448,6 +455,7 @@ function CatalogoContent() {
                 }));
         const normalizedProducts = dedupeCatalogProducts((await mergeProductUnits(normalizedBase))
             .filter((p) => normalizeProductView(p.vista_producto) === currentPublicView));
+        if (load !== catalogLoadRef.current) return;
         setProductos(normalizedProducts);
 
         if (!categoriasError && categoriasData) {
@@ -466,12 +474,20 @@ function CatalogoContent() {
             imgs[key].push(img.imagen_url);
         });
         setImagenesProductos(imgs);
+        } catch {
+            if (load !== catalogLoadRef.current) return;
+            setCatalogError('No pudimos cargar los productos. Comprueba tu conexión y vuelve a intentarlo.');
+            console.warn('catalog_read_failed', { route: '/productos', operation: 'read_catalog', service: 'postgrest', duration_ms: Date.now() - started });
+        }
     };
 
     useEffect(() => {
       return scheduleEffect(() => {
+        setProductos([]);
+        setCategorias([]);
+        setImagenesProductos({});
         fetchProductosYCategoriasYImagenes();
-    
+        return () => { catalogLoadRef.current += 1; };
       });
     }, [currentPublicView, activeSucursalId, sucursalesLoading]);
 
@@ -692,14 +708,14 @@ function CatalogoContent() {
         let productoDB = null;
         let varianteDB = null;
         try {
-            let prodWithUnitsQuery = supabase
+            let prodWithUnitsQuery = publicSupabase
                 .from('productos')
                 .select('user_id, nombre, precio, imagen_url, stock, unidad_base, unidades_alternativas, factor_conversion')
                 .eq('user_id', producto.user_id);
             if (activeSucursalId) prodWithUnitsQuery = prodWithUnitsQuery.eq('sucursal_id', activeSucursalId);
             const { data: prodWithUnits, error: prodWithUnitsError } = await prodWithUnitsQuery.maybeSingle();
             if (prodWithUnitsError) {
-                let prodFallbackQuery = supabase
+                let prodFallbackQuery = publicSupabase
                     .from('productos')
                     .select('user_id, nombre, precio, imagen_url, stock')
                     .eq('user_id', producto.user_id);
@@ -714,7 +730,7 @@ function CatalogoContent() {
                     setModalWarning('Debes seleccionar un color para continuar.');
                     return;
                 }
-                let variantQuery = supabase
+                let variantQuery = publicSupabase
                     .from('producto_variantes')
                     .select('id, color, stock, stock_decimal, precio, imagen_url')
                     .eq('id', selectedVarianteId);
@@ -1121,6 +1137,10 @@ function CatalogoContent() {
                 setActiveSucursalId={setActiveSucursalId}
                 sucursales={sucursales}
             />
+            {catalogError && <div role="alert" className="my-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+                <p>{catalogError}</p>
+                <button type="button" onClick={() => { void fetchProductosYCategoriasYImagenes(); }} className="mt-2 rounded bg-red-700 px-4 py-2 text-white">Reintentar carga</button>
+            </div>}
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-extrabold text-gray-900 text-center flex items-center gap-2">
                     {storeSettings?.store_logo_url ? (

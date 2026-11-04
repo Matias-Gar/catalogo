@@ -13,7 +13,9 @@
     "test:viewer": "playwright test",
     "test:inventory": "node tests/inventory-invariants.test.mjs",
     "migrate:clientes": "psql \"$DATABASE_URL\" -f database/create_clientes_table.sql || echo 'ERROR: set $DATABASE_URL (pSQL) or run SQL in Supabase dashboard'",
-    "migrate:ventas": "psql \"$DATABASE_URL\" -f database/add_cliente_nit_to_ventas.sql || echo 'ERROR: set $DATABASE_URL (pSQL) or run SQL in Supabase dashboard'"
+    "migrate:ventas": "psql \"$DATABASE_URL\" -f database/add_cliente_nit_to_ventas.sql || echo 'ERROR: set $DATABASE_URL (pSQL) or run SQL in Supabase dashboard'",
+    "postinstall": "node scripts/patch-auth-subscription.mjs",
+    "prebuild": "node scripts/patch-auth-subscription.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

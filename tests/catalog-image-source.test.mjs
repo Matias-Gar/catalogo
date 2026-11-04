@@ -125,3 +125,19 @@ test('corrupt images and oversized originals are rejected without a successful c
     assert.equal(response.headers.get('cache-control'), null);
   }
 });
+
+test('chunked images without Content-Length cannot bypass the limit, resized or original', async () => {
+  for (const suffix of ['', '&w=96']) {
+    let cancelled = false;
+    const GET = loadRoute(async () => new Response(new ReadableStream({
+      start(controller) {
+        for (let index = 0; index < 17; index++) controller.enqueue(new Uint8Array(1024 * 1024));
+      },
+      cancel() { cancelled = true; },
+    }), { headers: { 'content-type': 'image/png' } }));
+    const response = await GET({ url: request(path).url + suffix });
+    assert.equal(response.status, 413);
+    assert.equal(response.headers.get('cache-control'), null);
+    assert.equal(cancelled, true);
+  }
+});

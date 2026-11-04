@@ -28,22 +28,32 @@ function HeaderContent({ pathname }) {
   
 
   useEffect(() => {
+    let mounted = true;
+    let version = 0;
     // Función para obtener la sesión y el rol
     const fetchSessionAndRole = async (s) => {
-      const currentSession = s || (await supabase.auth.getSession()).data.session;
-      setSession(currentSession);
+      const request = ++version;
+      try {
+        const currentSession = s || (await supabase.auth.getSession()).data.session;
+        if (!mounted || request !== version) return;
+        setSession(currentSession);
 
-      if (currentSession) {
-        // Si hay sesión, intentamos obtener el rol
-        const { data: profile } = await supabase
-          .from('perfiles')
-          .select('rol')
-          .eq('id', currentSession.user.id)
-          .single();
+        if (currentSession) {
+          // Si hay sesión, intentamos obtener el rol
+          const { data: profile } = await supabase
+            .from('perfiles')
+            .select('rol')
+            .eq('id', currentSession.user.id)
+            .single();
         
-        setUserRole(profile?.rol || 'cliente');
-      } else {
-        setUserRole(null);
+          if (mounted && request === version) setUserRole(profile?.rol || 'cliente');
+        } else {
+          setUserRole(null);
+        }
+      } catch {
+        // A failed private session must not crash the public navigation.
+        // Preserve stored credentials; the login flow can retry normally.
+        if (mounted && request === version) { setSession(null); setUserRole(null); }
       }
     };
 
@@ -52,17 +62,19 @@ function HeaderContent({ pathname }) {
     // Suscripción para escuchar los cambios de estado (login/logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (!mounted) return;
+        version += 1;
         setSession(session);
         // Si la sesión cambia, volvemos a obtener el rol
         if (session) {
-            fetchSessionAndRole(session);
+            setTimeout(() => { if (mounted) void fetchSessionAndRole(session); }, 0);
         } else {
             setUserRole(null);
         }
       }
     );
 
-    return () => subscription.unsubscribe(); // Limpiar el listener
+    return () => { mounted = false; version += 1; subscription.unsubscribe(); }; // Limpiar el listener
   }, []);
 
   useEffect(() => {

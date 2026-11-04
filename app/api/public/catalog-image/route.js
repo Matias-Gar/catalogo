@@ -46,24 +46,26 @@ export async function GET(request) {
       await upstream.body?.cancel();
       return new Response('Image too large', { status: 413 });
     }
-    let body = upstream.body;
+    // Enforce the same bound even when Content-Length or resize parameters are
+    // absent. Reject before returning a cacheable 200 with a truncated image.
+    const reader = upstream.body?.getReader();
+    if (!reader) return new Response('Empty image', { status: 502 });
+    const chunks = [];
+    let bytes = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > MAX_BYTES) {
+        await reader.cancel();
+        return new Response('Image too large', { status: 413 });
+      }
+      chunks.push(value);
+    }
+    let body = Buffer.concat(chunks);
     let outputType = contentType;
     if (width !== null) {
-      const reader = upstream.body?.getReader();
-      if (!reader) return new Response('Empty image', { status: 502 });
-      const chunks = [];
-      let bytes = 0;
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        bytes += value.byteLength;
-        if (bytes > MAX_BYTES) {
-          await reader.cancel();
-          return new Response('Image too large', { status: 413 });
-        }
-        chunks.push(value);
-      }
-      body = await sharp(Buffer.concat(chunks), { limitInputPixels: 40000000, animated: true })
+      body = await sharp(body, { limitInputPixels: 40000000, animated: true })
         .timeout({ seconds: 10 }).rotate().resize({ width: Number(width), withoutEnlargement: true })
         .webp({ quality: Number(quality), effort: 4 }).toBuffer();
       outputType = 'image/webp';
